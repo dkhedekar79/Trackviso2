@@ -1,13 +1,11 @@
 import { useState } from "react";
-import { doc, setDoc } from "firebase/firestore";
-import { db } from "../firebase";
 import { useAuth } from "../context/AuthContext";
 
 export default function NameCollection({ onComplete }) {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const { user, fetchUserProfile } = useAuth();
+  const { user, updateUserProfile } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,21 +18,15 @@ export default function NameCollection({ onComplete }) {
     setError("");
 
     try {
-      console.log("Saving name to Firestore:", name.trim(), "for user:", user.uid);
+      console.log("Saving name to Supabase:", name.trim(), "for user:", user.id);
 
-      // Save user profile to Firestore
-      await setDoc(doc(db, "users", user.uid), {
+      // Save user profile to Supabase
+      await updateUserProfile({
         name: name.trim(),
-        email: user.email,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        created_at: new Date().toISOString()
       });
 
-      console.log("Name saved successfully, refreshing profile...");
-
-      // Refresh the user profile in AuthContext
-      await fetchUserProfile(user.uid);
-
+      console.log("Name saved successfully!");
       onComplete();
     } catch (err) {
       setError("Failed to save your name. Please try again.");
