@@ -632,6 +632,44 @@ export const GamificationProvider = ({ children }) => {
     return enhancedSession;
   };
 
+  // Daily quest templates
+  const dailyQuestTemplates = [
+    { id: 'complete_session', name: 'Complete 1 study session today', description: 'Complete 1 study session today', type: 'sessions', target: 1, xp: 50, icon: '✅' },
+    { id: 'study_25_min', name: 'Study for at least 25 minutes', description: 'Study for at least 25 minutes (Pomodoro length)', type: 'time', target: 25, xp: 75, icon: '⏰' },
+    { id: 'review_flashcards', name: 'Review your flashcards', description: 'Review your flashcards (min. 10 cards)', type: 'flashcards', target: 10, xp: 40, icon: '🃏' },
+    { id: 'finish_task', name: 'Finish 1 assigned task', description: 'Finish 1 assigned task', type: 'tasks', target: 1, xp: 60, icon: '📋' },
+    { id: 'log_reflection', name: 'Log a reflection/note', description: 'Log a reflection/note about your study', type: 'reflection', target: 1, xp: 30, icon: '📝' },
+    { id: 'maintain_streak', name: 'Maintain your streak', description: 'Maintain your streak (log in + study)', type: 'streak', target: 1, xp: 100, icon: '🔥' },
+    { id: 'earn_50_xp', name: 'Earn at least 50 XP today', description: 'Earn at least 50 XP today', type: 'xp', target: 50, xp: 25, icon: '⭐' },
+    { id: 'beat_personal_best', name: 'Beat your personal best', description: 'Beat your personal best focus time from yesterday', type: 'personal_best', target: 1, xp: 80, icon: '🏆' },
+    { id: 'early_bird', name: 'Early bird bonus', description: 'Use the app before 10 AM (early bird bonus)', type: 'early_bird', target: 1, xp: 60, icon: '🐦' },
+    { id: 'night_owl', name: 'Night owl bonus', description: 'Study after 8 PM (night owl bonus)', type: 'night_owl', target: 1, xp: 60, icon: '🦉' },
+    { id: 'new_subject', name: 'Explore a new subject', description: 'Explore a new subject/topic (not yesterday\'s)', type: 'new_subject', target: 1, xp: 70, icon: '🌟' },
+    { id: 'zero_distractions', name: 'Zero distractions', description: 'Log zero distractions for one session', type: 'focus', target: 1, xp: 90, icon: '🎯' },
+    { id: 'two_subjects', name: 'Study two different subjects', description: 'Study two different subjects in one day', type: 'subjects', target: 2, xp: 80, icon: '📚' },
+    { id: 'three_sessions', name: 'Three separate sessions', description: 'Use the app for 3 separate study sessions', type: 'sessions', target: 3, xp: 120, icon: '🔄' },
+    { id: 'speed_review', name: 'Speed review challenge', description: 'Do a speed review challenge (answer as many Qs as possible in 3 mins)', type: 'speed_review', target: 1, xp: 100, icon: '⚡' }
+  ];
+
+  // Weekly quest templates
+  const weeklyQuestTemplates = [
+    { id: 'weekly_7_sessions', name: 'Complete 7 study sessions this week', description: 'Complete 7 study sessions this week', type: 'sessions', target: 7, xp: 300, icon: '🏆' },
+    { id: 'weekly_5_hours', name: 'Study for 5+ total hours this week', description: 'Study for 5+ total hours this week', type: 'time', target: 300, xp: 400, icon: '⏳' },
+    { id: 'weekly_1000_xp', name: 'Earn 1,000 XP this week', description: 'Earn 1,000 XP this week', type: 'xp', target: 1000, xp: 200, icon: '💎' },
+    { id: 'weekly_5_day_streak', name: 'Hit your streak 5 days in a row', description: 'Hit your streak at least 5 days in a row', type: 'streak', target: 5, xp: 350, icon: '🔥' },
+    { id: 'weekly_finish_tasks', name: 'Finish all scheduled tasks', description: 'Finish all your scheduled tasks', type: 'tasks', target: 1, xp: 250, icon: '✅' },
+    { id: 'weekly_3_subjects', name: 'Complete 3 subjects\' reviews', description: 'Complete at least 3 subjects\' flashcard reviews', type: 'subjects', target: 3, xp: 300, icon: '📖' },
+    { id: 'weekly_new_level', name: 'Reach a new level', description: 'Reach a new level', type: 'level', target: 1, xp: 500, icon: '📈' },
+    { id: 'weekly_achievement', name: 'Unlock at least 1 achievement', description: 'Unlock at least 1 achievement', type: 'achievement', target: 1, xp: 200, icon: '🏅' },
+    { id: 'weekly_weekend_study', name: 'Study on weekend and weekday', description: 'Study on both a weekday and a weekend', type: 'week_balance', target: 1, xp: 150, icon: '📅' },
+    { id: 'weekly_mood_tracking', name: 'Record mood after every session', description: 'Record your mood/energy level after every study session', type: 'mood', target: 1, xp: 180, icon: '😊' },
+    { id: 'weekly_double_days', name: 'Two double study days', description: 'Do two double study days (2+ hours each)', type: 'double_days', target: 2, xp: 400, icon: '⚡' },
+    { id: 'weekly_50_flashcards', name: 'Review 50+ flashcards', description: 'Review 50+ flashcards across subjects', type: 'flashcards', target: 50, xp: 250, icon: '🃏' },
+    { id: 'weekly_75_focus', name: 'Reach 75%+ focus rate', description: 'Reach a weekly focus rate of 75%+ (tracked time / planned time)', type: 'focus_rate', target: 75, xp: 300, icon: '🎯' },
+    { id: 'weekly_beat_last_week', name: 'Beat last week\'s total XP', description: 'Beat last week\'s total XP', type: 'xp_improvement', target: 1, xp: 400, icon: '📊' },
+    { id: 'weekly_3_consecutive_days', name: 'Maintain focus 3 consecutive days', description: 'Maintain focus across 3 consecutive days with no skipped study', type: 'consecutive_focus', target: 3, xp: 350, icon: '🔒' }
+  ];
+
   // Generate contextual daily quests based on user's actual performance
   const generateDailyQuests = () => {
     // Calculate user's average performance to set realistic targets
@@ -639,83 +677,31 @@ export const GamificationProvider = ({ children }) => {
       ? Math.round(userStats.sessionHistory.reduce((sum, s) => sum + s.durationMinutes, 0) / userStats.sessionHistory.length)
       : 25;
 
-    const avgSessionsPerDay = userStats.totalSessions > 0 && userStats.sessionHistory.length > 0
-      ? Math.max(1, Math.round(userStats.totalSessions / Math.max(1, Math.floor((Date.now() - new Date(userStats.sessionHistory[userStats.sessionHistory.length - 1]?.timestamp || Date.now()).getTime()) / (1000 * 60 * 60 * 24)))))
-      : 1;
-
-    const userSubjectCount = Object.keys(userStats.subjectMastery || {}).length;
-
-    const questTemplates = [
-      {
-        id: 'study_time',
-        name: 'Time Master',
-        description: 'Study for {target} minutes today',
-        type: 'time',
-        targets: [
-          Math.max(15, avgSessionLength - 10),
-          avgSessionLength,
-          Math.min(120, avgSessionLength + 15),
-          Math.min(180, avgSessionLength + 30)
-        ],
-        xp: (target) => Math.round(target * 1.5),
-        icon: '⏰'
-      },
-      {
-        id: 'session_count',
-        name: 'Session Warrior',
-        description: 'Complete {target} study sessions',
-        type: 'sessions',
-        targets: [
-          Math.max(1, avgSessionsPerDay),
-          Math.max(2, avgSessionsPerDay + 1),
-          Math.max(3, avgSessionsPerDay + 2),
-          Math.max(4, avgSessionsPerDay + 3)
-        ],
-        xp: (target) => target * 25,
-        icon: '🎯'
-      },
-      {
-        id: 'subject_variety',
-        name: 'Scholar\'s Variety',
-        description: 'Study {target} different subjects',
-        type: 'subjects',
-        targets: userSubjectCount > 0 ? [
-          Math.min(userSubjectCount, 2),
-          Math.min(userSubjectCount, 3),
-          Math.min(userSubjectCount + 1, 4)
-        ] : [2, 3],
-        xp: (target) => target * 30,
-        icon: '📚'
-      },
-      {
-        id: 'streak_maintain',
-        name: 'Streak Guardian',
-        description: 'Maintain your daily streak',
-        type: 'streak',
-        targets: [1],
-        xp: () => 50 + Math.max(0, userStats.currentStreak) * 5,
-        icon: '🔥'
+    // Filter and select 3 random daily quests
+    const availableQuests = dailyQuestTemplates.filter(quest => {
+      // Customize quest targets based on user performance
+      if (quest.type === 'time' && quest.target === 25) {
+        quest.target = Math.max(15, Math.min(60, avgSessionLength));
+        quest.xp = Math.round(quest.target * 2);
       }
-    ];
+      return true;
+    });
 
-    const selectedQuests = questTemplates
+    const selectedQuests = availableQuests
       .sort(() => Math.random() - 0.5)
       .slice(0, 3)
-      .map(template => {
-        const target = template.targets[Math.floor(Math.random() * template.targets.length)];
-        return {
-          id: template.id + '_' + Date.now(),
-          name: template.name,
-          description: template.description.replace('{target}', target),
-          type: template.type,
-          target,
-          progress: 0,
-          completed: false,
-          xp: template.xp(target),
-          icon: template.icon,
-          deadline: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-        };
-      });
+      .map(template => ({
+        id: template.id + '_' + Date.now(),
+        name: template.name,
+        description: template.description,
+        type: template.type,
+        target: template.target,
+        progress: 0,
+        completed: false,
+        xp: template.xp,
+        icon: template.icon,
+        deadline: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+      }));
 
     setUserStats(prev => ({
       ...prev,
@@ -723,10 +709,35 @@ export const GamificationProvider = ({ children }) => {
     }));
   };
 
-  // Update quest progress
+  // Generate weekly quests
+  const generateWeeklyQuests = () => {
+    const selectedQuests = weeklyQuestTemplates
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 5)
+      .map(template => ({
+        id: template.id + '_' + Date.now(),
+        name: template.name,
+        description: template.description,
+        type: template.type,
+        target: template.target,
+        progress: 0,
+        completed: false,
+        xp: template.xp,
+        icon: template.icon,
+        deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+      }));
+
+    setUserStats(prev => ({
+      ...prev,
+      weeklyQuests: selectedQuests
+    }));
+  };
+
+  // Update quest progress for both daily and weekly quests
   const updateQuestProgress = (type, amount = 1, subjectName = null) => {
     setUserStats(prev => {
-      const updatedQuests = prev.dailyQuests.map(quest => {
+      // Update daily quests
+      const updatedDailyQuests = prev.dailyQuests.map(quest => {
         if (quest.completed || quest.type !== type) return quest;
         
         let newProgress = quest.progress;
@@ -749,15 +760,16 @@ export const GamificationProvider = ({ children }) => {
           case 'streak':
             newProgress = prev.currentStreak > 0 ? 1 : 0;
             break;
+          case 'xp':
+            newProgress = prev.weeklyXP || 0;
+            break;
         }
         
         const completed = newProgress >= quest.target;
         
         if (completed && !quest.completed) {
-          // Award quest completion XP
           const questXP = quest.xp || 0;
           setTimeout(() => {
-            // Actually add XP to user stats
             setUserStats(prevStats => ({
               ...prevStats,
               xp: prevStats.xp + questXP,
@@ -782,10 +794,70 @@ export const GamificationProvider = ({ children }) => {
           completed
         };
       });
+
+      // Update weekly quests
+      const updatedWeeklyQuests = prev.weeklyQuests.map(quest => {
+        if (quest.completed || quest.type !== type) return quest;
+        
+        let newProgress = quest.progress;
+        
+        switch (type) {
+          case 'time':
+            // Weekly time tracking
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            const weekSessions = prev.sessionHistory.filter(s => new Date(s.timestamp) > oneWeekAgo);
+            newProgress = weekSessions.reduce((total, s) => total + s.durationMinutes, 0);
+            break;
+          case 'sessions':
+            // Weekly session count
+            const weekAgo = new Date();
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            const weeklySessions = prev.sessionHistory.filter(s => new Date(s.timestamp) > weekAgo);
+            newProgress = weeklySessions.length;
+            break;
+          case 'xp':
+            newProgress = prev.weeklyXP || 0;
+            break;
+          case 'streak':
+            newProgress = prev.currentStreak;
+            break;
+        }
+        
+        const completed = newProgress >= quest.target;
+        
+        if (completed && !quest.completed) {
+          const questXP = quest.xp || 0;
+          setTimeout(() => {
+            setUserStats(prevStats => ({
+              ...prevStats,
+              xp: prevStats.xp + questXP,
+              totalXPEarned: (prevStats.totalXPEarned || prevStats.xp || 0) + questXP,
+              weeklyXP: (prevStats.weeklyXP || 0) + questXP,
+              level: getLevelFromXP(prevStats.xp + questXP)
+            }));
+
+            addReward({
+              type: 'WEEKLY_QUEST_COMPLETE',
+              title: `🏆 ${quest.name}`,
+              description: quest.description,
+              tier: 'epic',
+              xp: questXP
+            });
+          }, 100);
+        }
+        
+        return {
+          ...quest,
+          progress: Math.min(newProgress, quest.target),
+          completed
+        };
+      });
       
       return {
         ...prev,
-        dailyQuests: updatedQuests
+        dailyQuests: updatedDailyQuests,
+        weeklyQuests: updatedWeeklyQuests
       };
     });
   };
@@ -862,6 +934,7 @@ export const GamificationProvider = ({ children }) => {
     getXPProgress,
     getXPForLevel,
     generateDailyQuests,
+    generateWeeklyQuests,
     updateQuestProgress,
     checkAchievements,
     unlockAchievement,

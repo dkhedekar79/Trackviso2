@@ -42,15 +42,19 @@ const GamifiedDashboard = () => {
     getXPForLevel,
     addReward,
     generateDailyQuests,
+    generateWeeklyQuests,
   } = useGamification();
 
   const [activeTab, setActiveTab] = useState("overview");
   const [showQuickActions, setShowQuickActions] = useState(false);
 
-  // Generate daily quests on component mount
+  // Generate daily and weekly quests on component mount
   useEffect(() => {
     if (userStats.dailyQuests.length === 0) {
       generateDailyQuests();
+    }
+    if (userStats.weeklyQuests.length === 0) {
+      generateWeeklyQuests();
     }
   }, []);
 
