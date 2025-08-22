@@ -53,7 +53,7 @@ const PREMIUM_PLANS = {
       { id: 'advanced_stats', name: 'Advanced Analytics', icon: TrendingUp, premium: true },
       { id: 'exclusive_quests', name: 'Elite Quests', icon: Target, premium: true },
       { id: 'custom_titles', name: 'Custom Titles', icon: Award, premium: true },
-      { id: 'leaderboard_badge', name: 'Elite Badge', icon: Gem, premium: true }
+      { id: 'elite_badge', name: 'Elite Badge', icon: Gem, premium: true }
     ],
     limits: {
       xpMultiplier: 2.0,
@@ -81,7 +81,7 @@ const PREMIUM_PLANS = {
       { id: 'advanced_stats', name: 'Advanced Analytics', icon: TrendingUp, premium: true },
       { id: 'exclusive_quests', name: 'Legend Quests', icon: Target, premium: true },
       { id: 'custom_titles', name: 'Custom Titles', icon: Award, premium: true },
-      { id: 'leaderboard_badge', name: 'Legend Badge', icon: Gem, premium: true },
+      { id: 'legend_badge', name: 'Legend Badge', icon: Gem, premium: true },
       { id: 'private_coaching', name: 'Private Study Coach', icon: Users, premium: true },
       { id: 'unlimited_groups', name: 'Unlimited Study Groups', icon: Users, premium: true }
     ],

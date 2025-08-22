@@ -113,20 +113,20 @@ export default function Insights() {
 
   const subjectTimeDistribution = getSubjectTimeDistribution();
 
-  // Subject Leaderboard (All Time)
-  const getSubjectLeaderboard = () => {
-    const leaderboard = {};
-    
+  // Subject Study Summary (All Time)
+  const getSubjectSummary = () => {
+    const summary = {};
+
     // Calculate total time for each subject across all sessions
     studySessions.forEach(session => {
-      if (!leaderboard[session.subjectName]) {
-        leaderboard[session.subjectName] = 0;
+      if (!summary[session.subjectName]) {
+        summary[session.subjectName] = 0;
       }
-      leaderboard[session.subjectName] += session.durationMinutes;
+      summary[session.subjectName] += session.durationMinutes;
     });
-    
+
     // Convert to array and sort by total time (descending)
-    return Object.entries(leaderboard)
+    return Object.entries(summary)
       .map(([subjectName, totalMinutes]) => ({
         subjectName,
         totalMinutes,
@@ -136,7 +136,7 @@ export default function Insights() {
       .sort((a, b) => b.totalMinutes - a.totalMinutes);
   };
 
-  const subjectLeaderboard = getSubjectLeaderboard();
+  const subjectSummary = getSubjectSummary();
 
   // Task Completion Rate
   const getTaskCompletionRate = () => {
