@@ -742,10 +742,10 @@ const PremiumSystem = () => {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-3">
           <Crown className="w-8 h-8 text-yellow-500" />
-          Premium Experience
+          Premium Experience ( This is a testing beta page and nothing on it is true at the moment )
         </h1>
         <p className="text-gray-600">
-          Unlock exclusive features and supercharge your learning journey!
+          Testing need for a premium page.
         </p>
       </div>
 
