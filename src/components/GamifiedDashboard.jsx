@@ -1,31 +1,50 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  Star, Trophy, Target, Flame, Crown, TrendingUp, Calendar,
-  Award, Zap, BookOpen, Clock, Users, Share2, Plus, Settings,
-  Sparkles, Gift, Shield, Gem, ChevronRight, BarChart3, CheckCircle
-} from 'lucide-react';
-import { useGamification } from '../context/GamificationContext';
-import { AnimatedProgressBar } from './RewardAnimations';
-import StreakTracker from './StreakTracker';
-import QuestSystem from './QuestSystem';
-import AchievementSystem from './AchievementSystem';
-import LeaderboardSystem from './LeaderboardSystem';
-import PremiumSystem from './PremiumSystem';
-import RewardSystem from './RewardSystem';
-import MysteryBox from './MysteryBox';
+  Star,
+  Trophy,
+  Target,
+  Flame,
+  Crown,
+  TrendingUp,
+  Calendar,
+  Award,
+  Zap,
+  BookOpen,
+  Clock,
+  Users,
+  Share2,
+  Plus,
+  Settings,
+  Sparkles,
+  Gift,
+  Shield,
+  Gem,
+  ChevronRight,
+  BarChart3,
+  CheckCircle,
+} from "lucide-react";
+import { useGamification } from "../context/GamificationContext";
+import { AnimatedProgressBar } from "./RewardAnimations";
+import StreakTracker from "./StreakTracker";
+import QuestSystem from "./QuestSystem";
+import AchievementSystem from "./AchievementSystem";
+import LeaderboardSystem from "./LeaderboardSystem";
+import PremiumSystem from "./PremiumSystem";
+import RewardSystem from "./RewardSystem";
+import MysteryBox from "./MysteryBox";
 
 const GamifiedDashboard = () => {
-  const { 
-    userStats, 
-    getUserRank, 
+  const {
+    userStats,
+    getUserRank,
     getXPProgress,
     getXPForLevel,
     addReward,
-    generateDailyQuests
+    generateDailyQuests,
   } = useGamification();
 
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState("overview");
   const [showQuickActions, setShowQuickActions] = useState(false);
 
   // Generate daily quests on component mount
@@ -36,12 +55,12 @@ const GamifiedDashboard = () => {
   }, []);
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: BarChart3 },
-    { id: 'quests', label: 'Quests', icon: Target },
-    { id: 'achievements', label: 'Achievements', icon: Trophy },
-    { id: 'streaks', label: 'Streaks', icon: Flame },
-    { id: 'leaderboards', label: 'Leaderboards', icon: Users },
-    { id: 'premium', label: 'Premium', icon: Crown }
+    { id: "overview", label: "Overview", icon: BarChart3 },
+    { id: "quests", label: "Quests", icon: Target },
+    { id: "achievements", label: "Achievements", icon: Trophy },
+    { id: "streaks", label: "Streaks", icon: Flame },
+    { id: "leaderboards", label: "Leaderboards", icon: Users },
+    { id: "premium", label: "Premium", icon: Crown },
   ];
 
   const userRank = getUserRank();
@@ -49,20 +68,20 @@ const GamifiedDashboard = () => {
   const nextLevelXP = getXPForLevel(userStats.level + 1);
 
   const getLevelColor = (level) => {
-    if (level >= 100) return 'from-yellow-400 to-orange-500';
-    if (level >= 50) return 'from-purple-600 to-pink-600';
-    if (level >= 25) return 'from-blue-600 to-purple-600';
-    if (level >= 10) return 'from-green-600 to-blue-600';
-    return 'from-gray-600 to-gray-700';
+    if (level >= 100) return "from-yellow-400 to-orange-500";
+    if (level >= 50) return "from-purple-600 to-pink-600";
+    if (level >= 25) return "from-blue-600 to-purple-600";
+    if (level >= 10) return "from-green-600 to-blue-600";
+    return "from-gray-600 to-gray-700";
   };
 
   const getStreakEmoji = (streak) => {
-    if (streak >= 365) return '👑';
-    if (streak >= 100) return '💎';
-    if (streak >= 50) return '🔥';
-    if (streak >= 30) return '⚡';
-    if (streak >= 7) return '💪';
-    return '🌟';
+    if (streak >= 365) return "👑";
+    if (streak >= 100) return "💎";
+    if (streak >= 50) return "🔥";
+    if (streak >= 30) return "⚡";
+    if (streak >= 7) return "💪";
+    return "🌟";
   };
 
   // Real quick session function
@@ -70,10 +89,10 @@ const GamifiedDashboard = () => {
     // This would integrate with the actual timer system
     // For now, we'll show a realistic message
     addReward({
-      type: 'XP_EARNED',
+      type: "XP_EARNED",
       title: `Timer set for ${duration} minutes`,
-      description: 'Focus mode activated! Start studying to earn XP.',
-      tier: 'common'
+      description: "Focus mode activated! Start studying to earn XP.",
+      tier: "common",
     });
 
     // In a real implementation, this would start the actual timer
@@ -84,7 +103,7 @@ const GamifiedDashboard = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 mt-20 pl-10">
       {/* Reward System - Always Active */}
       <RewardSystem userStats={userStats} />
-      
+
       {/* Hero Section with User Stats */}
       <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 text-white">
         <div className="container mx-auto px-6 py-8">
@@ -97,11 +116,11 @@ const GamifiedDashboard = () => {
               >
                 {userStats.level}
               </motion.div>
-              
+
               <div>
                 <h1 className="text-3xl font-bold mb-2">{userRank}</h1>
                 <p className="text-blue-100 mb-1">
-                  Level {userStats.level} 
+                  Level {userStats.level}
                   {userStats.prestigeLevel > 0 && (
                     <span className="ml-2 px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-200 text-sm">
                       Prestige {userStats.prestigeLevel}
@@ -111,28 +130,21 @@ const GamifiedDashboard = () => {
                 <div className="flex items-center gap-2">
                   <Star className="w-4 h-4 text-yellow-300" />
                   <span className="text-sm font-medium">
-                    {userStats.xp.toLocaleString()} / {nextLevelXP.toLocaleString()} XP
+                    {userStats.xp.toLocaleString()} /{" "}
+                    {nextLevelXP.toLocaleString()} XP
                   </span>
                 </div>
               </div>
             </div>
-            
+
             {/* Quick Actions */}
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => setShowQuickActions(!showQuickActions)}
-                className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl font-semibold transition-all"
-              >
-                <Plus className="w-4 h-4" />
-                Quick Start
-              </button>
-              
               <button className="p-2 bg-white/20 hover:bg-white/30 rounded-xl transition-all">
                 <Settings className="w-5 h-5" />
               </button>
             </div>
           </div>
-          
+
           {/* XP Progress */}
           <div className="mb-6">
             <div className="flex justify-between items-center mb-2">
@@ -151,14 +163,14 @@ const GamifiedDashboard = () => {
                 className="h-full bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full shadow-sm relative overflow-hidden"
               >
                 <motion.div
-                  animate={{ x: ['-100%', '100%'] }}
+                  animate={{ x: ["-100%", "100%"] }}
                   transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                   className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
                 />
               </motion.div>
             </div>
           </div>
-          
+
           {/* Key Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="bg-white/10 rounded-2xl p-4 backdrop-blur">
@@ -167,10 +179,11 @@ const GamifiedDashboard = () => {
                 <span className="font-semibold">Current Streak</span>
               </div>
               <div className="text-2xl font-bold">
-                {getStreakEmoji(userStats.currentStreak)} {userStats.currentStreak}
+                {getStreakEmoji(userStats.currentStreak)}{" "}
+                {userStats.currentStreak}
               </div>
             </div>
-            
+
             <div className="bg-white/10 rounded-2xl p-4 backdrop-blur">
               <div className="flex items-center gap-3 mb-2">
                 <Clock className="w-6 h-6 text-blue-300" />
@@ -180,7 +193,7 @@ const GamifiedDashboard = () => {
                 {Math.round(userStats.totalStudyTime / 60)}h
               </div>
             </div>
-            
+
             <div className="bg-white/10 rounded-2xl p-4 backdrop-blur">
               <div className="flex items-center gap-3 mb-2">
                 <Trophy className="w-6 h-6 text-yellow-300" />
@@ -190,19 +203,19 @@ const GamifiedDashboard = () => {
                 {userStats.achievements.length}
               </div>
             </div>
-            
+
             <div className="bg-white/10 rounded-2xl p-4 backdrop-blur">
               <div className="flex items-center gap-3 mb-2">
                 <Target className="w-6 h-6 text-green-300" />
                 <span className="font-semibold">Quests Done</span>
               </div>
               <div className="text-2xl font-bold">
-                {userStats.dailyQuests.filter(q => q.completed).length}
+                {userStats.dailyQuests.filter((q) => q.completed).length}
               </div>
             </div>
           </div>
         </div>
-        
+
         {/* Quick Actions Dropdown */}
         <AnimatePresence>
           {showQuickActions && (
@@ -242,7 +255,7 @@ const GamifiedDashboard = () => {
           )}
         </AnimatePresence>
       </div>
-      
+
       {/* Tab Navigation */}
       <div className="container mx-auto px-6 py-6">
         <div className="flex gap-2 mb-8 overflow-x-auto">
@@ -256,45 +269,33 @@ const GamifiedDashboard = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold transition-all whitespace-nowrap ${
                   activeTab === tab.id
-                    ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
-                    : 'bg-white text-gray-600 hover:bg-gray-50 shadow'
+                    ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg"
+                    : "bg-white text-gray-600 hover:bg-gray-50 shadow"
                 }`}
               >
                 <Icon className="w-4 h-4" />
                 {tab.label}
-                {tab.id === 'premium' && (
+                {tab.id === "premium" && (
                   <Crown className="w-4 h-4 text-yellow-500" />
                 )}
               </motion.button>
             );
           })}
         </div>
-        
+
         {/* Tab Content */}
         <div className="space-y-8">
-          {activeTab === 'overview' && (
-            <OverviewTab userStats={userStats} />
-          )}
-          
-          {activeTab === 'quests' && (
-            <QuestSystem />
-          )}
-          
-          {activeTab === 'achievements' && (
-            <AchievementSystem />
-          )}
-          
-          {activeTab === 'streaks' && (
-            <StreakTracker />
-          )}
-          
-          {activeTab === 'leaderboards' && (
-            <LeaderboardSystem />
-          )}
-          
-          {activeTab === 'premium' && (
-            <PremiumSystem />
-          )}
+          {activeTab === "overview" && <OverviewTab userStats={userStats} />}
+
+          {activeTab === "quests" && <QuestSystem />}
+
+          {activeTab === "achievements" && <AchievementSystem />}
+
+          {activeTab === "streaks" && <StreakTracker />}
+
+          {activeTab === "leaderboards" && <LeaderboardSystem />}
+
+          {activeTab === "premium" && <PremiumSystem />}
         </div>
       </div>
     </div>
@@ -308,22 +309,25 @@ const OverviewTab = ({ userStats }) => {
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
-    const thisWeekSessions = userStats.sessionHistory?.filter(session =>
-      new Date(session.timestamp) > oneWeekAgo
-    ) || [];
+    const thisWeekSessions =
+      userStats.sessionHistory?.filter(
+        (session) => new Date(session.timestamp) > oneWeekAgo,
+      ) || [];
 
-    const thisWeekXP = thisWeekSessions.reduce((total, session) =>
-      total + (session.xpEarned || 0), 0
+    const thisWeekXP = thisWeekSessions.reduce(
+      (total, session) => total + (session.xpEarned || 0),
+      0,
     );
 
-    const thisWeekTime = thisWeekSessions.reduce((total, session) =>
-      total + (session.durationMinutes || 0), 0
+    const thisWeekTime = thisWeekSessions.reduce(
+      (total, session) => total + (session.durationMinutes || 0),
+      0,
     );
 
     return {
       sessionsThisWeek: thisWeekSessions.length,
       xpThisWeek: thisWeekXP,
-      timeThisWeek: Math.round(thisWeekTime / 60) // Convert to hours
+      timeThisWeek: Math.round(thisWeekTime / 60), // Convert to hours
     };
   };
 
@@ -331,37 +335,49 @@ const OverviewTab = ({ userStats }) => {
 
   const stats = [
     {
-      label: 'Total XP Earned',
+      label: "Total XP Earned",
       value: (userStats.totalXPEarned || userStats.xp || 0).toLocaleString(),
       icon: Star,
-      color: 'from-yellow-500 to-orange-500',
-      change: weeklyStats.xpThisWeek > 0 ? `+${weeklyStats.xpThisWeek.toLocaleString()} this week` : 'No XP this week'
+      color: "from-yellow-500 to-orange-500",
+      change:
+        weeklyStats.xpThisWeek > 0
+          ? `+${weeklyStats.xpThisWeek.toLocaleString()} this week`
+          : "No XP this week",
     },
     {
-      label: 'Study Sessions',
+      label: "Study Sessions",
       value: userStats.totalSessions,
       icon: BookOpen,
-      color: 'from-green-500 to-teal-500',
-      change: weeklyStats.sessionsThisWeek > 0 ? `+${weeklyStats.sessionsThisWeek} this week` : 'No sessions this week'
+      color: "from-green-500 to-teal-500",
+      change:
+        weeklyStats.sessionsThisWeek > 0
+          ? `+${weeklyStats.sessionsThisWeek} this week`
+          : "No sessions this week",
     },
     {
-      label: 'Longest Streak',
+      label: "Longest Streak",
       value: `${userStats.longestStreak} days`,
       icon: Flame,
-      color: 'from-orange-500 to-red-500',
-      change: userStats.currentStreak === userStats.longestStreak ? 'Current record!' : 'Personal best'
+      color: "from-orange-500 to-red-500",
+      change:
+        userStats.currentStreak === userStats.longestStreak
+          ? "Current record!"
+          : "Personal best",
     },
     {
-      label: 'Total Study Time',
+      label: "Total Study Time",
       value: `${Math.round(userStats.totalStudyTime / 60)}h`,
       icon: Clock,
-      color: 'from-blue-500 to-indigo-500',
-      change: weeklyStats.timeThisWeek > 0 ? `+${weeklyStats.timeThisWeek}h this week` : 'No study time this week'
-    }
+      color: "from-blue-500 to-indigo-500",
+      change:
+        weeklyStats.timeThisWeek > 0
+          ? `+${weeklyStats.timeThisWeek}h this week`
+          : "No study time this week",
+    },
   ];
 
   const recentAchievements = userStats.achievements.slice(-3);
-  const activeQuests = userStats.dailyQuests?.filter(q => !q.completed) || [];
+  const activeQuests = userStats.dailyQuests?.filter((q) => !q.completed) || [];
 
   return (
     <div className="space-y-8">
@@ -378,12 +394,18 @@ const OverviewTab = ({ userStats }) => {
               whileHover={{ scale: 1.02, y: -5 }}
               className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all"
             >
-              <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${stat.color} flex items-center justify-center mb-4`}>
+              <div
+                className={`w-12 h-12 rounded-xl bg-gradient-to-r ${stat.color} flex items-center justify-center mb-4`}
+              >
                 <Icon className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-1">{stat.value}</h3>
+              <h3 className="text-2xl font-bold text-gray-800 mb-1">
+                {stat.value}
+              </h3>
               <p className="text-gray-600 text-sm mb-2">{stat.label}</p>
-              <span className="text-xs text-green-600 font-medium">{stat.change}</span>
+              <span className="text-xs text-green-600 font-medium">
+                {stat.change}
+              </span>
             </motion.div>
           );
         })}
@@ -400,24 +422,28 @@ const OverviewTab = ({ userStats }) => {
             </h3>
             <motion.button
               whileHover={{ scale: 1.05 }}
-              onClick={() => setActiveTab('quests')}
+              onClick={() => setActiveTab("quests")}
               className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center gap-1"
             >
               View All <ChevronRight className="w-4 h-4" />
             </motion.button>
           </div>
-          
+
           <div className="space-y-3">
             {activeQuests.slice(0, 3).map((quest, index) => (
               <div key={index} className="p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium text-gray-800">{quest.name}</span>
+                  <span className="font-medium text-gray-800">
+                    {quest.name}
+                  </span>
                   <span className="text-sm text-blue-600">+{quest.xp} XP</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
+                  <div
                     className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${(quest.progress / quest.target) * 100}%` }}
+                    style={{
+                      width: `${(quest.progress / quest.target) * 100}%`,
+                    }}
                   />
                 </div>
                 <div className="text-xs text-gray-600 mt-1">
@@ -425,7 +451,7 @@ const OverviewTab = ({ userStats }) => {
                 </div>
               </div>
             ))}
-            
+
             {activeQuests.length === 0 && (
               <div className="text-center py-6 text-gray-500">
                 <Target className="w-12 h-12 mx-auto mb-3 text-gray-300" />
@@ -445,13 +471,13 @@ const OverviewTab = ({ userStats }) => {
             </h3>
             <motion.button
               whileHover={{ scale: 1.05 }}
-              onClick={() => setActiveTab('achievements')}
+              onClick={() => setActiveTab("achievements")}
               className="text-yellow-600 hover:text-yellow-700 font-medium text-sm flex items-center gap-1"
             >
               View All <ChevronRight className="w-4 h-4" />
             </motion.button>
           </div>
-          
+
           <div className="space-y-3">
             {recentAchievements.map((achievementId, index) => (
               <motion.div
@@ -465,17 +491,21 @@ const OverviewTab = ({ userStats }) => {
                   <Trophy className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-800">Achievement Unlocked</h4>
+                  <h4 className="font-medium text-gray-800">
+                    Achievement Unlocked
+                  </h4>
                   <p className="text-sm text-gray-600">{achievementId}</p>
                 </div>
               </motion.div>
             ))}
-            
+
             {recentAchievements.length === 0 && (
               <div className="text-center py-6 text-gray-500">
                 <Award className="w-12 h-12 mx-auto mb-3 text-gray-300" />
                 <p>No achievements yet</p>
-                <p className="text-sm">Complete quests to unlock achievements!</p>
+                <p className="text-sm">
+                  Complete quests to unlock achievements!
+                </p>
               </div>
             )}
           </div>
@@ -491,8 +521,8 @@ const OverviewTab = ({ userStats }) => {
           </h3>
           <div className="bg-gradient-to-r from-purple-100 to-indigo-100 rounded-2xl p-6">
             <p className="text-gray-700 mb-4">
-              Complete study sessions to earn mystery boxes with surprise rewards!
-              Get bonus XP, streak savers, special titles, and more!
+              Complete study sessions to earn mystery boxes with surprise
+              rewards! Get bonus XP, streak savers, special titles, and more!
             </p>
             <div className="flex items-center gap-2 text-sm text-purple-600">
               <Sparkles className="w-4 h-4" />
@@ -503,8 +533,10 @@ const OverviewTab = ({ userStats }) => {
 
         <div className="flex items-center justify-center">
           <MysteryBox
-            available={userStats.totalSessions >= 3 && (userStats.totalSessions % 3 === 0)}
-            onOpen={() => console.log('Mystery box opened!')}
+            available={
+              userStats.totalSessions >= 3 && userStats.totalSessions % 3 === 0
+            }
+            onOpen={() => console.log("Mystery box opened!")}
           />
         </div>
       </div>
@@ -518,7 +550,8 @@ const OverviewTab = ({ userStats }) => {
               Unlock Premium Power
             </h3>
             <p className="text-purple-100 mb-4">
-              Get 3x XP multiplier, unlimited streak savers, and exclusive themes!
+              Get 3x XP multiplier, unlimited streak savers, and exclusive
+              themes!
             </p>
             <ul className="space-y-1 text-sm text-purple-100">
               <li className="flex items-center gap-2">
