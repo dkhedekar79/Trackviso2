@@ -42,13 +42,17 @@ const QuickStartTimer = ({ isOpen, onClose }) => {
   };
 
   const handleSubjectSelect = (subjectName) => {
+    console.log('Quick Start - Selected subject:', subjectName, 'Duration:', selectedDuration);
+    
     // Set up the timer with selected parameters
     setTimerSubject(subjectName);
     setCustomMinutes(selectedDuration);
     setTimerMode('custom');
     
     // Navigate to study page with the selected subject and auto-start
-    navigate(`/study?subject=${encodeURIComponent(subjectName)}&autoStart=true`);
+    const studyUrl = `/study?subject=${encodeURIComponent(subjectName)}&autoStart=true`;
+    console.log('Navigating to:', studyUrl);
+    navigate(studyUrl);
     
     // Close the modal
     onClose();

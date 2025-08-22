@@ -185,6 +185,31 @@ const Study = () => {
     }
   }, [subject, setTimerSubject]); // setTimerSubject is now stable with useCallback
 
+  // Get subject from URL parameter
+  const urlParams = new URLSearchParams(location.search);
+  const autoStart = urlParams.get('autoStart') === 'true';
+  const subjectFromUrl = urlParams.get('subject');
+
+  // Load subjects from localStorage and handle URL parameters
+  useEffect(() => {
+    const savedSubjects = localStorage.getItem("subjects");
+    if (savedSubjects) {
+      setSubjects(JSON.parse(savedSubjects));
+    }
+
+    // Handle URL parameters for quick start
+    if (subjectFromUrl) {
+      setTimerSubject(decodeURIComponent(subjectFromUrl));
+    }
+
+    // Auto-start timer if requested
+    if (autoStart && subjectFromUrl && customMinutes > 0) {
+      setTimeout(() => {
+        handleStart();
+      }, 500); // Small delay to ensure everything is set up
+    }
+  }, [subjectFromUrl, autoStart, customMinutes]);
+
   // Get subject tasks
   const getSubjectTasks = () => {
     return tasks.filter(task => task.subject === subject);
