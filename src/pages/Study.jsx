@@ -14,7 +14,7 @@ import {
   Star,
   Trophy,
   Award, 
-  
+
 } from 'lucide-react';
 import { useTimer } from '../context/TimerContext';
 import { useGamification } from '../context/GamificationContext';
@@ -39,7 +39,7 @@ import {
 const Study = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   // State for study session
   const [sessionNotes, setSessionNotes] = useState('');
   const [currentTask, setCurrentTask] = useState('');
@@ -150,24 +150,33 @@ const Study = () => {
     return new Date(d.setDate(diff));
   };
 
-  // Get subject from URL params
-  const getSubjectFromURL = () => {
-    const params = new URLSearchParams(location.search);
-    return params.get('subject');
-  };
+  // Get subject from URL parameter
+  const urlParams = new URLSearchParams(location.search);
+  const subject = urlParams.get('subject');
+  const autoStart = urlParams.get('autoStart') === 'true';
 
-  const subject = getSubjectFromURL();
-
-  // Load data from localStorage
+  // Load subjects, tasks, and study sessions on component mount
   useEffect(() => {
-    const savedSubjects = localStorage.getItem('subjects');
-    const savedSessions = localStorage.getItem('studySessions');
-    const savedTasks = localStorage.getItem('tasks');
-    
-    if (savedSubjects) setSubjects(JSON.parse(savedSubjects));
-    if (savedSessions) setStudySessions(JSON.parse(savedSessions));
-    if (savedTasks) setTasks(JSON.parse(savedTasks));
+    const savedSubjects = JSON.parse(localStorage.getItem('subjects') || '[]');
+    const savedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+    const savedSessions = JSON.parse(localStorage.getItem('studySessions') || '[]');
+
+    setSubjects(savedSubjects);
+    setTasks(savedTasks);
+    setStudySessions(savedSessions);
   }, []);
+
+  // Auto-start timer if coming from Quick Start
+  useEffect(() => {
+    if (subject && autoStart && mode === 'custom' && !isRunning) {
+      // Small delay to ensure all contexts are loaded
+      const timer = setTimeout(() => {
+        startTimer();
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [subject, autoStart, mode, isRunning, startTimer]);
 
   // Set subject when component mounts
   useEffect(() => {
@@ -252,14 +261,14 @@ const Study = () => {
   const getTodayStats = () => {
     const today = new Date();
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    
+
     const todaySessions = studySessions.filter(session => {
       const sessionDate = new Date(session.timestamp);
       return sessionDate >= todayStart && session.subjectName === subject;
     });
-    
+
     const totalMinutes = todaySessions.reduce((sum, session) => sum + session.durationMinutes, 0);
-    
+
     return {
       sessions: todaySessions.length,
       minutes: totalMinutes
@@ -268,44 +277,44 @@ const Study = () => {
 
   const getStreak = () => {
     if (studySessions.length === 0) return 0;
-    
+
     const studyDates = [...new Set(
       studySessions
         .filter(session => session.subjectName === subject)
         .map(session => new Date(session.timestamp).toDateString())
     )].sort();
-    
+
     let streak = 0;
     const today = new Date();
-    
+
     for (let i = 0; i < 30; i++) {
       const checkDate = new Date(today);
       checkDate.setDate(today.getDate() - i);
       const dateString = checkDate.toDateString();
-      
+
       if (studyDates.includes(dateString)) {
         streak++;
       } else {
         break;
       }
     }
-    
+
     return streak;
   };
 
   const getWeeklyProgress = () => {
     const now = new Date();
     const weekStart = getStartOfWeek(now);
-    
+
     const weekSessions = studySessions.filter(session => {
       const sessionDate = new Date(session.timestamp);
       return sessionDate >= weekStart && session.subjectName === subject;
     });
-    
+
     const studiedMinutes = weekSessions.reduce((sum, session) => sum + session.durationMinutes, 0);
     const subjectData = subjects.find(s => s.name === subject);
     const goalMinutes = subjectData ? subjectData.goalHours * 60 : 0;
-    
+
     return {
       studied: studiedMinutes,
       goal: goalMinutes,
@@ -328,7 +337,7 @@ const Study = () => {
               <h1 className="text-4xl font-bold text-white mb-4">Ready to Study?</h1>
               <p className="text-xl text-gray-300">Choose a subject to begin your study session</p>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {subjects.map((subjectItem) => (
                 <motion.div
@@ -351,7 +360,7 @@ const Study = () => {
                 </motion.div>
               ))}
             </div>
-            
+
             {subjects.length === 0 && (
               <div className="text-center py-12">
                 <p className="text-gray-400 text-lg mb-4">No subjects added yet!</p>
@@ -487,7 +496,7 @@ const Study = () => {
       <div className="min-h-screen bg-gradient-to-br from-[#0f0f23] via-[#1a1a2e] to-[#16213e] flex items-center justify-center p-4 mt-20">
         <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 max-w-md w-full border border-white/20">
           <h2 className="text-2xl font-bold text-white mb-6 text-center">Session Complete! 🎉</h2>
-          
+
           {/* Mood Tracker */}
           <div className="mb-6">
             <label className="block text-white text-sm font-medium mb-3">How did it go?</label>
@@ -957,7 +966,7 @@ const Study = () => {
                     <Target className="w-5 h-5" />
                     Current Task/Topic
                   </h3>
-                  
+
                   <div className="mb-4">
                     <select
                       value={currentTask}
@@ -1077,7 +1086,7 @@ const Study = () => {
                               'okay': '😐',
                               'struggled': '😫'
                             }[session.mood] || '';
-                            
+
                             return (
                               <div key={index} className="p-3 rounded-lg bg-white/5 border border-white/10">
                                 <div className="flex items-center justify-between mb-2">
@@ -1096,19 +1105,19 @@ const Study = () => {
                                     })}
                                   </span>
                                 </div>
-                                
+
                                 {session.task && (
                                   <div className="text-xs text-gray-300 mb-1">
                                     <span className="font-medium">Task:</span> {session.task}
                                   </div>
                                 )}
-                                
+
                                 {session.reflection && (
                                   <div className="text-xs text-gray-300 mb-2 italic">
                                     "{session.reflection}"
                                   </div>
                                 )}
-                                
+
                                 <div className="flex items-center gap-3 text-xs">
                                   {session.mood && (
                                     <span className="text-gray-400 flex items-center gap-1">
@@ -1122,7 +1131,7 @@ const Study = () => {
                                     </span>
                                   )}
                                 </div>
-                                
+
                                 <button
                                   onClick={() => deleteStudySession(studySessions.indexOf(session))}
                                   className="mt-2 p-1 rounded hover:bg-red-600/20 transition text-red-400 hover:text-red-300"
@@ -1156,7 +1165,7 @@ const Study = () => {
                         <Flame className="w-5 h-5 text-[#FEC260]" />
                         <div>
                           <div className="text-white text-sm font-medium">Streak Master</div>
-                          <div className="text-gray-300 text-xs">{streak} day streak!</div>
+                          <div className="text-gray-300 text-xs">{streak} day streak</div>
                         </div>
                       </div>
                     )}
