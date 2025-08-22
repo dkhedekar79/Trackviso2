@@ -13,6 +13,7 @@ import AchievementSystem from './AchievementSystem';
 import PremiumSystem from './PremiumSystem';
 import RewardSystem from './RewardSystem';
 import MysteryBox from './MysteryBox';
+import QuickStartModal from './QuickStartModal';
 
 const GamifiedDashboard = () => {
   const { 
@@ -25,7 +26,7 @@ const GamifiedDashboard = () => {
   } = useGamification();
 
   const [activeTab, setActiveTab] = useState('overview');
-  const [showQuickActions, setShowQuickActions] = useState(false);
+  const [showQuickStartModal, setShowQuickStartModal] = useState(false);
 
   // Generate daily quests on component mount
   useEffect(() => {
@@ -63,20 +64,6 @@ const GamifiedDashboard = () => {
     return '🌟';
   };
 
-  // Real quick session function
-  const startQuickSession = (duration) => {
-    // This would integrate with the actual timer system
-    // For now, we'll show a realistic message
-    addReward({
-      type: 'XP_EARNED',
-      title: `Timer set for ${duration} minutes`,
-      description: 'Focus mode activated! Start studying to earn XP.',
-      tier: 'common'
-    });
-
-    // In a real implementation, this would start the actual timer
-    // and navigate to the study page with the timer pre-configured
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 mt-20 pl-10">
@@ -118,13 +105,13 @@ const GamifiedDashboard = () => {
             {/* Quick Actions */}
             <div className="flex items-center gap-3">
               <button
-                onClick={() => setShowQuickActions(!showQuickActions)}
+                onClick={() => setShowQuickStartModal(true)}
                 className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl font-semibold transition-all"
               >
                 <Plus className="w-4 h-4" />
                 Quick Start
               </button>
-              
+
               <button className="p-2 bg-white/20 hover:bg-white/30 rounded-xl transition-all">
                 <Settings className="w-5 h-5" />
               </button>
@@ -201,44 +188,11 @@ const GamifiedDashboard = () => {
           </div>
         </div>
         
-        {/* Quick Actions Dropdown */}
-        <AnimatePresence>
-          {showQuickActions && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="bg-white/10 backdrop-blur border-t border-white/20 px-6 py-4"
-            >
-              <div className="container mx-auto">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <button
-                    onClick={() => startQuickSession(25)}
-                    className="flex items-center gap-2 px-4 py-3 bg-white/20 hover:bg-white/30 rounded-xl font-medium transition-all"
-                  >
-                    <Clock className="w-4 h-4" />
-                    25min Focus
-                  </button>
-                  <button
-                    onClick={() => startQuickSession(15)}
-                    className="flex items-center gap-2 px-4 py-3 bg-white/20 hover:bg-white/30 rounded-xl font-medium transition-all"
-                  >
-                    <Zap className="w-4 h-4" />
-                    15min Quick
-                  </button>
-                  <button className="flex items-center gap-2 px-4 py-3 bg-white/20 hover:bg-white/30 rounded-xl font-medium transition-all">
-                    <BookOpen className="w-4 h-4" />
-                    Review Notes
-                  </button>
-                  <button className="flex items-center gap-2 px-4 py-3 bg-white/20 hover:bg-white/30 rounded-xl font-medium transition-all">
-                    <Target className="w-4 h-4" />
-                    View Quests
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Quick Start Modal */}
+        <QuickStartModal
+          isOpen={showQuickStartModal}
+          onClose={() => setShowQuickStartModal(false)}
+        />
       </div>
       
       {/* Tab Navigation */}
