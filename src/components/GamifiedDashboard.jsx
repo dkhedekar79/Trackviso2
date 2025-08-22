@@ -10,7 +10,6 @@ import { AnimatedProgressBar } from './RewardAnimations';
 import StreakTracker from './StreakTracker';
 import QuestSystem from './QuestSystem';
 import AchievementSystem from './AchievementSystem';
-import LeaderboardSystem from './LeaderboardSystem';
 import PremiumSystem from './PremiumSystem';
 import RewardSystem from './RewardSystem';
 import MysteryBox from './MysteryBox';
@@ -40,7 +39,6 @@ const GamifiedDashboard = () => {
     { id: 'quests', label: 'Quests', icon: Target },
     { id: 'achievements', label: 'Achievements', icon: Trophy },
     { id: 'streaks', label: 'Streaks', icon: Flame },
-    { id: 'leaderboards', label: 'Leaderboards', icon: Users },
     { id: 'premium', label: 'Premium', icon: Crown }
   ];
 
@@ -287,11 +285,7 @@ const GamifiedDashboard = () => {
           {activeTab === 'streaks' && (
             <StreakTracker />
           )}
-          
-          {activeTab === 'leaderboards' && (
-            <LeaderboardSystem />
-          )}
-          
+
           {activeTab === 'premium' && (
             <PremiumSystem />
           )}
