@@ -31,7 +31,7 @@ const QuickStartTimer = ({ isOpen, onClose }) => {
 
   // Calculate potential XP for each session duration
   const calculatePotentialXP = (minutes) => {
-    // Use a generic subject name for calculation
+    // Use a generic subject name for calculation since we don't have a subject selected yet
     const xpData = calculateXP(minutes, "Study Session", 1.0);
     return xpData.totalXP;
   };
@@ -42,17 +42,13 @@ const QuickStartTimer = ({ isOpen, onClose }) => {
   };
 
   const handleSubjectSelect = (subjectName) => {
-    console.log('Quick Start - Selected subject:', subjectName, 'Duration:', selectedDuration);
-    
     // Set up the timer with selected parameters
     setTimerSubject(subjectName);
     setCustomMinutes(selectedDuration);
     setTimerMode('custom');
     
     // Navigate to study page with the selected subject and auto-start
-    const studyUrl = `/study?subject=${encodeURIComponent(subjectName)}&autoStart=true`;
-    console.log('Navigating to:', studyUrl);
-    navigate(studyUrl);
+    navigate(`/study?subject=${encodeURIComponent(subjectName)}&autoStart=true`);
     
     // Close the modal
     onClose();

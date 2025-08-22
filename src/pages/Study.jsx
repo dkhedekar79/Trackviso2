@@ -185,9 +185,41 @@ const Study = () => {
     }
   }, [subject, setTimerSubject]); // setTimerSubject is now stable with useCallback
 
+  // Get subject from URL parameter
+  const urlParamsAutoStart = new URLSearchParams(location.search);
+  const autoStartParam = urlParamsAutoStart.get('autoStart') === 'true';
+
+  // Auto-start timer if coming from Quick Start
+  useEffect(() => {
+    if (autoStartParam && subject && customMinutes > 0 && mode === 'custom' && !isRunning) {
+      // Small delay to ensure all contexts are loaded
+      const timer = setTimeout(() => {
+        startLocalTimer();
+        startTimer();
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [subject, autoStartParam, mode, isRunning, customMinutes, startTimer, startLocalTimer]);
+
+  // Get subject from URL parameter
+  const urlParamsSubject = new URLSearchParams(location.search);
+  const subjectFromUrl = urlParamsSubject.get('subject');
+
+  // Set subject when component mounts
+  useEffect(() => {
+    if (subjectFromUrl) {
+      setTimerSubject(subjectFromUrl);
+    }
+  }, [subjectFromUrl, setTimerSubject]);
+
+  // Get subject from URL parameter
+  const urlParamsSubjectTasks = new URLSearchParams(location.search);
+  const subjectForTasks = urlParamsSubjectTasks.get('subject');
+
   // Get subject tasks
   const getSubjectTasks = () => {
-    return tasks.filter(task => task.subject === subject);
+    return tasks.filter(task => task.subject === subjectForTasks);
   };
 
   const subjectTasks = getSubjectTasks();
