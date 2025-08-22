@@ -7,11 +7,11 @@ export default function Privacy() {
       <div className="flex-1 ml-16 transition-all duration-300 ease-in-out [body>div>aside:hover_+_div&]:ml-64">
         <div className="p-8">
           <h1 className="text-3xl font-bold text-white mb-6">Privacy policy</h1>
-          <p className="text-white/80 mb-4">📜 Privacy Policy for Trackademic
+          <p className="text-white/80 mb-4">📜 Privacy Policy for Trackviso
 
-              Last updated: [Date]
+              Last updated: [22.8.25]
               
-              Trackademic (“we,” “our,” or “us”) respects your privacy and is committed to protecting the personal information you share with us. This Privacy Policy explains how we collect, use, and safeguard your information when you use our website and app.
+              Trackviso (“we,” “our,” or “us”) respects your privacy and is committed to protecting the personal information you share with us. This Privacy Policy explains how we collect, use, and safeguard your information when you use our website and app.
               
               1. Information We Collect
               
@@ -83,13 +83,12 @@ export default function Privacy() {
               
               We may update this Privacy Policy from time to time. If we make significant changes, we’ll notify you through the site or by email.
               
-              9. Contact Us
-              
-              If you have any questions about this Privacy Policy, you can contact us at:
-              
-              📧 [your email here]
-              🌍 Trackademic</p>
+             </p>
         </div>
+        <h1 className="text-3xl font-bold text-white mb-6">Contact</h1>
+        <p className="text-white/80 mb-4">Email contact: dskhedekar7@gmail.com</p>
+
+      
       </div>
     </div>
   );
