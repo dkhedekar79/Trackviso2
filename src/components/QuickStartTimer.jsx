@@ -92,7 +92,7 @@ const QuickStartTimer = ({ isOpen, onClose }) => {
             </button>
           </div>
 
-          <AnimatePresence mode="wait">
+          <AnimatePresence>
             {!showSubjects ? (
               <motion.div
                 key="timer-options"

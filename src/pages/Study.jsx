@@ -150,7 +150,7 @@ const Study = () => {
     return new Date(d.setDate(diff));
   };
 
-  // Get subject from URL parameter
+  // Get subject from URL parameter (single declaration)
   const urlParams = new URLSearchParams(location.search);
   const subject = urlParams.get('subject');
   const autoStart = urlParams.get('autoStart') === 'true';
@@ -164,35 +164,18 @@ const Study = () => {
     setSubjects(savedSubjects);
     setTasks(savedTasks);
     setStudySessions(savedSessions);
+  }, []);
 
-    // Handle URL parameters for quick start
+  // Handle subject setting from URL
+  useEffect(() => {
     if (subject) {
       setTimerSubject(decodeURIComponent(subject));
     }
-
-    // Auto-start timer if requested
-    if (autoStart && subject && customMinutes > 0) {
-      setTimeout(() => {
-        startTimer();
-      }, 500); // Small delay to ensure everything is set up
-    }
-  }, [subject, autoStart, customMinutes, setTimerSubject, startTimer]);
-
-  // Set subject when component mounts
-  useEffect(() => {
-    if (subject) {
-      setTimerSubject(subject);
-    }
-  }, [subject, setTimerSubject]); // setTimerSubject is now stable with useCallback
-
-  // Get subject from URL parameter
-  const urlParamsAutoStart = new URLSearchParams(location.search);
-  const autoStartParam = urlParamsAutoStart.get('autoStart') === 'true';
+  }, [subject, setTimerSubject]);
 
   // Auto-start timer if coming from Quick Start
   useEffect(() => {
-    if (autoStartParam && subject && customMinutes > 0 && mode === 'custom' && !isRunning) {
-      // Small delay to ensure all contexts are loaded
+    if (autoStart && subject && customMinutes > 0 && mode === 'custom' && !isRunning) {
       const timer = setTimeout(() => {
         startLocalTimer();
         startTimer();
@@ -200,26 +183,11 @@ const Study = () => {
 
       return () => clearTimeout(timer);
     }
-  }, [subject, autoStartParam, mode, isRunning, customMinutes, startTimer, startLocalTimer]);
-
-  // Get subject from URL parameter
-  const urlParamsSubject = new URLSearchParams(location.search);
-  const subjectFromUrl = urlParamsSubject.get('subject');
-
-  // Set subject when component mounts
-  useEffect(() => {
-    if (subjectFromUrl) {
-      setTimerSubject(subjectFromUrl);
-    }
-  }, [subjectFromUrl, setTimerSubject]);
-
-  // Get subject from URL parameter
-  const urlParamsSubjectTasks = new URLSearchParams(location.search);
-  const subjectForTasks = urlParamsSubjectTasks.get('subject');
+  }, [subject, autoStart, mode, isRunning, customMinutes]);
 
   // Get subject tasks
   const getSubjectTasks = () => {
-    return tasks.filter(task => task.subject === subjectForTasks);
+    return tasks.filter(task => task.subject === subject);
   };
 
   const subjectTasks = getSubjectTasks();
@@ -1234,7 +1202,7 @@ const Study = () => {
       </div>
 
       {/* Gamification Reward Animations */}
-      <AnimatePresence>
+      <AnimatePresence mode="sync">
         {rewardQueue && rewardQueue.length > 0 && rewardQueue.map((reward, index) => {
           if (reward.type === 'SESSION_COMPLETE') {
             return (
