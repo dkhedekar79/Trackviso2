@@ -55,9 +55,9 @@ export default function Sidebar() {
           <span className="text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Insights</span>
         </Link>
       </div>
-      <Link to="/settings" className="mt-auto flex items-center gap-3 px-6 py-3 focus:outline-none hover:bg-[#6C5DD3]/10 transition" title="Settings">
+      <Link to="/privacy" className="mt-auto flex items-center gap-3 px-6 py-3 focus:outline-none hover:bg-[#6C5DD3]/10 transition" title="Settings">
         <Settings2Icon className="w-5 h-5 text-white" />
-        <span className="text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Settings</span>
+        <span className="text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Privacy</span>
       </Link>
     </aside>
   );
