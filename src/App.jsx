@@ -13,7 +13,6 @@ import Study from './pages/Study';
 import Tasks from './pages/Tasks';
 import Schedule from './pages/Schedule';
 import Insights from './pages/Insights';
-import Settings from './pages/Settings';
 import Privacy from './pages/Privacy';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
@@ -129,12 +128,6 @@ function App() {
                       </main>
                     </div>
                   </div>
-                </ProtectedRoute>
-              } />
-
-              <Route path="/settings" element={
-                <ProtectedRoute>
-                  <Settings />
                 </ProtectedRoute>
               } />
 

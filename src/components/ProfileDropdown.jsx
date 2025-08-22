@@ -11,7 +11,7 @@ export default function ProfileDropdown() {
   const [error, setError] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
-  const { user, userProfile, logout, updateUserProfile } = useAuth();
+  const { user, userProfile, logout, updateUserName, deleteUserAccount } = useAuth();
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
 
@@ -60,7 +60,7 @@ export default function ProfileDropdown() {
     setError("");
 
     try {
-      await updateUserProfile({ name: newName.trim() });
+      await updateUserName(newName.trim());
       setIsEditingName(false);
     } catch (error) {
       setError("Failed to update name");
@@ -72,9 +72,8 @@ export default function ProfileDropdown() {
   const handleDeleteAccount = async () => {
     setLoading(true);
     try {
-      // Account deletion functionality to be implemented
-      setError("Account deletion not yet implemented");
-      setLoading(false);
+      await deleteUserAccount();
+      navigate("/");
     } catch (error) {
       setError("Failed to delete account");
       setLoading(false);
