@@ -694,7 +694,7 @@ export const GamificationProvider = ({ children }) => {
         type: 'streak',
         targets: [1],
         xp: () => 50 + Math.max(0, userStats.currentStreak) * 5,
-        icon: '����'
+        icon: '🔥'
       }
     ];
 
