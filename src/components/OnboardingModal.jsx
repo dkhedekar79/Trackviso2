@@ -5,9 +5,9 @@ const OnboardingModal = () => {
   const [step, setStep] = useState(0);
 
   const steps = [
-    { title: "Welcome 🚀", text: "This app helps you track your studies easily." },
-    { title: "Track ⏱️", text: "Log your study sessions and keep streaks alive." },
-    { title: "Insights 📊", text: "Get stats and insights on your progress." },
+    { title: "Welcome 🚀", text: "Start by setting your subjects in the subjects page." },
+    { title: "Track ⏱️", text: "Log your study sessions and keep streaks alive inside the Study page. Create tasks and schedule them in the Tasks and Schedule page." },
+    { title: "Insights 📊", text: "Get stats and insights on your progress from the dashboard as well as our detailed Insights page." },
   ];
 
   // Show only on first visit
