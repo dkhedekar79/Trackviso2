@@ -1,17 +1,15 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { User, LogOut, Trash2, Edit3, X, Check } from "lucide-react";
+import { User, LogOut, Trash2 } from "lucide-react";
 
 export default function ProfileDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [newName, setNewName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  
-  const { user, userProfile, logout, updateUserName, deleteUserAccount } = useAuth();
+
+  const { user, userProfile, logout, deleteUserAccount } = useAuth();
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
 
@@ -26,7 +24,6 @@ export default function ProfileDropdown() {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false);
-        setIsEditingName(false);
         setShowDeleteConfirm(false);
       }
     };
@@ -44,31 +41,6 @@ export default function ProfileDropdown() {
     }
   };
 
-  const handleEditName = () => {
-    setNewName(userProfile?.name || "");
-    setIsEditingName(true);
-    setError("");
-  };
-
-  const handleSaveName = async () => {
-    if (!newName.trim()) {
-      setError("Name cannot be empty");
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-
-    try {
-      await updateUserName(newName.trim());
-      setIsEditingName(false);
-    } catch (error) {
-      setError("Failed to update name");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleDeleteAccount = async () => {
     setLoading(true);
     try {
@@ -80,12 +52,6 @@ export default function ProfileDropdown() {
     }
   };
 
-  const cancelEdit = () => {
-    setIsEditingName(false);
-    setNewName("");
-    setError("");
-  };
-
   return (
     <div className="relative" ref={dropdownRef}>
       {/* Profile Button */}
@@ -95,7 +61,7 @@ export default function ProfileDropdown() {
       >
         <User className="w-4 h-4" />
         <span className="text-sm font-medium">
-          {userProfile?.name ? `Hey, ${userProfile.name}` : `Hey, ${user?.email?.split('@')[0] || "there"}`}
+          Hey, {user?.email?.split('@')[0] || "there"}
         </span>
       </button>
 
@@ -108,42 +74,12 @@ export default function ProfileDropdown() {
                 <User className="w-5 h-5 text-purple-600" />
               </div>
               <div className="flex-1">
-                {isEditingName ? (
-                  <div className="space-y-2">
-                    <input
-                      type="text"
-                      value={newName}
-                      onChange={(e) => setNewName(e.target.value)}
-                      className="w-full px-2 py-1 border rounded text-sm"
-                      placeholder="Enter your name"
-                      autoFocus
-                    />
-                    <div className="flex gap-1">
-                      <button
-                        onClick={handleSaveName}
-                        disabled={loading}
-                        className="flex items-center gap-1 px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600 disabled:opacity-50"
-                      >
-                        <Check className="w-3 h-3" />
-                        Save
-                      </button>
-                      <button
-                        onClick={cancelEdit}
-                        className="flex items-center gap-1 px-2 py-1 bg-gray-500 text-white rounded text-xs hover:bg-gray-600"
-                      >
-                        <X className="w-3 h-3" />
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <p className="font-semibold text-gray-800">
-                      {userProfile?.name || "No name set"}
-                    </p>
-                    <p className="text-sm text-gray-600">{user?.email}</p>
-                  </div>
-                )}
+                <div>
+                  <p className="font-semibold text-gray-800">
+                    {user?.email?.split('@')[0] || "User"}
+                  </p>
+                  <p className="text-sm text-gray-600">{user?.email}</p>
+                </div>
               </div>
             </div>
             {error && (
@@ -152,15 +88,6 @@ export default function ProfileDropdown() {
           </div>
 
           <div className="p-2">
-            {!isEditingName && (
-              <button
-                onClick={handleEditName}
-                className="flex items-center gap-2 w-full px-3 py-2 text-left hover:bg-gray-50 rounded text-sm"
-              >
-                <Edit3 className="w-4 h-4" />
-                Change Name
-              </button>
-            )}
 
             <button
               onClick={handleLogout}

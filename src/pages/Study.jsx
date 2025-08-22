@@ -150,13 +150,17 @@ const Study = () => {
     return new Date(d.setDate(diff));
   };
 
-  // Get subject from URL params
-  const getSubjectFromURL = () => {
+  // Get subject and Quick Start params from URL
+  const getParamsFromURL = () => {
     const params = new URLSearchParams(location.search);
-    return params.get('subject');
+    return {
+      subject: params.get('subject'),
+      quickStart: params.get('quickStart') === 'true',
+      duration: parseInt(params.get('duration')) || null
+    };
   };
 
-  const subject = getSubjectFromURL();
+  const { subject, quickStart, duration } = getParamsFromURL();
 
   // Load data from localStorage
   useEffect(() => {
@@ -175,6 +179,24 @@ const Study = () => {
       setTimerSubject(subject);
     }
   }, [subject, setTimerSubject]); // setTimerSubject is now stable with useCallback
+
+  // Handle Quick Start initialization
+  useEffect(() => {
+    if (quickStart && duration && subject) {
+      // Set custom timer mode with the specified duration
+      setCustomMinutes(duration);
+      setTimerMode('custom');
+      resetLocalTimer();
+
+      // Auto-start the timer after a short delay to ensure everything is set up
+      const timer = setTimeout(() => {
+        startLocalTimer();
+        startTimer();
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [quickStart, duration, subject, setCustomMinutes, setTimerMode, startTimer]);
 
   // Get subject tasks
   const getSubjectTasks = () => {
