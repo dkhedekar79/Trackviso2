@@ -1,70 +1,72 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 const GamificationContext = createContext();
 
 export const useGamification = () => {
   const context = useContext(GamificationContext);
   if (!context) {
-    throw new Error('useGamification must be used within a GamificationProvider');
+    throw new Error(
+      "useGamification must be used within a GamificationProvider",
+    );
   }
   return context;
 };
 
 export const GamificationProvider = ({ children }) => {
   const [userStats, setUserStats] = useState(() => {
-    const saved = localStorage.getItem('userStats');
+    const saved = localStorage.getItem("userStats");
     const defaultStats = {
       // Core progression
       xp: 0,
       level: 1,
       prestigeLevel: 0,
-      
+
       // Session tracking
       totalSessions: 0,
       totalStudyTime: 0,
       sessionHistory: [],
-      
+
       // Streak system
       currentStreak: 0,
       longestStreak: 0,
       lastStudyDate: null,
       streakSavers: 3, // Premium streak protection
-      
+
       // Achievement & badge system
       badges: [],
       achievements: [],
       unlockedTitles: [],
-      currentTitle: 'Rookie Scholar',
-      
+      currentTitle: "Rookie Scholar",
+
       // Quest system
       dailyQuests: [],
       weeklyQuests: [],
       completedQuestsToday: 0,
       questStreak: 0,
-      
+
       // Social & competition
       weeklyXP: 0,
       weeklyRank: 0,
       friends: [],
       challenges: [],
-      
+
       // Premium features
       isPremium: false,
       xpMultiplier: 1.0,
       premiumSkins: [],
-      currentSkin: 'default',
-      
+      currentSkin: "default",
+
       // Statistics
       subjectMastery: {},
       weeklyGoal: 0,
       weeklyProgress: 0,
       totalXPEarned: 0,
-      
+
       // Variable reward tracking
       lastRewardTime: null,
       rewardStreak: 0,
       luckyStreak: 0,
-      jackpotCount: 0
+      jackpotCount: 0,
     };
 
     if (saved) {
@@ -80,7 +82,7 @@ export const GamificationProvider = ({ children }) => {
         subjectMastery: savedStats.subjectMastery ?? {},
         achievements: savedStats.achievements ?? [],
         dailyQuests: savedStats.dailyQuests ?? [],
-        weeklyQuests: savedStats.weeklyQuests ?? []
+        weeklyQuests: savedStats.weeklyQuests ?? [],
       };
     }
 
@@ -93,36 +95,45 @@ export const GamificationProvider = ({ children }) => {
 
   // Save stats to localStorage whenever they change
   useEffect(() => {
-    console.log('💾 Saving userStats to localStorage:', userStats);
-    localStorage.setItem('userStats', JSON.stringify(userStats));
+    console.log("💾 Saving userStats to localStorage:", userStats);
+    localStorage.setItem("userStats", JSON.stringify(userStats));
   }, [userStats]);
 
   // Advanced XP calculation with variable rewards
   const calculateXP = (sessionDuration, subjectName, difficulty = 1.0) => {
     const baseXP = Math.floor(sessionDuration / 0.1); // 10 XP per minute
-    
+
     // Focus multiplier scales with session length (longer sessions = higher multiplier)
-    const focusMultiplier = Math.min(3.0, 1.0 + (sessionDuration / 120)); // Max 3x at 2+ hours
-    
+    const focusMultiplier = Math.min(3.0, 1.0 + sessionDuration / 120); // Max 3x at 2+ hours
+
     // Streak bonus scales exponentially with current streak
-    const streakBonus = Math.floor(userStats.currentStreak * (Math.log(userStats.currentStreak + 1) * 5));
-    
+    const streakBonus = Math.floor(
+      userStats.currentStreak * (Math.log(userStats.currentStreak + 1) * 5),
+    );
+
     // Subject mastery bonus (20% bonus for well-studied subjects)
-    const masteryBonus = userStats.subjectMastery[subjectName] >= 1000 ? baseXP * 0.2 : 0;
-    
+    const masteryBonus =
+      userStats.subjectMastery[subjectName] >= 1000 ? baseXP * 0.2 : 0;
+
     // Prestige multiplier
-    const prestigeMultiplier = 1.0 + (userStats.prestigeLevel * 0.1);
-    
+    const prestigeMultiplier = 1.0 + userStats.prestigeLevel * 0.1;
+
     // Premium multiplier
-    const premiumMultiplier = userStats.isPremium ? userStats.xpMultiplier : 1.0;
-    
+    const premiumMultiplier = userStats.isPremium
+      ? userStats.xpMultiplier
+      : 1.0;
+
     // Calculate base XP with all multipliers
-    let totalXP = Math.floor((baseXP * focusMultiplier + streakBonus + masteryBonus) * prestigeMultiplier * premiumMultiplier);
-    
+    let totalXP = Math.floor(
+      (baseXP * focusMultiplier + streakBonus + masteryBonus) *
+        prestigeMultiplier *
+        premiumMultiplier,
+    );
+
     // Variable reward system
     const variableReward = calculateVariableReward(totalXP, sessionDuration);
     totalXP += variableReward.bonusXP;
-    
+
     return {
       baseXP,
       totalXP,
@@ -132,9 +143,9 @@ export const GamificationProvider = ({ children }) => {
         mastery: Math.floor(masteryBonus),
         prestige: Math.floor(totalXP * (prestigeMultiplier - 1)),
         premium: Math.floor(totalXP * (premiumMultiplier - 1)),
-        variable: variableReward.bonusXP
+        variable: variableReward.bonusXP,
       },
-      reward: variableReward
+      reward: variableReward,
     };
   };
 
@@ -145,70 +156,73 @@ export const GamificationProvider = ({ children }) => {
 
     // Adjust probabilities based on user's recent performance
     const recentSessions = userStats.sessionHistory.slice(0, 10);
-    const avgRecentDuration = recentSessions.length > 0
-      ? recentSessions.reduce((sum, s) => sum + s.durationMinutes, 0) / recentSessions.length
-      : sessionDuration;
+    const avgRecentDuration =
+      recentSessions.length > 0
+        ? recentSessions.reduce((sum, s) => sum + s.durationMinutes, 0) /
+          recentSessions.length
+        : sessionDuration;
 
     // Better chance of bonus for longer than average sessions
-    const performanceMultiplier = sessionDuration > avgRecentDuration ? 1.5 : 1.0;
+    const performanceMultiplier =
+      sessionDuration > avgRecentDuration ? 1.5 : 1.0;
 
     // Legendary (0.1% base chance, increased for exceptional performance)
-    if (rand < (0.1 * performanceMultiplier)) {
+    if (rand < 0.1 * performanceMultiplier) {
       return {
-        tier: 'legendary',
-        type: 'XP_JACKPOT',
+        tier: "legendary",
+        type: "XP_JACKPOT",
         bonusXP: Math.floor(baseXP * 5 * sessionBonus),
-        title: '🏆 LEGENDARY JACKPOT!',
+        title: "🏆 LEGENDARY JACKPOT!",
         description: `+500% bonus XP for ${sessionDuration}min session!`,
-        animation: 'jackpot',
-        sound: 'legendary',
-        extras: { title: 'Jackpot Hunter', badge: 'legendary_jackpot' }
+        animation: "jackpot",
+        sound: "legendary",
+        extras: { title: "Jackpot Hunter", badge: "legendary_jackpot" },
       };
     }
 
     // Epic (1% base chance)
-    if (rand < (0.2 * performanceMultiplier)) {
+    if (rand < 0.2 * performanceMultiplier) {
       return {
-        tier: 'epic',
-        type: 'XP_BONUS',
+        tier: "epic",
+        type: "XP_BONUS",
         bonusXP: Math.floor(baseXP * 2 * sessionBonus),
-        title: '✨ EPIC BONUS!',
+        title: "✨ EPIC BONUS!",
         description: `+200% bonus XP for great focus!`,
-        animation: 'epic',
-        sound: 'epic'
+        animation: "epic",
+        sound: "epic",
       };
     }
 
     // Rare (5% base chance)
-    if (rand < (0.3 * performanceMultiplier)) {
+    if (rand < 0.3 * performanceMultiplier) {
       return {
-        tier: 'rare',
-        type: 'XP_BONUS',
+        tier: "rare",
+        type: "XP_BONUS",
         bonusXP: Math.floor(baseXP * 1.5 * sessionBonus),
-        title: '🌟 RARE BONUS!',
+        title: "🌟 RARE BONUS!",
         description: `+150% bonus XP for consistency!`,
-        animation: 'rare',
-        sound: 'rare'
+        animation: "rare",
+        sound: "rare",
       };
     }
 
     // Uncommon (15% base chance)
-    if (rand < (0.4 * performanceMultiplier)) {
+    if (rand < 0.4 * performanceMultiplier) {
       return {
-        tier: 'uncommon',
-        type: 'XP_BONUS',
+        tier: "uncommon",
+        type: "XP_BONUS",
         bonusXP: Math.floor(baseXP * 0.5 * sessionBonus),
-        title: '⭐ Lucky Scholar!',
+        title: "⭐ Lucky Scholar!",
         description: `+50% bonus XP for good work!`,
-        animation: 'uncommon',
-        sound: 'uncommon'
+        animation: "uncommon",
+        sound: "uncommon",
       };
     }
 
     // No bonus (remaining chance)
     return {
-      tier: 'none',
-      bonusXP: 0
+      tier: "none",
+      bonusXP: 0,
     };
   };
 
@@ -230,12 +244,12 @@ export const GamificationProvider = ({ children }) => {
   const getLevelFromXP = (xp) => {
     let level = 1;
     let totalXPNeeded = 0;
-    
+
     while (totalXPNeeded <= xp) {
       totalXPNeeded += getXPForLevel(level + 1);
       if (totalXPNeeded <= xp) level++;
     }
-    
+
     return level;
   };
 
@@ -250,17 +264,23 @@ export const GamificationProvider = ({ children }) => {
     return {
       current: progressXP,
       needed: neededXP,
-      percentage: Math.min(100, Math.max(0, (progressXP / neededXP) * 100))
+      percentage: Math.min(100, Math.max(0, (progressXP / neededXP) * 100)),
     };
   };
 
   // Advanced streak tracking with decay
   const updateStreak = () => {
     const today = new Date().toDateString();
-    const lastStudy = userStats.lastStudyDate ? new Date(userStats.lastStudyDate).toDateString() : null;
-    
+    const lastStudy = userStats.lastStudyDate
+      ? new Date(userStats.lastStudyDate).toDateString()
+      : null;
+
     if (lastStudy === today) {
-      return { streak: userStats.currentStreak, isNewDay: false, streakBroken: false };
+      return {
+        streak: userStats.currentStreak,
+        isNewDay: false,
+        streakBroken: false,
+      };
     }
 
     const yesterday = new Date();
@@ -269,17 +289,17 @@ export const GamificationProvider = ({ children }) => {
 
     let newStreak;
     let streakBroken = false;
-    
+
     if (lastStudy === yesterdayStr) {
       // Continuing streak
       newStreak = userStats.currentStreak + 1;
     } else if (lastStudy && userStats.streakSavers > 0) {
       // Offer streak saver for premium users
-      return { 
-        streak: userStats.currentStreak, 
-        isNewDay: true, 
-        streakBroken: true, 
-        canUseSaver: true 
+      return {
+        streak: userStats.currentStreak,
+        isNewDay: true,
+        streakBroken: true,
+        canUseSaver: true,
       };
     } else {
       // Streak broken
@@ -287,11 +307,11 @@ export const GamificationProvider = ({ children }) => {
       streakBroken = true;
     }
 
-    setUserStats(prev => ({
+    setUserStats((prev) => ({
       ...prev,
       currentStreak: newStreak,
       longestStreak: Math.max(prev.longestStreak, newStreak),
-      lastStudyDate: new Date().toISOString()
+      lastStudyDate: new Date().toISOString(),
     }));
 
     // Check streak achievements
@@ -303,19 +323,19 @@ export const GamificationProvider = ({ children }) => {
   // Use streak saver (premium feature)
   const useStreakSaver = () => {
     if (userStats.streakSavers > 0) {
-      setUserStats(prev => ({
+      setUserStats((prev) => ({
         ...prev,
         streakSavers: prev.streakSavers - 1,
-        lastStudyDate: new Date().toISOString()
+        lastStudyDate: new Date().toISOString(),
       }));
-      
+
       addReward({
-        type: 'STREAK_SAVED',
-        title: '🛡️ Streak Protected!',
+        type: "STREAK_SAVED",
+        title: "🛡️ Streak Protected!",
         description: `Used streak saver! ${userStats.streakSavers - 1} remaining`,
-        tier: 'premium'
+        tier: "premium",
       });
-      
+
       return true;
     }
     return false;
@@ -324,16 +344,16 @@ export const GamificationProvider = ({ children }) => {
   // Check streak achievements
   const checkStreakAchievements = (streak) => {
     const milestones = [
-      { days: 3, title: 'Getting Started', icon: '🌱', xp: 50 },
-      { days: 7, title: 'Week Warrior', icon: '⚔️', xp: 100 },
-      { days: 14, title: 'Fortnight Fighter', icon: '🏰', xp: 200 },
-      { days: 30, title: 'Month Master', icon: '👑', xp: 500 },
-      { days: 50, title: 'Unstoppable Force', icon: '🌪️', xp: 750 },
-      { days: 100, title: 'Century Club', icon: '💎', xp: 1500 },
-      { days: 365, title: 'Year Champion', icon: '🏆', xp: 5000 }
+      { days: 3, title: "Getting Started", icon: "🌱", xp: 50 },
+      { days: 7, title: "Week Warrior", icon: "⚔️", xp: 100 },
+      { days: 14, title: "Fortnight Fighter", icon: "🏰", xp: 200 },
+      { days: 30, title: "Month Master", icon: "👑", xp: 500 },
+      { days: 50, title: "Unstoppable Force", icon: "🌪️", xp: 750 },
+      { days: 100, title: "Century Club", icon: "💎", xp: 1500 },
+      { days: 365, title: "Year Champion", icon: "🏆", xp: 5000 },
     ];
 
-    milestones.forEach(milestone => {
+    milestones.forEach((milestone) => {
       if (streak === milestone.days) {
         unlockAchievement({
           id: `streak_${milestone.days}`,
@@ -341,8 +361,13 @@ export const GamificationProvider = ({ children }) => {
           description: `Maintained a ${milestone.days}-day study streak!`,
           icon: milestone.icon,
           xp: milestone.xp,
-          type: 'streak',
-          tier: milestone.days >= 100 ? 'legendary' : milestone.days >= 30 ? 'epic' : 'rare'
+          type: "streak",
+          tier:
+            milestone.days >= 100
+              ? "legendary"
+              : milestone.days >= 30
+                ? "epic"
+                : "rare",
         });
       }
     });
@@ -351,10 +376,10 @@ export const GamificationProvider = ({ children }) => {
   // Prestige system - reset progress for exclusive rewards
   const prestige = () => {
     if (userStats.level < 100) return false; // Must be level 100 to prestige
-    
+
     const newPrestigeLevel = userStats.prestigeLevel + 1;
-    
-    setUserStats(prev => ({
+
+    setUserStats((prev) => ({
       ...prev,
       level: 1,
       xp: 0,
@@ -365,11 +390,11 @@ export const GamificationProvider = ({ children }) => {
     }));
 
     addReward({
-      type: 'PRESTIGE',
+      type: "PRESTIGE",
       title: `🌟 PRESTIGE ${newPrestigeLevel}!`,
-      description: 'Welcome to the elite! +10% permanent XP bonus',
-      tier: 'legendary',
-      animation: 'prestige'
+      description: "Welcome to the elite! +10% permanent XP bonus",
+      tier: "legendary",
+      animation: "prestige",
     });
 
     return true;
@@ -383,7 +408,7 @@ export const GamificationProvider = ({ children }) => {
     const newLevel = getLevelFromXP(newXP);
 
     // Update user stats
-    setUserStats(prev => {
+    setUserStats((prev) => {
       const newStats = {
         ...prev,
         xp: newXP,
@@ -394,18 +419,19 @@ export const GamificationProvider = ({ children }) => {
         weeklyXP: (prev.weeklyXP || 0) + xpData.totalXP,
         subjectMastery: {
           ...prev.subjectMastery,
-          [subjectName]: (prev.subjectMastery[subjectName] || 0) + sessionDuration
-        }
+          [subjectName]:
+            (prev.subjectMastery[subjectName] || 0) + sessionDuration,
+        },
       };
 
-      console.log('🎯 Awarding XP:', {
+      console.log("🎯 Awarding XP:", {
         sessionDuration,
         subjectName,
         oldXP: prev.xp,
         newXP,
         xpGained: xpData.totalXP,
         oldTotalXPEarned: prev.totalXPEarned,
-        newTotalXPEarned: newStats.totalXPEarned
+        newTotalXPEarned: newStats.totalXPEarned,
       });
 
       return newStats;
@@ -413,15 +439,15 @@ export const GamificationProvider = ({ children }) => {
 
     // Show XP reward
     addReward({
-      type: 'XP_EARNED',
+      type: "XP_EARNED",
       title: `+${xpData.totalXP} XP`,
-      description: 'Great work!',
-      tier: 'common',
-      details: xpData.bonuses
+      description: "Great work!",
+      tier: "common",
+      details: xpData.bonuses,
     });
 
     // Show variable reward if any
-    if (xpData.reward.tier !== 'none') {
+    if (xpData.reward.tier !== "none") {
       addReward(xpData.reward);
     }
 
@@ -435,47 +461,47 @@ export const GamificationProvider = ({ children }) => {
 
     // Update streak
     const streakResult = updateStreak();
-    
+
     // Check achievements
     checkAchievements();
-    
+
     return xpData;
   };
 
   // Handle level up rewards
   const handleLevelUp = (newLevel) => {
     addReward({
-      type: 'LEVEL_UP',
+      type: "LEVEL_UP",
       title: `🎉 LEVEL ${newLevel}!`,
-      description: 'You\'re getting stronger!',
-      tier: 'epic',
-      animation: 'levelup',
-      sound: 'levelup'
+      description: "You're getting stronger!",
+      tier: "epic",
+      animation: "levelup",
+      sound: "levelup",
     });
 
     // Level milestone rewards
     const milestones = {
-      5: { title: 'Rising Scholar', xp: 100 },
-      10: { title: 'Dedicated Learner', xp: 250 },
-      25: { title: 'Knowledge Seeker', xp: 500 },
-      50: { title: 'Academic Elite', xp: 1000 },
-      75: { title: 'Master Scholar', xp: 2000 },
-      100: { title: 'Academic Legend', xp: 5000, canPrestige: true }
+      5: { title: "Rising Scholar", xp: 100 },
+      10: { title: "Dedicated Learner", xp: 250 },
+      25: { title: "Knowledge Seeker", xp: 500 },
+      50: { title: "Academic Elite", xp: 1000 },
+      75: { title: "Master Scholar", xp: 2000 },
+      100: { title: "Academic Legend", xp: 5000, canPrestige: true },
     };
 
     if (milestones[newLevel]) {
       const milestone = milestones[newLevel];
-      setUserStats(prev => ({
+      setUserStats((prev) => ({
         ...prev,
         currentTitle: milestone.title,
-        xp: prev.xp + milestone.xp
+        xp: prev.xp + milestone.xp,
       }));
 
       addReward({
-        type: 'MILESTONE',
+        type: "MILESTONE",
         title: `👑 ${milestone.title}`,
         description: `Level ${newLevel} milestone! +${milestone.xp} bonus XP`,
-        tier: newLevel >= 100 ? 'legendary' : newLevel >= 50 ? 'epic' : 'rare'
+        tier: newLevel >= 100 ? "legendary" : newLevel >= 50 ? "epic" : "rare",
       });
     }
   };
@@ -485,96 +511,109 @@ export const GamificationProvider = ({ children }) => {
     const rewardWithId = {
       ...reward,
       id: Date.now() + Math.random(),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
-    setRewardQueue(prev => [...prev, rewardWithId]);
+    setRewardQueue((prev) => [...prev, rewardWithId]);
     setShowRewards(true);
 
     // Auto-remove after delay
-    setTimeout(() => {
-      setRewardQueue(prev => prev.filter(r => r.id !== rewardWithId.id));
-    }, reward.tier === 'legendary' ? 5000 : 3000);
+    setTimeout(
+      () => {
+        setRewardQueue((prev) => prev.filter((r) => r.id !== rewardWithId.id));
+      },
+      reward.tier === "legendary" ? 5000 : 3000,
+    );
   };
 
   // Enhanced achievement system
   const achievements = {
     // Session achievements
     first_session: {
-      id: 'first_session',
-      name: 'First Steps',
-      description: 'Complete your first study session',
-      icon: '🎯',
+      id: "first_session",
+      name: "First Steps",
+      description: "Complete your first study session",
+      icon: "🎯",
       xp: 25,
       condition: () => userStats.totalSessions >= 1,
-      tier: 'common'
+      tier: "common",
     },
     session_marathon: {
-      id: 'session_marathon',
-      name: 'Marathon Master',
-      description: 'Study for 3+ hours in one session',
-      icon: '🏃‍♂️',
+      id: "session_marathon",
+      name: "Marathon Master",
+      description: "Study for 3+ hours in one session",
+      icon: "🏃‍♂️",
       xp: 200,
-      condition: () => userStats.sessionHistory.some(s => s.durationMinutes >= 180),
-      tier: 'rare'
+      condition: () =>
+        userStats.sessionHistory.some((s) => s.durationMinutes >= 180),
+      tier: "rare",
     },
-    
+
     // Level achievements
     level_10: {
-      id: 'level_10',
-      name: 'Rising Star',
-      description: 'Reach level 10',
-      icon: '⭐',
+      id: "level_10",
+      name: "Rising Star",
+      description: "Reach level 10",
+      icon: "⭐",
       xp: 100,
       condition: () => userStats.level >= 10,
-      tier: 'uncommon'
+      tier: "uncommon",
     },
     level_50: {
-      id: 'level_50',
-      name: 'Academic Weapon',
-      description: 'Reach level 50',
-      icon: '⚡',
+      id: "level_50",
+      name: "Academic Weapon",
+      description: "Reach level 50",
+      icon: "⚡",
       xp: 500,
       condition: () => userStats.level >= 50,
-      tier: 'epic'
+      tier: "epic",
     },
-    
+
     // Time achievements
     hundred_hours: {
-      id: 'hundred_hours',
-      name: 'Century Scholar',
-      description: 'Study for 100+ total hours',
-      icon: '💯',
+      id: "hundred_hours",
+      name: "Century Scholar",
+      description: "Study for 100+ total hours",
+      icon: "💯",
       xp: 300,
       condition: () => userStats.totalStudyTime >= 6000, // 100 hours in minutes
-      tier: 'rare'
+      tier: "rare",
     },
-    
+
     // Special achievements
     night_owl: {
-      id: 'night_owl',
-      name: 'Night Owl',
-      description: 'Study after 10 PM',
-      icon: '🦉',
+      id: "night_owl",
+      name: "Night Owl",
+      description: "Study after 10 PM",
+      icon: "🦉",
       xp: 50,
-      condition: () => userStats.sessionHistory.some(s => new Date(s.timestamp).getHours() >= 22),
-      tier: 'uncommon'
+      condition: () =>
+        userStats.sessionHistory.some(
+          (s) => new Date(s.timestamp).getHours() >= 22,
+        ),
+      tier: "uncommon",
     },
     early_bird: {
-      id: 'early_bird',
-      name: 'Early Bird',
-      description: 'Study before 6 AM',
-      icon: '🐦',
+      id: "early_bird",
+      name: "Early Bird",
+      description: "Study before 6 AM",
+      icon: "🐦",
       xp: 75,
-      condition: () => userStats.sessionHistory.some(s => new Date(s.timestamp).getHours() < 6),
-      tier: 'uncommon'
-    }
+      condition: () =>
+        userStats.sessionHistory.some(
+          (s) => new Date(s.timestamp).getHours() < 6,
+        ),
+      tier: "uncommon",
+    },
   };
 
   // Check and unlock achievements
   const checkAchievements = () => {
-    Object.values(achievements).forEach(achievement => {
-      if (!userStats.achievements.includes(achievement.id) && achievement.condition()) {
+    Object.values(achievements).forEach((achievement) => {
+      if (
+        !userStats.achievements.includes(achievement.id) &&
+        achievement.condition()
+      ) {
         unlockAchievement(achievement);
       }
     });
@@ -582,20 +621,20 @@ export const GamificationProvider = ({ children }) => {
 
   // Unlock achievement
   const unlockAchievement = (achievement) => {
-    setUserStats(prev => ({
+    setUserStats((prev) => ({
       ...prev,
       achievements: [...prev.achievements, achievement.id],
-      xp: prev.xp + achievement.xp
+      xp: prev.xp + achievement.xp,
     }));
 
     addReward({
-      type: 'ACHIEVEMENT',
+      type: "ACHIEVEMENT",
       title: `🏆 ${achievement.name}`,
       description: achievement.description,
       tier: achievement.tier,
       xp: achievement.xp,
       icon: achievement.icon,
-      animation: 'achievement'
+      animation: "achievement",
     });
   };
 
@@ -613,20 +652,24 @@ export const GamificationProvider = ({ children }) => {
       ...sessionData,
       timestamp: new Date().toISOString(),
       difficulty: sessionData.difficulty || 1.0,
-      mood: sessionData.mood || 'neutral'
+      mood: sessionData.mood || "neutral",
     };
 
-    const xpData = awardXP(session.durationMinutes, session.subjectName, session.difficulty);
-    
+    const xpData = awardXP(
+      session.durationMinutes,
+      session.subjectName,
+      session.difficulty,
+    );
+
     const enhancedSession = {
       ...session,
       xpEarned: xpData.totalXP,
-      bonuses: xpData.bonuses
+      bonuses: xpData.bonuses,
     };
 
-    setUserStats(prev => ({
+    setUserStats((prev) => ({
       ...prev,
-      sessionHistory: [enhancedSession, ...prev.sessionHistory.slice(0, 99)]
+      sessionHistory: [enhancedSession, ...prev.sessionHistory.slice(0, 99)],
     }));
 
     return enhancedSession;
@@ -634,53 +677,228 @@ export const GamificationProvider = ({ children }) => {
 
   // Daily quest templates
   const dailyQuestTemplates = [
-    { id: 'complete_session', name: 'Complete 1 study session today', description: 'Complete 1 study session today', type: 'sessions', target: 1, xp: 50, icon: '✅' },
-    { id: 'study_25_min', name: 'Study for at least 25 minutes', description: 'Study for at least 25 minutes (Pomodoro length)', type: 'time', target: 25, xp: 75, icon: '⏰' },
-    { id: 'review_flashcards', name: 'Review your flashcards', description: 'Review your flashcards (min. 10 cards)', type: 'flashcards', target: 10, xp: 40, icon: '🃏' },
-    { id: 'finish_task', name: 'Finish 1 assigned task', description: 'Finish 1 assigned task', type: 'tasks', target: 1, xp: 60, icon: '📋' },
-    { id: 'log_reflection', name: 'Log a reflection/note', description: 'Log a reflection/note about your study', type: 'reflection', target: 1, xp: 30, icon: '📝' },
-    { id: 'maintain_streak', name: 'Maintain your streak', description: 'Maintain your streak (log in + study)', type: 'streak', target: 1, xp: 100, icon: '🔥' },
-    { id: 'earn_50_xp', name: 'Earn at least 50 XP today', description: 'Earn at least 50 XP today', type: 'xp', target: 50, xp: 25, icon: '⭐' },
-    { id: 'beat_personal_best', name: 'Beat your personal best', description: 'Beat your personal best focus time from yesterday', type: 'personal_best', target: 1, xp: 80, icon: '🏆' },
-    { id: 'early_bird', name: 'Early bird bonus', description: 'Use the app before 10 AM (early bird bonus)', type: 'early_bird', target: 1, xp: 60, icon: '🐦' },
-    { id: 'night_owl', name: 'Night owl bonus', description: 'Study after 8 PM (night owl bonus)', type: 'night_owl', target: 1, xp: 60, icon: '🦉' },
-    { id: 'new_subject', name: 'Explore a new subject', description: 'Explore a new subject/topic (not yesterday\'s)', type: 'new_subject', target: 1, xp: 70, icon: '🌟' },
-    { id: 'zero_distractions', name: 'Zero distractions', description: 'Log zero distractions for one session', type: 'focus', target: 1, xp: 90, icon: '🎯' },
-    { id: 'two_subjects', name: 'Study two different subjects', description: 'Study two different subjects in one day', type: 'subjects', target: 2, xp: 80, icon: '📚' },
-    { id: 'three_sessions', name: 'Three separate sessions', description: 'Use the app for 3 separate study sessions', type: 'sessions', target: 3, xp: 120, icon: '🔄' },
-    { id: 'speed_review', name: 'Speed review challenge', description: 'Do a speed review challenge (answer as many Qs as possible in 3 mins)', type: 'speed_review', target: 1, xp: 100, icon: '⚡' }
+    {
+      id: "complete_session",
+      name: "Complete 1 study session today",
+      description: "Complete 1 study session today",
+      type: "sessions",
+      target: 1,
+      xp: 50,
+      icon: "✅",
+    },
+    {
+      id: "study_25_min",
+      name: "Study for at least 25 minutes",
+      description: "Study for at least 25 minutes (Pomodoro length)",
+      type: "time",
+      target: 25,
+      xp: 75,
+      icon: "⏰",
+    },
+    {
+      id: "finish_task",
+      name: "Finish 1 assigned task",
+      description: "Finish 1 assigned task",
+      type: "tasks",
+      target: 1,
+      xp: 60,
+      icon: "📋",
+    },
+    {
+      id: "log_reflection",
+      name: "Log a reflection/note",
+      description: "Log a reflection/note about your study",
+      type: "reflection",
+      target: 1,
+      xp: 30,
+      icon: "📝",
+    },
+    {
+      id: "maintain_streak",
+      name: "Maintain your streak",
+      description: "Maintain your streak (log in + study)",
+      type: "streak",
+      target: 1,
+      xp: 100,
+      icon: "🔥",
+    },
+    {
+      id: "earn_50_xp",
+      name: "Earn at least 50 XP today",
+      description: "Earn at least 50 XP today",
+      type: "xp",
+      target: 50,
+      xp: 25,
+      icon: "⭐",
+    },
+    {
+      id: "beat_personal_best",
+      name: "Beat your personal best",
+      description: "Beat your personal best focus time from yesterday",
+      type: "personal_best",
+      target: 1,
+      xp: 80,
+      icon: "🏆",
+    },
+    {
+      id: "early_bird",
+      name: "Early bird bonus",
+      description: "Use the app before 10 AM (early bird bonus)",
+      type: "early_bird",
+      target: 1,
+      xp: 60,
+      icon: "🐦",
+    },
+    {
+      id: "night_owl",
+      name: "Night owl bonus",
+      description: "Study after 8 PM (night owl bonus)",
+      type: "night_owl",
+      target: 1,
+      xp: 60,
+      icon: "🦉",
+    },
+    {
+      id: "new_subject",
+      name: "Explore a new subject",
+      description: "Explore a new subject/topic (not yesterday's)",
+      type: "new_subject",
+      target: 1,
+      xp: 70,
+      icon: "🌟",
+    },
+    {
+      id: "two_subjects",
+      name: "Study two different subjects",
+      description: "Study two different subjects in one day",
+      type: "subjects",
+      target: 2,
+      xp: 80,
+      icon: "📚",
+    },
+    {
+      id: "three_sessions",
+      name: "Three separate sessions",
+      description: "Use the app for 3 separate study sessions",
+      type: "sessions",
+      target: 3,
+      xp: 120,
+      icon: "🔄",
+    },
   ];
 
   // Weekly quest templates
   const weeklyQuestTemplates = [
-    { id: 'weekly_7_sessions', name: 'Complete 7 study sessions this week', description: 'Complete 7 study sessions this week', type: 'sessions', target: 7, xp: 300, icon: '🏆' },
-    { id: 'weekly_5_hours', name: 'Study for 5+ total hours this week', description: 'Study for 5+ total hours this week', type: 'time', target: 300, xp: 400, icon: '⏳' },
-    { id: 'weekly_1000_xp', name: 'Earn 1,000 XP this week', description: 'Earn 1,000 XP this week', type: 'xp', target: 1000, xp: 200, icon: '💎' },
-    { id: 'weekly_5_day_streak', name: 'Hit your streak 5 days in a row', description: 'Hit your streak at least 5 days in a row', type: 'streak', target: 5, xp: 350, icon: '🔥' },
-    { id: 'weekly_finish_tasks', name: 'Finish all scheduled tasks', description: 'Finish all your scheduled tasks', type: 'tasks', target: 1, xp: 250, icon: '✅' },
-    { id: 'weekly_3_subjects', name: 'Complete 3 subjects\' reviews', description: 'Complete at least 3 subjects\' flashcard reviews', type: 'subjects', target: 3, xp: 300, icon: '📖' },
-    { id: 'weekly_new_level', name: 'Reach a new level', description: 'Reach a new level', type: 'level', target: 1, xp: 500, icon: '📈' },
-    { id: 'weekly_achievement', name: 'Unlock at least 1 achievement', description: 'Unlock at least 1 achievement', type: 'achievement', target: 1, xp: 200, icon: '🏅' },
-    { id: 'weekly_weekend_study', name: 'Study on weekend and weekday', description: 'Study on both a weekday and a weekend', type: 'week_balance', target: 1, xp: 150, icon: '📅' },
-    { id: 'weekly_mood_tracking', name: 'Record mood after every session', description: 'Record your mood/energy level after every study session', type: 'mood', target: 1, xp: 180, icon: '😊' },
-    { id: 'weekly_double_days', name: 'Two double study days', description: 'Do two double study days (2+ hours each)', type: 'double_days', target: 2, xp: 400, icon: '⚡' },
-    { id: 'weekly_50_flashcards', name: 'Review 50+ flashcards', description: 'Review 50+ flashcards across subjects', type: 'flashcards', target: 50, xp: 250, icon: '🃏' },
-    { id: 'weekly_75_focus', name: 'Reach 75%+ focus rate', description: 'Reach a weekly focus rate of 75%+ (tracked time / planned time)', type: 'focus_rate', target: 75, xp: 300, icon: '🎯' },
-    { id: 'weekly_beat_last_week', name: 'Beat last week\'s total XP', description: 'Beat last week\'s total XP', type: 'xp_improvement', target: 1, xp: 400, icon: '📊' },
-    { id: 'weekly_3_consecutive_days', name: 'Maintain focus 3 consecutive days', description: 'Maintain focus across 3 consecutive days with no skipped study', type: 'consecutive_focus', target: 3, xp: 350, icon: '🔒' }
+    {
+      id: "weekly_7_sessions",
+      name: "Complete 7 study sessions this week",
+      description: "Complete 7 study sessions this week",
+      type: "sessions",
+      target: 7,
+      xp: 300,
+      icon: "🏆",
+    },
+    {
+      id: "weekly_5_hours",
+      name: "Study for 5+ total hours this week",
+      description: "Study for 5+ total hours this week",
+      type: "time",
+      target: 300,
+      xp: 400,
+      icon: "⏳",
+    },
+    {
+      id: "weekly_1000_xp",
+      name: "Earn 1,000 XP this week",
+      description: "Earn 1,000 XP this week",
+      type: "xp",
+      target: 1000,
+      xp: 200,
+      icon: "💎",
+    },
+    {
+      id: "weekly_5_day_streak",
+      name: "Hit your streak 5 days in a row",
+      description: "Hit your streak at least 5 days in a row",
+      type: "streak",
+      target: 5,
+      xp: 350,
+      icon: "🔥",
+    },
+    {
+      id: "weekly_finish_tasks",
+      name: "Finish all scheduled tasks",
+      description: "Finish all your scheduled tasks",
+      type: "tasks",
+      target: 1,
+      xp: 250,
+      icon: "✅",
+    },
+
+    {
+      id: "weekly_new_level",
+      name: "Reach a new level",
+      description: "Reach a new level",
+      type: "level",
+      target: 1,
+      xp: 500,
+      icon: "📈",
+    },
+    {
+      id: "weekly_achievement",
+      name: "Unlock at least 1 achievement",
+      description: "Unlock at least 1 achievement",
+      type: "achievement",
+      target: 1,
+      xp: 200,
+      icon: "🏅",
+    },
+    {
+      id: "weekly_weekend_study",
+      name: "Study on weekend and weekday",
+      description: "Study on both a weekday and a weekend",
+      type: "week_balance",
+      target: 1,
+      xp: 150,
+      icon: "📅",
+    },
+    {
+      id: "weekly_mood_tracking",
+      name: "Record mood after every session",
+      description: "Record your mood/energy level after every study session",
+      type: "mood",
+      target: 1,
+      xp: 180,
+      icon: "😊",
+    },
+    {
+      id: "weekly_double_days",
+      name: "Two double study days",
+      description: "Do two double study days (2+ hours each)",
+      type: "double_days",
+      target: 2,
+      xp: 400,
+      icon: "⚡",
+    },
   ];
 
   // Generate contextual daily quests based on user's actual performance
   const generateDailyQuests = () => {
     // Calculate user's average performance to set realistic targets
-    const avgSessionLength = userStats.sessionHistory.length > 0
-      ? Math.round(userStats.sessionHistory.reduce((sum, s) => sum + s.durationMinutes, 0) / userStats.sessionHistory.length)
-      : 25;
+    const avgSessionLength =
+      userStats.sessionHistory.length > 0
+        ? Math.round(
+            userStats.sessionHistory.reduce(
+              (sum, s) => sum + s.durationMinutes,
+              0,
+            ) / userStats.sessionHistory.length,
+          )
+        : 25;
 
     // Filter and select 3 random daily quests
-    const availableQuests = dailyQuestTemplates.filter(quest => {
+    const availableQuests = dailyQuestTemplates.filter((quest) => {
       // Customize quest targets based on user performance
-      if (quest.type === 'time' && quest.target === 25) {
+      if (quest.type === "time" && quest.target === 25) {
         quest.target = Math.max(15, Math.min(60, avgSessionLength));
         quest.xp = Math.round(quest.target * 2);
       }
@@ -690,8 +908,8 @@ export const GamificationProvider = ({ children }) => {
     const selectedQuests = availableQuests
       .sort(() => Math.random() - 0.5)
       .slice(0, 3)
-      .map(template => ({
-        id: template.id + '_' + Date.now(),
+      .map((template) => ({
+        id: template.id + "_" + Date.now(),
         name: template.name,
         description: template.description,
         type: template.type,
@@ -700,12 +918,12 @@ export const GamificationProvider = ({ children }) => {
         completed: false,
         xp: template.xp,
         icon: template.icon,
-        deadline: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+        deadline: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       }));
 
-    setUserStats(prev => ({
+    setUserStats((prev) => ({
       ...prev,
-      dailyQuests: selectedQuests
+      dailyQuests: selectedQuests,
     }));
   };
 
@@ -714,8 +932,8 @@ export const GamificationProvider = ({ children }) => {
     const selectedQuests = weeklyQuestTemplates
       .sort(() => Math.random() - 0.5)
       .slice(0, 5)
-      .map(template => ({
-        id: template.id + '_' + Date.now(),
+      .map((template) => ({
+        id: template.id + "_" + Date.now(),
         name: template.name,
         description: template.description,
         type: template.type,
@@ -724,147 +942,160 @@ export const GamificationProvider = ({ children }) => {
         completed: false,
         xp: template.xp,
         icon: template.icon,
-        deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+        deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       }));
 
-    setUserStats(prev => ({
+    setUserStats((prev) => ({
       ...prev,
-      weeklyQuests: selectedQuests
+      weeklyQuests: selectedQuests,
     }));
   };
 
   // Update quest progress for both daily and weekly quests
   const updateQuestProgress = (type, amount = 1, subjectName = null) => {
-    setUserStats(prev => {
+    setUserStats((prev) => {
       // Update daily quests
-      const updatedDailyQuests = prev.dailyQuests.map(quest => {
+      const updatedDailyQuests = prev.dailyQuests.map((quest) => {
         if (quest.completed || quest.type !== type) return quest;
-        
+
         let newProgress = quest.progress;
-        
+
         switch (type) {
-          case 'time':
+          case "time":
             newProgress += amount;
             break;
-          case 'sessions':
+          case "sessions":
             newProgress += 1;
             break;
-          case 'subjects':
+          case "subjects":
             // Track unique subjects studied today
-            const todaysSessions = prev.sessionHistory.filter(s => 
-              new Date(s.timestamp).toDateString() === new Date().toDateString()
+            const todaysSessions = prev.sessionHistory.filter(
+              (s) =>
+                new Date(s.timestamp).toDateString() ===
+                new Date().toDateString(),
             );
-            const uniqueSubjects = [...new Set(todaysSessions.map(s => s.subjectName))];
+            const uniqueSubjects = [
+              ...new Set(todaysSessions.map((s) => s.subjectName)),
+            ];
             newProgress = uniqueSubjects.length;
             break;
-          case 'streak':
+          case "streak":
             newProgress = prev.currentStreak > 0 ? 1 : 0;
             break;
-          case 'xp':
+          case "xp":
             newProgress = prev.weeklyXP || 0;
             break;
         }
-        
+
         const completed = newProgress >= quest.target;
-        
+
         if (completed && !quest.completed) {
           const questXP = quest.xp || 0;
           setTimeout(() => {
-            setUserStats(prevStats => ({
+            setUserStats((prevStats) => ({
               ...prevStats,
               xp: prevStats.xp + questXP,
-              totalXPEarned: (prevStats.totalXPEarned || prevStats.xp || 0) + questXP,
+              totalXPEarned:
+                (prevStats.totalXPEarned || prevStats.xp || 0) + questXP,
               weeklyXP: (prevStats.weeklyXP || 0) + questXP,
-              level: getLevelFromXP(prevStats.xp + questXP)
+              level: getLevelFromXP(prevStats.xp + questXP),
             }));
 
             addReward({
-              type: 'QUEST_COMPLETE',
+              type: "QUEST_COMPLETE",
               title: `✅ ${quest.name}`,
               description: quest.description,
-              tier: 'uncommon',
-              xp: questXP
+              tier: "uncommon",
+              xp: questXP,
             });
           }, 100);
         }
-        
+
         return {
           ...quest,
           progress: Math.min(newProgress, quest.target),
-          completed
+          completed,
         };
       });
 
       // Update weekly quests
-      const updatedWeeklyQuests = prev.weeklyQuests.map(quest => {
+      const updatedWeeklyQuests = prev.weeklyQuests.map((quest) => {
         if (quest.completed || quest.type !== type) return quest;
-        
+
         let newProgress = quest.progress;
-        
+
         switch (type) {
-          case 'time':
+          case "time":
             // Weekly time tracking
             const oneWeekAgo = new Date();
             oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-            const weekSessions = prev.sessionHistory.filter(s => new Date(s.timestamp) > oneWeekAgo);
-            newProgress = weekSessions.reduce((total, s) => total + s.durationMinutes, 0);
+            const weekSessions = prev.sessionHistory.filter(
+              (s) => new Date(s.timestamp) > oneWeekAgo,
+            );
+            newProgress = weekSessions.reduce(
+              (total, s) => total + s.durationMinutes,
+              0,
+            );
             break;
-          case 'sessions':
+          case "sessions":
             // Weekly session count
             const weekAgo = new Date();
             weekAgo.setDate(weekAgo.getDate() - 7);
-            const weeklySessions = prev.sessionHistory.filter(s => new Date(s.timestamp) > weekAgo);
+            const weeklySessions = prev.sessionHistory.filter(
+              (s) => new Date(s.timestamp) > weekAgo,
+            );
             newProgress = weeklySessions.length;
             break;
-          case 'xp':
+          case "xp":
             newProgress = prev.weeklyXP || 0;
             break;
-          case 'streak':
+          case "streak":
             newProgress = prev.currentStreak;
             break;
         }
-        
+
         const completed = newProgress >= quest.target;
-        
+
         if (completed && !quest.completed) {
           const questXP = quest.xp || 0;
           setTimeout(() => {
-            setUserStats(prevStats => ({
+            setUserStats((prevStats) => ({
               ...prevStats,
               xp: prevStats.xp + questXP,
-              totalXPEarned: (prevStats.totalXPEarned || prevStats.xp || 0) + questXP,
+              totalXPEarned:
+                (prevStats.totalXPEarned || prevStats.xp || 0) + questXP,
               weeklyXP: (prevStats.weeklyXP || 0) + questXP,
-              level: getLevelFromXP(prevStats.xp + questXP)
+              level: getLevelFromXP(prevStats.xp + questXP),
             }));
 
             addReward({
-              type: 'WEEKLY_QUEST_COMPLETE',
+              type: "WEEKLY_QUEST_COMPLETE",
               title: `🏆 ${quest.name}`,
               description: quest.description,
-              tier: 'epic',
-              xp: questXP
+              tier: "epic",
+              xp: questXP,
             });
           }, 100);
         }
-        
+
         return {
           ...quest,
           progress: Math.min(newProgress, quest.target),
-          completed
+          completed,
         };
       });
-      
+
       return {
         ...prev,
         dailyQuests: updatedDailyQuests,
-        weeklyQuests: updatedWeeklyQuests
+        weeklyQuests: updatedWeeklyQuests,
       };
     });
   };
 
   // Debug function to reset user stats
   const resetUserStats = () => {
-    localStorage.removeItem('userStats');
+    localStorage.removeItem("userStats");
     setUserStats({
       // Core progression
       xp: 0,
@@ -886,7 +1117,7 @@ export const GamificationProvider = ({ children }) => {
       badges: [],
       achievements: [],
       unlockedTitles: [],
-      currentTitle: 'Rookie Scholar',
+      currentTitle: "Rookie Scholar",
 
       // Quest system
       dailyQuests: [],
@@ -904,7 +1135,7 @@ export const GamificationProvider = ({ children }) => {
       isPremium: false,
       xpMultiplier: 1.0,
       premiumSkins: [],
-      currentSkin: 'default',
+      currentSkin: "default",
 
       // Statistics
       subjectMastery: {},
@@ -916,7 +1147,7 @@ export const GamificationProvider = ({ children }) => {
       lastRewardTime: null,
       rewardStreak: 0,
       luckyStreak: 0,
-      jackpotCount: 0
+      jackpotCount: 0,
     });
   };
 
@@ -942,7 +1173,7 @@ export const GamificationProvider = ({ children }) => {
     setShowRewards,
     calculateXP,
     getTotalXPForLevel,
-    resetUserStats // Debug function
+    resetUserStats, // Debug function
   };
 
   return (
