@@ -153,7 +153,6 @@ const Study = () => {
   // Get subject from URL parameter (single declaration)
   const urlParams = new URLSearchParams(location.search);
   const subject = urlParams.get('subject');
-  const autoStart = urlParams.get('autoStart') === 'true';
 
   // Load subjects, tasks, and study sessions on component mount
   useEffect(() => {
@@ -173,17 +172,7 @@ const Study = () => {
     }
   }, [subject, setTimerSubject]);
 
-  // Auto-start timer if coming from Quick Start
-  useEffect(() => {
-    if (autoStart && subject && customMinutes > 0 && mode === 'custom' && !isRunning) {
-      const timer = setTimeout(() => {
-        startLocalTimer();
-        startTimer();
-      }, 1000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [subject, autoStart, mode, isRunning, customMinutes]);
+  
 
   // Get subject tasks
   const getSubjectTasks = () => {

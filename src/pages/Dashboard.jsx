@@ -5,7 +5,6 @@ import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import Sidebar from "../components/Sidebar";
 import TimerCard from "../components/TimerCard";
-import QuickStartTimer from "../components/QuickStartTimer";
 import { FlameIcon, CheckCircle, Clock, XCircle, Trash2, Calendar, BookOpen, Zap } from "lucide-react";
 
 function getStartOfWeek(date) {
@@ -104,7 +103,7 @@ export default function Dashboard() {
   });
   const [streak, setStreak] = useState(0);
   const [completedTasksThisWeek, setCompletedTasksThisWeek] = useState(0);
-  const [showQuickStart, setShowQuickStart] = useState(false);
+  
 
   const today = new Date();
   const dateString = today.toLocaleDateString("en-US", {
@@ -395,15 +394,6 @@ export default function Dashboard() {
         
         {/* Quick Access */}
         <section className="px-6 py-8 flex flex-wrap gap-4">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => setShowQuickStart(true)}
-            className="flex-1 min-w-[200px] px-6 py-4 rounded-2xl bg-gradient-to-r from-[#6C5DD3] to-[#8B7ED8] text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2"
-          >
-            <Zap className="w-5 h-5" />
-            Quick Start Timer
-          </motion.button>
           <button 
             onClick={() => navigate('/subjects')}
             className="flex-1 min-w-[200px] px-6 py-4 rounded-2xl bg-[#6C5DD3] text-white font-semibold shadow hover:bg-[#7A6AD9] transition"
@@ -429,11 +419,7 @@ export default function Dashboard() {
         </footer>
       </div>
 
-      {/* Quick Start Timer Modal */}
-      <QuickStartTimer 
-        isOpen={showQuickStart} 
-        onClose={() => setShowQuickStart(false)} 
-      />
+      
     </div>
   );
 }
