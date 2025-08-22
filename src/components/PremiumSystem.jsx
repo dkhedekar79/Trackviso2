@@ -8,11 +8,7 @@ import {
 } from 'lucide-react';
 import { useGamification } from '../context/GamificationContext';
 import { AnimatedProgressBar } from './RewardAnimations';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = 'YOUR_SUPABASE_URL'; // Replace with your Supabase URL
-const supabaseKey = 'YOUR_SUPABASE_ANON_KEY'; // Replace with your Supabase Anon Key
-const supabase = createClient(supabaseUrl, supabaseKey);
+import { supabase } from '../supabaseClient';
 
 // Premium Plans
 const PREMIUM_PLANS = {
@@ -362,15 +358,15 @@ const LetUsKnowPoll = () => {
   useEffect(() => {
     const fetchPollData = async () => {
       const { data, error } = await supabase
-        .from('polls')
-        .select('yes_votes, no_votes')
-        .eq('id', 1) // Assuming a single global poll with ID 1
-        .single();
+        .from('premium_poll')
+        .select('vote_type, count');
 
       if (error) {
         console.error('Error fetching poll data:', error);
       } else if (data) {
-        setPollData({ yes: data.yes_votes, no: data.no_votes });
+        const yesVotes = data.find(row => row.vote_type === 'yes')?.count || 0;
+        const noVotes = data.find(row => row.vote_type === 'no')?.count || 0;
+        setPollData({ yes: yesVotes, no: noVotes });
       }
     };
 
@@ -381,9 +377,9 @@ const LetUsKnowPoll = () => {
       .channel('poll-updates')
       .on(
         'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'polls', filter: 'id=eq.1' },
+        { event: 'UPDATE', schema: 'public', table: 'premium_poll' },
         (payload) => {
-          setPollData({ yes: payload.new.yes_votes, no: payload.new.no_votes });
+          fetchPollData(); // Refetch data when changes occur
         }
       )
       .subscribe();
@@ -397,26 +393,46 @@ const LetUsKnowPoll = () => {
     setSelectedOption(option);
     setUserVoted(true);
 
-    let newYesVotes = pollData.yes;
-    let newNoVotes = pollData.no;
+    try {
+      // Check if user already voted
+      const { data: existingVote } = await supabase
+        .from('premium_poll_votes')
+        .select('vote_type')
+        .single();
 
-    if (option === 'yes') {
-      newYesVotes++;
-    } else {
-      newNoVotes++;
-    }
+      if (existingVote) {
+        // User already voted, don't allow another vote
+        setUserVoted(true);
+        return;
+      }
 
-    setPollData({ yes: newYesVotes, no: newNoVotes });
+      // Record the user's vote
+      const { error: voteError } = await supabase
+        .from('premium_poll_votes')
+        .insert({ vote_type: option });
 
-    const { error } = await supabase
-      .from('polls')
-      .update({ [`${option}_votes`]: (option === 'yes' ? newYesVotes : newNoVotes) })
-      .eq('id', 1);
+      if (voteError) throw voteError;
 
-    if (error) {
+      // Increment the poll count
+      const { error: countError } = await supabase
+        .rpc('increment_poll_count', { vote_type: option });
+
+      if (countError) throw countError;
+
+      // Fetch updated poll data
+      const { data, error: fetchError } = await supabase
+        .from('premium_poll')
+        .select('vote_type, count');
+
+      if (fetchError) throw fetchError;
+
+      const yesVotes = data.find(row => row.vote_type === 'yes')?.count || 0;
+      const noVotes = data.find(row => row.vote_type === 'no')?.count || 0;
+      setPollData({ yes: yesVotes, no: noVotes });
+
+    } catch (error) {
       console.error('Error submitting vote:', error);
       // Revert local state if vote submission fails
-      setPollData({ yes: pollData.yes, no: pollData.no });
       setUserVoted(false);
       setSelectedOption(null);
     }
