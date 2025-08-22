@@ -1,4 +1,3 @@
-
 -- Create table to store poll vote counts
 CREATE TABLE IF NOT EXISTS premium_poll (
   id SERIAL PRIMARY KEY,

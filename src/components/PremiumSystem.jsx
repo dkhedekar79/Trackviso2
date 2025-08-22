@@ -9,6 +9,7 @@ import {
 import { useGamification } from '../context/GamificationContext';
 import { AnimatedProgressBar } from './RewardAnimations';
 import { supabase } from '../supabaseClient';
+import { useNavigate } from 'react-router-dom'; // Assuming react-router-dom is used for navigation
 
 // Premium Plans
 const PREMIUM_PLANS = {
@@ -358,39 +359,38 @@ const LetUsKnowPoll = () => {
   const [isVoting, setIsVoting] = useState(false);
 
   useEffect(() => {
-    const checkIfUserVoted = async () => {
-      try {
+    const fetchPollDataAndCheckVote = async () => {
+      // Fetch poll data
+      const { data: pollResults, error: pollError } = await supabase
+        .from('premium_poll')
+        .select('vote_type, count');
+
+      if (pollError) {
+        console.error('Error fetching poll data:', pollError);
+      } else if (pollResults) {
+        const yesVotes = pollResults.find(row => row.vote_type === 'yes')?.count || 0;
+        const noVotes = pollResults.find(row => row.vote_type === 'no')?.count || 0;
+        setPollData({ yes: yesVotes, no: noVotes });
+      }
+
+      // Check if current user has already voted
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
         const { data: existingVote } = await supabase
           .from('premium_poll_votes')
           .select('vote_type')
+          .eq('user_id', user.id)
           .single();
 
         if (existingVote) {
           setUserVoted(true);
           setSelectedOption(existingVote.vote_type);
-          setShowResults(true);
+          setShowResults(true); // Show results if user has already voted
         }
-      } catch (error) {
-        // User hasn't voted yet, which is fine
       }
     };
 
-    const fetchPollData = async () => {
-      const { data, error } = await supabase
-        .from('premium_poll')
-        .select('vote_type, count');
-
-      if (error) {
-        console.error('Error fetching poll data:', error);
-      } else if (data) {
-        const yesVotes = data.find(row => row.vote_type === 'yes')?.count || 0;
-        const noVotes = data.find(row => row.vote_type === 'no')?.count || 0;
-        setPollData({ yes: yesVotes, no: noVotes });
-      }
-    };
-
-    checkIfUserVoted();
-    fetchPollData();
+    fetchPollDataAndCheckVote();
 
     // Subscribe to real-time updates
     const subscription = supabase
@@ -399,7 +399,15 @@ const LetUsKnowPoll = () => {
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'premium_poll' },
         (payload) => {
-          fetchPollData(); // Refetch data when changes occur
+          // Refetch data when changes occur
+          const { data: pollResults, error: pollError } = payload;
+          if (pollError) {
+            console.error('Error fetching poll data:', pollError);
+          } else if (pollResults) {
+            const yesVotes = pollResults.find(row => row.vote_type === 'yes')?.count || 0;
+            const noVotes = pollResults.find(row => row.vote_type === 'no')?.count || 0;
+            setPollData({ yes: yesVotes, no: noVotes });
+          }
         }
       )
       .subscribe();
@@ -414,10 +422,33 @@ const LetUsKnowPoll = () => {
     setSelectedOption(option);
 
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Check if user already voted
+      const { data: existingVote } = await supabase
+        .from('premium_poll_votes')
+        .select('vote_type')
+        .eq('user_id', user.id)
+        .single();
+
+      if (existingVote) {
+        // User already voted, don't allow another vote
+        setUserVoted(true);
+        return;
+      }
+
       // Record the user's vote
       const { error: voteError } = await supabase
         .from('premium_poll_votes')
-        .insert({ vote_type: option });
+        .insert({
+          user_id: user.id,
+          vote_type: option
+        });
 
       if (voteError) throw voteError;
 
@@ -445,6 +476,7 @@ const LetUsKnowPoll = () => {
     } catch (error) {
       console.error('Error submitting vote:', error);
       // Revert local state if vote submission fails
+      setUserVoted(false);
       setSelectedOption(null);
     } finally {
       setIsVoting(false);
@@ -471,18 +503,20 @@ const LetUsKnowPoll = () => {
           <div className="flex flex-col gap-4">
             <motion.button
               onClick={() => handleVote('yes')}
-              disabled={isVoting}
+              disabled={isVoting || userVoted}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className={`py-4 px-6 rounded-xl font-semibold transition-all text-left border-2 ${
                 isVoting && selectedOption === 'yes'
                   ? 'bg-green-500 text-white border-green-500'
+                  : userVoted && selectedOption === 'yes'
+                  ? 'bg-green-500 text-white border-green-500 cursor-not-allowed'
                   : 'bg-gray-50 text-gray-800 hover:bg-gray-100 border-gray-200 hover:border-gray-300'
-              } ${isVoting ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+              } ${isVoting || userVoted ? 'cursor-not-allowed' : 'cursor-pointer'}`}
             >
               <div className="flex items-center justify-between">
                 <span>There should be a premium</span>
-                {isVoting && selectedOption === 'yes' && (
+                {(isVoting && selectedOption === 'yes') && (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                 )}
               </div>
@@ -490,18 +524,20 @@ const LetUsKnowPoll = () => {
 
             <motion.button
               onClick={() => handleVote('no')}
-              disabled={isVoting}
+              disabled={isVoting || userVoted}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className={`py-4 px-6 rounded-xl font-semibold transition-all text-left border-2 ${
                 isVoting && selectedOption === 'no'
                   ? 'bg-red-500 text-white border-red-500'
+                  : userVoted && selectedOption === 'no'
+                  ? 'bg-red-500 text-white border-red-500 cursor-not-allowed'
                   : 'bg-gray-50 text-gray-800 hover:bg-gray-100 border-gray-200 hover:border-gray-300'
-              } ${isVoting ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+              } ${isVoting || userVoted ? 'cursor-not-allowed' : 'cursor-pointer'}`}
             >
               <div className="flex items-center justify-between">
                 <span>There should not be a premium</span>
-                {isVoting && selectedOption === 'no' && (
+                {(isVoting && selectedOption === 'no') && (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                 )}
               </div>
@@ -663,6 +699,7 @@ const PremiumSystem = () => {
     return userStats.isPremium ? (userStats.premiumPlan || 'scholar') : null;
   });
   const [selectedTheme, setSelectedTheme] = useState('galaxy');
+  const navigate = useNavigate(); // Initialize navigate
 
   const tabs = [
     { id: 'plans', name: 'Premium Plans', icon: Crown },
@@ -671,6 +708,21 @@ const PremiumSystem = () => {
     { id: 'usage', name: 'Usage Stats', icon: TrendingUp },
     { id: 'poll', name: 'Let Us Know', icon: BarChart3 } // Added new tab
   ];
+
+  // Effect to redirect logged-in users from landing page
+  useEffect(() => {
+    const checkUserAndRedirect = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      // Assuming this component might be rendered on a landing page or a page that needs this check
+      // You'll need to ensure this logic is placed appropriately in your routing setup.
+      // For example, in your App.js or a dedicated landing page component.
+      if (user && window.location.pathname === '/') { // Check if on landing page
+        navigate('/dashboard'); // Redirect to dashboard
+      }
+    };
+    checkUserAndRedirect();
+  }, [navigate]);
+
 
   const handlePlanSelect = (planId) => {
     // In a real app, this would trigger payment flow
