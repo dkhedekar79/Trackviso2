@@ -17,6 +17,7 @@ import Privacy from './pages/Privacy';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import OnboardingModal from "./components/OnboardingModal";
 import './styles/index.css';
 
 
@@ -26,6 +27,8 @@ function App() {
       <GamificationProvider>
         <TimerProvider>
           <Router>
+
+            <OnboardingModal />
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Landing />} />
