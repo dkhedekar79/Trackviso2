@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slide-up { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+.animate-fade-in { animation: fade-in 1s ease both; }
+.animate-slide-up { animation: slide-up 1s cubic-bezier(0.4,0,0.2,1) both; } 
+
+
+
+
+.animate-carousel {
+  animation: carousel 40s linear infinite;
+}
+@keyframes scrollTestimonials {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+} 

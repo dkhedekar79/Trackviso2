@@ -1,0 +1,11 @@
+@keyframes carousel {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-carousel {
+  animation: carousel 40s linear infinite;
+}
+@keyframes scrollTestimonials {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+} 

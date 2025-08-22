@@ -1,0 +1,29 @@
+{
+  "name": "my-app",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.55.0",
+    "@vitejs/plugin-react": "^4.6.0",
+    "firebase": "^11.10.0",
+    "framer-motion": "^12.23.6",
+    "jsonrepair": "^3.13.0",
+    "lucide-react": "^0.525.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-icons": "^5.5.0",
+    "react-router-dom": "^7.6.3",
+    "swiper": "^11.2.10"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
+    "vite": "^4.0.0"
+  }
+}
