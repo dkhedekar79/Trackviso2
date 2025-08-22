@@ -354,8 +354,27 @@ const LetUsKnowPoll = () => {
   const [pollData, setPollData] = useState({ yes: 0, no: 0 });
   const [userVoted, setUserVoted] = useState(false);
   const [selectedOption, setSelectedOption] = useState(null);
+  const [showResults, setShowResults] = useState(false);
+  const [isVoting, setIsVoting] = useState(false);
 
   useEffect(() => {
+    const checkIfUserVoted = async () => {
+      try {
+        const { data: existingVote } = await supabase
+          .from('premium_poll_votes')
+          .select('vote_type')
+          .single();
+
+        if (existingVote) {
+          setUserVoted(true);
+          setSelectedOption(existingVote.vote_type);
+          setShowResults(true);
+        }
+      } catch (error) {
+        // User hasn't voted yet, which is fine
+      }
+    };
+
     const fetchPollData = async () => {
       const { data, error } = await supabase
         .from('premium_poll')
@@ -370,6 +389,7 @@ const LetUsKnowPoll = () => {
       }
     };
 
+    checkIfUserVoted();
     fetchPollData();
 
     // Subscribe to real-time updates
@@ -388,24 +408,12 @@ const LetUsKnowPoll = () => {
   }, []);
 
   const handleVote = async (option) => {
-    if (userVoted) return;
+    if (userVoted || isVoting) return;
 
+    setIsVoting(true);
     setSelectedOption(option);
-    setUserVoted(true);
 
     try {
-      // Check if user already voted
-      const { data: existingVote } = await supabase
-        .from('premium_poll_votes')
-        .select('vote_type')
-        .single();
-
-      if (existingVote) {
-        // User already voted, don't allow another vote
-        setUserVoted(true);
-        return;
-      }
-
       // Record the user's vote
       const { error: voteError } = await supabase
         .from('premium_poll_votes')
@@ -430,16 +438,22 @@ const LetUsKnowPoll = () => {
       const noVotes = data.find(row => row.vote_type === 'no')?.count || 0;
       setPollData({ yes: yesVotes, no: noVotes });
 
+      // Show success and results
+      setUserVoted(true);
+      setShowResults(true);
+
     } catch (error) {
       console.error('Error submitting vote:', error);
       // Revert local state if vote submission fails
-      setUserVoted(false);
       setSelectedOption(null);
+    } finally {
+      setIsVoting(false);
     }
   };
 
   const totalVotes = pollData.yes + pollData.no;
   const yesPercentage = totalVotes > 0 ? (pollData.yes / totalVotes) * 100 : 0;
+  const noPercentage = 100 - yesPercentage;
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6">
@@ -448,53 +462,124 @@ const LetUsKnowPoll = () => {
         Let Us Know
       </h3>
 
-      <p className="text-lg text-gray-700 mb-4">
-        What do you think?
-      </p>
+      {!showResults ? (
+        <>
+          <p className="text-lg text-gray-700 mb-6">
+            What do you think about premium features?
+          </p>
 
-      <div className="flex flex-col gap-4 mb-4">
-        <motion.button
-          onClick={() => handleVote('yes')}
-          disabled={userVoted || selectedOption === 'yes'}
-          className={`py-3 px-5 rounded-xl font-semibold transition-all text-left ${
-            selectedOption === 'yes'
-              ? 'bg-green-500 text-white'
-              : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-          } ${userVoted ? 'opacity-50 cursor-not-allowed' : ''}`}
-        >
-          There should be a premium
-        </motion.button>
-        <motion.button
-          onClick={() => handleVote('no')}
-          disabled={userVoted || selectedOption === 'no'}
-          className={`py-3 px-5 rounded-xl font-semibold transition-all text-left ${
-            selectedOption === 'no'
-              ? 'bg-red-500 text-white'
-              : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-          } ${userVoted ? 'opacity-50 cursor-not-allowed' : ''}`}
-        >
-          There should not be a premium
-        </motion.button>
-      </div>
+          <div className="flex flex-col gap-4">
+            <motion.button
+              onClick={() => handleVote('yes')}
+              disabled={isVoting}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className={`py-4 px-6 rounded-xl font-semibold transition-all text-left border-2 ${
+                isVoting && selectedOption === 'yes'
+                  ? 'bg-green-500 text-white border-green-500'
+                  : 'bg-gray-50 text-gray-800 hover:bg-gray-100 border-gray-200 hover:border-gray-300'
+              } ${isVoting ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+            >
+              <div className="flex items-center justify-between">
+                <span>There should be a premium</span>
+                {isVoting && selectedOption === 'yes' && (
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                )}
+              </div>
+            </motion.button>
 
-      {totalVotes > 0 && (
-        <div className="mt-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700">
-              {yesPercentage.toFixed(1)}% Yes
-            </span>
-            <span className="text-sm font-medium text-gray-700">
-              {(100 - yesPercentage).toFixed(1)}% No
-            </span>
+            <motion.button
+              onClick={() => handleVote('no')}
+              disabled={isVoting}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className={`py-4 px-6 rounded-xl font-semibold transition-all text-left border-2 ${
+                isVoting && selectedOption === 'no'
+                  ? 'bg-red-500 text-white border-red-500'
+                  : 'bg-gray-50 text-gray-800 hover:bg-gray-100 border-gray-200 hover:border-gray-300'
+              } ${isVoting ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+            >
+              <div className="flex items-center justify-between">
+                <span>There should not be a premium</span>
+                {isVoting && selectedOption === 'no' && (
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                )}
+              </div>
+            </motion.button>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2.5">
-            <div
-              className="bg-green-500 h-2.5 rounded-full transition-all duration-500"
-              style={{ width: `${yesPercentage}%` }}
-            ></div>
+        </>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          {userVoted && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl">
+              <div className="flex items-center gap-2 text-green-800">
+                <CheckCircle className="w-5 h-5" />
+                <span className="font-semibold">Thank you for voting!</span>
+              </div>
+              <p className="text-green-700 text-sm mt-1">
+                Your vote for "{selectedOption === 'yes' ? 'There should be a premium' : 'There should not be a premium'}" has been recorded.
+              </p>
+            </div>
+          )}
+
+          <h4 className="text-lg font-bold text-gray-800 mb-4">Poll Results</h4>
+
+          <div className="space-y-4">
+            {/* Yes Option Results */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className={`w-4 h-4 rounded-full ${selectedOption === 'yes' ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                  <span className="font-medium text-gray-800">There should be a premium</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-bold text-gray-800">{yesPercentage.toFixed(1)}%</span>
+                  <span className="text-sm text-gray-600">({pollData.yes} votes)</span>
+                </div>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${yesPercentage}%` }}
+                  transition={{ duration: 1, ease: "easeOut" }}
+                  className="bg-green-500 h-3 rounded-full"
+                ></motion.div>
+              </div>
+            </div>
+
+            {/* No Option Results */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className={`w-4 h-4 rounded-full ${selectedOption === 'no' ? 'bg-red-500' : 'bg-gray-300'}`}></div>
+                  <span className="font-medium text-gray-800">There should not be a premium</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-bold text-gray-800">{noPercentage.toFixed(1)}%</span>
+                  <span className="text-sm text-gray-600">({pollData.no} votes)</span>
+                </div>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${noPercentage}%` }}
+                  transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
+                  className="bg-red-500 h-3 rounded-full"
+                ></motion.div>
+              </div>
+            </div>
           </div>
-          <p className="text-xs text-gray-500 mt-2 text-center">{totalVotes} votes total</p>
-        </div>
+
+          <div className="mt-6 p-4 bg-gray-50 rounded-xl">
+            <p className="text-center text-gray-600">
+              <span className="font-semibold">{totalVotes}</span> total votes • Results update in real-time
+            </p>
+          </div>
+        </motion.div>
       )}
     </div>
   );
