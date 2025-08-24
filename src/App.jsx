@@ -28,14 +28,14 @@ function App() {
         <TimerProvider>
           <Router>
 
-            <OnboardingModal />
+            
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
 
-              
+              <OnboardingModal />
 
               {/* Protected Routes */}
               <Route path="/dashboard" element={
