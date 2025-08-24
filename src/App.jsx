@@ -35,6 +35,8 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
 
+              <OnboardingModal />
+
               {/* Protected Routes */}
               <Route path="/dashboard" element={
                 <ProtectedRoute>
