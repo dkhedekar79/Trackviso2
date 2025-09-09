@@ -93,7 +93,7 @@ function getCompletedTasksThisWeek(tasks) {
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
-  const { userStats, forceMigration, isMigrating } = useGamification();
+  const { userStats, forceMigration, isMigrating, isSyncing } = useGamification();
   const navigate = useNavigate();
   const [subjects, setSubjects] = useState([]);
   const [studySessions, setStudySessions] = useState([]);
@@ -376,12 +376,20 @@ export default function Dashboard() {
       <div className="flex-1 ml-16 transition-all duration-300 ease-in-out [body>div>aside:hover_+_div&]:ml-64">
         {/* Header Section */}
         <div className="flex justify-between items-center p-6">
-          {isMigrating && (
-            <div className="flex items-center gap-3 px-4 py-2 bg-blue-500/20 border border-blue-500/30 rounded-xl text-blue-200 backdrop-blur">
-              <div className="animate-spin w-4 h-4 border-2 border-blue-300 border-t-transparent rounded-full"></div>
-              <span className="text-sm font-medium">Migrating your data to cloud...</span>
-            </div>
-          )}
+          <div className="flex items-center gap-3">
+            {isMigrating && (
+              <div className="flex items-center gap-3 px-4 py-2 bg-blue-500/20 border border-blue-500/30 rounded-xl text-blue-200 backdrop-blur">
+                <div className="animate-spin w-4 h-4 border-2 border-blue-300 border-t-transparent rounded-full"></div>
+                <span className="text-sm font-medium">Migrating your data to cloud...</span>
+              </div>
+            )}
+            {isSyncing && !isMigrating && (
+              <div className="flex items-center gap-3 px-4 py-2 bg-green-500/20 border border-green-500/30 rounded-xl text-green-200 backdrop-blur">
+                <div className="animate-pulse w-2 h-2 bg-green-300 rounded-full"></div>
+                <span className="text-sm font-medium">Syncing data...</span>
+              </div>
+            )}
+          </div>
           <div className="ml-auto">
             <button
               onClick={() => setShowSettingsPopup(true)}

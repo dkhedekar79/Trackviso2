@@ -167,6 +167,9 @@ export default function Tasks() {
       setFormError("");
       setShowModal(false);
       setEditId(null);
+      
+      // Trigger immediate sync
+      console.log('🔄 Task saved, triggering sync...');
     } catch (e) {
       console.error('Failed saving task:', e);
       // Fallback to localStorage
@@ -212,6 +215,9 @@ export default function Tasks() {
       );
       setPopTaskId(id);
       setTimeout(() => setPopTaskId(null), 350);
+      
+      // Trigger immediate sync
+      console.log('🔄 Task toggled, triggering sync...');
     } catch (e) {
       console.error('Failed updating task:', e);
       // Fallback to localStorage
@@ -315,6 +321,9 @@ export default function Tasks() {
       if (error) throw error;
       
       setTasks(tasks.filter(t => t.id !== id));
+      
+      // Trigger immediate sync
+      console.log('🔄 Task deleted, triggering sync...');
     } catch (e) {
       console.error('Failed deleting task:', e);
       // Fallback to localStorage

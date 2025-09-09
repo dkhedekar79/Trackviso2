@@ -96,13 +96,56 @@ export const GamificationProvider = ({ children }) => {
   const [showRewards, setShowRewards] = useState(false);
   const [activeAnimations, setActiveAnimations] = useState([]);
   const [isMigrating, setIsMigrating] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const syncingRef = useRef(false);
 
-  // Save stats to localStorage whenever they change
+  // Save stats to localStorage and sync to Supabase whenever they change
   useEffect(() => {
     console.log("💾 Saving userStats to localStorage:", userStats);
     localStorage.setItem("userStats", JSON.stringify(userStats));
+    
+    // Sync to Supabase if user is logged in and not currently syncing
+    if (user?.id && !syncingRef.current) {
+      syncUserStatsToSupabase();
+    }
   }, [userStats]);
+
+  // Sync user stats to Supabase
+  const syncUserStatsToSupabase = async () => {
+    if (!user?.id || syncingRef.current) return;
+    
+    syncingRef.current = true;
+    setIsSyncing(true);
+    try {
+      const { error } = await supabase
+        .from('user_stats')
+        .upsert({
+          user_id: user.id,
+          xp: userStats.xp || 0,
+          level: userStats.level || 1,
+          prestige_level: userStats.prestigeLevel || 0,
+          total_sessions: userStats.totalSessions || 0,
+          total_study_time: userStats.totalStudyTime || 0,
+          total_xp_earned: userStats.totalXPEarned || 0,
+          current_streak: userStats.currentStreak || 0,
+          longest_streak: userStats.longestStreak || 0,
+          last_study_date: userStats.lastStudyDate,
+          weekly_xp: userStats.weeklyXP || 0,
+          subject_mastery: userStats.subjectMastery || {},
+          achievements: userStats.achievements || [],
+          daily_quests: userStats.dailyQuests || [],
+          weekly_quests: userStats.weeklyQuests || [],
+        });
+      
+      if (error) throw error;
+      console.log('✅ Synced user stats to Supabase');
+    } catch (error) {
+      console.error('❌ Failed to sync user stats:', error);
+    } finally {
+      syncingRef.current = false;
+      setIsSyncing(false);
+    }
+  };
 
   // Migration function to move localStorage data to Supabase
   const migrateLocalStorageData = async () => {
@@ -1572,6 +1615,20 @@ export const GamificationProvider = ({ children }) => {
     }
   };
 
+  // Periodic sync every 10 seconds
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    const syncInterval = setInterval(() => {
+      if (!syncingRef.current) {
+        console.log('🔄 Periodic sync to Supabase...');
+        syncUserStatsToSupabase();
+      }
+    }, 10000); // 10 seconds
+    
+    return () => clearInterval(syncInterval);
+  }, [user?.id]);
+
   // Expose migration function to window for debugging
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -1605,6 +1662,7 @@ export const GamificationProvider = ({ children }) => {
     resetUserStats, // Debug function
     forceMigration, // Expose for debugging
     isMigrating, // Migration status
+    isSyncing, // Sync status
   };
 
   return (

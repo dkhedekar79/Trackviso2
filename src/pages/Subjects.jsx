@@ -90,6 +90,9 @@ const Subjects = () => {
       setSubjects(prev => [newSubjectWithId, ...prev]);
       setNewSubject({ name: '', color: '#6C5DD3', goalHours: 0 });
       setShowModal(false);
+      
+      // Trigger immediate sync
+      console.log('🔄 Subject added, triggering sync...');
     } catch (e) {
       console.error('Failed adding subject:', e);
       // Fallback to localStorage
@@ -119,6 +122,9 @@ const Subjects = () => {
       setSubjects(prev => prev.map(s => s.id === editingSubject.id ? editingSubject : s));
       setEditingSubject(null);
       setShowModal(false);
+      
+      // Trigger immediate sync
+      console.log('🔄 Subject updated, triggering sync...');
     } catch (e) {
       console.error('Failed updating subject:', e);
       // Fallback to localStorage
@@ -144,6 +150,9 @@ const Subjects = () => {
       if (error) throw error;
       
       setSubjects(prev => prev.filter(s => s.id !== subjectId));
+      
+      // Trigger immediate sync
+      console.log('🔄 Subject deleted, triggering sync...');
     } catch (e) {
       console.error('Failed deleting subject:', e);
       // Fallback to localStorage
