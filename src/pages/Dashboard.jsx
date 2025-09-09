@@ -93,7 +93,7 @@ function getCompletedTasksThisWeek(tasks) {
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
-  const { userStats, forceMigration } = useGamification();
+  const { userStats, forceMigration, isMigrating } = useGamification();
   const navigate = useNavigate();
   const [subjects, setSubjects] = useState([]);
   const [studySessions, setStudySessions] = useState([]);
@@ -375,14 +375,22 @@ export default function Dashboard() {
       {/* Main Content */}
       <div className="flex-1 ml-16 transition-all duration-300 ease-in-out [body>div>aside:hover_+_div&]:ml-64">
         {/* Header Section */}
-        <div className="flex justify-end p-6">
-          <button
-            onClick={() => setShowSettingsPopup(true)}
-            className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-all text-white backdrop-blur"
-            title="How the System Works"
-          >
-            <Settings className="w-5 h-5" />
-          </button>
+        <div className="flex justify-between items-center p-6">
+          {isMigrating && (
+            <div className="flex items-center gap-3 px-4 py-2 bg-blue-500/20 border border-blue-500/30 rounded-xl text-blue-200 backdrop-blur">
+              <div className="animate-spin w-4 h-4 border-2 border-blue-300 border-t-transparent rounded-full"></div>
+              <span className="text-sm font-medium">Migrating your data to cloud...</span>
+            </div>
+          )}
+          <div className="ml-auto">
+            <button
+              onClick={() => setShowSettingsPopup(true)}
+              className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-all text-white backdrop-blur"
+              title="How the System Works"
+            >
+              <Settings className="w-5 h-5" />
+            </button>
+          </div>
         </div>
         
         {/* Summary & Streak */}

@@ -95,6 +95,7 @@ export const GamificationProvider = ({ children }) => {
   const [rewardQueue, setRewardQueue] = useState([]);
   const [showRewards, setShowRewards] = useState(false);
   const [activeAnimations, setActiveAnimations] = useState([]);
+  const [isMigrating, setIsMigrating] = useState(false);
   const syncingRef = useRef(false);
 
   // Save stats to localStorage whenever they change
@@ -280,34 +281,47 @@ export const GamificationProvider = ({ children }) => {
         const migrationCompleted = localStorage.getItem('migrationCompleted');
         const hasLocalData = localStorage.getItem('userStats') || localStorage.getItem('studySessions') || localStorage.getItem('subjects') || localStorage.getItem('tasks');
         
+        console.log('🔍 Migration check:', { migrationCompleted, hasLocalData: !!hasLocalData, statsRow: !!statsRow });
+        
         if (!migrationCompleted && hasLocalData) {
-          console.log('🔄 Found localStorage data, starting migration...');
-          await migrateLocalStorageData();
-          // Reload after migration
-          const { data: newStatsRow } = await supabase
-            .from("user_stats")
-            .select("*")
-            .eq("user_id", user.id)
-            .maybeSingle();
-          
-          if (newStatsRow) {
-            mergedStats = {
-              ...mergedStats,
-              xp: newStatsRow.xp ?? mergedStats.xp,
-              level: newStatsRow.level ?? mergedStats.level,
-              prestigeLevel: newStatsRow.prestige_level ?? mergedStats.prestigeLevel,
-              totalSessions: newStatsRow.total_sessions ?? mergedStats.totalSessions,
-              totalStudyTime: newStatsRow.total_study_time ?? mergedStats.totalStudyTime,
-              totalXPEarned: newStatsRow.total_xp_earned ?? mergedStats.totalXPEarned,
-              currentStreak: newStatsRow.current_streak ?? mergedStats.currentStreak,
-              longestStreak: newStatsRow.longest_streak ?? mergedStats.longestStreak,
-              lastStudyDate: newStatsRow.last_study_date ?? mergedStats.lastStudyDate,
-              weeklyXP: newStatsRow.weekly_xp ?? mergedStats.weeklyXP,
-              subjectMastery: newStatsRow.subject_mastery ?? mergedStats.subjectMastery,
-              achievements: newStatsRow.achievements ?? mergedStats.achievements,
-              dailyQuests: newStatsRow.daily_quests ?? mergedStats.dailyQuests,
-              weeklyQuests: newStatsRow.weekly_quests ?? mergedStats.weeklyQuests,
-            };
+          console.log('🔄 Found localStorage data, starting automatic migration...');
+          setIsMigrating(true);
+          try {
+            await migrateLocalStorageData();
+            console.log('✅ Automatic migration completed');
+            setIsMigrating(false);
+            
+            // Reload data after migration
+            const { data: newStatsRow } = await supabase
+              .from("user_stats")
+              .select("*")
+              .eq("user_id", user.id)
+              .maybeSingle();
+            
+            if (newStatsRow) {
+              mergedStats = {
+                ...mergedStats,
+                xp: newStatsRow.xp ?? mergedStats.xp,
+                level: newStatsRow.level ?? mergedStats.level,
+                prestigeLevel: newStatsRow.prestige_level ?? mergedStats.prestigeLevel,
+                totalSessions: newStatsRow.total_sessions ?? mergedStats.totalSessions,
+                totalStudyTime: newStatsRow.total_study_time ?? mergedStats.totalStudyTime,
+                totalXPEarned: newStatsRow.total_xp_earned ?? mergedStats.totalXPEarned,
+                currentStreak: newStatsRow.current_streak ?? mergedStats.currentStreak,
+                longestStreak: newStatsRow.longest_streak ?? mergedStats.longestStreak,
+                lastStudyDate: newStatsRow.last_study_date ?? mergedStats.lastStudyDate,
+                weeklyXP: newStatsRow.weekly_xp ?? mergedStats.weeklyXP,
+                subjectMastery: newStatsRow.subject_mastery ?? mergedStats.subjectMastery,
+                achievements: newStatsRow.achievements ?? mergedStats.achievements,
+                dailyQuests: newStatsRow.daily_quests ?? mergedStats.dailyQuests,
+                weeklyQuests: newStatsRow.weekly_quests ?? mergedStats.weeklyQuests,
+              };
+            }
+          } catch (error) {
+            console.error('❌ Automatic migration failed:', error);
+            setIsMigrating(false);
+            // Don't mark as completed if migration failed
+            localStorage.removeItem('migrationCompleted');
           }
         } else if (!statsRow) {
           // Create default row for this user
@@ -1590,6 +1604,7 @@ export const GamificationProvider = ({ children }) => {
     getTotalXPForLevel,
     resetUserStats, // Debug function
     forceMigration, // Expose for debugging
+    isMigrating, // Migration status
   };
 
   return (
