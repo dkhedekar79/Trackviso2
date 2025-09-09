@@ -1,6 +1,7 @@
 // src/pages/Dashboard.jsx
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useGamification } from "../context/GamificationContext";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "../components/Sidebar";
@@ -92,6 +93,7 @@ function getCompletedTasksThisWeek(tasks) {
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
+  const { userStats, forceMigration } = useGamification();
   const navigate = useNavigate();
   const [subjects, setSubjects] = useState([]);
   const [studySessions, setStudySessions] = useState([]);
@@ -112,24 +114,26 @@ export default function Dashboard() {
     year: "numeric",
   });
 
-  // Load subjects, study sessions, and tasks from localStorage
+  // Load subjects and tasks from localStorage on first mount
   useEffect(() => {
     const savedSubjects = localStorage.getItem("subjects");
-    const savedSessions = localStorage.getItem("studySessions");
     const savedTasks = localStorage.getItem("tasks");
     
     if (savedSubjects) {
       setSubjects(JSON.parse(savedSubjects));
     }
     
-    if (savedSessions) {
-      setStudySessions(JSON.parse(savedSessions));
-    }
-    
     if (savedTasks) {
       setTasks(JSON.parse(savedTasks));
     }
   }, []);
+
+  // Keep study sessions in sync with GamificationContext (authoritative source)
+  useEffect(() => {
+    if (userStats && Array.isArray(userStats.sessionHistory)) {
+      setStudySessions(userStats.sessionHistory);
+    }
+  }, [userStats]);
 
   // Calculate study statistics, streak, and completed tasks
   useEffect(() => {
@@ -346,7 +350,17 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <div className="flex justify-center mt-8">
+              <div className="flex justify-center gap-4 mt-8">
+                <button
+                  onClick={async () => {
+                    if (confirm('This will migrate your localStorage data to Supabase. Continue?')) {
+                      await forceMigration();
+                    }
+                  }}
+                  className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-semibold hover:from-green-700 hover:to-emerald-700 transition-all"
+                >
+                  🔄 Migrate Data
+                </button>
                 <button
                   onClick={() => setShowSettingsPopup(false)}
                   className="px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-blue-700 transition-all"

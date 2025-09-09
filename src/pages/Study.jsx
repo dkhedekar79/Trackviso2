@@ -425,20 +425,11 @@ const Study = () => {
       isTaskComplete,
     };
 
-    // Award XP using the gamification system
-    const xpData = awardXP(sessionDurationMinutes, subject, sessionDifficulty);
-
-    // Add to gamification system for session tracking
-    const sessionWithXP = {
-      ...sessionData,
-      xpEarned: xpData.totalXP,
-      bonuses: xpData.bonuses,
-    };
-
-    const sessionResult = addStudySession(sessionWithXP);
+    // Add to gamification system for session tracking (handles XP, streaks, etc.)
+    const sessionResult = addStudySession(sessionData);
 
     // Update study sessions in localStorage
-    const updatedSessions = [...studySessions, sessionWithXP];
+    const updatedSessions = [...studySessions, sessionResult];
     localStorage.setItem("studySessions", JSON.stringify(updatedSessions));
     setStudySessions(updatedSessions);
 
@@ -459,14 +450,12 @@ const Study = () => {
     updateQuestProgress("subjects", 1, subject);
     updateQuestProgress("streak", 1);
 
-    // Show completion success with rewards
+    // Show completion success (summary only; XP animation is already queued)
     addReward({
       type: "SESSION_COMPLETE",
       title: `🎉 Session Complete!`,
-      description: `You studied ${subject} for ${sessionDurationMinutes.toFixed(1)} minutes and earned ${xpData.totalXP} XP!`,
+      description: `You studied ${subject} for ${sessionDurationMinutes.toFixed(1)} minutes.`,
       tier: "uncommon",
-      xp: xpData.totalXP,
-      bonuses: xpData.bonuses,
     });
 
     // Reset session state but keep subject to avoid blank screen

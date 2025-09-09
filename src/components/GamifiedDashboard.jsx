@@ -213,7 +213,22 @@ const GamifiedDashboard = () => {
                 </div>
               </div>
 
+
+              
+
               <div className="flex justify-center mt-8">
+
+            
+                <button
+                  onClick={async () => {
+                    if (confirm('This will migrate your localStorage data to Supabase. Continue?')) {
+                      await forceMigration();
+                    }
+                  }}
+                  className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-semibold hover:from-green-700 hover:to-emerald-700 transition-all"
+                >
+                  🔄 Migrate Data
+                </button>
                 <button
                   onClick={() => setShowSettingsPopup(false)}
                   className="px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-blue-700 transition-all"

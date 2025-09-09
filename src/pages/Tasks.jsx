@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import { Pencil, Trash2 } from "lucide-react";
+import { supabase } from "../supabaseClient";
+import { useAuth } from "../context/AuthContext";
 
 const priorities = [
   { label: "Low", color: "border-blue-500" },
@@ -9,6 +11,7 @@ const priorities = [
 ];
 
 export default function Tasks() {
+  const { user } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [form, setForm] = useState({ name: "", subject: "", time: "", priority: "Low", scheduledDate: "" });
@@ -19,63 +22,211 @@ export default function Tasks() {
   const [sortBy, setSortBy] = useState("subject");
   const [editId, setEditId] = useState(null);
 
-  // Load tasks from localStorage on mount
+  // Load tasks from Supabase
   useEffect(() => {
-    const saved = localStorage.getItem("tasks");
-    if (saved) setTasks(JSON.parse(saved));
-  }, []);
+    const loadTasks = async () => {
+      if (!user?.id) return;
+      try {
+        const { data, error } = await supabase
+          .from('tasks')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        const mappedTasks = (data || []).map(t => ({
+          id: t.id,
+          name: t.name,
+          subject: t.subject,
+          time: t.duration_minutes?.toString() || '',
+          priority: t.priority || 'Low',
+          scheduledDate: t.scheduled_date || '',
+          done: t.completed || false,
+          doneAt: t.done_at ? new Date(t.done_at).getTime() : undefined,
+        }));
+        
+        setTasks(mappedTasks);
+      } catch (e) {
+        console.error('Failed loading tasks:', e);
+        // Fallback to localStorage
+        const saved = localStorage.getItem("tasks");
+        if (saved) setTasks(JSON.parse(saved));
+      }
+    };
 
-  // Load subjects from localStorage on mount
+    loadTasks();
+  }, [user?.id]);
+
+  // Load subjects from Supabase
   useEffect(() => {
-    const savedSubjects = localStorage.getItem("subjects");
-    if (savedSubjects) {
-      setSubjects(JSON.parse(savedSubjects));
-    } else {
-      // If no subjects exist, set default subjects
-      const defaultSubjects = [
-        { id: 1, name: "Math", color: "#6C5DD3", goalHours: 5 },
-        { id: 2, name: "English", color: "#B6E4CF", goalHours: 4 },
-        { id: 3, name: "Biology", color: "#FEC260", goalHours: 6 },
-        { id: 4, name: "History", color: "#FF6B6B", goalHours: 3 }
-      ];
-      setSubjects(defaultSubjects);
-      localStorage.setItem("subjects", JSON.stringify(defaultSubjects));
-    }
-  }, []);
+    const loadSubjects = async () => {
+      if (!user?.id) return;
+      try {
+        const { data, error } = await supabase
+          .from('subjects')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        const mappedSubjects = (data || []).map(s => ({
+          id: s.id,
+          name: s.name,
+          color: s.color,
+          goalHours: Number(s.goal_hours) || 0,
+        }));
+        
+        setSubjects(mappedSubjects);
+      } catch (e) {
+        console.error('Failed loading subjects:', e);
+        // Fallback to localStorage
+        const savedSubjects = localStorage.getItem("subjects");
+        if (savedSubjects) {
+          setSubjects(JSON.parse(savedSubjects));
+        } else {
+          // If no subjects exist, set default subjects
+          const defaultSubjects = [
+            { id: 1, name: "Math", color: "#6C5DD3", goalHours: 5 },
+            { id: 2, name: "English", color: "#B6E4CF", goalHours: 4 },
+            { id: 3, name: "Biology", color: "#FEC260", goalHours: 6 },
+            { id: 4, name: "History", color: "#FF6B6B", goalHours: 3 }
+          ];
+          setSubjects(defaultSubjects);
+          localStorage.setItem("subjects", JSON.stringify(defaultSubjects));
+        }
+      }
+    };
 
-  // Save tasks to localStorage whenever they change
+    loadSubjects();
+  }, [user?.id]);
+
+  // Save tasks to localStorage as backup
   useEffect(() => {
     localStorage.setItem("tasks", JSON.stringify(tasks));
   }, [tasks]);
 
-  const addTask = () => {
+  const addTask = async () => {
     if (!form.name.trim() || !form.subject.trim() || !form.time.trim()) {
       setFormError("Please enter a task name, subject, and duration.");
       return;
     }
-    if (editId) {
-      setTasks(tasks.map(t => t.id === editId ? { ...t, ...form } : t));
-    } else {
-      setTasks([...tasks, { ...form, id: Date.now(), done: false }]);
+    if (!user?.id) return;
+    
+    try {
+      if (editId) {
+        // Update existing task
+        const { error } = await supabase
+          .from('tasks')
+          .update({
+            name: form.name.trim(),
+            subject: form.subject,
+            duration_minutes: parseInt(form.time) || 0,
+            priority: form.priority,
+            scheduled_date: form.scheduledDate || null,
+          })
+          .eq('id', editId)
+          .eq('user_id', user.id);
+        
+        if (error) throw error;
+        
+        setTasks(tasks.map(t => t.id === editId ? { ...t, ...form } : t));
+      } else {
+        // Create new task
+        const { data, error } = await supabase
+          .from('tasks')
+          .insert({
+            user_id: user.id,
+            name: form.name.trim(),
+            subject: form.subject,
+            duration_minutes: parseInt(form.time) || 0,
+            priority: form.priority,
+            scheduled_date: form.scheduledDate || null,
+            completed: false,
+          })
+          .select()
+          .single();
+        
+        if (error) throw error;
+        
+        const newTask = {
+          id: data.id,
+          name: data.name,
+          subject: data.subject,
+          time: data.duration_minutes?.toString() || '',
+          priority: data.priority || 'Low',
+          scheduledDate: data.scheduled_date || '',
+          done: false,
+        };
+        
+        setTasks(prev => [newTask, ...prev]);
+      }
+      
+      setForm({ name: "", subject: "", time: "", priority: "Low", scheduledDate: "" });
+      setFormError("");
+      setShowModal(false);
+      setEditId(null);
+    } catch (e) {
+      console.error('Failed saving task:', e);
+      // Fallback to localStorage
+      if (editId) {
+        setTasks(tasks.map(t => t.id === editId ? { ...t, ...form } : t));
+      } else {
+        setTasks([...tasks, { ...form, id: Date.now(), done: false }]);
+      }
+      setForm({ name: "", subject: "", time: "", priority: "Low", scheduledDate: "" });
+      setFormError("");
+      setShowModal(false);
+      setEditId(null);
     }
-    setForm({ name: "", subject: "", time: "", priority: "Low", scheduledDate: "" });
-    setFormError("");
-    setShowModal(false);
-    setEditId(null);
   };
 
-  const toggleDone = (id) => {
-    setTasks(
-      tasks.map((t) =>
-        t.id === id
-          ? t.done
-            ? { ...t, done: false, doneAt: undefined }
-            : { ...t, done: true, doneAt: Date.now() }
-          : t
-      )
-    );
-    setPopTaskId(id);
-    setTimeout(() => setPopTaskId(null), 350);
+  const toggleDone = async (id) => {
+    if (!user?.id) return;
+    
+    const task = tasks.find(t => t.id === id);
+    if (!task) return;
+    
+    const newDone = !task.done;
+    const newDoneAt = newDone ? new Date().toISOString() : null;
+    
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update({
+          completed: newDone,
+          done_at: newDoneAt,
+        })
+        .eq('id', id)
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      
+      setTasks(
+        tasks.map((t) =>
+          t.id === id
+            ? { ...t, done: newDone, doneAt: newDoneAt ? new Date(newDoneAt).getTime() : undefined }
+            : t
+        )
+      );
+      setPopTaskId(id);
+      setTimeout(() => setPopTaskId(null), 350);
+    } catch (e) {
+      console.error('Failed updating task:', e);
+      // Fallback to localStorage
+      setTasks(
+        tasks.map((t) =>
+          t.id === id
+            ? t.done
+              ? { ...t, done: false, doneAt: undefined }
+              : { ...t, done: true, doneAt: Date.now() }
+            : t
+        )
+      );
+      setPopTaskId(id);
+      setTimeout(() => setPopTaskId(null), 350);
+    }
   };
 
   const priorityColor = (priority) => {
@@ -151,8 +302,24 @@ export default function Tasks() {
     setShowModal(true);
   };
 
-  const handleDelete = (id) => {
-    setTasks(tasks.filter(t => t.id !== id));
+  const handleDelete = async (id) => {
+    if (!user?.id) return;
+    
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      
+      setTasks(tasks.filter(t => t.id !== id));
+    } catch (e) {
+      console.error('Failed deleting task:', e);
+      // Fallback to localStorage
+      setTasks(tasks.filter(t => t.id !== id));
+    }
   };
 
   return (

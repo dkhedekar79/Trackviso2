@@ -14,8 +14,11 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useTimer } from '../context/TimerContext';
 import { useGamification } from '../context/GamificationContext';
+import { supabase } from '../supabaseClient';
+import { useAuth } from '../context/AuthContext';
 
 const Subjects = () => {
+  const { user } = useAuth();
   const [subjects, setSubjects] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingSubject, setEditingSubject] = useState(null);
@@ -24,18 +27,72 @@ const Subjects = () => {
   const { setTimerSubject } = useTimer();
   const { userStats } = useGamification();
 
+  // Load subjects from Supabase
   useEffect(() => {
-    const savedSubjects = JSON.parse(localStorage.getItem('subjects') || '[]');
-    setSubjects(savedSubjects);
-  }, []);
+    const loadSubjects = async () => {
+      if (!user?.id) return;
+      try {
+        const { data, error } = await supabase
+          .from('subjects')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        const mappedSubjects = (data || []).map(s => ({
+          id: s.id,
+          name: s.name,
+          color: s.color,
+          goalHours: Number(s.goal_hours) || 0,
+        }));
+        
+        setSubjects(mappedSubjects);
+      } catch (e) {
+        console.error('Failed loading subjects:', e);
+        // Fallback to localStorage
+        const savedSubjects = JSON.parse(localStorage.getItem('subjects') || '[]');
+        setSubjects(savedSubjects);
+      }
+    };
+
+    loadSubjects();
+  }, [user?.id]);
 
   const handleStartTimer = (subjectName) => {
     setTimerSubject(subjectName);
     navigate(`/study?subject=${encodeURIComponent(subjectName)}`);
   };
 
-  const handleAddSubject = () => {
-    if (newSubject.name.trim()) {
+  const handleAddSubject = async () => {
+    if (!newSubject.name.trim() || !user?.id) return;
+    try {
+      const { data, error } = await supabase
+        .from('subjects')
+        .insert({
+          user_id: user.id,
+          name: newSubject.name.trim(),
+          color: newSubject.color,
+          goal_hours: newSubject.goalHours,
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      const newSubjectWithId = {
+        id: data.id,
+        name: data.name,
+        color: data.color,
+        goalHours: Number(data.goal_hours) || 0,
+      };
+      
+      setSubjects(prev => [newSubjectWithId, ...prev]);
+      setNewSubject({ name: '', color: '#6C5DD3', goalHours: 0 });
+      setShowModal(false);
+    } catch (e) {
+      console.error('Failed adding subject:', e);
+      // Fallback to localStorage
       const updatedSubjects = [...subjects, { ...newSubject, id: Date.now() }];
       setSubjects(updatedSubjects);
       localStorage.setItem('subjects', JSON.stringify(updatedSubjects));
@@ -44,8 +101,27 @@ const Subjects = () => {
     }
   };
 
-  const handleEditSubject = () => {
-    if (editingSubject && editingSubject.name.trim()) {
+  const handleEditSubject = async () => {
+    if (!editingSubject?.name.trim() || !user?.id) return;
+    try {
+      const { error } = await supabase
+        .from('subjects')
+        .update({
+          name: editingSubject.name.trim(),
+          color: editingSubject.color,
+          goal_hours: editingSubject.goalHours,
+        })
+        .eq('id', editingSubject.id)
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      
+      setSubjects(prev => prev.map(s => s.id === editingSubject.id ? editingSubject : s));
+      setEditingSubject(null);
+      setShowModal(false);
+    } catch (e) {
+      console.error('Failed updating subject:', e);
+      // Fallback to localStorage
       const updatedSubjects = subjects.map(subject =>
         subject.id === editingSubject.id ? editingSubject : subject
       );
@@ -56,21 +132,38 @@ const Subjects = () => {
     }
   };
 
-  const handleDeleteSubject = (subjectId) => {
-    const updatedSubjects = subjects.filter(subject => subject.id !== subjectId);
-    setSubjects(updatedSubjects);
-    localStorage.setItem('subjects', JSON.stringify(updatedSubjects));
+  const handleDeleteSubject = async (subjectId) => {
+    if (!user?.id) return;
+    try {
+      const { error } = await supabase
+        .from('subjects')
+        .delete()
+        .eq('id', subjectId)
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      
+      setSubjects(prev => prev.filter(s => s.id !== subjectId));
+    } catch (e) {
+      console.error('Failed deleting subject:', e);
+      // Fallback to localStorage
+      const updatedSubjects = subjects.filter(subject => subject.id !== subjectId);
+      setSubjects(updatedSubjects);
+      localStorage.setItem('subjects', JSON.stringify(updatedSubjects));
+    }
   };
 
   const getSubjectStudyTime = (subjectName) => {
-    const studySessions = JSON.parse(localStorage.getItem('studySessions') || '[]');
+    // Use userStats.sessionHistory from GamificationContext (already synced with Supabase)
+    const studySessions = userStats?.sessionHistory || [];
     return studySessions
       .filter(session => session.subjectName === subjectName)
       .reduce((total, session) => total + session.durationMinutes, 0);
   };
 
   const getLastStudied = (subjectName) => {
-    const studySessions = JSON.parse(localStorage.getItem('studySessions') || '[]');
+    // Use userStats.sessionHistory from GamificationContext (already synced with Supabase)
+    const studySessions = userStats?.sessionHistory || [];
     const subjectSessions = studySessions
       .filter(session => session.subjectName === subjectName)
       .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));

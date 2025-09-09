@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef } from "react";
+import { supabase } from "../supabaseClient";
+import { useAuth } from "./AuthContext";
 
 const GamificationContext = createContext();
 
@@ -13,6 +15,7 @@ export const useGamification = () => {
 };
 
 export const GamificationProvider = ({ children }) => {
+  const { user } = useAuth();
   const [userStats, setUserStats] = useState(() => {
     const saved = localStorage.getItem("userStats");
     const defaultStats = {
@@ -92,12 +95,365 @@ export const GamificationProvider = ({ children }) => {
   const [rewardQueue, setRewardQueue] = useState([]);
   const [showRewards, setShowRewards] = useState(false);
   const [activeAnimations, setActiveAnimations] = useState([]);
+  const syncingRef = useRef(false);
 
   // Save stats to localStorage whenever they change
   useEffect(() => {
     console.log("💾 Saving userStats to localStorage:", userStats);
     localStorage.setItem("userStats", JSON.stringify(userStats));
   }, [userStats]);
+
+  // Migration function to move localStorage data to Supabase
+  const migrateLocalStorageData = async () => {
+    if (!user?.id) {
+      console.log('❌ No user ID for migration');
+      return;
+    }
+    
+    try {
+      console.log('🔄 Starting migration for user:', user.id);
+      
+      // Check what data exists in localStorage
+      const savedStats = localStorage.getItem('userStats');
+      const savedSessions = localStorage.getItem('studySessions');
+      const savedSubjects = localStorage.getItem('subjects');
+      const savedTasks = localStorage.getItem('tasks');
+      
+      console.log('📊 LocalStorage data found:', {
+        stats: !!savedStats,
+        sessions: !!savedSessions,
+        subjects: !!savedSubjects,
+        tasks: !!savedTasks
+      });
+      
+      // Migrate user stats
+      if (savedStats) {
+        const stats = JSON.parse(savedStats);
+        console.log('📈 Migrating user stats:', stats);
+        
+        const { error: statsError } = await supabase
+          .from('user_stats')
+          .upsert({
+            user_id: user.id,
+            xp: stats.xp || 0,
+            level: stats.level || 1,
+            prestige_level: stats.prestigeLevel || 0,
+            total_sessions: stats.totalSessions || 0,
+            total_study_time: stats.totalStudyTime || 0,
+            total_xp_earned: stats.totalXPEarned || stats.xp || 0,
+            current_streak: stats.currentStreak || 0,
+            longest_streak: stats.longestStreak || 0,
+            last_study_date: stats.lastStudyDate,
+            weekly_xp: stats.weeklyXP || 0,
+            subject_mastery: stats.subjectMastery || {},
+            achievements: stats.achievements || [],
+            daily_quests: stats.dailyQuests || [],
+            weekly_quests: stats.weeklyQuests || [],
+          });
+        
+        if (statsError) {
+          console.error('❌ Stats migration error:', statsError);
+          throw statsError;
+        }
+        console.log('✅ Migrated user stats');
+      }
+      
+      // Migrate study sessions
+      if (savedSessions) {
+        const sessions = JSON.parse(savedSessions);
+        console.log('📚 Migrating study sessions:', sessions.length);
+        
+        if (sessions.length > 0) {
+          // Use upsert to handle duplicates
+          for (const s of sessions) {
+            const { error: sessionsError } = await supabase
+              .from('study_sessions')
+              .upsert({
+                user_id: user.id,
+                subject_name: s.subjectName,
+                duration_minutes: s.durationMinutes,
+                timestamp: s.timestamp,
+                difficulty: s.difficulty || 'medium',
+                xp_earned: s.xpEarned || 0,
+                bonuses: s.bonuses || {},
+                notes: s.notes || '',
+              }, {
+                onConflict: 'user_id,subject_name,timestamp'
+              });
+            
+            if (sessionsError) {
+              console.error('❌ Session migration error for:', s.subjectName, s.timestamp, sessionsError);
+              // Continue with other sessions instead of failing completely
+            }
+          }
+          console.log('✅ Migrated study sessions');
+        }
+      }
+      
+      // Migrate subjects
+      if (savedSubjects) {
+        const subjects = JSON.parse(savedSubjects);
+        console.log('📖 Migrating subjects:', subjects.length);
+        
+        if (subjects.length > 0) {
+          // Use upsert to handle duplicates
+          for (const s of subjects) {
+            const { error: subjectsError } = await supabase
+              .from('subjects')
+              .upsert({
+                user_id: user.id,
+                name: s.name,
+                color: s.color,
+                goal_hours: s.goalHours || 0,
+              }, {
+                onConflict: 'user_id,name'
+              });
+            
+            if (subjectsError) {
+              console.error('❌ Subject migration error for:', s.name, subjectsError);
+              // Continue with other subjects instead of failing completely
+            }
+          }
+          console.log('✅ Migrated subjects');
+        }
+      }
+      
+      // Migrate tasks
+      if (savedTasks) {
+        const tasks = JSON.parse(savedTasks);
+        console.log('✅ Migrating tasks:', tasks.length);
+        
+        if (tasks.length > 0) {
+          // Use upsert to handle duplicates
+          for (const t of tasks) {
+            const { error: tasksError } = await supabase
+              .from('tasks')
+              .upsert({
+                user_id: user.id,
+                name: t.name,
+                subject: t.subject,
+                duration_minutes: parseInt(t.time) || 0,
+                priority: t.priority || 'Low',
+                scheduled_date: t.scheduledDate || null,
+                completed: t.done || false,
+                done_at: t.doneAt ? new Date(t.doneAt).toISOString() : null,
+              }, {
+                onConflict: 'user_id,name,created_at'
+              });
+            
+            if (tasksError) {
+              console.error('❌ Task migration error for:', t.name, tasksError);
+              // Continue with other tasks instead of failing completely
+            }
+          }
+          console.log('✅ Migrated tasks');
+        }
+      }
+      
+      console.log('🎉 Migration completed successfully!');
+      
+      // Mark migration as completed
+      localStorage.setItem('migrationCompleted', 'true');
+      
+    } catch (error) {
+      console.error('❌ Migration failed:', error);
+      // Don't mark as completed if there was an error
+    }
+  };
+
+  // Load stats and sessions from Supabase when user logs in
+  useEffect(() => {
+    const loadFromSupabase = async () => {
+      if (!user?.id) return;
+      try {
+        // Fetch or init user_stats
+        const { data: statsRow, error: statsErr } = await supabase
+          .from("user_stats")
+          .select("*")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (statsErr) throw statsErr;
+
+        let mergedStats = { ...userStats };
+        // Check if we need to migrate localStorage data (always check for existing users)
+        const migrationCompleted = localStorage.getItem('migrationCompleted');
+        const hasLocalData = localStorage.getItem('userStats') || localStorage.getItem('studySessions') || localStorage.getItem('subjects') || localStorage.getItem('tasks');
+        
+        if (!migrationCompleted && hasLocalData) {
+          console.log('🔄 Found localStorage data, starting migration...');
+          await migrateLocalStorageData();
+          // Reload after migration
+          const { data: newStatsRow } = await supabase
+            .from("user_stats")
+            .select("*")
+            .eq("user_id", user.id)
+            .maybeSingle();
+          
+          if (newStatsRow) {
+            mergedStats = {
+              ...mergedStats,
+              xp: newStatsRow.xp ?? mergedStats.xp,
+              level: newStatsRow.level ?? mergedStats.level,
+              prestigeLevel: newStatsRow.prestige_level ?? mergedStats.prestigeLevel,
+              totalSessions: newStatsRow.total_sessions ?? mergedStats.totalSessions,
+              totalStudyTime: newStatsRow.total_study_time ?? mergedStats.totalStudyTime,
+              totalXPEarned: newStatsRow.total_xp_earned ?? mergedStats.totalXPEarned,
+              currentStreak: newStatsRow.current_streak ?? mergedStats.currentStreak,
+              longestStreak: newStatsRow.longest_streak ?? mergedStats.longestStreak,
+              lastStudyDate: newStatsRow.last_study_date ?? mergedStats.lastStudyDate,
+              weeklyXP: newStatsRow.weekly_xp ?? mergedStats.weeklyXP,
+              subjectMastery: newStatsRow.subject_mastery ?? mergedStats.subjectMastery,
+              achievements: newStatsRow.achievements ?? mergedStats.achievements,
+              dailyQuests: newStatsRow.daily_quests ?? mergedStats.dailyQuests,
+              weeklyQuests: newStatsRow.weekly_quests ?? mergedStats.weeklyQuests,
+            };
+          }
+        } else if (!statsRow) {
+          // Create default row for this user
+          const insertPayload = {
+            user_id: user.id,
+            xp: 0,
+            level: 1,
+            prestige_level: 0,
+            total_sessions: 0,
+            total_study_time: 0,
+            total_xp_earned: 0,
+            current_streak: 0,
+            longest_streak: 0,
+            weekly_xp: 0,
+            subject_mastery: {},
+            achievements: [],
+            daily_quests: [],
+            weekly_quests: [],
+          };
+          const { error: insertErr } = await supabase.from("user_stats").insert(insertPayload);
+          if (insertErr) throw insertErr;
+          mergedStats = { ...mergedStats };
+        } else {
+          // Merge supabase row into state (excluding sessionHistory which is separate)
+          mergedStats = {
+            ...mergedStats,
+            xp: statsRow.xp ?? mergedStats.xp,
+            level: statsRow.level ?? mergedStats.level,
+            prestigeLevel: statsRow.prestige_level ?? mergedStats.prestigeLevel,
+            totalSessions: statsRow.total_sessions ?? mergedStats.totalSessions,
+            totalStudyTime: statsRow.total_study_time ?? mergedStats.totalStudyTime,
+            totalXPEarned: statsRow.total_xp_earned ?? mergedStats.totalXPEarned,
+            currentStreak: statsRow.current_streak ?? mergedStats.currentStreak,
+            longestStreak: statsRow.longest_streak ?? mergedStats.longestStreak,
+            lastStudyDate: statsRow.last_study_date ?? mergedStats.lastStudyDate,
+            weeklyXP: statsRow.weekly_xp ?? mergedStats.weeklyXP,
+            subjectMastery: statsRow.subject_mastery ?? mergedStats.subjectMastery,
+            achievements: statsRow.achievements ?? mergedStats.achievements,
+            dailyQuests: statsRow.daily_quests ?? mergedStats.dailyQuests,
+            weeklyQuests: statsRow.weekly_quests ?? mergedStats.weeklyQuests,
+          };
+        }
+
+        // Fetch recent study sessions
+        const { data: sessions, error: sessErr } = await supabase
+          .from("study_sessions")
+          .select("id, subject_name, duration_minutes, timestamp, notes, task, mood, reflection, difficulty, is_task_complete, xp_earned, bonuses")
+          .eq("user_id", user.id)
+          .order("timestamp", { ascending: false })
+          .limit(100);
+        if (sessErr) throw sessErr;
+
+        const mappedSessions = (sessions || []).map((s) => ({
+          id: s.id,
+          subjectName: s.subject_name,
+          durationMinutes: Number(s.duration_minutes),
+          timestamp: s.timestamp,
+          notes: s.notes,
+          task: s.task,
+          mood: s.mood,
+          reflection: s.reflection,
+          difficulty: s.difficulty,
+          isTaskComplete: s.is_task_complete,
+          xpEarned: s.xp_earned,
+          bonuses: s.bonuses || {},
+        }));
+
+        syncingRef.current = true;
+        setUserStats((prev) => ({
+          ...mergedStats,
+          sessionHistory: mappedSessions,
+        }));
+        syncingRef.current = false;
+      } catch (e) {
+        console.error("Failed loading from Supabase:", e);
+      }
+    };
+
+    loadFromSupabase();
+
+    // Realtime subscription for cross-tab updates
+    const channel = user?.id
+      ? supabase
+          .channel(`study_sessions_${user.id}`)
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'study_sessions', filter: `user_id=eq.${user.id}` },
+            (payload) => {
+              if (!payload?.new && !payload?.old) return;
+              setUserStats((prev) => {
+                let history = prev.sessionHistory || [];
+                if (payload.eventType === 'INSERT') {
+                  const s = payload.new;
+                  const session = {
+                    id: s.id,
+                    subjectName: s.subject_name,
+                    durationMinutes: Number(s.duration_minutes),
+                    timestamp: s.timestamp,
+                    notes: s.notes,
+                    task: s.task,
+                    mood: s.mood,
+                    reflection: s.reflection,
+                    difficulty: s.difficulty,
+                    isTaskComplete: s.is_task_complete,
+                    xpEarned: s.xp_earned,
+                    bonuses: s.bonuses || {},
+                  };
+                  // Avoid duplicate if already present
+                  if (history.find((h) => h.id === session.id)) return prev;
+                  return { ...prev, sessionHistory: [session, ...history].slice(0, 100) };
+                }
+                if (payload.eventType === 'DELETE') {
+                  const deletedId = payload.old.id;
+                  return { ...prev, sessionHistory: history.filter((h) => h.id !== deletedId) };
+                }
+                if (payload.eventType === 'UPDATE') {
+                  const s = payload.new;
+                  return {
+                    ...prev,
+                    sessionHistory: history.map((h) => h.id === s.id ? {
+                      ...h,
+                      subjectName: s.subject_name,
+                      durationMinutes: Number(s.duration_minutes),
+                      timestamp: s.timestamp,
+                      notes: s.notes,
+                      task: s.task,
+                      mood: s.mood,
+                      reflection: s.reflection,
+                      difficulty: s.difficulty,
+                      isTaskComplete: s.is_task_complete,
+                      xpEarned: s.xp_earned,
+                      bonuses: s.bonuses || {},
+                    } : h)
+                  };
+                }
+                return prev;
+              });
+            }
+          )
+          .subscribe()
+      : null;
+
+    return () => {
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
 
   // Advanced XP calculation with variable rewards
   const calculateXP = (sessionDuration, subjectName, difficulty = 1.0) => {
@@ -434,6 +790,33 @@ export const GamificationProvider = ({ children }) => {
         newTotalXPEarned: newStats.totalXPEarned,
       });
 
+      // Persist to Supabase (user_stats)
+      (async () => {
+        try {
+          if (user?.id) {
+            await supabase.from('user_stats').upsert({
+              user_id: user.id,
+              xp: newStats.xp,
+              level: newStats.level,
+              prestige_level: newStats.prestigeLevel || 0,
+              total_sessions: newStats.totalSessions,
+              total_study_time: newStats.totalStudyTime,
+              total_xp_earned: newStats.totalXPEarned,
+              current_streak: newStats.currentStreak || 0,
+              longest_streak: newStats.longestStreak || 0,
+              last_study_date: new Date().toISOString(),
+              weekly_xp: newStats.weeklyXP || 0,
+              subject_mastery: newStats.subjectMastery || {},
+              achievements: newStats.achievements || [],
+              daily_quests: newStats.dailyQuests || [],
+              weekly_quests: newStats.weeklyQuests || [],
+            }, { onConflict: 'user_id' });
+          }
+        } catch (e) {
+          console.error('Failed to upsert user_stats:', e);
+        }
+      })();
+
       return newStats;
     });
 
@@ -671,6 +1054,30 @@ export const GamificationProvider = ({ children }) => {
       ...prev,
       sessionHistory: [enhancedSession, ...prev.sessionHistory.slice(0, 99)],
     }));
+
+    // Persist to Supabase table
+    (async () => {
+      try {
+        if (user?.id) {
+          await supabase.from('study_sessions').insert({
+            user_id: user.id,
+            subject_name: session.subjectName,
+            duration_minutes: session.durationMinutes,
+            timestamp: session.timestamp,
+            notes: session.notes,
+            task: session.task,
+            mood: session.mood,
+            reflection: session.reflection,
+            difficulty: session.difficulty,
+            is_task_complete: session.isTaskComplete || false,
+            xp_earned: xpData.totalXP,
+            bonuses: xpData.bonuses || {},
+          });
+        }
+      } catch (e) {
+        console.error('Failed inserting study_session:', e);
+      }
+    })();
 
     return enhancedSession;
   };
@@ -968,16 +1375,16 @@ export const GamificationProvider = ({ children }) => {
             newProgress += 1;
             break;
           case "subjects":
-            // Track unique subjects studied today
+            // Track unique subjects studied today, include the current subject optimistically
+            const todayStr = new Date().toDateString();
             const todaysSessions = prev.sessionHistory.filter(
-              (s) =>
-                new Date(s.timestamp).toDateString() ===
-                new Date().toDateString(),
+              (s) => new Date(s.timestamp).toDateString() === todayStr,
             );
-            const uniqueSubjects = [
-              ...new Set(todaysSessions.map((s) => s.subjectName)),
-            ];
-            newProgress = uniqueSubjects.length;
+            const uniqueSubjects = new Set(
+              todaysSessions.map((s) => s.subjectName),
+            );
+            if (subjectName) uniqueSubjects.add(subjectName);
+            newProgress = uniqueSubjects.size;
             break;
           case "streak":
             newProgress = prev.currentStreak > 0 ? 1 : 0;
@@ -1018,7 +1425,7 @@ export const GamificationProvider = ({ children }) => {
         };
       });
 
-      // Update weekly quests
+      // Update weekly quests (incremental, to reflect immediately after a session)
       const updatedWeeklyQuests = prev.weeklyQuests.map((quest) => {
         if (quest.completed || quest.type !== type) return quest;
 
@@ -1026,25 +1433,10 @@ export const GamificationProvider = ({ children }) => {
 
         switch (type) {
           case "time":
-            // Weekly time tracking
-            const oneWeekAgo = new Date();
-            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-            const weekSessions = prev.sessionHistory.filter(
-              (s) => new Date(s.timestamp) > oneWeekAgo,
-            );
-            newProgress = weekSessions.reduce(
-              (total, s) => total + s.durationMinutes,
-              0,
-            );
+            newProgress += amount; // minutes
             break;
           case "sessions":
-            // Weekly session count
-            const weekAgo = new Date();
-            weekAgo.setDate(weekAgo.getDate() - 7);
-            const weeklySessions = prev.sessionHistory.filter(
-              (s) => new Date(s.timestamp) > weekAgo,
-            );
-            newProgress = weeklySessions.length;
+            newProgress += 1;
             break;
           case "xp":
             newProgress = prev.weeklyXP || 0;
@@ -1151,6 +1543,29 @@ export const GamificationProvider = ({ children }) => {
     });
   };
 
+  // Manual migration function (exposed for debugging)
+  const forceMigration = async () => {
+    console.log('🔄 Forcing migration...');
+    try {
+      localStorage.removeItem('migrationCompleted');
+      await migrateLocalStorageData();
+      console.log('✅ Migration completed, reloading page...');
+      // Reload the page to trigger fresh data load
+      window.location.reload();
+    } catch (error) {
+      console.error('❌ Migration failed:', error);
+      alert('Migration failed: ' + error.message);
+    }
+  };
+
+  // Expose migration function to window for debugging
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.forceMigration = forceMigration;
+      console.log('🔧 Migration function exposed to window.forceMigration');
+    }
+  }, []);
+
   const value = {
     userStats,
     showRewards,
@@ -1174,6 +1589,7 @@ export const GamificationProvider = ({ children }) => {
     calculateXP,
     getTotalXPForLevel,
     resetUserStats, // Debug function
+    forceMigration, // Expose for debugging
   };
 
   return (
