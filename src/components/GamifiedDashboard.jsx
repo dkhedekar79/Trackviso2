@@ -155,7 +155,7 @@ const GamifiedDashboard = () => {
                     </h3>
                     <ul className="space-y-1 text-blue-700">
                       <li>• Earn XP for every study session.</li>
-                      <li>• The longer + more focused you study, the more XP you get.</li>
+                      <li>�� The longer + more focused you study, the more XP you get.</li>
                       <li>• Multipliers boost your XP (streak bonus, mastery bonus, and more).</li>
                     </ul>
                   </div>
@@ -413,7 +413,7 @@ const GamifiedDashboard = () => {
 
         {/* Tab Content */}
         <div className="space-y-8">
-          {activeTab === "overview" && <OverviewTab userStats={userStats} />}
+          {activeTab === "overview" && <OverviewTab userStats={userStats} xpProgress={xpProgress} />}
 
           {activeTab === "quests" && <QuestSystem />}
 
@@ -431,7 +431,7 @@ const GamifiedDashboard = () => {
 };
 
 // Enhanced Overview Tab
-const OverviewTab = ({ userStats }) => {
+const OverviewTab = ({ userStats, xpProgress }) => {
   // Calculate real weekly statistics
   const getWeeklyStats = () => {
     const oneWeekAgo = new Date();
@@ -463,8 +463,8 @@ const OverviewTab = ({ userStats }) => {
 
   const stats = [
     {
-      label: "Total XP Earned",
-      value: (userStats.totalXPEarned || userStats.xp || 0).toLocaleString(),
+      label: "Current XP",
+      value: Math.floor((xpProgress?.current || 0)).toLocaleString(),
       icon: Star,
       color: "from-yellow-500 to-orange-500",
       change:
