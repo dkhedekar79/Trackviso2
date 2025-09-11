@@ -451,6 +451,7 @@ const Study = () => {
       );
       localStorage.setItem("tasks", JSON.stringify(updatedTasks));
       setTasks(updatedTasks);
+      updateQuestProgress("tasks");
     }
 
     // Update quest progress for gamification
