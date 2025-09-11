@@ -12,12 +12,12 @@ const OnboardingModal = ({ userId }) => {
     {
       title: "1/4 • Subjects",
       text:
-        "Add your personal subjects in the Subjects page, customise them and set a weekly goal for them.",
+        "Add your personal subjects in the subjects page, customise them and set a weekly goal for them.",
     },
     {
       title: "2/4 • Tasks & Schedule",
       text:
-        "Set tasks in the Tasks page, add the details you want to it. Schedule it in the Schedule page to your very own calendar.",
+        "Set tasks in the tasks page, and add the details you want to it. Schedule it in the Schedule page to your very own calendar.",
     },
     {
       title: "3/4 • Study & Earn XP",
@@ -27,7 +27,7 @@ const OnboardingModal = ({ userId }) => {
     {
       title: "4/4 • Insights",
       text:
-        "In the Insights page, get detailed statistics on your progress, with several metrics to maximise your productivity. Keep studying, gain prestige, and level up!",
+        "In the insights page, get detailed statistics on your progress, with several metrics to maximise your productivity. Keep studying, gain prestige, and level up!.",
     },
   ];
 
