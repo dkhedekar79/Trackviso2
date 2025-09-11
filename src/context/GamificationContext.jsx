@@ -231,10 +231,11 @@ export const GamificationProvider = ({ children }) => {
     return Math.floor(50 * Math.pow(level, 1.5));
   };
 
-  // Get total XP needed from level 1 to target level
+  // Get cumulative XP required to REACH a given level (level 1 requires 0)
   const getTotalXPForLevel = (level) => {
+    if (level <= 1) return 0;
     let total = 0;
-    for (let i = 1; i <= level; i++) {
+    for (let i = 2; i <= level; i++) {
       total += getXPForLevel(i);
     }
     return total;
