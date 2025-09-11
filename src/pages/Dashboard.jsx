@@ -5,6 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "../components/Sidebar";
 import TimerCard from "../components/TimerCard";
+import OnboardingModal from "../components/OnboardingModal";
 import { FlameIcon, CheckCircle, Clock, XCircle, Trash2, Calendar, BookOpen, Zap, Settings } from "lucide-react";
 
 function getStartOfWeek(date) {
