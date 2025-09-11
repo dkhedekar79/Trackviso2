@@ -256,8 +256,7 @@ const GamifiedDashboard = () => {
                 <div className="flex items-center gap-2">
                   <Star className="w-4 h-4 text-yellow-300" />
                   <span className="text-sm font-medium">
-                    {userStats.xp.toLocaleString()} /{" "}
-                    {nextLevelXP.toLocaleString()} XP
+                    {Math.floor(xpProgress.current).toLocaleString()} / {Math.floor(xpProgress.needed).toLocaleString()} XP
                   </span>
                 </div>
               </div>
