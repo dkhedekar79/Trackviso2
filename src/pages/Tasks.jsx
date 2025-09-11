@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import { Pencil, Trash2 } from "lucide-react";
+import { useGamification } from "../context/GamificationContext";
 
 const priorities = [
   { label: "Low", color: "border-blue-500" },
@@ -10,6 +11,7 @@ const priorities = [
 
 export default function Tasks() {
   const [tasks, setTasks] = useState([]);
+  const { updateQuestProgress } = useGamification();
   const [subjects, setSubjects] = useState([]);
   const [form, setForm] = useState({ name: "", subject: "", time: "", priority: "Low", scheduledDate: "" });
   const [formError, setFormError] = useState("");
@@ -65,15 +67,19 @@ export default function Tasks() {
   };
 
   const toggleDone = (id) => {
-    setTasks(
-      tasks.map((t) =>
-        t.id === id
-          ? t.done
-            ? { ...t, done: false, doneAt: undefined }
-            : { ...t, done: true, doneAt: Date.now() }
-          : t
-      )
+    const updated = tasks.map((t) =>
+      t.id === id
+        ? t.done
+          ? { ...t, done: false, doneAt: undefined }
+          : { ...t, done: true, doneAt: Date.now() }
+        : t
     );
+    setTasks(updated);
+    // Persist immediately so quest progress calculation can read from storage
+    localStorage.setItem("tasks", JSON.stringify(updated));
+    // Recompute tasks quests for both daily and weekly
+    updateQuestProgress("tasks");
+
     setPopTaskId(id);
     setTimeout(() => setPopTaskId(null), 350);
   };
@@ -366,4 +372,4 @@ export default function Tasks() {
       </div>
     </div>
   );
-} 
+}
