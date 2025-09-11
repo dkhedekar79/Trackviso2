@@ -25,6 +25,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { useGamification } from "../context/GamificationContext";
+import { useAuth } from "../context/AuthContext";
 import { AnimatedProgressBar } from "./RewardAnimations";
 import StreakTracker from "./StreakTracker";
 import QuestSystem from "./QuestSystem";
@@ -33,6 +34,7 @@ import AchievementSystem from "./AchievementSystem";
 import PremiumSystem from "./PremiumSystem";
 import RewardSystem from "./RewardSystem";
 import MysteryBox from "./MysteryBox";
+import OnboardingModal from "./OnboardingModal";
 
 const GamifiedDashboard = () => {
   const {
@@ -44,6 +46,7 @@ const GamifiedDashboard = () => {
     generateDailyQuests,
     generateWeeklyQuests,
   } = useGamification();
+  const { user } = useAuth();
 
   const [activeTab, setActiveTab] = useState("overview");
   const [showQuickActions, setShowQuickActions] = useState(false);
@@ -106,6 +109,7 @@ const GamifiedDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 mt-20 pl-10">
+      <OnboardingModal userId={user?.id} />
       {/* Reward System - Always Active */}
       <RewardSystem userStats={userStats} />
 
