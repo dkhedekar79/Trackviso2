@@ -479,6 +479,9 @@ export const GamificationProvider = ({ children }) => {
       sound: "levelup",
     });
 
+    // Track weekly level-up quest
+    updateQuestProgress("level", 1);
+
     // Level milestone rewards
     const milestones = {
       5: { title: "Rising Scholar", xp: 100 },
@@ -627,6 +630,9 @@ export const GamificationProvider = ({ children }) => {
       xp: prev.xp + achievement.xp,
     }));
 
+    // Track weekly achievement quest
+    updateQuestProgress("achievement", 1);
+
     addReward({
       type: "ACHIEVEMENT",
       title: `🏆 ${achievement.name}`,
@@ -672,6 +678,19 @@ export const GamificationProvider = ({ children }) => {
       sessionHistory: [enhancedSession, ...prev.sessionHistory.slice(0, 99)],
     }));
 
+    // Update quest progress signals
+    updateQuestProgress("time", session.durationMinutes);
+    updateQuestProgress("sessions", 1);
+    updateQuestProgress("subjects", 1, session.subjectName);
+    updateQuestProgress("xp", xpData.totalXP);
+    updateQuestProgress("streak", 1);
+    updateQuestProgress("early_bird");
+    updateQuestProgress("night_owl");
+    updateQuestProgress("personal_best", session.durationMinutes);
+    updateQuestProgress("new_subject", 1, session.subjectName);
+    updateQuestProgress("week_balance");
+    updateQuestProgress("double_days");
+
     return enhancedSession;
   };
 
@@ -703,15 +722,6 @@ export const GamificationProvider = ({ children }) => {
       target: 1,
       xp: 60,
       icon: "📋",
-    },
-    {
-      id: "log_reflection",
-      name: "Log a reflection/note",
-      description: "Log a reflection/note about your study",
-      type: "reflection",
-      target: 1,
-      xp: 30,
-      icon: "📝",
     },
     {
       id: "maintain_streak",
@@ -827,14 +837,13 @@ export const GamificationProvider = ({ children }) => {
     },
     {
       id: "weekly_finish_tasks",
-      name: "Finish all scheduled tasks",
-      description: "Finish all your scheduled tasks",
+      name: "Finish 5 tasks this week",
+      description: "Finish 5 tasks this week",
       type: "tasks",
-      target: 1,
+      target: 5,
       xp: 250,
       icon: "✅",
     },
-
     {
       id: "weekly_new_level",
       name: "Reach a new level",
@@ -863,15 +872,6 @@ export const GamificationProvider = ({ children }) => {
       icon: "📅",
     },
     {
-      id: "weekly_mood_tracking",
-      name: "Record mood after every session",
-      description: "Record your mood/energy level after every study session",
-      type: "mood",
-      target: 1,
-      xp: 180,
-      icon: "😊",
-    },
-    {
       id: "weekly_double_days",
       name: "Two double study days",
       description: "Do two double study days (2+ hours each)",
@@ -884,7 +884,6 @@ export const GamificationProvider = ({ children }) => {
 
   // Generate contextual daily quests based on user's actual performance
   const generateDailyQuests = () => {
-    // Calculate user's average performance to set realistic targets
     const avgSessionLength =
       userStats.sessionHistory.length > 0
         ? Math.round(
@@ -895,14 +894,15 @@ export const GamificationProvider = ({ children }) => {
           )
         : 25;
 
-    // Filter and select 3 random daily quests
-    const availableQuests = dailyQuestTemplates.filter((quest) => {
-      // Customize quest targets based on user performance
+    const availableQuests = dailyQuestTemplates.map((quest) => {
       if (quest.type === "time" && quest.target === 25) {
-        quest.target = Math.max(15, Math.min(60, avgSessionLength));
-        quest.xp = Math.round(quest.target * 2);
+        return {
+          ...quest,
+          target: Math.max(15, Math.min(60, avgSessionLength)),
+          xp: Math.round(Math.max(15, Math.min(60, avgSessionLength)) * 2),
+        };
       }
-      return true;
+      return quest;
     });
 
     const selectedQuests = availableQuests
@@ -954,37 +954,113 @@ export const GamificationProvider = ({ children }) => {
   // Update quest progress for both daily and weekly quests
   const updateQuestProgress = (type, amount = 1, subjectName = null) => {
     setUserStats((prev) => {
+      const todayStr = new Date().toDateString();
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+      const todaysSessions = prev.sessionHistory.filter(
+        (s) => new Date(s.timestamp).toDateString() === todayStr,
+      );
+      const weeklySessions = prev.sessionHistory.filter(
+        (s) => new Date(s.timestamp) > oneWeekAgo,
+      );
+
+      const getTasks = () => {
+        try {
+          return JSON.parse(localStorage.getItem("tasks") || "[]");
+        } catch {
+          return [];
+        }
+      };
+
       // Update daily quests
       const updatedDailyQuests = prev.dailyQuests.map((quest) => {
-        if (quest.completed || quest.type !== type) return quest;
+        if (!quest || quest.completed || quest.type !== type) return quest;
 
-        let newProgress = quest.progress;
+        let newProgress = quest.progress || 0;
 
         switch (type) {
           case "time":
-            newProgress += amount;
+            newProgress += amount; // minutes increment
             break;
           case "sessions":
-            newProgress += 1;
+            newProgress += 1; // per session
             break;
-          case "subjects":
-            // Track unique subjects studied today
-            const todaysSessions = prev.sessionHistory.filter(
-              (s) =>
-                new Date(s.timestamp).toDateString() ===
-                new Date().toDateString(),
-            );
-            const uniqueSubjects = [
-              ...new Set(todaysSessions.map((s) => s.subjectName)),
-            ];
-            newProgress = uniqueSubjects.length;
+          case "subjects": {
+            // unique subjects studied today (include current subjectName if provided)
+            const uniqueSet = new Set(todaysSessions.map((s) => s.subjectName));
+            if (subjectName) uniqueSet.add(subjectName);
+            newProgress = uniqueSet.size;
             break;
+          }
+          case "tasks": {
+            const tasks = getTasks();
+            const completedToday = tasks.filter(
+              (t) => t.done && t.doneAt && new Date(t.doneAt).toDateString() === todayStr,
+            ).length;
+            newProgress = completedToday;
+            break;
+          }
           case "streak":
             newProgress = prev.currentStreak > 0 ? 1 : 0;
             break;
-          case "xp":
-            newProgress = prev.weeklyXP || 0;
+          case "xp": {
+            const xpToday = todaysSessions.reduce(
+              (sum, s) => sum + (s.xpEarned || 0),
+              0,
+            );
+            newProgress = xpToday + (typeof amount === "number" ? amount : 0);
             break;
+          }
+          case "early_bird": {
+            const hasEarly = [...todaysSessions].some(
+              (s) => new Date(s.timestamp).getHours() < 10,
+            );
+            newProgress = hasEarly ? 1 : 0;
+            break;
+          }
+          case "night_owl": {
+            const hasLate = [...todaysSessions].some(
+              (s) => new Date(s.timestamp).getHours() >= 20,
+            );
+            newProgress = hasLate ? 1 : 0;
+            break;
+          }
+          case "new_subject": {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yStr = yesterday.toDateString();
+            const ySubjects = new Set(
+              prev.sessionHistory
+                .filter((s) => new Date(s.timestamp).toDateString() === yStr)
+                .map((s) => s.subjectName),
+            );
+            const tSubjects = new Set(todaysSessions.map((s) => s.subjectName));
+            if (subjectName) tSubjects.add(subjectName);
+            const hasNew = [...tSubjects].some((subj) => !ySubjects.has(subj));
+            newProgress = hasNew ? 1 : 0;
+            break;
+          }
+          case "personal_best": {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yStr = yesterday.toDateString();
+            const yMax = prev.sessionHistory
+              .filter((s) => new Date(s.timestamp).toDateString() === yStr)
+              .reduce((max, s) => Math.max(max, s.durationMinutes || 0), 0);
+            const todayMax = todaysSessions.reduce(
+              (max, s) => Math.max(max, s.durationMinutes || 0),
+              0,
+            );
+            const withCurrent = Math.max(
+              todayMax,
+              typeof amount === "number" ? amount : 0,
+            );
+            newProgress = withCurrent > yMax ? 1 : 0;
+            break;
+          }
+          default:
+            newProgress += amount || 0;
         }
 
         const completed = newProgress >= quest.target;
@@ -1020,38 +1096,78 @@ export const GamificationProvider = ({ children }) => {
 
       // Update weekly quests
       const updatedWeeklyQuests = prev.weeklyQuests.map((quest) => {
-        if (quest.completed || quest.type !== type) return quest;
+        if (!quest || quest.completed || quest.type !== type) return quest;
 
-        let newProgress = quest.progress;
+        let newProgress = quest.progress || 0;
 
         switch (type) {
-          case "time":
-            // Weekly time tracking
-            const oneWeekAgo = new Date();
-            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-            const weekSessions = prev.sessionHistory.filter(
-              (s) => new Date(s.timestamp) > oneWeekAgo,
-            );
-            newProgress = weekSessions.reduce(
-              (total, s) => total + s.durationMinutes,
+          case "time": {
+            newProgress = weeklySessions.reduce(
+              (total, s) => total + (s.durationMinutes || 0),
               0,
             );
             break;
-          case "sessions":
-            // Weekly session count
-            const weekAgo = new Date();
-            weekAgo.setDate(weekAgo.getDate() - 7);
-            const weeklySessions = prev.sessionHistory.filter(
-              (s) => new Date(s.timestamp) > weekAgo,
-            );
+          }
+          case "sessions": {
             newProgress = weeklySessions.length;
             break;
-          case "xp":
-            newProgress = prev.weeklyXP || 0;
+          }
+          case "xp": {
+            const weeklyXPFromSessions = weeklySessions.reduce(
+              (sum, s) => sum + (s.xpEarned || 0),
+              0,
+            );
+            newProgress = weeklyXPFromSessions;
             break;
-          case "streak":
+          }
+          case "streak": {
             newProgress = prev.currentStreak;
             break;
+          }
+          case "tasks": {
+            const tasks = getTasks();
+            const completedThisWeek = tasks.filter(
+              (t) => t.done && t.doneAt && new Date(t.doneAt) > oneWeekAgo,
+            ).length;
+            newProgress = completedThisWeek;
+            break;
+          }
+          case "level": {
+            newProgress += typeof amount === "number" ? amount : 0; // increment on level ups
+            break;
+          }
+          case "achievement": {
+            newProgress += typeof amount === "number" ? amount : 0; // increment on unlocks
+            break;
+          }
+          case "week_balance": {
+            const hasWeekday = weeklySessions.some(
+              (s) => {
+                const d = new Date(s.timestamp).getDay();
+                return d >= 1 && d <= 5;
+              },
+            );
+            const hasWeekend = weeklySessions.some((s) => {
+              const d = new Date(s.timestamp).getDay();
+              return d === 0 || d === 6;
+            });
+            newProgress = hasWeekday && hasWeekend ? 1 : 0;
+            break;
+          }
+          case "double_days": {
+            // count days in last 7 where total minutes >= 120
+            const minutesByDay = weeklySessions.reduce((map, s) => {
+              const key = new Date(s.timestamp).toDateString();
+              map[key] = (map[key] || 0) + (s.durationMinutes || 0);
+              return map;
+            }, {});
+            const count = Object.values(minutesByDay).filter((m) => m >= 120)
+              .length;
+            newProgress = count;
+            break;
+          }
+          default:
+            newProgress += amount || 0;
         }
 
         const completed = newProgress >= quest.target;
