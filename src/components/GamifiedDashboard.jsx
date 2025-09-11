@@ -69,6 +69,13 @@ const GamifiedDashboard = () => {
     { id: "premium", label: "Premium", icon: Crown },
   ];
 
+  const formatHM = (totalMinutes) => {
+    const m = Math.max(0, Math.round(totalMinutes || 0));
+    const h = Math.floor(m / 60);
+    const rem = m % 60;
+    return `${h}h ${rem}m`;
+  };
+
   const userRank = getUserRank();
   const xpProgress = getXPProgress();
   const nextLevelXP = getXPForLevel(userStats.level + 1);
@@ -318,7 +325,7 @@ const GamifiedDashboard = () => {
                 <span className="font-semibold">Study Time</span>
               </div>
               <div className="text-2xl font-bold">
-                {Math.round(userStats.totalStudyTime / 60)}h
+                {formatHM(userStats.totalStudyTime)}
               </div>
             </div>
 
@@ -455,7 +462,7 @@ const OverviewTab = ({ userStats, xpProgress }) => {
     return {
       sessionsThisWeek: thisWeekSessions.length,
       xpThisWeek: thisWeekXP,
-      timeThisWeek: Math.round(thisWeekTime / 60), // Convert to hours
+      timeThisWeekMinutes: thisWeekTime,
     };
   };
 
@@ -494,12 +501,12 @@ const OverviewTab = ({ userStats, xpProgress }) => {
     },
     {
       label: "Total Study Time",
-      value: `${Math.round(userStats.totalStudyTime / 60)}h`,
+      value: formatHM(userStats.totalStudyTime),
       icon: Clock,
       color: "from-blue-500 to-indigo-500",
       change:
-        weeklyStats.timeThisWeek > 0
-          ? `+${weeklyStats.timeThisWeek}h this week`
+        (weeklyStats.timeThisWeekMinutes || 0) > 0
+          ? `+${formatHM(weeklyStats.timeThisWeekMinutes)} this week`
           : "No study time this week",
     },
   ];
