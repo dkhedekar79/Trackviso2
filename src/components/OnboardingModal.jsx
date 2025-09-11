@@ -1,61 +1,119 @@
 import React, { useState, useEffect } from "react";
 
-const OnboardingModal = () => {
+// Reusable onboarding modal that persists dismissal per user
+// Usage: <OnboardingModal userId={user?.id} />
+const OnboardingModal = ({ userId }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState(0);
 
+  const storageKey = `onboardingDismissed_${userId || "guest"}`;
+
   const steps = [
-    { title: "Welcome 🚀", text: "Start by setting your subjects in the subjects page." },
-    { title: "Track ⏱️", text: "Log your study sessions and keep streaks alive inside the Study page. Create tasks and schedule them in the Tasks and Schedule page." },
-    { title: "Insights 📊", text: "Get stats and insights on your progress from the dashboard as well as our detailed Insights page." },
+    {
+      title: "1/4 • Subjects",
+      text:
+        "Add your personal subjects in the Subjects page, customise them and set a weekly goal for them.",
+    },
+    {
+      title: "2/4 • Tasks & Schedule",
+      text:
+        "Set tasks in the Tasks page, add the details you want to it. Schedule it in the Schedule page to your very own calendar.",
+    },
+    {
+      title: "3/4 • Study & Earn XP",
+      text:
+        "Study your subjects using a smart timer. Earn XP for completing study sessions, build up your study streak, and complete achievements and quests.",
+    },
+    {
+      title: "4/4 • Insights",
+      text:
+        "In the Insights page, get detailed statistics on your progress, with several metrics to maximise your productivity. Keep studying, gain prestige, and level up!",
+    },
   ];
 
-  // Show only on first visit
+  // Show only on first visit per user (or guest)
   useEffect(() => {
-    const seen = localStorage.getItem("seenOnboarding");
-    if (!seen) setIsOpen(true);
-  }, []);
+    const globalSeen = localStorage.getItem("seenOnboarding"); // legacy key support
+    const seen = localStorage.getItem(storageKey);
+    if (!seen && !globalSeen) setIsOpen(true);
+  }, [storageKey]);
 
-  const handleClose = () => {
+  const closeForever = () => {
+    localStorage.setItem(storageKey, "true");
     setIsOpen(false);
-    localStorage.setItem("seenOnboarding", "true");
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white rounded-2xl p-6 w-96 shadow-lg text-center">
-        <h2 className="text-xl font-bold">{steps[step].title}</h2>
-        <p className="text-gray-600 mt-2">{steps[step].text}</p>
-
-        <div className="flex justify-between items-center mt-6">
-          {step > 0 ? (
+    <div className="fixed inset-0 flex items-center justify-center bg-black/60 z-[100] p-4">
+      <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl text-left">
+        <div className="p-6">
+          <div className="flex items-start justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Welcome to Trackviso</h2>
+              <p className="text-gray-500 mt-1">A quick {steps.length}-step guide to get you started.</p>
+            </div>
             <button
-              className="px-4 py-2 text-sm text-gray-500"
-              onClick={() => setStep(step - 1)}
+              aria-label="Close"
+              className="ml-4 p-2 text-gray-500 hover:bg-gray-100 rounded-lg"
+              onClick={closeForever}
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold text-gray-800">{steps[step].title}</h3>
+            <p className="text-gray-600 mt-2">{steps[step].text}</p>
+          </div>
+
+          <div className="mt-6 flex items-center justify-between">
+            <button
+              disabled={step === 0}
+              onClick={() => setStep((s) => Math.max(0, s - 1))}
+              className={`px-4 py-2 rounded-lg text-sm ${
+                step === 0
+                  ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                  : "text-gray-700 bg-gray-100 hover:bg-gray-200"
+              }`}
             >
               Back
             </button>
-          ) : (
-            <div></div>
-          )}
 
-          {step < steps.length - 1 ? (
-            <button
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg"
-              onClick={() => setStep(step + 1)}
-            >
-              Next
-            </button>
-          ) : (
-            <button
-              className="px-4 py-2 bg-green-500 text-white rounded-lg"
-              onClick={handleClose}
-            >
-              Finish
-            </button>
-          )}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={closeForever}
+                className="px-4 py-2 rounded-lg text-sm text-gray-700 bg-gray-100 hover:bg-gray-200"
+              >
+                Skip
+              </button>
+              {step < steps.length - 1 ? (
+                <button
+                  onClick={() => setStep((s) => Math.min(steps.length - 1, s + 1))}
+                  className="px-4 py-2 rounded-lg bg-[#6C5DD3] text-white hover:bg-[#7A6AD9]"
+                >
+                  Next
+                </button>
+              ) : (
+                <button
+                  onClick={closeForever}
+                  className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700"
+                >
+                  Finish
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-4 flex items-center justify-center gap-2">
+            {steps.map((_, i) => (
+              <span
+                key={i}
+                className={`h-2 w-2 rounded-full ${i === step ? "bg-[#6C5DD3]" : "bg-gray-300"}`}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>
