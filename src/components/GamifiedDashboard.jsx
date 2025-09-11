@@ -70,12 +70,12 @@ const GamifiedDashboard = () => {
     { id: "premium", label: "Premium", icon: Crown },
   ];
 
-  const formatHM = (totalMinutes) => {
-    const m = Math.max(0, Math.round(totalMinutes || 0));
-    const h = Math.floor(m / 60);
-    const rem = m % 60;
-    return `${h}h ${rem}m`;
-  };
+  function formatHM(totalMinutes) {
+  const m = Math.max(0, Math.round(totalMinutes || 0));
+  const h = Math.floor(m / 60);
+  const rem = m % 60;
+  return `${h}h ${rem}m`;
+}
 
   const userRank = getUserRank();
   const xpProgress = getXPProgress();
