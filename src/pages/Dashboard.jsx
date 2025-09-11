@@ -241,6 +241,7 @@ export default function Dashboard() {
   return (
      
     <div className="min-h-screen bg-gradient-to-br from-[#1a1a2e] to-[#16213e] mt-20 flex">
+      <OnboardingModal userId={user?.id} />
       <Sidebar />
 
       {/* Settings Popup */}
