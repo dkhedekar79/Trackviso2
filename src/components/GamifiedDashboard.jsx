@@ -36,6 +36,13 @@ import RewardSystem from "./RewardSystem";
 import MysteryBox from "./MysteryBox";
 import OnboardingModal from "./OnboardingModal";
 
+const formatHM = (totalMinutes) => {
+  const m = Math.max(0, Math.round(totalMinutes || 0));
+  const h = Math.floor(m / 60);
+  const rem = m % 60;
+  return `${h}h ${rem}m`;
+};
+
 const GamifiedDashboard = () => {
   const {
     userStats,
