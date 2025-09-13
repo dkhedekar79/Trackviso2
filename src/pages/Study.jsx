@@ -334,6 +334,16 @@ const Study = () => {
   const streak = getStreak();
   const weeklyProgress = getWeeklyProgress();
 
+  const handleCancelStudy = () => {
+    try { pauseLocalTimer?.(); } catch {}
+    try { stopTimer?.(); } catch {}
+    try { resetLocalTimer?.(); } catch {}
+    try { resetTimer?.(); } catch {}
+    setIsTaskComplete(false);
+    setShowEndSession(false);
+    setSessionMood("");
+  };
+
   // If no subject is selected, show subject selection page
   if (!subject) {
     return (
