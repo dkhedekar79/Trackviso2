@@ -98,10 +98,13 @@ const Study = () => {
     if (customMinutes) setCustomMinutesInput(String(customMinutes));
   }, [customMinutes]);
 
-  // Cleanup interval on unmount
+  // Cleanup timers on unmount to avoid leaks and lag when navigating away
   useEffect(() => {
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      try { if (intervalRef.current) clearInterval(intervalRef.current); } catch {}
+      try { pauseLocalTimer?.(); } catch {}
+      try { resetLocalTimer?.(); } catch {}
+      try { stopTimer?.(); } catch {}
     };
   }, []);
 
