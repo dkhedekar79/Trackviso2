@@ -1,7 +1,7 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import { TimerProvider } from './context/TimerContext';
+import { TimerProvider, useTimer } from './context/TimerContext';
 import { GamificationProvider } from './context/GamificationContext';
 import ProtectedRoute from './routes/ProtectedRoute';
 import Navbar from './components/Navbar';
@@ -21,14 +21,25 @@ import OnboardingModal from "./components/OnboardingModal";
 import './styles/index.css';
 
 
+const RouteCleanup = () => {
+  const location = useLocation();
+  const { isRunning, stopTimer, resetTimer } = useTimer();
+  React.useEffect(() => {
+    if (location.pathname !== '/study' && isRunning) {
+      try { stopTimer(); } catch {}
+      try { resetTimer(); } catch {}
+    }
+  }, [location.pathname, isRunning, stopTimer, resetTimer]);
+  return null;
+};
+
 function App() {
   return (
     <AuthProvider>
       <GamificationProvider>
         <TimerProvider>
           <Router>
-
-            
+            <RouteCleanup />
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Landing />} />
