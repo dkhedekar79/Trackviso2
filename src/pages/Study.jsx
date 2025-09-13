@@ -873,7 +873,7 @@ const Study = () => {
                   </div>
                 </div>
                 <button
-                  onClick={() => navigate("/subjects")}
+                  onClick={() => { handleCancelStudy(); navigate("/subjects"); }}
                   className="px-6 py-3 rounded-xl bg-red-600 text-white font-semibold shadow hover:bg-red-700 transition flex items-center gap-2"
                 >
                   <X className="w-4 h-4" />
