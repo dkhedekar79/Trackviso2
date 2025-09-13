@@ -806,7 +806,7 @@ const Study = () => {
                       Exit Focus Mode
                     </button>
                     <button
-                      onClick={() => navigate("/subjects")}
+                      onClick={() => { handleCancelStudy(); navigate("/subjects"); }}
                       className="px-6 py-3 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition flex items-center gap-2"
                     >
                       <X className="w-5 h-5" />
