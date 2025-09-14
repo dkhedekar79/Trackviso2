@@ -431,7 +431,14 @@ const GamifiedDashboard = () => {
 
         {/* Tab Content */}
         <div className="space-y-8">
-          {activeTab === "overview" && <OverviewTab userStats={userStats} xpProgress={xpProgress} achievements={achievements} />}
+          {activeTab === "overview" && (
+            <OverviewTab
+              userStats={userStats}
+              xpProgress={xpProgress}
+              achievements={achievements}
+              setActiveTab={setActiveTab}
+            />
+          )}
 
           {activeTab === "quests" && <QuestSystem />}
 
@@ -449,7 +456,7 @@ const GamifiedDashboard = () => {
 };
 
 // Enhanced Overview Tab
-const OverviewTab = ({ userStats, xpProgress, achievements }) => {
+const OverviewTab = ({ userStats, xpProgress, achievements, setActiveTab }) => {
   // Calculate real weekly statistics
   const getWeeklyStats = () => {
     const oneWeekAgo = new Date();
