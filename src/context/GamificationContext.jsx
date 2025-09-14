@@ -67,6 +67,7 @@ export const GamificationProvider = ({ children }) => {
       rewardStreak: 0,
       luckyStreak: 0,
       jackpotCount: 0,
+      xpEvents: [],
     };
 
     if (saved) {
@@ -402,17 +403,21 @@ export const GamificationProvider = ({ children }) => {
   };
 
   // Grant raw XP (e.g., from rewards)
-  const grantXP = (amount) => {
+  const grantXP = (amount, source = "reward") => {
     if (!amount || amount <= 0) return;
-    const newXP = userStats.xp + amount;
-    const newLevel = getLevelFromXP(newXP);
-    setUserStats((prev) => ({
-      ...prev,
-      xp: newXP,
-      level: newLevel,
-      totalXPEarned: (prev.totalXPEarned || prev.xp || 0) + amount,
-      weeklyXP: (prev.weeklyXP || 0) + amount,
-    }));
+    setUserStats((prev) => {
+      const newXP = (prev.xp || 0) + amount;
+      const newLevel = getLevelFromXP(newXP);
+      const event = { amount, source, timestamp: new Date().toISOString() };
+      return {
+        ...prev,
+        xp: newXP,
+        level: newLevel,
+        totalXPEarned: (prev.totalXPEarned || prev.xp || 0) + amount,
+        weeklyXP: (prev.weeklyXP || 0) + amount,
+        xpEvents: [event, ...(prev.xpEvents || [])].slice(0, 500),
+      };
+    });
   };
 
   // Apply generic reward payloads (mystery box, etc)
@@ -421,7 +426,7 @@ export const GamificationProvider = ({ children }) => {
     switch (reward.type) {
       case 'xp': {
         const xp = typeof reward.actualValue === 'number' ? reward.actualValue : 0;
-        grantXP(xp);
+        grantXP(xp, 'reward');
         break;
       }
       case 'streak_saver': {
@@ -450,7 +455,7 @@ export const GamificationProvider = ({ children }) => {
         const xp = reward.value?.xp || 0;
         const title = reward.value?.title;
         const streakSavers = reward.value?.streakSavers || 0;
-        grantXP(xp);
+        grantXP(xp, 'jackpot');
         setUserStats((prev) => ({
           ...prev,
           streakSavers: (prev.streakSavers || 0) + streakSavers,
@@ -482,6 +487,10 @@ export const GamificationProvider = ({ children }) => {
         totalStudyTime: (prev.totalStudyTime || 0) + sessionDuration,
         totalXPEarned: (prev.totalXPEarned || prev.xp || 0) + xpData.totalXP,
         weeklyXP: (prev.weeklyXP || 0) + xpData.totalXP,
+        xpEvents: [
+          { amount: xpData.totalXP, source: "session", timestamp: new Date().toISOString() },
+          ...(prev.xpEvents || []),
+        ].slice(0, 500),
         subjectMastery: {
           ...prev.subjectMastery,
           [subjectName]:
@@ -562,8 +571,9 @@ export const GamificationProvider = ({ children }) => {
       setUserStats((prev) => ({
         ...prev,
         currentTitle: milestone.title,
-        xp: prev.xp + milestone.xp,
       }));
+
+      grantXP(milestone.xp, "milestone");
 
       addReward({
         type: "MILESTONE",
@@ -692,8 +702,9 @@ export const GamificationProvider = ({ children }) => {
     setUserStats((prev) => ({
       ...prev,
       achievements: [...prev.achievements, achievement.id],
-      xp: prev.xp + achievement.xp,
     }));
+
+    grantXP(achievement.xp, "achievement");
 
     // Track weekly achievement quest
     updateQuestProgress("achievement", 1);
@@ -1133,14 +1144,7 @@ export const GamificationProvider = ({ children }) => {
         if (completed && !quest.completed) {
           const questXP = quest.xp || 0;
           setTimeout(() => {
-            setUserStats((prevStats) => ({
-              ...prevStats,
-              xp: prevStats.xp + questXP,
-              totalXPEarned:
-                (prevStats.totalXPEarned || prevStats.xp || 0) + questXP,
-              weeklyXP: (prevStats.weeklyXP || 0) + questXP,
-              level: getLevelFromXP(prevStats.xp + questXP),
-            }));
+            grantXP(questXP, "quest");
 
             addReward({
               type: "QUEST_COMPLETE",
@@ -1240,14 +1244,7 @@ export const GamificationProvider = ({ children }) => {
         if (completed && !quest.completed) {
           const questXP = quest.xp || 0;
           setTimeout(() => {
-            setUserStats((prevStats) => ({
-              ...prevStats,
-              xp: prevStats.xp + questXP,
-              totalXPEarned:
-                (prevStats.totalXPEarned || prevStats.xp || 0) + questXP,
-              weeklyXP: (prevStats.weeklyXP || 0) + questXP,
-              level: getLevelFromXP(prevStats.xp + questXP),
-            }));
+            grantXP(questXP, "quest");
 
             addReward({
               type: "WEEKLY_QUEST_COMPLETE",
@@ -1329,6 +1326,7 @@ export const GamificationProvider = ({ children }) => {
       rewardStreak: 0,
       luckyStreak: 0,
       jackpotCount: 0,
+      xpEvents: [],
     });
   };
 
