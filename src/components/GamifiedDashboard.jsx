@@ -53,6 +53,7 @@ const GamifiedDashboard = () => {
     addReward,
     generateDailyQuests,
     generateWeeklyQuests,
+    achievements,
   } = useGamification();
   const { user } = useAuth();
 
@@ -430,7 +431,7 @@ const GamifiedDashboard = () => {
 
         {/* Tab Content */}
         <div className="space-y-8">
-          {activeTab === "overview" && <OverviewTab userStats={userStats} xpProgress={xpProgress} />}
+          {activeTab === "overview" && <OverviewTab userStats={userStats} xpProgress={xpProgress} achievements={achievements} />}
 
           {activeTab === "quests" && <QuestSystem />}
 
@@ -448,7 +449,7 @@ const GamifiedDashboard = () => {
 };
 
 // Enhanced Overview Tab
-const OverviewTab = ({ userStats, xpProgress }) => {
+const OverviewTab = ({ userStats, xpProgress, achievements }) => {
   // Calculate real weekly statistics
   const getWeeklyStats = () => {
     const oneWeekAgo = new Date();
@@ -527,7 +528,10 @@ const OverviewTab = ({ userStats, xpProgress }) => {
     },
   ];
 
-  const recentAchievements = userStats.achievements.slice(-3);
+  const recentAchievements = (userStats.achievements || [])
+    .slice(-3)
+    .map((id) => (achievements ? achievements[id] : null))
+    .filter(Boolean);
   const activeQuests = userStats.dailyQuests?.filter((q) => !q.completed) || [];
 
   return (
@@ -630,22 +634,20 @@ const OverviewTab = ({ userStats, xpProgress }) => {
           </div>
 
           <div className="space-y-3">
-            {recentAchievements.map((achievementId, index) => (
+            {recentAchievements.map((achievement, index) => (
               <motion.div
-                key={index}
+                key={achievement.id || index}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
                 className="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg"
               >
-                <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
-                  <Trophy className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center text-xl">
+                  <span>{achievement.icon || "🏆"}</span>
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-800">
-                    Achievement Unlocked
-                  </h4>
-                  <p className="text-sm text-gray-600">{achievementId}</p>
+                  <h4 className="font-medium text-gray-800">{achievement.name}</h4>
+                  <p className="text-sm text-gray-600">{achievement.description}</p>
                 </div>
               </motion.div>
             ))}
