@@ -81,12 +81,7 @@ const TimerCard = ({ variant = 'full', className = '' }) => {
       mood: 'neutral' // Default mood
     };
 
-    addStudySession(sessionData);
-
-    // Update quest progress
-    updateQuestProgress('time', durationMinutes);
-    updateQuestProgress('sessions', 1);
-    updateQuestProgress('subjects', 1, subjectName);
+    const result = addStudySession(sessionData);
 
     // Show completion reward
     addReward({
