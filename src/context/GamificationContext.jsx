@@ -401,6 +401,70 @@ export const GamificationProvider = ({ children }) => {
     return true;
   };
 
+  // Grant raw XP (e.g., from rewards)
+  const grantXP = (amount) => {
+    if (!amount || amount <= 0) return;
+    const newXP = userStats.xp + amount;
+    const newLevel = getLevelFromXP(newXP);
+    setUserStats((prev) => ({
+      ...prev,
+      xp: newXP,
+      level: newLevel,
+      totalXPEarned: (prev.totalXPEarned || prev.xp || 0) + amount,
+      weeklyXP: (prev.weeklyXP || 0) + amount,
+    }));
+  };
+
+  // Apply generic reward payloads (mystery box, etc)
+  const applyReward = (reward) => {
+    if (!reward) return;
+    switch (reward.type) {
+      case 'xp': {
+        const xp = typeof reward.actualValue === 'number' ? reward.actualValue : 0;
+        grantXP(xp);
+        break;
+      }
+      case 'streak_saver': {
+        setUserStats((prev) => ({ ...prev, streakSavers: (prev.streakSavers || 0) + 1 }));
+        break;
+      }
+      case 'title': {
+        const title = reward.actualValue;
+        setUserStats((prev) => ({
+          ...prev,
+          unlockedTitles: [...(prev.unlockedTitles || []), title],
+          currentTitle: title,
+        }));
+        break;
+      }
+      case 'multiplier': {
+        const endTime = Date.now() + (reward.value?.duration || 0);
+        setUserStats((prev) => ({
+          ...prev,
+          xpMultiplier: reward.value?.multiplier || 1.0,
+          multiplierEndTime: endTime,
+        }));
+        break;
+      }
+      case 'jackpot': {
+        const xp = reward.value?.xp || 0;
+        const title = reward.value?.title;
+        const streakSavers = reward.value?.streakSavers || 0;
+        grantXP(xp);
+        setUserStats((prev) => ({
+          ...prev,
+          streakSavers: (prev.streakSavers || 0) + streakSavers,
+          unlockedTitles: [...(prev.unlockedTitles || []), title],
+          currentTitle: title,
+          jackpotCount: (prev.jackpotCount || 0) + 1,
+        }));
+        break;
+      }
+      default:
+        break;
+    }
+  };
+
   // Award XP for study session with enhanced rewards
   const awardXP = (sessionDuration, subjectName, difficulty = 1.0) => {
     const xpData = calculateXP(sessionDuration, subjectName, difficulty);
@@ -1274,6 +1338,8 @@ export const GamificationProvider = ({ children }) => {
     rewardQueue,
     achievements,
     awardXP,
+    grantXP,
+    applyReward,
     updateStreak,
     useStreakSaver,
     addReward,
