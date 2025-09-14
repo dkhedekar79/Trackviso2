@@ -459,10 +459,16 @@ const OverviewTab = ({ userStats, xpProgress }) => {
         (session) => new Date(session.timestamp) > oneWeekAgo,
       ) || [];
 
-    const thisWeekXP = thisWeekSessions.reduce(
+    const xpEventsThisWeek = (userStats.xpEvents || [])
+      .filter((e) => new Date(e.timestamp) > oneWeekAgo)
+      .reduce((sum, e) => sum + (e.amount || 0), 0);
+
+    const thisWeekXPFromSessions = thisWeekSessions.reduce(
       (total, session) => total + (session.xpEarned || 0),
       0,
     );
+
+    const thisWeekXP = xpEventsThisWeek > 0 ? xpEventsThisWeek : thisWeekXPFromSessions;
 
     const thisWeekTime = thisWeekSessions.reduce(
       (total, session) => total + (session.durationMinutes || 0),
@@ -481,12 +487,12 @@ const OverviewTab = ({ userStats, xpProgress }) => {
   const stats = [
     {
       label: "Total XP",
-      value: Math.floor((userStats?.xp || 0)).toLocaleString(),
+      value: Math.floor((userStats?.totalXPEarned || userStats?.xp || 0)).toLocaleString(),
       icon: Star,
       color: "from-yellow-500 to-orange-500",
       change:
-        (weeklyStats.xpThisWeek + (userStats.weeklyXP || 0)) > 0
-          ? `+${(weeklyStats.xpThisWeek + (userStats.weeklyXP || 0)).toLocaleString()} this week`
+        (weeklyStats.xpThisWeek || 0) > 0
+          ? `+${(weeklyStats.xpThisWeek || 0).toLocaleString()} this week`
           : "No XP this week",
     },
     {
