@@ -18,6 +18,7 @@ import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import OnboardingModal from "./components/OnboardingModal";
+import Footer from './components/Footer';
 import './styles/index.css';
 
 
@@ -42,9 +43,9 @@ function App() {
             <RouteCleanup />
             <Routes>
               {/* Public Routes */}
-              <Route path="/" element={<Landing />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
+              <Route path="/" element={<div className="flex flex-col min-h-screen"><main className="flex-1"><Landing /></main><Footer /></div>} />
+              <Route path="/login" element={<div className="flex flex-col min-h-screen"><main className="flex-1"><Login /></main><Footer /></div>} />
+              <Route path="/signup" element={<div className="flex flex-col min-h-screen"><main className="flex-1"><Signup /></main><Footer /></div>} />
 
               
 
@@ -56,9 +57,9 @@ function App() {
                     <div className="flex-1 flex flex-col">
                       <Navbar />
                       <main className="flex-1 overflow-auto">
-                      
                         <GamifiedDashboard />
                       </main>
+                      <Footer />
                     </div>
                   </div>
                 </ProtectedRoute>
@@ -73,6 +74,7 @@ function App() {
                       <main className="flex-1 overflow-auto">
                         <Dashboard />
                       </main>
+                      <Footer />
                     </div>
                   </div>
                 </ProtectedRoute>
@@ -87,6 +89,7 @@ function App() {
                       <main className="flex-1 overflow-auto">
                         <Subjects />
                       </main>
+                      <Footer />
                     </div>
                   </div>
                 </ProtectedRoute>
@@ -101,6 +104,7 @@ function App() {
                       <main className="flex-1 overflow-auto">
                         <Study />
                       </main>
+                      <Footer />
                     </div>
                   </div>
                 </ProtectedRoute>
@@ -115,6 +119,7 @@ function App() {
                       <main className="flex-1 overflow-auto">
                         <Tasks />
                       </main>
+                      <Footer />
                     </div>
                   </div>
                 </ProtectedRoute>
@@ -129,6 +134,7 @@ function App() {
                       <main className="flex-1 overflow-auto">
                         <Schedule />
                       </main>
+                      <Footer />
                     </div>
                   </div>
                 </ProtectedRoute>
@@ -143,6 +149,7 @@ function App() {
                       <main className="flex-1 overflow-auto">
                         <Insights />
                       </main>
+                      <Footer />
                     </div>
                   </div>
                 </ProtectedRoute>
@@ -157,6 +164,7 @@ function App() {
                       <main className="flex-1 overflow-auto">
                         <Privacy />
                       </main>
+                      <Footer />
                     </div>
                   </div>
                 </ProtectedRoute>
