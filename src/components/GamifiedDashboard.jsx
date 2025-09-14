@@ -49,6 +49,7 @@ const GamifiedDashboard = () => {
     getUserRank,
     getXPProgress,
     getXPForLevel,
+    getTotalXPForLevel,
     addReward,
     generateDailyQuests,
     generateWeeklyQuests,
@@ -87,6 +88,7 @@ const GamifiedDashboard = () => {
   const userRank = getUserRank();
   const xpProgress = getXPProgress();
   const nextLevelXP = getXPForLevel(userStats.level + 1);
+  const cumulativeNextLevelXP = getTotalXPForLevel(userStats.level + 1);
 
   const getLevelColor = (level) => {
     if (level >= 100) return "from-yellow-400 to-orange-500";
@@ -271,7 +273,7 @@ const GamifiedDashboard = () => {
                 <div className="flex items-center gap-2">
                   <Star className="w-4 h-4 text-yellow-300" />
                   <span className="text-sm font-medium">
-                    {Math.floor(xpProgress.current).toLocaleString()} / {Math.floor(xpProgress.needed).toLocaleString()} XP
+                    {Math.floor(userStats.xp || 0).toLocaleString()} / {Math.floor(cumulativeNextLevelXP || 0).toLocaleString()} XP
                   </span>
                 </div>
               </div>
@@ -478,13 +480,13 @@ const OverviewTab = ({ userStats, xpProgress }) => {
 
   const stats = [
     {
-      label: "Current XP",
-      value: Math.floor((xpProgress?.current || 0)).toLocaleString(),
+      label: "Total XP",
+      value: Math.floor((userStats?.xp || 0)).toLocaleString(),
       icon: Star,
       color: "from-yellow-500 to-orange-500",
       change:
-        weeklyStats.xpThisWeek > 0
-          ? `+${weeklyStats.xpThisWeek.toLocaleString()} this week`
+        (weeklyStats.xpThisWeek + (userStats.weeklyXP || 0)) > 0
+          ? `+${(weeklyStats.xpThisWeek + (userStats.weeklyXP || 0)).toLocaleString()} this week`
           : "No XP this week",
     },
     {
