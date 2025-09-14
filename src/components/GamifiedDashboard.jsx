@@ -669,20 +669,42 @@ const OverviewTab = ({ userStats, xpProgress }) => {
               Complete study sessions to earn mystery boxes with surprise
               rewards! Get bonus XP, streak savers, special titles, and more!
             </p>
-            <div className="flex items-center gap-2 text-sm text-purple-600">
-              <Sparkles className="w-4 h-4" />
-              <span>Next box available after 3 more sessions</span>
-            </div>
+            {(() => {
+              const threshold = 3;
+              const claimedAt = parseInt(localStorage.getItem('mysteryBoxClaimedSessions') || '0', 10);
+              const sinceClaim = Math.max(0, (userStats.totalSessions || 0) - claimedAt);
+              const remainder = sinceClaim % threshold;
+              const remaining = sinceClaim === 0 ? threshold : (remainder === 0 ? 0 : threshold - remainder);
+              const availableNow = sinceClaim >= threshold;
+              return (
+                <div className="flex items-center gap-2 text-sm text-purple-600">
+                  <Sparkles className="w-4 h-4" />
+                  {availableNow ? (
+                    <span>Box available now! Open to claim your reward.</span>
+                  ) : (
+                    <span>Next box available after {remaining} more session{remaining === 1 ? '' : 's'}</span>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </div>
 
         <div className="flex items-center justify-center">
-          <MysteryBox
-            available={
-              userStats.totalSessions >= 3 && userStats.totalSessions % 3 === 0
-            }
-            onOpen={() => console.log("Mystery box opened!")}
-          />
+          {(() => {
+            const threshold = 3;
+            const claimedAt = parseInt(localStorage.getItem('mysteryBoxClaimedSessions') || '0', 10);
+            const sinceClaim = Math.max(0, (userStats.totalSessions || 0) - claimedAt);
+            const availableNow = sinceClaim >= threshold;
+            return (
+              <MysteryBox
+                available={availableNow}
+                onOpen={() => {
+                  localStorage.setItem('mysteryBoxClaimedSessions', String(userStats.totalSessions || 0));
+                }}
+              />
+            );
+          })()}
         </div>
       </div>
 
