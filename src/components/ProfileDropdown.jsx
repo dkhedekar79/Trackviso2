@@ -117,6 +117,36 @@ export default function ProfileDropdown() {
             </button>
 
             <button
+              onClick={() => setShowResetConfirm(!showResetConfirm)}
+              className="flex items-center gap-2 w-full px-3 py-2 text-left hover:bg-amber-50 rounded text-sm text-amber-700"
+            >
+              <RefreshCcw className="w-4 h-4" />
+              Reset All Data
+            </button>
+
+            {showResetConfirm && (
+              <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded">
+                <p className="text-sm text-amber-800 mb-2">
+                  Reset XP, sessions, quests, and local data? This cannot be undone.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleResetData}
+                    className="px-3 py-1 bg-amber-600 text-white rounded text-xs hover:bg-amber-700"
+                  >
+                    Yes, Reset
+                  </button>
+                  <button
+                    onClick={() => setShowResetConfirm(false)}
+                    className="px-3 py-1 bg-gray-300 text-gray-700 rounded text-xs hover:bg-gray-400"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <button
               onClick={() => setShowDeleteConfirm(!showDeleteConfirm)}
               className="flex items-center gap-2 w-full px-3 py-2 text-left hover:bg-red-50 rounded text-sm text-red-600"
             >
