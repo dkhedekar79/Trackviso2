@@ -56,6 +56,22 @@ export default function ProfileDropdown() {
     }
   };
 
+  const handleResetData = () => {
+    try {
+      // Reset gamification stats
+      resetUserStats();
+      // Clear additional app data
+      localStorage.removeItem("tasks");
+      localStorage.removeItem("mysteryBoxClaimedSessions");
+      // Optionally clear other feature flags here
+      setShowResetConfirm(false);
+      setIsOpen(false);
+    } catch (e) {
+      console.error("Failed to reset data", e);
+      setError("Failed to reset data");
+    }
+  };
+
   return (
     <div className="relative" ref={dropdownRef}>
       {/* Profile Button */}
