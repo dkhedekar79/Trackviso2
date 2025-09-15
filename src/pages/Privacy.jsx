@@ -85,11 +85,11 @@ export default function Privacy() {
               
              </p>
         </div>
-        <h1 className="text-3xl font-bold text-white mb-6">Contact</h1>
+        <h1 id="contact" className="text-3xl font-bold text-white mb-6">Contact</h1>
         <p className="text-white/80 mb-4">Email contact: dskhedekar7@gmail.com</p>
 
       
       </div>
     </div>
   );
-} 
+}
