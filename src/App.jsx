@@ -44,11 +44,11 @@ function App() {
             <RouteCleanup />
             <Routes>
               {/* Public Routes */}
-              <Route path="/" element={<div className="flex flex-col min-h-screen"><main className="flex-1"><Landing /></main><Footer /></div>} />
-              <Route path="/login" element={<div className="flex flex-col min-h-screen"><main className="flex-1"><Login /></main><Footer /></div>} />
-              <Route path="/signup" element={<div className="flex flex-col min-h-screen"><main className="flex-1"><Signup /></main><Footer /></div>} />
+              <Route path="/" element={<div className="flex flex-col min-h-screen"><main className="flex-1"><Landing /><Footer /></main></div>} />
+              <Route path="/login" element={<div className="flex flex-col min-h-screen"><main className="flex-1"><Login /><Footer /></main></div>} />
+              <Route path="/signup" element={<div className="flex flex-col min-h-screen"><main className="flex-1"><Signup /><Footer /></main></div>} />
 
-              <Route path="/terms" element={<div className="flex flex-col min-h-screen"><main className="flex-1"><Terms /></main><Footer /></div>} />
+              <Route path="/terms" element={<div className="flex flex-col min-h-screen"><main className="flex-1"><Terms /><Footer /></main></div>} />
 
               
 
@@ -61,8 +61,8 @@ function App() {
                       <Navbar />
                       <main className="flex-1 overflow-auto">
                         <GamifiedDashboard />
+                        <Footer withSidebar />
                       </main>
-                      <Footer withSidebar />
                     </div>
                   </div>
                 </ProtectedRoute>
@@ -76,8 +76,8 @@ function App() {
                       <Navbar />
                       <main className="flex-1 overflow-auto">
                         <Dashboard />
+                        <Footer withSidebar />
                       </main>
-                      <Footer withSidebar />
                     </div>
                   </div>
                 </ProtectedRoute>
@@ -91,8 +91,8 @@ function App() {
                       <Navbar />
                       <main className="flex-1 overflow-auto">
                         <Subjects />
+                        <Footer withSidebar />
                       </main>
-                      <Footer withSidebar />
                     </div>
                   </div>
                 </ProtectedRoute>
@@ -106,8 +106,8 @@ function App() {
                       <Navbar />
                       <main className="flex-1 overflow-auto">
                         <Study />
+                        <Footer withSidebar />
                       </main>
-                      <Footer withSidebar />
                     </div>
                   </div>
                 </ProtectedRoute>
@@ -121,8 +121,8 @@ function App() {
                       <Navbar />
                       <main className="flex-1 overflow-auto">
                         <Tasks />
+                        <Footer withSidebar />
                       </main>
-                      <Footer withSidebar />
                     </div>
                   </div>
                 </ProtectedRoute>
@@ -136,8 +136,8 @@ function App() {
                       <Navbar />
                       <main className="flex-1 overflow-auto">
                         <Schedule />
+                        <Footer withSidebar />
                       </main>
-                      <Footer withSidebar />
                     </div>
                   </div>
                 </ProtectedRoute>
@@ -151,8 +151,8 @@ function App() {
                       <Navbar />
                       <main className="flex-1 overflow-auto">
                         <Insights />
+                        <Footer withSidebar />
                       </main>
-                      <Footer withSidebar />
                     </div>
                   </div>
                 </ProtectedRoute>
@@ -166,8 +166,8 @@ function App() {
                       <Navbar />
                       <main className="flex-1 overflow-auto">
                         <Privacy />
+                        <Footer withSidebar />
                       </main>
-                      <Footer withSidebar />
                     </div>
                   </div>
                 </ProtectedRoute>
