@@ -28,6 +28,7 @@ export default function ProfileDropdown() {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false);
         setShowDeleteConfirm(false);
+        setShowResetConfirm(false);
       }
     };
 
