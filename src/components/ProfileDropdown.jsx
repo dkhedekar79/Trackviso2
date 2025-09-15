@@ -9,8 +9,10 @@ export default function ProfileDropdown() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+
   const { user, userProfile, logout, deleteUserAccount } = useAuth();
+  const { resetUserStats } = useGamification();
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
 
