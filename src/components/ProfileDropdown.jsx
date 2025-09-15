@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useGamification } from "../context/GamificationContext";
 import { useNavigate } from "react-router-dom";
-import { User, LogOut, Trash2 } from "lucide-react";
+import { User, LogOut, Trash2, RefreshCcw } from "lucide-react";
 
 export default function ProfileDropdown() {
   const [isOpen, setIsOpen] = useState(false);
