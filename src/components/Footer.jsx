@@ -15,7 +15,6 @@ const Footer = ({ withSidebar = false }) => {
           <h4 className="text-white font-semibold mb-3">App</h4>
           <ul className="space-y-2">
             <li><Link className="hover:text-white" to="/dashboard">Dashboard</Link></li>
-            <li><Link className="hover:text-white" to="/classic-dashboard">Classic Dashboard</Link></li>
             <li><Link className="hover:text-white" to="/study">Study</Link></li>
             <li><Link className="hover:text-white" to="/subjects">Subjects</Link></li>
           </ul>
