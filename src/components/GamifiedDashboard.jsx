@@ -101,7 +101,7 @@ const GamifiedDashboard = () => {
   const getStreakEmoji = (streak) => {
     if (streak >= 365) return "👑";
     if (streak >= 100) return "💎";
-    if (streak >= 50) return "🔥";
+    if (streak >= 50) return "����";
     if (streak >= 30) return "⚡";
     if (streak >= 7) return "💪";
     return "🌟";
@@ -414,14 +414,16 @@ const GamifiedDashboard = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold transition-all whitespace-nowrap ${
                   activeTab === tab.id
-                    ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg"
-                    : "bg-white text-gray-600 hover:bg-gray-50 shadow"
+                    ? (tab.id === 'shop'
+                        ? 'bg-gradient-to-r from-amber-500 to-yellow-600 text-white shadow-lg'
+                        : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg')
+                    : 'bg-white text-gray-600 hover:bg-gray-50 shadow'
                 }`}
               >
                 <Icon className="w-4 h-4" />
                 {tab.label}
-                {tab.id === "premium" && (
-                  <Crown className="w-4 h-4 text-yellow-500" />
+                {tab.id === "shop" && (
+                  <Gem className="w-4 h-4 text-yellow-300" />
                 )}
               </motion.button>
             );
@@ -780,30 +782,30 @@ const ShopTab = () => {
 
   return (
     <div className="space-y-8">
-      <div className="bg-white rounded-2xl shadow-lg p-6">
+      <div className="rounded-2xl shadow-lg p-6 border border-amber-200 bg-gradient-to-br from-amber-50 to-yellow-50">
         <div className="flex items-center justify-between">
-          <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">Shop</h3>
+          <h3 className="text-xl font-bold text-amber-900 flex items-center gap-2">Shop</h3>
           <div className="flex items-center gap-3 text-sm">
-            <span className="flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-700 rounded-full"><Gem className="w-4 h-4" /> {userStats.gems || 0} Gems</span>
-            <span className="flex items-center gap-1 px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full"><Shield className="w-4 h-4" /> {userStats.streakSavers || 0} Streak Savers</span>
+            <span className="flex items-center gap-1 px-3 py-1 bg-amber-100 text-amber-800 rounded-full"><Gem className="w-4 h-4" /> {userStats.gems || 0} Gems</span>
+            <span className="flex items-center gap-1 px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full"><Shield className="w-4 h-4" /> {userStats.streakSavers || 0} Streak Savers</span>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-lg p-6">
-        <h4 className="text-lg font-semibold text-gray-800 mb-4">Convert XP → Gems</h4>
+      <div className="rounded-2xl shadow-lg p-6 border border-amber-200 bg-gradient-to-br from-amber-50 to-yellow-50">
+        <h4 className="text-lg font-semibold text-amber-900 mb-4">Convert XP → Gems</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {tiers.map((t) => (
-            <div key={t.id} className="p-4 rounded-xl border bg-gradient-to-br from-purple-50 to-white">
+            <div key={t.id} className="p-4 rounded-xl border border-amber-200 bg-white/70">
               <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold text-gray-800 capitalize">{t.id}</span>
-                <span className="text-purple-700 flex items-center gap-1"><Gem className="w-4 h-4" /> {t.gems}</span>
+                <span className="font-semibold text-amber-900 capitalize">{t.id}</span>
+                <span className="text-amber-700 flex items-center gap-1"><Gem className="w-4 h-4" /> {t.gems}</span>
               </div>
-              <p className="text-sm text-gray-600 mb-3">Spend {t.xp.toLocaleString()} XP</p>
+              <p className="text-sm text-amber-800 mb-3">Spend {t.xp.toLocaleString()} XP</p>
               <button
                 onClick={() => convertXPToGems(t.id)}
                 disabled={(userStats.xp || 0) < t.xp}
-                className={`w-full px-4 py-2 rounded-lg font-medium transition ${ (userStats.xp || 0) >= t.xp ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                className={`w-full px-4 py-2 rounded-lg font-medium transition ${ (userStats.xp || 0) >= t.xp ? 'bg-amber-600 text-white hover:bg-amber-700' : 'bg-amber-100 text-amber-400 cursor-not-allowed'}`}
               >
                 Convert
               </button>
@@ -812,26 +814,26 @@ const ShopTab = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-lg p-6">
-        <h4 className="text-lg font-semibold text-gray-800 mb-4">Spend Gems</h4>
+      <div className="rounded-2xl shadow-lg p-6 border border-amber-200 bg-gradient-to-br from-amber-50 to-yellow-50">
+        <h4 className="text-lg font-semibold text-amber-900 mb-4">Spend Gems</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {purchases.map((p) => {
             const Icon = p.icon;
             const canBuy = (userStats.gems || 0) >= p.cost;
             return (
-              <div key={p.id} className="p-4 rounded-xl border">
+              <div key={p.id} className="p-4 rounded-xl border border-amber-200 bg-white/70">
                 <div className="flex items-center gap-2 mb-2">
-                  <Icon className="w-5 h-5 text-gray-700" />
-                  <span className="font-semibold text-gray-800">{p.label}</span>
+                  <Icon className="w-5 h-5 text-amber-800" />
+                  <span className="font-semibold text-amber-900">{p.label}</span>
                 </div>
-                <p className="text-sm text-gray-600 mb-3">{p.desc}</p>
+                <p className="text-sm text-amber-800 mb-3">{p.desc}</p>
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-purple-700 flex items-center gap-1"><Gem className="w-4 h-4" /> {p.cost}</span>
+                  <span className="text-amber-700 flex items-center gap-1"><Gem className="w-4 h-4" /> {p.cost}</span>
                 </div>
                 <button
                   onClick={() => purchaseItem(p.id)}
                   disabled={!canBuy}
-                  className={`w-full px-4 py-2 rounded-lg font-medium transition ${ canBuy ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                  className={`w-full px-4 py-2 rounded-lg font-medium transition ${ canBuy ? 'bg-amber-600 text-white hover:bg-amber-700' : 'bg-amber-100 text-amber-400 cursor-not-allowed'}`}
                 >
                   Buy
                 </button>
