@@ -448,7 +448,7 @@ const GamifiedDashboard = () => {
 
           
 
-          {activeTab === "premium" && <PremiumSystem />}
+          {activeTab === "shop" && <ShopTab />}
         </div>
       </div>
     </div>
