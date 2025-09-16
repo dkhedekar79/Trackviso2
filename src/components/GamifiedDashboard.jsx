@@ -403,7 +403,7 @@ const GamifiedDashboard = () => {
 
       {/* Tab Navigation */}
       <div className="container mx-auto px-6 py-6">
-        <div className="flex gap-2 mb-8 overflow-x-auto">
+        <div className="flex gap-2 mb-6 pb-2 overflow-x-auto relative z-10">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
@@ -431,7 +431,7 @@ const GamifiedDashboard = () => {
         </div>
 
         {/* Tab Content */}
-        <div className="space-y-8 mt-4">
+        <div className="space-y-8 mt-8">
           {activeTab === "overview" && (
             <OverviewTab
               userStats={userStats}
