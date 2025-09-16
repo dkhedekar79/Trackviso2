@@ -67,6 +67,7 @@ export const GamificationProvider = ({ children }) => {
       rewardStreak: 0,
       luckyStreak: 0,
       jackpotCount: 0,
+      gems: 0,
       xpEvents: [],
     };
 
@@ -84,6 +85,7 @@ export const GamificationProvider = ({ children }) => {
         achievements: savedStats.achievements ?? [],
         dailyQuests: savedStats.dailyQuests ?? [],
         weeklyQuests: savedStats.weeklyQuests ?? [],
+        gems: savedStats.gems ?? 0,
       };
     }
 
@@ -347,7 +349,7 @@ export const GamificationProvider = ({ children }) => {
   const checkStreakAchievements = (streak) => {
     const milestones = [
       { days: 3, title: "Getting Started", icon: "🌱", xp: 50 },
-      { days: 7, title: "Week Warrior", icon: "⚔️", xp: 100 },
+      { days: 7, title: "Week Warrior", icon: "⚔��", xp: 100 },
       { days: 14, title: "Fortnight Fighter", icon: "🏰", xp: 200 },
       { days: 30, title: "Month Master", icon: "👑", xp: 500 },
       { days: 50, title: "Unstoppable Force", icon: "🌪️", xp: 750 },
@@ -402,6 +404,28 @@ export const GamificationProvider = ({ children }) => {
     return true;
   };
 
+  // Spend raw XP without affecting lifetime totals (used for conversions)
+  const spendXP = (amount, source = "spend") => {
+    if (!amount || amount <= 0) return false;
+    let ok = false;
+    setUserStats((prev) => {
+      const current = prev.xp || 0;
+      if (current < amount) return prev;
+      const newXP = current - amount;
+      ok = true;
+      return {
+        ...prev,
+        xp: newXP,
+        level: getLevelFromXP(newXP),
+        xpEvents: [
+          { amount: -amount, source, timestamp: new Date().toISOString() },
+          ...(prev.xpEvents || []),
+        ].slice(0, 500),
+      };
+    });
+    return ok;
+  };
+
   // Grant raw XP (e.g., from rewards)
   const grantXP = (amount, source = "reward") => {
     if (!amount || amount <= 0) return;
@@ -418,6 +442,62 @@ export const GamificationProvider = ({ children }) => {
         xpEvents: [event, ...(prev.xpEvents || [])].slice(0, 500),
       };
     });
+  };
+
+  // Currency helpers and shop operations
+  const addGems = (amount) => {
+    if (!amount || amount <= 0) return;
+    setUserStats((prev) => ({ ...prev, gems: (prev.gems || 0) + amount }));
+  };
+  const spendGems = (amount) => {
+    if (!amount || amount <= 0) return false;
+    let ok = false;
+    setUserStats((prev) => {
+      if ((prev.gems || 0) < amount) return prev;
+      ok = true;
+      return { ...prev, gems: (prev.gems || 0) - amount };
+    });
+    return ok;
+  };
+  const convertXPToGems = (tier) => {
+    const options = {
+      small: { xp: 500, gems: 5 },
+      medium: { xp: 2000, gems: 25 },
+      large: { xp: 5000, gems: 80 },
+    };
+    const opt = options[tier];
+    if (!opt) return false;
+    const ok = spendXP(opt.xp, `convert_${tier}`);
+    if (!ok) return false;
+    addGems(opt.gems);
+    addReward({ type: "SHOP", title: `Converted ${opt.xp} XP → ${opt.gems} 💎`, description: "XP to Gems", tier: "uncommon" });
+    return true;
+  };
+  const purchaseItem = (item) => {
+    const pricing = { streak_saver: 20, study_time: 150, quest_pack: 200, achievement: 400 };
+    const cost = pricing[item];
+    if (!cost) return false;
+    if (!spendGems(cost)) return false;
+    switch (item) {
+      case 'streak_saver':
+        setUserStats((prev) => ({ ...prev, streakSavers: (prev.streakSavers || 0) + 1 }));
+        addReward({ type: "SHOP", title: "+1 Streak Saver", description: "Streak protected once", tier: "rare" });
+        break;
+      case 'study_time':
+        setUserStats((prev) => ({ ...prev, totalStudyTime: (prev.totalStudyTime || 0) + 60 }));
+        addReward({ type: "SHOP", title: "+60 min Study Time", description: "Time boost applied", tier: "epic" });
+        break;
+      case 'quest_pack':
+        generateDailyQuests();
+        addReward({ type: "SHOP", title: "Quest Pack", description: "Daily quests refreshed", tier: "epic" });
+        break;
+      case 'achievement':
+        addReward({ type: "SHOP", title: "Achievement Token", description: "Special achievement coming soon", tier: "legendary" });
+        break;
+      default:
+        break;
+    }
+    return true;
   };
 
   // Apply generic reward payloads (mystery box, etc)
@@ -1326,6 +1406,7 @@ export const GamificationProvider = ({ children }) => {
       rewardStreak: 0,
       luckyStreak: 0,
       jackpotCount: 0,
+      gems: 0,
       xpEvents: [],
     });
   };
@@ -1337,6 +1418,11 @@ export const GamificationProvider = ({ children }) => {
     achievements,
     awardXP,
     grantXP,
+    spendXP,
+    addGems,
+    spendGems,
+    convertXPToGems,
+    purchaseItem,
     applyReward,
     updateStreak,
     useStreakSaver,
