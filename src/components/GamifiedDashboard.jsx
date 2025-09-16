@@ -764,4 +764,85 @@ const OverviewTab = ({ userStats, xpProgress, achievements, setActiveTab }) => {
   );
 };
 
+// Shop Tab Component
+const ShopTab = () => {
+  const { userStats, convertXPToGems, purchaseItem } = useGamification();
+  const tiers = [
+    { id: 'small', xp: 500, gems: 5 },
+    { id: 'medium', xp: 2000, gems: 25 },
+    { id: 'large', xp: 5000, gems: 80 },
+  ];
+  const purchases = [
+    { id: 'streak_saver', label: 'Streak Saver', cost: 20, icon: Shield, desc: 'Protect a missed day' },
+    { id: 'study_time', label: '+60 min Study Time', cost: 150, icon: Clock, desc: 'Adds 60 minutes to total' },
+    { id: 'quest_pack', label: 'Quest Pack', cost: 200, icon: Target, desc: 'Refresh daily quests' },
+    { id: 'achievement', label: 'Achievement Token', cost: 400, icon: Trophy, desc: 'Special unlock' },
+  ];
+
+  return (
+    <div className="space-y-8">
+      <div className="bg-white rounded-2xl shadow-lg p-6">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">Shop</h3>
+          <div className="flex items-center gap-3 text-sm">
+            <span className="flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-700 rounded-full"><Gem className="w-4 h-4" /> {userStats.gems || 0} Gems</span>
+            <span className="flex items-center gap-1 px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full"><Shield className="w-4 h-4" /> {userStats.streakSavers || 0} Streak Savers</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-lg p-6">
+        <h4 className="text-lg font-semibold text-gray-800 mb-4">Convert XP → Gems</h4>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {tiers.map((t) => (
+            <div key={t.id} className="p-4 rounded-xl border bg-gradient-to-br from-purple-50 to-white">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-semibold text-gray-800 capitalize">{t.id}</span>
+                <span className="text-purple-700 flex items-center gap-1"><Gem className="w-4 h-4" /> {t.gems}</span>
+              </div>
+              <p className="text-sm text-gray-600 mb-3">Spend {t.xp.toLocaleString()} XP</p>
+              <button
+                onClick={() => convertXPToGems(t.id)}
+                disabled={(userStats.xp || 0) < t.xp}
+                className={`w-full px-4 py-2 rounded-lg font-medium transition ${ (userStats.xp || 0) >= t.xp ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+              >
+                Convert
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-lg p-6">
+        <h4 className="text-lg font-semibold text-gray-800 mb-4">Spend Gems</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {purchases.map((p) => {
+            const Icon = p.icon;
+            const canBuy = (userStats.gems || 0) >= p.cost;
+            return (
+              <div key={p.id} className="p-4 rounded-xl border">
+                <div className="flex items-center gap-2 mb-2">
+                  <Icon className="w-5 h-5 text-gray-700" />
+                  <span className="font-semibold text-gray-800">{p.label}</span>
+                </div>
+                <p className="text-sm text-gray-600 mb-3">{p.desc}</p>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-purple-700 flex items-center gap-1"><Gem className="w-4 h-4" /> {p.cost}</span>
+                </div>
+                <button
+                  onClick={() => purchaseItem(p.id)}
+                  disabled={!canBuy}
+                  className={`w-full px-4 py-2 rounded-lg font-medium transition ${ canBuy ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                >
+                  Buy
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default GamifiedDashboard;
