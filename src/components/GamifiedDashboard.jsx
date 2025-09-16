@@ -31,7 +31,6 @@ import StreakTracker from "./StreakTracker";
 import QuestSystem from "./QuestSystem";
 import AchievementSystem from "./AchievementSystem";
 
-import PremiumSystem from "./PremiumSystem";
 import RewardSystem from "./RewardSystem";
 import MysteryBox from "./MysteryBox";
 import OnboardingModal from "./OnboardingModal";
