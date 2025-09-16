@@ -415,8 +415,8 @@ const GamifiedDashboard = () => {
                 className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold transition-all whitespace-nowrap ${
                   activeTab === tab.id
                     ? (tab.id === 'shop'
-                        ? 'bg-gradient-to-r from-amber-500 to-yellow-600 text-white shadow-lg'
-                        : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg')
+                        ? 'bg-gradient-to-r from-amber-500 to-yellow-600 text-white shadow-md'
+                        : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-md')
                     : 'bg-white text-gray-600 hover:bg-gray-50 shadow'
                 }`}
               >
