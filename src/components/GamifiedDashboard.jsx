@@ -76,7 +76,7 @@ const GamifiedDashboard = () => {
     { id: "quests", label: "Quests", icon: Target },
     { id: "achievements", label: "Achievements", icon: Trophy },
     { id: "streaks", label: "Streaks", icon: Flame },
-    { id: "premium", label: "Premium", icon: Crown },
+    { id: "shop", label: "Shop", icon: Gem },
   ];
 
   function formatHM(totalMinutes) {
