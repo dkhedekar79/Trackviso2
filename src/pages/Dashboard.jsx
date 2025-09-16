@@ -5,6 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "../components/Sidebar";
 import TimerCard from "../components/TimerCard";
+import OnboardingModal from "../components/OnboardingModal";
 import { FlameIcon, CheckCircle, Clock, XCircle, Trash2, Calendar, BookOpen, Zap, Settings } from "lucide-react";
 
 function getStartOfWeek(date) {
@@ -240,6 +241,7 @@ export default function Dashboard() {
   return (
      
     <div className="min-h-screen bg-gradient-to-br from-[#1a1a2e] to-[#16213e] mt-20 flex">
+      <OnboardingModal userId={user?.id} />
       <Sidebar />
 
       {/* Settings Popup */}

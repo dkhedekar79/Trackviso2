@@ -188,10 +188,7 @@ export const TimerProvider = ({ children }) => {
     resetTimer,
     setCustomMinutes,
     setTimerMode,
-    setTimerSubject: (subject) => {
-      console.log('Setting timer subject:', subject);
-      setTimerSubject(subject);
-    },
+    setTimerSubject,
     saveStudySession,
     getActualElapsedTime
   };

@@ -98,10 +98,13 @@ const Study = () => {
     if (customMinutes) setCustomMinutesInput(String(customMinutes));
   }, [customMinutes]);
 
-  // Cleanup interval on unmount
+  // Cleanup timers on unmount to avoid leaks and lag when navigating away
   useEffect(() => {
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      try { if (intervalRef.current) clearInterval(intervalRef.current); } catch {}
+      try { pauseLocalTimer?.(); } catch {}
+      try { resetLocalTimer?.(); } catch {}
+      try { stopTimer?.(); } catch {}
     };
   }, []);
 
@@ -334,6 +337,16 @@ const Study = () => {
   const streak = getStreak();
   const weeklyProgress = getWeeklyProgress();
 
+  const handleCancelStudy = () => {
+    try { pauseLocalTimer?.(); } catch {}
+    try { stopTimer?.(); } catch {}
+    try { resetLocalTimer?.(); } catch {}
+    try { resetTimer?.(); } catch {}
+    setIsTaskComplete(false);
+    setShowEndSession(false);
+    setSessionMood("");
+  };
+
   // If no subject is selected, show subject selection page
   if (!subject) {
     return (
@@ -425,20 +438,11 @@ const Study = () => {
       isTaskComplete,
     };
 
-    // Award XP using the gamification system
-    const xpData = awardXP(sessionDurationMinutes, subject, sessionDifficulty);
+    // Add to gamification system (handles XP and quest updates internally)
+    const sessionResult = addStudySession(sessionData);
 
-    // Add to gamification system for session tracking
-    const sessionWithXP = {
-      ...sessionData,
-      xpEarned: xpData.totalXP,
-      bonuses: xpData.bonuses,
-    };
-
-    const sessionResult = addStudySession(sessionWithXP);
-
-    // Update study sessions in localStorage
-    const updatedSessions = [...studySessions, sessionWithXP];
+    // Update study sessions in localStorage with enriched data
+    const updatedSessions = [...studySessions, sessionResult];
     localStorage.setItem("studySessions", JSON.stringify(updatedSessions));
     setStudySessions(updatedSessions);
 
@@ -451,22 +455,17 @@ const Study = () => {
       );
       localStorage.setItem("tasks", JSON.stringify(updatedTasks));
       setTasks(updatedTasks);
+      updateQuestProgress("tasks");
     }
-
-    // Update quest progress for gamification
-    updateQuestProgress("time", sessionDurationMinutes);
-    updateQuestProgress("sessions", 1);
-    updateQuestProgress("subjects", 1, subject);
-    updateQuestProgress("streak", 1);
 
     // Show completion success with rewards
     addReward({
       type: "SESSION_COMPLETE",
       title: `🎉 Session Complete!`,
-      description: `You studied ${subject} for ${sessionDurationMinutes.toFixed(1)} minutes and earned ${xpData.totalXP} XP!`,
+      description: `You studied ${subject} for ${sessionDurationMinutes.toFixed(1)} minutes and earned ${sessionResult.xpEarned} XP!`,
       tier: "uncommon",
-      xp: xpData.totalXP,
-      bonuses: xpData.bonuses,
+      xp: sessionResult.xpEarned,
+      bonuses: sessionResult.bonuses,
     });
 
     // Reset session state but keep subject to avoid blank screen
@@ -795,7 +794,7 @@ const Study = () => {
                       Exit Focus Mode
                     </button>
                     <button
-                      onClick={() => navigate("/subjects")}
+                      onClick={() => { handleCancelStudy(); navigate("/subjects"); }}
                       className="px-6 py-3 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition flex items-center gap-2"
                     >
                       <X className="w-5 h-5" />
@@ -862,7 +861,7 @@ const Study = () => {
                   </div>
                 </div>
                 <button
-                  onClick={() => navigate("/subjects")}
+                  onClick={() => { handleCancelStudy(); navigate("/subjects"); }}
                   className="px-6 py-3 rounded-xl bg-red-600 text-white font-semibold shadow hover:bg-red-700 transition flex items-center gap-2"
                 >
                   <X className="w-4 h-4" />

@@ -15,7 +15,7 @@ import {
   Users,
   Share2,
   Plus,
-  Settings,
+  CircleHelp,
   Sparkles,
   Gift,
   Shield,
@@ -25,14 +25,22 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { useGamification } from "../context/GamificationContext";
+import { useAuth } from "../context/AuthContext";
 import { AnimatedProgressBar } from "./RewardAnimations";
 import StreakTracker from "./StreakTracker";
 import QuestSystem from "./QuestSystem";
 import AchievementSystem from "./AchievementSystem";
 
-import PremiumSystem from "./PremiumSystem";
 import RewardSystem from "./RewardSystem";
 import MysteryBox from "./MysteryBox";
+import OnboardingModal from "./OnboardingModal";
+
+const formatHM = (totalMinutes) => {
+  const m = Math.max(0, Math.round(totalMinutes || 0));
+  const h = Math.floor(m / 60);
+  const rem = m % 60;
+  return `${h}h ${rem}m`;
+};
 
 const GamifiedDashboard = () => {
   const {
@@ -40,13 +48,17 @@ const GamifiedDashboard = () => {
     getUserRank,
     getXPProgress,
     getXPForLevel,
+    getTotalXPForLevel,
     addReward,
     generateDailyQuests,
     generateWeeklyQuests,
+    achievements,
   } = useGamification();
+  const { user } = useAuth();
 
   const [activeTab, setActiveTab] = useState("overview");
   const [showQuickActions, setShowQuickActions] = useState(false);
+
 
   // Generate daily and weekly quests on component mount
   useEffect(() => {
@@ -63,12 +75,20 @@ const GamifiedDashboard = () => {
     { id: "quests", label: "Quests", icon: Target },
     { id: "achievements", label: "Achievements", icon: Trophy },
     { id: "streaks", label: "Streaks", icon: Flame },
-    { id: "premium", label: "Premium", icon: Crown },
+    { id: "shop", label: "Shop", icon: Gem },
   ];
+
+  function formatHM(totalMinutes) {
+  const m = Math.max(0, Math.round(totalMinutes || 0));
+  const h = Math.floor(m / 60);
+  const rem = m % 60;
+  return `${h}h ${rem}m`;
+}
 
   const userRank = getUserRank();
   const xpProgress = getXPProgress();
   const nextLevelXP = getXPForLevel(userStats.level + 1);
+  const cumulativeNextLevelXP = getTotalXPForLevel(userStats.level + 1);
 
   const getLevelColor = (level) => {
     if (level >= 100) return "from-yellow-400 to-orange-500";
@@ -106,6 +126,7 @@ const GamifiedDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 mt-20 pl-10">
+      <OnboardingModal userId={user?.id} />
       {/* Reward System - Always Active */}
       <RewardSystem userStats={userStats} />
 
@@ -151,7 +172,7 @@ const GamifiedDashboard = () => {
                     </h3>
                     <ul className="space-y-1 text-blue-700">
                       <li>• Earn XP for every study session.</li>
-                      <li>• The longer + more focused you study, the more XP you get.</li>
+                      <li>�� The longer + more focused you study, the more XP you get.</li>
                       <li>• Multipliers boost your XP (streak bonus, mastery bonus, and more).</li>
                     </ul>
                   </div>
@@ -252,8 +273,7 @@ const GamifiedDashboard = () => {
                 <div className="flex items-center gap-2">
                   <Star className="w-4 h-4 text-yellow-300" />
                   <span className="text-sm font-medium">
-                    {userStats.xp.toLocaleString()} /{" "}
-                    {nextLevelXP.toLocaleString()} XP
+                    {Math.floor(userStats.xp || 0).toLocaleString()} / {Math.floor(cumulativeNextLevelXP || 0).toLocaleString()} XP
                   </span>
                 </div>
               </div>
@@ -265,7 +285,7 @@ const GamifiedDashboard = () => {
                 onClick={() => setShowSettingsPopup(true)}
                 className="p-2 bg-white/20 hover:bg-white/30 rounded-xl transition-all"
               >
-                <Settings className="w-5 h-5" />
+                <CircleHelp className="w-5 h-5" />
               </button>
             </div>
           </div>
@@ -315,7 +335,7 @@ const GamifiedDashboard = () => {
                 <span className="font-semibold">Study Time</span>
               </div>
               <div className="text-2xl font-bold">
-                {Math.round(userStats.totalStudyTime / 60)}h
+                {formatHM(userStats.totalStudyTime)}
               </div>
             </div>
 
@@ -383,7 +403,7 @@ const GamifiedDashboard = () => {
 
       {/* Tab Navigation */}
       <div className="container mx-auto px-6 py-6">
-        <div className="flex gap-2 mb-8 overflow-x-auto">
+        <div className="flex gap-2 mb-6 pb-2 overflow-x-auto relative z-10">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
@@ -394,14 +414,16 @@ const GamifiedDashboard = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold transition-all whitespace-nowrap ${
                   activeTab === tab.id
-                    ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg"
-                    : "bg-white text-gray-600 hover:bg-gray-50 shadow"
+                    ? (tab.id === 'shop'
+                        ? 'bg-gradient-to-r from-amber-500 to-yellow-600 text-white shadow-md'
+                        : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-md')
+                    : 'bg-white text-gray-600 hover:bg-gray-50 shadow'
                 }`}
               >
                 <Icon className="w-4 h-4" />
                 {tab.label}
-                {tab.id === "premium" && (
-                  <Crown className="w-4 h-4 text-yellow-500" />
+                {tab.id === "shop" && (
+                  <Gem className="w-4 h-4 text-yellow-300" />
                 )}
               </motion.button>
             );
@@ -409,8 +431,15 @@ const GamifiedDashboard = () => {
         </div>
 
         {/* Tab Content */}
-        <div className="space-y-8">
-          {activeTab === "overview" && <OverviewTab userStats={userStats} />}
+        <div className="space-y-8 mt-8">
+          {activeTab === "overview" && (
+            <OverviewTab
+              userStats={userStats}
+              xpProgress={xpProgress}
+              achievements={achievements}
+              setActiveTab={setActiveTab}
+            />
+          )}
 
           {activeTab === "quests" && <QuestSystem />}
 
@@ -420,7 +449,7 @@ const GamifiedDashboard = () => {
 
           
 
-          {activeTab === "premium" && <PremiumSystem />}
+          {activeTab === "shop" && <ShopTab />}
         </div>
       </div>
     </div>
@@ -428,7 +457,7 @@ const GamifiedDashboard = () => {
 };
 
 // Enhanced Overview Tab
-const OverviewTab = ({ userStats }) => {
+const OverviewTab = ({ userStats, xpProgress, achievements, setActiveTab }) => {
   // Calculate real weekly statistics
   const getWeeklyStats = () => {
     const oneWeekAgo = new Date();
@@ -439,10 +468,16 @@ const OverviewTab = ({ userStats }) => {
         (session) => new Date(session.timestamp) > oneWeekAgo,
       ) || [];
 
-    const thisWeekXP = thisWeekSessions.reduce(
+    const xpEventsThisWeek = (userStats.xpEvents || [])
+      .filter((e) => new Date(e.timestamp) > oneWeekAgo)
+      .reduce((sum, e) => sum + (e.amount || 0), 0);
+
+    const thisWeekXPFromSessions = thisWeekSessions.reduce(
       (total, session) => total + (session.xpEarned || 0),
       0,
     );
+
+    const thisWeekXP = xpEventsThisWeek > 0 ? xpEventsThisWeek : thisWeekXPFromSessions;
 
     const thisWeekTime = thisWeekSessions.reduce(
       (total, session) => total + (session.durationMinutes || 0),
@@ -452,7 +487,7 @@ const OverviewTab = ({ userStats }) => {
     return {
       sessionsThisWeek: thisWeekSessions.length,
       xpThisWeek: thisWeekXP,
-      timeThisWeek: Math.round(thisWeekTime / 60), // Convert to hours
+      timeThisWeekMinutes: thisWeekTime,
     };
   };
 
@@ -460,13 +495,13 @@ const OverviewTab = ({ userStats }) => {
 
   const stats = [
     {
-      label: "Total XP Earned",
-      value: (userStats.totalXPEarned || userStats.xp || 0).toLocaleString(),
+      label: "Total XP",
+      value: Math.floor((userStats?.totalXPEarned || userStats?.xp || 0)).toLocaleString(),
       icon: Star,
       color: "from-yellow-500 to-orange-500",
       change:
-        weeklyStats.xpThisWeek > 0
-          ? `+${weeklyStats.xpThisWeek.toLocaleString()} this week`
+        (weeklyStats.xpThisWeek || 0) > 0
+          ? `+${(weeklyStats.xpThisWeek || 0).toLocaleString()} this week`
           : "No XP this week",
     },
     {
@@ -491,17 +526,20 @@ const OverviewTab = ({ userStats }) => {
     },
     {
       label: "Total Study Time",
-      value: `${Math.round(userStats.totalStudyTime / 60)}h`,
+      value: formatHM(userStats.totalStudyTime),
       icon: Clock,
       color: "from-blue-500 to-indigo-500",
       change:
-        weeklyStats.timeThisWeek > 0
-          ? `+${weeklyStats.timeThisWeek}h this week`
+        (weeklyStats.timeThisWeekMinutes || 0) > 0
+          ? `+${formatHM(weeklyStats.timeThisWeekMinutes)} this week`
           : "No study time this week",
     },
   ];
 
-  const recentAchievements = userStats.achievements.slice(-3);
+  const recentAchievements = (userStats.achievements || [])
+    .slice(-3)
+    .map((id) => (achievements ? achievements[id] : null))
+    .filter(Boolean);
   const activeQuests = userStats.dailyQuests?.filter((q) => !q.completed) || [];
 
   return (
@@ -604,22 +642,20 @@ const OverviewTab = ({ userStats }) => {
           </div>
 
           <div className="space-y-3">
-            {recentAchievements.map((achievementId, index) => (
+            {recentAchievements.map((achievement, index) => (
               <motion.div
-                key={index}
+                key={`${achievement.id}-${index}`}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
                 className="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg"
               >
-                <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
-                  <Trophy className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center text-xl">
+                  <span>{achievement.icon || "🏆"}</span>
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-800">
-                    Achievement Unlocked
-                  </h4>
-                  <p className="text-sm text-gray-600">{achievementId}</p>
+                  <h4 className="font-medium text-gray-800">{achievement.name}</h4>
+                  <p className="text-sm text-gray-600">{achievement.description}</p>
                 </div>
               </motion.div>
             ))}
@@ -649,20 +685,42 @@ const OverviewTab = ({ userStats }) => {
               Complete study sessions to earn mystery boxes with surprise
               rewards! Get bonus XP, streak savers, special titles, and more!
             </p>
-            <div className="flex items-center gap-2 text-sm text-purple-600">
-              <Sparkles className="w-4 h-4" />
-              <span>Next box available after 3 more sessions</span>
-            </div>
+            {(() => {
+              const threshold = 3;
+              const claimedAt = parseInt(localStorage.getItem('mysteryBoxClaimedSessions') || '0', 10);
+              const sinceClaim = Math.max(0, (userStats.totalSessions || 0) - claimedAt);
+              const remainder = sinceClaim % threshold;
+              const remaining = sinceClaim === 0 ? threshold : (remainder === 0 ? 0 : threshold - remainder);
+              const availableNow = sinceClaim >= threshold;
+              return (
+                <div className="flex items-center gap-2 text-sm text-purple-600">
+                  <Sparkles className="w-4 h-4" />
+                  {availableNow ? (
+                    <span>Box available now! Open to claim your reward.</span>
+                  ) : (
+                    <span>Next box available after {remaining} more session{remaining === 1 ? '' : 's'}</span>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </div>
 
         <div className="flex items-center justify-center">
-          <MysteryBox
-            available={
-              userStats.totalSessions >= 3 && userStats.totalSessions % 3 === 0
-            }
-            onOpen={() => console.log("Mystery box opened!")}
-          />
+          {(() => {
+            const threshold = 3;
+            const claimedAt = parseInt(localStorage.getItem('mysteryBoxClaimedSessions') || '0', 10);
+            const sinceClaim = Math.max(0, (userStats.totalSessions || 0) - claimedAt);
+            const availableNow = sinceClaim >= threshold;
+            return (
+              <MysteryBox
+                available={availableNow}
+                onOpen={() => {
+                  localStorage.setItem('mysteryBoxClaimedSessions', String(userStats.totalSessions || 0));
+                }}
+              />
+            );
+          })()}
         </div>
       </div>
 
@@ -701,6 +759,87 @@ const OverviewTab = ({ userStats }) => {
           >
             Upgrade Now
           </motion.button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Shop Tab Component
+const ShopTab = () => {
+  const { userStats, convertXPToGems, purchaseItem } = useGamification();
+  const tiers = [
+    { id: 'small', xp: 500, gems: 5 },
+    { id: 'medium', xp: 2000, gems: 25 },
+    { id: 'large', xp: 5000, gems: 80 },
+  ];
+  const purchases = [
+    { id: 'streak_saver', label: 'Streak Saver', cost: 20, icon: Shield, desc: 'Protect a missed day' },
+    { id: 'study_time', label: '+60 min Study Time', cost: 150, icon: Clock, desc: 'Adds 60 minutes to total' },
+    { id: 'quest_pack', label: 'Quest Pack', cost: 200, icon: Target, desc: 'Refresh daily quests' },
+    { id: 'achievement', label: 'Achievement Token', cost: 400, icon: Trophy, desc: 'Special unlock' },
+  ];
+
+  return (
+    <div className="space-y-8">
+      <div className="rounded-2xl shadow-lg p-6 border border-amber-200 bg-gradient-to-br from-amber-50 to-yellow-50">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xl font-bold text-amber-900 flex items-center gap-2">Shop</h3>
+          <div className="flex items-center gap-3 text-sm">
+            <span className="flex items-center gap-1 px-3 py-1 bg-amber-100 text-amber-800 rounded-full"><Gem className="w-4 h-4" /> {userStats.gems || 0} Gems</span>
+            <span className="flex items-center gap-1 px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full"><Shield className="w-4 h-4" /> {userStats.streakSavers || 0} Streak Savers</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-2xl shadow-lg p-6 border border-amber-200 bg-gradient-to-br from-amber-50 to-yellow-50">
+        <h4 className="text-lg font-semibold text-amber-900 mb-4">Convert XP → Gems</h4>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {tiers.map((t) => (
+            <div key={t.id} className="p-4 rounded-xl border border-amber-200 bg-white/70">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-semibold text-amber-900 capitalize">{t.id}</span>
+                <span className="text-amber-700 flex items-center gap-1"><Gem className="w-4 h-4" /> {t.gems}</span>
+              </div>
+              <p className="text-sm text-amber-800 mb-3">Spend {t.xp.toLocaleString()} XP</p>
+              <button
+                onClick={() => convertXPToGems(t.id)}
+                disabled={(userStats.xp || 0) < t.xp}
+                className={`w-full px-4 py-2 rounded-lg font-medium transition ${ (userStats.xp || 0) >= t.xp ? 'bg-amber-600 text-white hover:bg-amber-700' : 'bg-amber-100 text-amber-400 cursor-not-allowed'}`}
+              >
+                Convert
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-2xl shadow-lg p-6 border border-amber-200 bg-gradient-to-br from-amber-50 to-yellow-50">
+        <h4 className="text-lg font-semibold text-amber-900 mb-4">Spend Gems</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {purchases.map((p) => {
+            const Icon = p.icon;
+            const canBuy = (userStats.gems || 0) >= p.cost;
+            return (
+              <div key={p.id} className="p-4 rounded-xl border border-amber-200 bg-white/70">
+                <div className="flex items-center gap-2 mb-2">
+                  <Icon className="w-5 h-5 text-amber-800" />
+                  <span className="font-semibold text-amber-900">{p.label}</span>
+                </div>
+                <p className="text-sm text-amber-800 mb-3">{p.desc}</p>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-amber-700 flex items-center gap-1"><Gem className="w-4 h-4" /> {p.cost}</span>
+                </div>
+                <button
+                  onClick={() => purchaseItem(p.id)}
+                  disabled={!canBuy}
+                  className={`w-full px-4 py-2 rounded-lg font-medium transition ${ canBuy ? 'bg-amber-600 text-white hover:bg-amber-700' : 'bg-amber-100 text-amber-400 cursor-not-allowed'}`}
+                >
+                  Buy
+                </button>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

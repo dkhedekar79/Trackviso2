@@ -347,7 +347,7 @@ const MysteryBoxOpening = ({ onRewardGenerated, onClose }) => {
 // Main Mystery Box Component
 const MysteryBox = ({ available = true, onOpen, className = "" }) => {
   const [showOpening, setShowOpening] = useState(false);
-  const { addReward, userStats, setUserStats } = useGamification();
+  const { addReward, userStats, applyReward } = useGamification();
 
   const handleClick = () => {
     if (!available) return;
@@ -356,42 +356,8 @@ const MysteryBox = ({ available = true, onOpen, className = "" }) => {
   };
 
   const handleRewardGenerated = (reward) => {
-    // Apply reward to user stats
-    if (reward.type === 'xp') {
-      setUserStats(prev => ({
-        ...prev,
-        xp: prev.xp + reward.actualValue,
-        totalXPEarned: (prev.totalXPEarned || prev.xp) + reward.actualValue
-      }));
-    } else if (reward.type === 'streak_saver') {
-      setUserStats(prev => ({
-        ...prev,
-        streakSavers: prev.streakSavers + 1
-      }));
-    } else if (reward.type === 'title') {
-      setUserStats(prev => ({
-        ...prev,
-        unlockedTitles: [...(prev.unlockedTitles || []), reward.actualValue],
-        currentTitle: reward.actualValue
-      }));
-    } else if (reward.type === 'multiplier') {
-      const endTime = Date.now() + reward.value.duration;
-      setUserStats(prev => ({
-        ...prev,
-        xpMultiplier: reward.value.multiplier,
-        multiplierEndTime: endTime
-      }));
-    } else if (reward.type === 'jackpot') {
-      setUserStats(prev => ({
-        ...prev,
-        xp: prev.xp + reward.value.xp,
-        totalXPEarned: (prev.totalXPEarned || prev.xp) + reward.value.xp,
-        streakSavers: prev.streakSavers + reward.value.streakSavers,
-        unlockedTitles: [...(prev.unlockedTitles || []), reward.value.title],
-        currentTitle: reward.value.title,
-        jackpotCount: (prev.jackpotCount || 0) + 1
-      }));
-    }
+    // Apply reward to user stats centrally
+    applyReward(reward);
 
     // Show reward notification
     addReward({
