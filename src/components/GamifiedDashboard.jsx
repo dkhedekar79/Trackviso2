@@ -101,7 +101,7 @@ const GamifiedDashboard = () => {
   const getStreakEmoji = (streak) => {
     if (streak >= 365) return "👑";
     if (streak >= 100) return "💎";
-    if (streak >= 50) return "����";
+    if (streak >= 50) return "🔥";
     if (streak >= 30) return "⚡";
     if (streak >= 7) return "💪";
     return "🌟";
@@ -431,7 +431,7 @@ const GamifiedDashboard = () => {
         </div>
 
         {/* Tab Content */}
-        <div className="space-y-8">
+        <div className="space-y-8 mt-4">
           {activeTab === "overview" && (
             <OverviewTab
               userStats={userStats}
