@@ -16,6 +16,14 @@
   --text-on-surface: #ffffff;
   --gradient-accent-from: #E0BBE4;
   --gradient-accent-to: #ffffff;
+  /* Gradients */
+  --hero-from: #7c3aed;  /* purple-600 */
+  --hero-via: #2563eb;   /* blue-600 */
+  --hero-to: #4338ca;    /* indigo-700 */
+  --tab-active-from: #7c3aed;
+  --tab-active-to: #2563eb;
+  --promo-from: #7c3aed;
+  --promo-to: #db2777;   /* pink-600 */
 }
 
 :root[data-theme="aurora"] {
@@ -30,12 +38,32 @@
   --text-on-surface: #e6fffb;
   --gradient-accent-from: #10b981;  /* emerald-500 */
   --gradient-accent-to: #2563eb;    /* blue-600 */
+  /* Gradients */
+  --hero-from: #10b981;  /* emerald-500 */
+  --hero-via: #06b6d4;   /* cyan-500 */
+  --hero-to: #2563eb;    /* blue-600 */
+  --tab-active-from: #10b981;
+  --tab-active-to: #2563eb;
+  --promo-from: #059669;  /* emerald-600 */
+  --promo-to: #22c55e;    /* green-500 */
 }
+
+/* Computed gradient helpers */
+.hero-gradient { background-image: linear-gradient(90deg, var(--hero-from), var(--hero-via), var(--hero-to)); }
+.tab-active-gradient { background-image: linear-gradient(90deg, var(--tab-active-from), var(--tab-active-to)); }
+.promo-gradient { background-image: linear-gradient(90deg, var(--promo-from), var(--promo-to)); }
 
 /* Utility helper: hover background using primary at 10% */
 .theme-hover-primary-10:hover {
   background-color: color-mix(in srgb, var(--primary) 10%, transparent);
 }
+
+/* Aurora overrides for hard-coded purple utilities */
+:root[data-theme="aurora"] .bg-\[\#6C5DD3\] { background-color: var(--primary) !important; }
+:root[data-theme="aurora"] .hover\:bg-\[\#7A6AD9\]\:hover { background-color: color-mix(in srgb, var(--primary) 15%, white) !important; }
+:root[data-theme="aurora"] .text-\[\#6C5DD3\] { color: var(--primary) !important; }
+:root[data-theme="aurora"] .border-\[\#6C5DD3\] { border-color: var(--primary) !important; }
+:root[data-theme="aurora"] .accent-\[\#6C5DD3\] { accent-color: var(--primary) !important; }
 
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slide-up { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
