@@ -102,7 +102,7 @@ const Subjects = () => {
   };
 
   return (
-    <div className="min-h-screen mt-20 flex" style={{ backgroundImage: "linear-gradient(135deg, var(--study-from), var(--study-via), var(--study-to))" }}>
+    <div className="min-h-screen mt-20 flex" style={{ backgroundImage: "linear - gradient(135deg, var(--study - from), var(--study - via), var(--study - to))" }} min-h-screen mt-20 pl-[100px] pr-6 py-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
