@@ -706,7 +706,7 @@ const Study = () => {
                             elapsedSeconds > getTotalDuration() &&
                             pomodoroPhaseRef.current === "work"
                               ? "#EF4444"
-                              : "#6C5DD3"
+                              : "var(--primary)"
                           }
                           strokeWidth="12"
                           fill="none"
@@ -961,7 +961,7 @@ const Study = () => {
                               elapsedSeconds > getTotalDuration() &&
                               pomodoroPhaseRef.current === "work"
                                 ? "#EF4444"
-                                : "#6C5DD3"
+                                : "var(--primary)"
                             }
                             strokeWidth="8"
                             fill="none"
