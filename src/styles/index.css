@@ -61,6 +61,9 @@
 /* Aurora overrides for hard-coded purple utilities */
 :root[data-theme="aurora"] .bg-\[\#6C5DD3\] { background-color: var(--primary) !important; }
 :root[data-theme="aurora"] .hover\:bg-\[\#7A6AD9\]\:hover { background-color: color-mix(in srgb, var(--primary) 15%, white) !important; }
+:root[data-theme="aurora"] .hover\:bg-\[\#6C5DD3\]\/70:hover { background-color: color-mix(in srgb, var(--primary) 70%, transparent) !important; }
+:root[data-theme="aurora"] .bg-\[\#6C5DD3\]\/20 { background-color: color-mix(in srgb, var(--primary) 20%, transparent) !important; }
+:root[data-theme="aurora"] .border-\[\#6C5DD3\]\/30 { border-color: color-mix(in srgb, var(--primary) 30%, transparent) !important; }
 :root[data-theme="aurora"] .text-\[\#6C5DD3\] { color: var(--primary) !important; }
 :root[data-theme="aurora"] .border-\[\#6C5DD3\] { border-color: var(--primary) !important; }
 :root[data-theme="aurora"] .accent-\[\#6C5DD3\] { accent-color: var(--primary) !important; }
