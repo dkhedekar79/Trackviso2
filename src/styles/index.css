@@ -34,7 +34,7 @@
 }
 
 :root[data-theme="aurora"] {
-  --primary: #0EA5E9;               /* sky-500 */
+  --primary: #134E4A;               /* sky-500 */
   --on-primary: #ffffff;
   --on-primary-muted: #e0f2fe;
   --app-bg: #ecfeff;                /* cyan-50-ish */
