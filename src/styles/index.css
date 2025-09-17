@@ -28,6 +28,9 @@
   --study-from: #0f0f23;
   --study-via: #1a1a2e;
   --study-to: #16213e;
+  /* Navbar */
+  --nav-from: #6C5DD3;
+  --nav-to: #4338ca;
 }
 
 :root[data-theme="aurora"] {
@@ -54,6 +57,9 @@
   --study-from: #022c22;  /* emerald-950 */
   --study-via: #064e3b;   /* emerald-900 */
   --study-to: #0c4a6e;    /* blue-900 */
+  /* Navbar */
+  --nav-from: #10b981;    /* emerald-500 */
+  --nav-to: #0ea5e9;      /* sky-500 */
 }
 
 /* Computed gradient helpers */
