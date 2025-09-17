@@ -39,7 +39,7 @@ const Navbar = () => {
       <div className="flex flex-col items-center flex-1 min-w-0">
         {(["/dashboard","/tasks","/schedule","/subjects","/study","/settings","/insights"].includes(location.pathname)) && (
           <>
-            <span className="text-2xl font-extrabold tracking-widest bg-[linear-gradient(135deg,var(--gradient-accent-from),var(--gradient-accent-to))] text-transparent bg-clip-text">
+            <span className="text-2xl font-extrabold tracking-widest bg-[white] text-transparent bg-clip-text">
               {location.pathname === "/dashboard" && "DASHBOARD"}
               {location.pathname === "/tasks" && "TASKS"}
               {location.pathname === "/schedule" && "SCHEDULE"}
