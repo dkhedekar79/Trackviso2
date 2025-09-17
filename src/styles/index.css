@@ -5,7 +5,7 @@
 /* Theme variables */
 :root,
 :root[data-theme="midnight"] {
-  --primary: #6C5DD3;               /* purple */
+  --primary: #6e5fd3;               /* purple */
   --on-primary: #ffffff;
   --on-primary-muted: #EDE9FE;
   --app-bg: #f9fafb;                /* gray-50 */
@@ -59,7 +59,7 @@
   --study-to: #0c4a6e;    /* blue-900 */
   /* Navbar */
   --nav-from: #10b981;    /* emerald-500 */
-  --nav-to: #0ea5e9;      /* sky-500 */
+  --nav-to: #134E4A;      /* sky-500 */
 }
 
 /* Computed gradient helpers */
