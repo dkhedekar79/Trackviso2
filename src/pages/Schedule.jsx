@@ -68,7 +68,7 @@ export default function Schedule() {
   };
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(135deg, var(--study-from), var(--study-via), var(--study-to))] mt-20 flex">
+    <div className="min-h-screen mt-20 flex" style={{ backgroundImage: "linear-gradient(135deg, var(--study-from), var(--study-via), var(--study-to))" }}>
       <Sidebar />
       <div className="flex-1 ml-16 transition-all duration-300 ease-in-out [body>div>aside:hover_+_div&]:ml-64">
         <div className="p-8">
