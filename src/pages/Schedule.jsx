@@ -73,7 +73,7 @@ export default function Schedule() {
       <div className="flex-1 ml-16 transition-all duration-300 ease-in-out [body>div>aside:hover_+_div&]:ml-64">
         <div className="p-8">
           <div className="mb-8">
-            <div className="bg-[#1D4F41] rounded-xl p-6 shadow-md">
+            <div className="bg-[#1D4F41] rounded-xl p-6 shadow-md border-4 border-white">
               <h2 className="text-lg font-bold text-white mb-2">Today's Scheduled Tasks</h2>
               {todaysTasks.length === 0 ? (
                 <div className="text-gray-400">No tasks scheduled for today.</div>
