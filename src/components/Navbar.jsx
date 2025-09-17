@@ -25,8 +25,8 @@ const Navbar = () => {
 
   return (
     <nav
-      className="w-full flex items-center justify-between px-8 py-4 bg-[#6C5DD3] shadow-md fixed top-0 left-0 z-50 h-20 transition-opacity duration-300"
-      style={{ opacity }}
+      className="w-full flex items-center justify-between px-8 py-4 shadow-md fixed top-0 left-0 z-50 h-20 transition-opacity duration-300 text-[var(--on-primary)]"
+      style={{ opacity, backgroundColor: "var(--primary)" }}
     >
       {/* Left: Logo */}
       <div className="flex-1 min-w-0">
@@ -39,7 +39,7 @@ const Navbar = () => {
       <div className="flex flex-col items-center flex-1 min-w-0">
         {(["/dashboard","/tasks","/schedule","/subjects","/study","/settings","/insights"].includes(location.pathname)) && (
           <>
-            <span className="text-2xl font-extrabold tracking-widest bg-[linear-gradient(135deg,_#E0BBE4,_white)] text-transparent bg-clip-text">
+            <span className="text-2xl font-extrabold tracking-widest bg-[linear-gradient(135deg,var(--gradient-accent-from),var(--gradient-accent-to))] text-transparent bg-clip-text">
               {location.pathname === "/dashboard" && "DASHBOARD"}
               {location.pathname === "/tasks" && "TASKS"}
               {location.pathname === "/schedule" && "SCHEDULE"}
@@ -48,7 +48,7 @@ const Navbar = () => {
               {location.pathname === "/settings" && "SETTINGS"}
               {location.pathname === "/insights" && "INSIGHTS"}
             </span>
-            <span className="text-sm font-medium text-[#EDE9FE] mt-1">
+            <span className="text-sm font-medium text-[var(--on-primary-muted)] mt-1">
               {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
             </span>
           </>
