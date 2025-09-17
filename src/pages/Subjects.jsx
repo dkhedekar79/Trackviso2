@@ -102,7 +102,7 @@ const Subjects = () => {
   };
 
   return (
-    <div className="min-h-screen mt-20 flex pr-6 py-6 pl-[100px]" style={{ backgroundImage: "linear - gradient(135deg, var(--study - from), var(--study - via), var(--study - to))" }}>
+    <div className="bg-gradient-to-br from-[#1a1a2e] to-[#16213e] min-h-screen mt-20 pl-[100px] pr-6 py-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
