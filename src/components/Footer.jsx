@@ -31,7 +31,7 @@ const Footer = ({ withSidebar = false }) => {
           <h4 className="font-semibold mb-3 text-[var(--text-on-surface)]">Company</h4>
           <ul className="space-y-2">
             <li><a className="hover:text-[var(--on-primary)]" href="mailto:dskhedekar7@gmail.com">Contact</a></li>
-            <li><Link className="hover:text-[var(--on-primary)]" to="/privacy">Privacy</Link></li>
+            <li><Link className="hover:text-[var(--on-primary)]" to="/privacy">Themes</Link></li>
             <li><Link className="hover:text-[var(--on-primary)]" to="/terms">Terms</Link></li>
           </ul>
         </div>
