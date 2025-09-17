@@ -73,7 +73,7 @@ export default function Schedule() {
       <div className="flex-1 ml-16 transition-all duration-300 ease-in-out [body>div>aside:hover_+_div&]:ml-64">
         <div className="p-8">
           <div className="mb-8">
-            <div className="bg-[#1D4F41] rounded-xl p-6 shadow-md border-4 border-white">
+            <div className="bg-[#1D4F41] rounded-xl p-6 shadow-md border-2 border-white">
               <h2 className="text-lg font-bold text-white mb-2">Today's Scheduled Tasks</h2>
               {todaysTasks.length === 0 ? (
                 <div className="text-gray-400">No tasks scheduled for today.</div>
@@ -91,7 +91,7 @@ export default function Schedule() {
           </div>
           <div className="flex gap-6">
             {/* Minimalistic Calendar */}
-            <div className="bg-[#1D4F41] rounded-xl p-3 shadow-md mb-6 w-2/3 h-[calc(100vh-5rem-4rem)] flex flex-col flex-1">
+            <div className="bg-[#1D4F41] rounded-xl p-3 shadow-md mb-6 w-2/3 h-[calc(100vh-5rem-4rem)] flex flex-col flex-1 border-2 border-white">
               <div className="flex items-center gap-2 mb-2 justify-center">
                 <button onClick={handlePrevMonth} className="text-white px-1 py-0.5 rounded hover:bg-[#35357a] transition text-base">&#8592;</button>
                 <span className="text-base font-bold text-white select-none">{monthNames[calendarMonth]} {calendarYear}</span>
@@ -129,7 +129,7 @@ export default function Schedule() {
               </div>
             </div>
             {/* Schedule Tasks Card */}
-            <div className="bg-[#1D4F41] rounded-xl p-4 shadow-md mb-6 w-1/3 h-[calc(100vh-5rem-4rem)] flex flex-col">
+            <div className="bg-[#1D4F41] rounded-xl p-4 shadow-md mb-6 w-1/3 h-[calc(100vh-5rem-4rem)] flex flex-col border-2 border-white">
               <h2 className="text-lg font-bold text-white mb-4">Schedule Tasks</h2>
               {unscheduledTasks.length === 0 ? (
                 <div className="text-gray-400">No unscheduled tasks.</div>
