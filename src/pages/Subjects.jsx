@@ -102,7 +102,7 @@ const Subjects = () => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-[#012E23] to-[#1D4F41] min-h-screen mt-20 pl-[100px] pr-6 py-6">
+    <div className="bg-gradient-to-br from-[#012E23] to-[#0B4A68] min-h-screen mt-20 pl-[100px] pr-6 py-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
