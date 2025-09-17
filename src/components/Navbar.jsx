@@ -59,8 +59,8 @@ const Navbar = () => {
       <div className="flex-1 flex justify-end gap-4 min-w-0">
         {!user && (
           <>
-            <Link to="/login" className="px-4 py-2 rounded-lg text-[#6C5DD3] font-semibold hover:bg-[#EDE9FE] transition">Login</Link>
-            <Link to="/signup" className="px-4 py-2 rounded-lg text-[#6C5DD3] font-semibold hover:bg-[#7A6AD9] transition">Sign Up</Link>
+            <Link to="/login" className="px-4 py-2 rounded-lg font-semibold transition theme-hover-primary-10 text-[var(--primary)]">Login</Link>
+            <Link to="/signup" className="px-4 py-2 rounded-lg font-semibold transition text-[var(--on-primary)]" style={{ backgroundColor: "var(--primary)" }}>Sign Up</Link>
           </>
         )}
         {user && (
