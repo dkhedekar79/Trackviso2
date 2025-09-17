@@ -129,7 +129,7 @@ export default function Schedule() {
               </div>
             </div>
             {/* Schedule Tasks Card */}
-            <div className="bg-[#1D4F41] rounded-xl p-4 shadow-md mb-6 w-1/3 h-[calc(100vh-5rem-4rem)] flex flex-col border-2 border-white">
+            <div className="bg-[var(--sidebar-bg)] rounded-xl p-4 shadow-md mb-6 w-1/3 h-[calc(100vh-5rem-4rem)] flex flex-col border-2 border-white">
               <h2 className="text-lg font-bold text-white mb-4">Schedule Tasks</h2>
               {unscheduledTasks.length === 0 ? (
                 <div className="text-gray-400">No unscheduled tasks.</div>
@@ -138,7 +138,7 @@ export default function Schedule() {
                   {unscheduledTasks.map(task => (
                     <li
                       key={task.id}
-                      className="bg-[var(--sidebar-bg)] rounded px-3 py-2 text-white flex items-center justify-between cursor-grab hover:bg-[#35357a] transition"
+                      className="bg-[#1a1a2e] rounded px-3 py-2 text-white flex items-center justify-between cursor-grab hover:bg-[#35357a] transition"
                       draggable
                       onDragStart={() => setDragTaskId(task.id)}
                       onDragEnd={() => setDragTaskId(null)}
