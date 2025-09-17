@@ -10,7 +10,7 @@ export default function Privacy() {
         {/* Theme Selector */}
         <section className="mb-10">
           <h2 className="text-2xl font-bold mb-4 text-gray-900">Theme</h2>
-          <p className="text-gray-600 mb-4">Choose how Trackviso looks. Default is Midnight Purple. You can also switch to Aurora (blue/green) for a fresher vibe.</p>
+          <p className="text-gray-600 mb-4">Choose how Trackviso looks. Default is Midnight Purple. You can also switch to Aurora (still developing) for a fresher vibe.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Midnight */}
             <button
