@@ -2,10 +2,45 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Theme variables */
+:root,
+:root[data-theme="midnight"] {
+  --primary: #6C5DD3;               /* purple */
+  --on-primary: #ffffff;
+  --on-primary-muted: #EDE9FE;
+  --app-bg: #f9fafb;                /* gray-50 */
+  --sidebar-bg: #3F3D56;            /* slate-ish */
+  --footer-bg: #0f172a;             /* slate-900 */
+  --footer-text: #9ca3af;           /* gray-400 */
+  --footer-border: #1f2937;         /* gray-800 */
+  --text-on-surface: #ffffff;
+  --gradient-accent-from: #E0BBE4;
+  --gradient-accent-to: #ffffff;
+}
+
+:root[data-theme="aurora"] {
+  --primary: #0EA5E9;               /* sky-500 */
+  --on-primary: #ffffff;
+  --on-primary-muted: #e0f2fe;
+  --app-bg: #ecfeff;                /* cyan-50-ish */
+  --sidebar-bg: #064e3b;            /* emerald-900 */
+  --footer-bg: #022c22;             /* emerald-950 */
+  --footer-text: #a7f3d0;           /* emerald-200 */
+  --footer-border: #065f46;         /* emerald-800 */
+  --text-on-surface: #e6fffb;
+  --gradient-accent-from: #10b981;  /* emerald-500 */
+  --gradient-accent-to: #2563eb;    /* blue-600 */
+}
+
+/* Utility helper: hover background using primary at 10% */
+.theme-hover-primary-10:hover {
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slide-up { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
 .animate-fade-in { animation: fade-in 1s ease both; }
-.animate-slide-up { animation: slide-up 1s cubic-bezier(0.4,0,0.2,1) both; } 
+.animate-slide-up { animation: slide-up 1s cubic-bezier(0.4,0,0.2,1) both; }
 
 
 
@@ -16,4 +51,4 @@
 @keyframes scrollTestimonials {
   0% { transform: translateX(0); }
   100% { transform: translateX(-100%); }
-} 
+}
