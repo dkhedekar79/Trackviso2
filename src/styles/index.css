@@ -24,6 +24,10 @@
   --tab-active-to: #2563eb;
   --promo-from: #7c3aed;
   --promo-to: #db2777;   /* pink-600 */
+  /* Study page gradient */
+  --study-from: #0f0f23;
+  --study-via: #1a1a2e;
+  --study-to: #16213e;
 }
 
 :root[data-theme="aurora"] {
@@ -46,6 +50,10 @@
   --tab-active-to: #2563eb;
   --promo-from: #059669;  /* emerald-600 */
   --promo-to: #22c55e;    /* green-500 */
+  /* Study page gradient */
+  --study-from: #022c22;  /* emerald-950 */
+  --study-via: #064e3b;   /* emerald-900 */
+  --study-to: #0c4a6e;    /* blue-900 */
 }
 
 /* Computed gradient helpers */
