@@ -125,7 +125,7 @@ const GamifiedDashboard = () => {
   const [showSettingsPopup, setShowSettingsPopup] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 mt-20 pl-10">
+    <div className="min-h-screen mt-20 pl-10" style={{ backgroundColor: "var(--app-bg)" }}>
       <OnboardingModal userId={user?.id} />
       {/* Reward System - Always Active */}
       <RewardSystem userStats={userStats} />
@@ -248,7 +248,7 @@ const GamifiedDashboard = () => {
       </AnimatePresence>
 
       {/* Hero Section with User Stats */}
-      <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 text-white">
+      <div className="hero-gradient text-white">
         <div className="container mx-auto px-6 py-8">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-6">
@@ -416,7 +416,7 @@ const GamifiedDashboard = () => {
                   activeTab === tab.id
                     ? (tab.id === 'shop'
                         ? 'bg-gradient-to-r from-amber-500 to-yellow-600 text-white shadow-md'
-                        : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-md')
+                        : 'tab-active-gradient text-white shadow-md')
                     : 'bg-white text-gray-600 hover:bg-gray-50 shadow'
                 }`}
               >
@@ -725,7 +725,7 @@ const OverviewTab = ({ userStats, xpProgress, achievements, setActiveTab }) => {
       </div>
 
       {/* Premium Teaser */}
-      <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl shadow-xl p-8 text-white">
+      <div className="promo-gradient rounded-2xl shadow-xl p-8 text-white">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-2xl font-bold mb-2 flex items-center gap-2">

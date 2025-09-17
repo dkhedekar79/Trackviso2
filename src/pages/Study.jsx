@@ -350,7 +350,7 @@ const Study = () => {
   // If no subject is selected, show subject selection page
   if (!subject) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0f0f23] via-[#1a1a2e] to-[#16213e] mt-20 flex">
+      <div className="min-h-screen mt-20 flex" style={{ backgroundImage: "linear-gradient(135deg, var(--study-from), var(--study-via), var(--study-to))" }}>
         <Sidebar />
         <div className="flex-1 ml-16 transition-all duration-300 ease-in-out [body>div>aside:hover_+_div&]:ml-64">
           <div className="max-w-4xl mx-auto p-8">
@@ -517,7 +517,7 @@ const Study = () => {
 
   if (showEndSession) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0f0f23] via-[#1a1a2e] to-[#16213e] flex items-center justify-center p-4 mt-20">
+      <div className="min-h-screen flex items-center justify-center p-4 mt-20" style={{ backgroundImage: "linear-gradient(135deg, var(--study-from), var(--study-via), var(--study-to))" }}>
         <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 max-w-md w-full border border-white/20">
           <h2 className="text-2xl font-bold text-white mb-6 text-center">
             Session Complete! 🎉
@@ -603,12 +603,12 @@ const Study = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0f0f23] via-[#1a1a2e] to-[#16213e] mt-20 flex">
+    <div className="min-h-screen mt-20 flex" style={{ backgroundImage: "linear-gradient(135deg, var(--study-from), var(--study-via), var(--study-to))" }}>
       <Sidebar />
       <div className="flex-1 ml-16 transition-all duration-300 ease-in-out [body>div>aside:hover_+_div&]:ml-64">
         {/* Focus Mode Overlay */}
         {isFocusMode && (
-          <div className="fixed inset-0 bg-gradient-to-br from-[#0f0f23] via-[#1a1a2e] to-[#16213e] z-50 flex items-center justify-center p-8">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-8" style={{ backgroundImage: "linear-gradient(135deg, var(--study-from), var(--study-via), var(--study-to))" }}>
             <div className="w-full max-w-2xl">
               {/* Focus Mode Timer Card */}
               <div className="bg-white/5 backdrop-blur rounded-3xl p-12 border border-white/10 shadow-2xl">
@@ -706,7 +706,7 @@ const Study = () => {
                             elapsedSeconds > getTotalDuration() &&
                             pomodoroPhaseRef.current === "work"
                               ? "#EF4444"
-                              : "#6C5DD3"
+                              : "var(--primary)"
                           }
                           strokeWidth="12"
                           fill="none"
@@ -961,7 +961,7 @@ const Study = () => {
                               elapsedSeconds > getTotalDuration() &&
                               pomodoroPhaseRef.current === "work"
                                 ? "#EF4444"
-                                : "#6C5DD3"
+                                : "var(--primary)"
                             }
                             strokeWidth="8"
                             fill="none"

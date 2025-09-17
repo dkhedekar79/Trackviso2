@@ -225,7 +225,7 @@ const TimerCard = ({ variant = 'full', className = '' }) => {
       <div className="text-center">
         <div className="relative inline-block mb-4">
           <svg width="160" height="160" className="absolute top-0 left-0">
-            <circle cx="80" cy="80" r="72" stroke="#6C5DD3" strokeWidth="8" fill="none" strokeDasharray={2 * Math.PI * 72} strokeDashoffset={2 * Math.PI * 72 * (1 - getProgress() / 100)} />
+            <circle cx="80" cy="80" r="72" stroke="var(--primary)" strokeWidth="8" fill="none" strokeDasharray={2 * Math.PI * 72} strokeDashoffset={2 * Math.PI * 72 * (1 - getProgress() / 100)} />
           </svg>
           <div className="w-[130px] h-[130px] rounded-full bg-white/10 flex items-center justify-center mx-auto">
             <span className="text-4xl font-mono text-white drop-shadow-lg">{getDisplayTime()}</span>

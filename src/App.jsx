@@ -55,7 +55,7 @@ function App() {
               {/* Protected Routes */}
               <Route path="/dashboard" element={
                 <ProtectedRoute>
-                  <div className="flex h-screen bg-gray-50">
+                  <div className="flex h-screen bg-[var(--app-bg)]">
                     <Sidebar />
                     <div className="flex-1 flex flex-col">
                       <Navbar />
@@ -70,7 +70,7 @@ function App() {
 
               <Route path="/classic-dashboard" element={
                 <ProtectedRoute>
-                  <div className="flex h-screen bg-gray-50">
+                  <div className="flex h-screen bg-[var(--app-bg)]">
                     <Sidebar />
                     <div className="flex-1 flex flex-col">
                       <Navbar />
@@ -85,7 +85,7 @@ function App() {
 
               <Route path="/subjects" element={
                 <ProtectedRoute>
-                  <div className="flex h-screen bg-gray-50">
+                  <div className="flex h-screen bg-[var(--app-bg)]">
                     <Sidebar />
                     <div className="flex-1 flex flex-col">
                       <Navbar />
@@ -100,7 +100,7 @@ function App() {
 
               <Route path="/study" element={
                 <ProtectedRoute>
-                  <div className="flex h-screen bg-gray-50">
+                  <div className="flex h-screen bg-[var(--app-bg)]">
                     <Sidebar />
                     <div className="flex-1 flex flex-col">
                       <Navbar />
@@ -115,7 +115,7 @@ function App() {
 
               <Route path="/tasks" element={
                 <ProtectedRoute>
-                  <div className="flex h-screen bg-gray-50">
+                  <div className="flex h-screen bg-[var(--app-bg)]">
                     <Sidebar />
                     <div className="flex-1 flex flex-col">
                       <Navbar />
@@ -130,7 +130,7 @@ function App() {
 
               <Route path="/schedule" element={
                 <ProtectedRoute>
-                  <div className="flex h-screen bg-gray-50">
+                  <div className="flex h-screen bg-[var(--app-bg)]">
                     <Sidebar />
                     <div className="flex-1 flex flex-col">
                       <Navbar />
@@ -145,7 +145,7 @@ function App() {
 
               <Route path="/insights" element={
                 <ProtectedRoute>
-                  <div className="flex h-screen bg-gray-50">
+                  <div className="flex h-screen bg-[var(--app-bg)]">
                     <Sidebar />
                     <div className="flex-1 flex flex-col">
                       <Navbar />
@@ -160,7 +160,7 @@ function App() {
 
               <Route path="/privacy" element={
                 <ProtectedRoute>
-                  <div className="flex h-screen bg-gray-50">
+                  <div className="flex h-screen bg-[var(--app-bg)]">
                     <Sidebar />
                     <div className="flex-1 flex flex-col">
                       <Navbar />
