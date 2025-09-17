@@ -138,7 +138,7 @@ export default function Schedule() {
                   {unscheduledTasks.map(task => (
                     <li
                       key={task.id}
-                      className="bg-[#1a1a2e] rounded px-3 py-2 text-white flex items-center justify-between cursor-grab hover:bg-[#35357a] transition"
+                      className="bg-[var(--sidebar-bg)] rounded px-3 py-2 text-white flex items-center justify-between cursor-grab hover:bg-[#35357a] transition"
                       draggable
                       onDragStart={() => setDragTaskId(task.id)}
                       onDragEnd={() => setDragTaskId(null)}
