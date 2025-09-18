@@ -13,6 +13,7 @@ import Study from './pages/Study';
 import Tasks from './pages/Tasks';
 import Schedule from './pages/Schedule';
 import Insights from './pages/Insights';
+import Resources from './pages/Resources';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import Landing from './pages/Landing';
@@ -20,6 +21,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import OnboardingModal from "./components/OnboardingModal";
 import Footer from './components/Footer';
+import { ThemeProvider } from './context/ThemeContext';
 import './styles/index.css';
 
 
@@ -40,8 +42,9 @@ function App() {
     <AuthProvider>
       <GamificationProvider>
         <TimerProvider>
-          <Router>
-            <RouteCleanup />
+          <ThemeProvider>
+            <Router>
+              <RouteCleanup />
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<div className="flex flex-col min-h-screen"><main className="flex-1"><Landing /><Footer /></main></div>} />
@@ -172,8 +175,24 @@ function App() {
                   </div>
                 </ProtectedRoute>
               } />
+
+              <Route path="/resources" element={
+                <ProtectedRoute>
+                  <div className="flex h-screen bg-[var(--app-bg)]">
+                    <Sidebar />
+                    <div className="flex-1 flex flex-col">
+                      <Navbar />
+                      <main className="flex-1 overflow-auto">
+                        <Resources />
+                        <Footer withSidebar />
+                      </main>
+                    </div>
+                  </div>
+                </ProtectedRoute>
+              } />
             </Routes>
           </Router>
+          </ThemeProvider>
         </TimerProvider>
       </GamificationProvider>
     </AuthProvider>
