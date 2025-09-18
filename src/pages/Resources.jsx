@@ -17,6 +17,14 @@ const TYPES = [
 // Recent series years commonly available online
 const YEARS = ["All", 2024, 2023, 2022, 2021, 2020, 2019, 2018];
 
+// Replace unicode dashes/bullets that might render as replacement chars on some systems
+function sanitize(text) {
+  return String(text)
+    .replace(/\u2014|\u2013|\u2212|\u2043/g, "-") // various dashes to hyphen
+    .replace(/\u2022/g, "-") // bullet to hyphen
+    .replace(/\s+-\s+/g, " - ");
+}
+
 // Specification pages (official exam board specs)
 const SPEC_LINKS = [
   // AQA (specifications)
@@ -53,34 +61,34 @@ const SPEC_LINKS = [
 // Past paper hubs (official board pages that contain all years/series)
 const PAST_BASES = [
   // AQA
-  { level: "GCSE", subject: "Mathematics", board: "AQA", title: "AQA GCSE Maths — Past papers & mark schemes", url: "https://www.aqa.org.uk/subjects/mathematics/gcse/mathematics-8300/assessment-resources" },
-  { level: "A Level", subject: "Mathematics", board: "AQA", title: "AQA A-level Maths — Past papers & mark schemes", url: "https://www.aqa.org.uk/subjects/mathematics/as-and-a-level/mathematics-7357/assessment-resources" },
-  { level: "GCSE", subject: "English Language", board: "AQA", title: "AQA GCSE English Language — Past papers & mark schemes", url: "https://www.aqa.org.uk/subjects/english/gcse/english-language-8700/assessment-resources" },
-  { level: "GCSE", subject: "Biology", board: "AQA", title: "AQA GCSE Biology — Past papers & mark schemes", url: "https://www.aqa.org.uk/subjects/science/gcse/biology-8461/assessment-resources" },
-  { level: "GCSE", subject: "Chemistry", board: "AQA", title: "AQA GCSE Chemistry — Past papers & mark schemes", url: "https://www.aqa.org.uk/subjects/science/gcse/chemistry-8462/assessment-resources" },
-  { level: "A Level", subject: "Physics", board: "AQA", title: "AQA A-level Physics — Past papers & mark schemes", url: "https://www.aqa.org.uk/subjects/science/as-and-a-level/physics-7408/assessment-resources" },
+  { level: "GCSE", subject: "Mathematics", board: "AQA", title: "AQA GCSE Maths - Past papers & mark schemes", url: "https://www.aqa.org.uk/subjects/mathematics/gcse/mathematics-8300/assessment-resources" },
+  { level: "A Level", subject: "Mathematics", board: "AQA", title: "AQA A-level Maths - Past papers & mark schemes", url: "https://www.aqa.org.uk/subjects/mathematics/as-and-a-level/mathematics-7357/assessment-resources" },
+  { level: "GCSE", subject: "English Language", board: "AQA", title: "AQA GCSE English Language - Past papers & mark schemes", url: "https://www.aqa.org.uk/subjects/english/gcse/english-language-8700/assessment-resources" },
+  { level: "GCSE", subject: "Biology", board: "AQA", title: "AQA GCSE Biology - Past papers & mark schemes", url: "https://www.aqa.org.uk/subjects/science/gcse/biology-8461/assessment-resources" },
+  { level: "GCSE", subject: "Chemistry", board: "AQA", title: "AQA GCSE Chemistry - Past papers & mark schemes", url: "https://www.aqa.org.uk/subjects/science/gcse/chemistry-8462/assessment-resources" },
+  { level: "A Level", subject: "Physics", board: "AQA", title: "AQA A-level Physics - Past papers & mark schemes", url: "https://www.aqa.org.uk/subjects/science/as-and-a-level/physics-7408/assessment-resources" },
 
   // Edexcel (Pearson) — general exam materials pages include past papers
-  { level: "GCSE", subject: "Mathematics", board: "Edexcel", title: "Edexcel GCSE Maths — Exam materials (past papers)", url: "https://qualifications.pearson.com/en/qualifications/edexcel-gcses/mathematics-2015.coursematerials.html#filterQuery=category:Pearson-UK:Category%2FExam-materials" },
-  { level: "A Level", subject: "Mathematics", board: "Edexcel", title: "Edexcel A level Maths — Exam materials (past papers)", url: "https://qualifications.pearson.com/en/qualifications/edexcel-a-levels/mathematics-2017.coursematerials.html#filterQuery=category:Pearson-UK:Category%2FExam-materials" },
-  { level: "A Level", subject: "Physics", board: "Edexcel", title: "Edexcel A level Physics — Exam materials (past papers)", url: "https://qualifications.pearson.com/en/qualifications/edexcel-a-levels/physics-2015.coursematerials.html#filterQuery=category:Pearson-UK:Category%2FExam-materials" },
-  { level: "GCSE", subject: "Biology", board: "Edexcel", title: "Edexcel GCSE Biology — Exam materials (past papers)", url: "https://qualifications.pearson.com/en/qualifications/edexcel-gcses/biology-2016.coursematerials.html#filterQuery=category:Pearson-UK:Category%2FExam-materials" },
-  { level: "GCSE", subject: "Chemistry", board: "Edexcel", title: "Edexcel GCSE Chemistry — Exam materials (past papers)", url: "https://qualifications.pearson.com/en/qualifications/edexcel-gcses/chemistry-2016.coursematerials.html#filterQuery=category:Pearson-UK:Category%2FExam-materials" },
-  { level: "GCSE", subject: "English Language", board: "Edexcel", title: "Edexcel GCSE English Language — Exam materials (past papers)", url: "https://qualifications.pearson.com/en/qualifications/edexcel-gcses/english-language-2015.coursematerials.html#filterQuery=category:Pearson-UK:Category%2FExam-materials" },
+  { level: "GCSE", subject: "Mathematics", board: "Edexcel", title: "Edexcel GCSE Maths - Exam materials (past papers)", url: "https://qualifications.pearson.com/en/qualifications/edexcel-gcses/mathematics-2015.coursematerials.html#filterQuery=category:Pearson-UK:Category%2FExam-materials" },
+  { level: "A Level", subject: "Mathematics", board: "Edexcel", title: "Edexcel A level Maths - Exam materials (past papers)", url: "https://qualifications.pearson.com/en/qualifications/edexcel-a-levels/mathematics-2017.coursematerials.html#filterQuery=category:Pearson-UK:Category%2FExam-materials" },
+  { level: "A Level", subject: "Physics", board: "Edexcel", title: "Edexcel A level Physics - Exam materials (past papers)", url: "https://qualifications.pearson.com/en/qualifications/edexcel-a-levels/physics-2015.coursematerials.html#filterQuery=category:Pearson-UK:Category%2FExam-materials" },
+  { level: "GCSE", subject: "Biology", board: "Edexcel", title: "Edexcel GCSE Biology - Exam materials (past papers)", url: "https://qualifications.pearson.com/en/qualifications/edexcel-gcses/biology-2016.coursematerials.html#filterQuery=category:Pearson-UK:Category%2FExam-materials" },
+  { level: "GCSE", subject: "Chemistry", board: "Edexcel", title: "Edexcel GCSE Chemistry - Exam materials (past papers)", url: "https://qualifications.pearson.com/en/qualifications/edexcel-gcses/chemistry-2016.coursematerials.html#filterQuery=category:Pearson-UK:Category%2FExam-materials" },
+  { level: "GCSE", subject: "English Language", board: "Edexcel", title: "Edexcel GCSE English Language - Exam materials (past papers)", url: "https://qualifications.pearson.com/en/qualifications/edexcel-gcses/english-language-2015.coursematerials.html#filterQuery=category:Pearson-UK:Category%2FExam-materials" },
 
   // OCR — assessment pages hold past papers
-  { level: "GCSE", subject: "Mathematics", board: "OCR", title: "OCR GCSE Maths — Past papers, mark schemes, reports", url: "https://www.ocr.org.uk/qualifications/gcse/mathematics-j560-from-2015/assessment/" },
-  { level: "A Level", subject: "Mathematics", board: "OCR", title: "OCR A Level Maths — Past papers, mark schemes, reports", url: "https://www.ocr.org.uk/qualifications/as-and-a-level/mathematics-a-h230-h240-from-2017/assessment/" },
-  { level: "A Level", subject: "Physics", board: "OCR", title: "OCR A Level Physics — Past papers, mark schemes, reports", url: "https://www.ocr.org.uk/qualifications/as-and-a-level/physics-a-h156-h556-from-2015/assessment/" },
-  { level: "GCSE", subject: "Biology", board: "OCR", title: "OCR GCSE Biology A — Past papers, mark schemes, reports", url: "https://www.ocr.org.uk/qualifications/gcse/biology-a-j247-from-2016/assessment/" },
-  { level: "GCSE", subject: "Chemistry", board: "OCR", title: "OCR GCSE Chemistry A — Past papers, mark schemes, reports", url: "https://www.ocr.org.uk/qualifications/gcse/chemistry-a-j248-from-2016/assessment/" },
-  { level: "GCSE", subject: "English Language", board: "OCR", title: "OCR GCSE English Language — Past papers, mark schemes, reports", url: "https://www.ocr.org.uk/qualifications/gcse/english-language-j351-from-2015/assessment/" },
+  { level: "GCSE", subject: "Mathematics", board: "OCR", title: "OCR GCSE Maths - Past papers, mark schemes, reports", url: "https://www.ocr.org.uk/qualifications/gcse/mathematics-j560-from-2015/assessment/" },
+  { level: "A Level", subject: "Mathematics", board: "OCR", title: "OCR A Level Maths - Past papers, mark schemes, reports", url: "https://www.ocr.org.uk/qualifications/as-and-a-level/mathematics-a-h230-h240-from-2017/assessment/" },
+  { level: "A Level", subject: "Physics", board: "OCR", title: "OCR A Level Physics - Past papers, mark schemes, reports", url: "https://www.ocr.org.uk/qualifications/as-and-a-level/physics-a-h156-h556-from-2015/assessment/" },
+  { level: "GCSE", subject: "Biology", board: "OCR", title: "OCR GCSE Biology A - Past papers, mark schemes, reports", url: "https://www.ocr.org.uk/qualifications/gcse/biology-a-j247-from-2016/assessment/" },
+  { level: "GCSE", subject: "Chemistry", board: "OCR", title: "OCR GCSE Chemistry A - Past papers, mark schemes, reports", url: "https://www.ocr.org.uk/qualifications/gcse/chemistry-a-j248-from-2016/assessment/" },
+  { level: "GCSE", subject: "English Language", board: "OCR", title: "OCR GCSE English Language - Past papers, mark schemes, reports", url: "https://www.ocr.org.uk/qualifications/gcse/english-language-j351-from-2015/assessment/" },
 
   // WJEC / Eduqas
-  { level: "GCSE", subject: "Mathematics", board: "WJEC", title: "WJEC GCSE Maths — Past papers", url: "https://qualifications.wjec.org.uk/qualifications/mathematics-gcse/assessment/" },
-  { level: "A Level", subject: "Biology", board: "Eduqas", title: "Eduqas AS/A Level Biology — Past papers", url: "https://www.eduqas.co.uk/qualifications/biology-as-a-level/#tab_assessmentresources" },
-  { level: "A Level", subject: "Chemistry", board: "Eduqas", title: "Eduqas AS/A Level Chemistry — Past papers", url: "https://www.eduqas.co.uk/qualifications/chemistry-as-a-level/#tab_assessmentresources" },
-  { level: "GCSE", subject: "English Language", board: "Eduqas", title: "Eduqas GCSE English Language — Past papers", url: "https://www.eduqas.co.uk/qualifications/english-language-gcse/#tab_assessmentresources" },
+  { level: "GCSE", subject: "Mathematics", board: "WJEC", title: "WJEC GCSE Maths - Past papers", url: "https://qualifications.wjec.org.uk/qualifications/mathematics-gcse/assessment/" },
+  { level: "A Level", subject: "Biology", board: "Eduqas", title: "Eduqas AS/A Level Biology - Past papers", url: "https://www.eduqas.co.uk/qualifications/biology-as-a-level/#tab_assessmentresources" },
+  { level: "A Level", subject: "Chemistry", board: "Eduqas", title: "Eduqas AS/A Level Chemistry - Past papers", url: "https://www.eduqas.co.uk/qualifications/chemistry-as-a-level/#tab_assessmentresources" },
+  { level: "GCSE", subject: "English Language", board: "Eduqas", title: "Eduqas GCSE English Language - Past papers", url: "https://www.eduqas.co.uk/qualifications/english-language-gcse/#tab_assessmentresources" },
 ];
 
 function expandPastPapers() {
@@ -88,7 +96,7 @@ function expandPastPapers() {
   for (const base of PAST_BASES) {
     for (const y of YEARS) {
       if (y === "All") continue;
-      entries.push({ ...base, title: `${base.title} — ${y}`, type: "past_paper", year: y });
+      entries.push({ ...base, title: `${base.title} - ${y}`, type: "past_paper", year: y });
     }
     // Also include a catch-all entry without year for users who didn't pick a year
     entries.push({ ...base, type: "past_paper", year: null });
@@ -107,6 +115,7 @@ export default function Resources() {
   const [board, setBoard] = useState("All");
   const [type, setType] = useState("all");
   const [year, setYear] = useState("All");
+  const [view, setView] = useState("grid"); // grid | list
 
   const filtered = useMemo(() => {
     return RESOURCE_DATA.filter((r) =>
@@ -121,9 +130,30 @@ export default function Resources() {
   return (
     <div className="min-h-screen mt-20 p-6" style={{ backgroundColor: "var(--app-bg)" }}>
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2" style={{ color: "var(--nav-to)" }}>Resources</h1>
-          <p className="text-gray-600">Find syllabus pages, past papers, specifications and official guidance from UK exam boards. Filter by level, subject, board, type, and year.</p>
+        <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-3xl font-bold mb-2" style={{ color: "var(--nav-to)" }}>Resources</h1>
+            <p className="text-gray-600">Find syllabus pages, past papers, specifications and official guidance from UK exam boards. Filter by level, subject, board, type, and year.</p>
+          </div>
+          {/* View toggle */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              aria-pressed={view === "grid"}
+              onClick={() => setView("grid")}
+              className={`px-3 py-2 rounded-lg border text-sm ${view === "grid" ? "bg-[var(--primary)] text-white border-transparent" : "bg-white text-gray-700 border-gray-200"}`}
+            >
+              Grid
+            </button>
+            <button
+              type="button"
+              aria-pressed={view === "list"}
+              onClick={() => setView("list")}
+              className={`px-3 py-2 rounded-lg border text-sm ${view === "list" ? "bg-[var(--primary)] text-white border-transparent" : "bg-white text-gray-700 border-gray-200"}`}
+            >
+              List
+            </button>
+          </div>
         </div>
 
         {/* Filters */}
@@ -164,24 +194,42 @@ export default function Resources() {
         </div>
 
         {/* Results */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((r) => (
-            <a
-              key={`${r.board}-${r.level}-${r.subject}-${r.type}-${r.year ?? "any"}-${r.url}`}
-              href={r.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-2xl p-4 border hover:shadow transition bg-white flex flex-col"
-              style={{ borderColor: "#e5e7eb" }}
-            >
-              <div className="text-xs font-semibold mb-1 text-gray-500">
-                {r.level} • {r.subject} • {r.board} ��� {r.type === "past_paper" ? `Past papers${r.year ? ` • ${r.year}` : ""}` : "Specification"}
-              </div>
-              <div className="text-lg font-semibold mb-2" style={{ color: "var(--primary)" }}>{r.title}</div>
-              <div className="mt-auto text-sm text-blue-600">Open official page →</div>
-            </a>
-          ))}
-        </div>
+        {view === "grid" ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filtered.map((r) => (
+              <a
+                key={`${r.board}-${r.level}-${r.subject}-${r.type}-${r.year ?? "any"}-${r.url}`}
+                href={r.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-2xl p-4 border hover:shadow transition bg-white flex flex-col"
+                style={{ borderColor: "#e5e7eb" }}
+              >
+                <div className="text-xs font-semibold mb-1 text-gray-500">
+                  {sanitize(r.level)} - {sanitize(r.subject)} - {sanitize(r.board)} - {r.type === "past_paper" ? `Past papers${r.year ? ` - ${r.year}` : ""}` : "Specification"}
+                </div>
+                <div className="text-lg font-semibold mb-2" style={{ color: "var(--primary)" }}>{sanitize(r.title)}</div>
+                <div className="mt-auto text-sm text-blue-600">Open official page →</div>
+              </a>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl border" style={{ borderColor: "#e5e7eb" }}>
+            <ul className="divide-y" style={{ borderColor: "#e5e7eb" }}>
+              {filtered.map((r) => (
+                <li key={`${r.board}-${r.level}-${r.subject}-${r.type}-${r.year ?? "any"}-${r.url}`} className="p-4 hover:bg-gray-50 transition">
+                  <a href={r.url} target="_blank" rel="noopener noreferrer" className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <span className="text-sm text-gray-500 flex-1">
+                      {sanitize(r.level)} - {sanitize(r.subject)} - {sanitize(r.board)} - {r.type === "past_paper" ? `Past papers${r.year ? ` - ${r.year}` : ""}` : "Specification"}
+                    </span>
+                    <span className="font-semibold" style={{ color: "var(--primary)" }}>{sanitize(r.title)}</span>
+                    <span className="text-blue-600 text-sm">Open →</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {filtered.length === 0 && (
           <div className="text-gray-500 text-center py-16">No resources found. Try different filters.</div>
