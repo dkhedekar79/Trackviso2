@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import {
   FlameIcon, BookIcon, CalendarIcon, ListChecksIcon, BrainIcon,
-  BarChart2Icon, Settings2Icon, LayoutDashboardIcon, BarChart3
+  BarChart2Icon, Settings2Icon, LayoutDashboardIcon, BarChart3, GraduationCap
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -27,6 +27,9 @@ export default function Sidebar() {
         </div>
         <div className="absolute w-16 h-12 flex items-center justify-center transition-opacity duration-300 group-hover:opacity-0" style={{ top: '376px' }}>
           <BarChart3 className="w-5 h-5 text-white" />
+        </div>
+        <div className="absolute w-16 h-12 flex items-center justify-center transition-opacity duration-300 group-hover:opacity-0" style={{ top: '432px' }}>
+          <GraduationCap className="w-5 h-5 text-white" />
         </div>
       </div>
       <div className="flex flex-col gap-2 w-full pt-24 pb-4">
@@ -53,6 +56,10 @@ export default function Sidebar() {
         <Link to="/insights" className="flex items-center gap-3 px-6 py-3 focus:outline-none transition theme-hover-primary-10" title="Insights">
           <BarChart3 className="w-5 h-5 text-white" />
           <span className="text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Insights</span>
+        </Link>
+        <Link to="/resources" className="flex items-center gap-3 px-6 py-3 focus:outline-none transition theme-hover-primary-10" title="Resources">
+          <GraduationCap className="w-5 h-5 text-white" />
+          <span className="text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Resources</span>
         </Link>
       </div>
       <Link to="/privacy" className="mt-auto flex items-center gap-3 px-6 py-3 focus:outline-none transition theme-hover-primary-10" title="Settings">

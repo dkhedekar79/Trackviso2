@@ -229,9 +229,9 @@ export const GamificationProvider = ({ children }) => {
     };
   };
 
-  // Advanced leveling formula: XP needed = 50 × Level^1.5
+  // Leveling formula: XP needed = 10 × Level^1.2
   const getXPForLevel = (level) => {
-    return Math.floor(50 * Math.pow(level, 1.5));
+    return Math.floor(10 * Math.pow(level, 1.2));
   };
 
   // Get cumulative XP required to REACH a given level (level 1 requires 0)
