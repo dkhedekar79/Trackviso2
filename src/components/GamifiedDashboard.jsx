@@ -23,6 +23,7 @@ import {
   ChevronRight,
   BarChart3,
   CheckCircle,
+  Maximize2,
 } from "lucide-react";
 import { useGamification } from "../context/GamificationContext";
 import { useAuth } from "../context/AuthContext";
