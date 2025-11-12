@@ -284,14 +284,8 @@ const GamifiedDashboard = () => {
             </div>
 
             {/* Quick Actions */}
-            <div className="flex items-center gap-3">
-              <button
-                onClick={toggleDashboard}
-                className="p-2 bg-white/20 hover:bg-white/30 rounded-xl transition-all"
-                title="Switch to classic dashboard"
-              >
-                <Maximize2 className="w-5 h-5" />
-              </button>
+            <div className="flex items-center gap-4">
+              <DashboardViewToggle />
               <button
                 onClick={() => setShowSettingsPopup(true)}
                 className="p-2 bg-white/20 hover:bg-white/30 rounded-xl transition-all"
