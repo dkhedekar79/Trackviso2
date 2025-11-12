@@ -95,7 +95,6 @@ function getCompletedTasksThisWeek(tasks) {
 export default function Dashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const { toggleDashboard } = useDashboard();
   const [subjects, setSubjects] = useState([]);
   const [studySessions, setStudySessions] = useState([]);
   const [tasks, setTasks] = useState([]);
