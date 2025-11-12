@@ -243,6 +243,8 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gradient-to-br from-[#1a1a2e] to-[#16213e] flex">
       <OnboardingModal userId={user?.id} />
 
+      {/* Main Content Container with Sidebar Offset */}
+      <div className="flex-1 pl-16">
       {/* Settings Popup */}
       <AnimatePresence>
         {showSettingsPopup && (
@@ -360,7 +362,7 @@ export default function Dashboard() {
         )}
       </AnimatePresence>
       {/* Main Content */}
-      <div className="flex-1">
+      <div>
         {/* Header Section */}
         <div className="flex justify-end gap-4 p-6 items-center">
           <DashboardViewToggle />
@@ -549,6 +551,7 @@ export default function Dashboard() {
       </div>
 
       
+      </div>
     </div>
   );
 }
