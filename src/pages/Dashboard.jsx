@@ -362,14 +362,8 @@ export default function Dashboard() {
       {/* Main Content */}
       <div className="flex-1">
         {/* Header Section */}
-        <div className="flex justify-end gap-3 p-6">
-          <button
-            onClick={toggleDashboard}
-            className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-all text-white backdrop-blur"
-            title="Switch to gamified dashboard"
-          >
-            <Maximize2 className="w-5 h-5" />
-          </button>
+        <div className="flex justify-end gap-4 p-6 items-center">
+          <DashboardViewToggle />
           <button
             onClick={() => setShowSettingsPopup(true)}
             className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-all text-white backdrop-blur"
