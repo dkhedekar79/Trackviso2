@@ -26,7 +26,6 @@ import {
 } from "lucide-react";
 import { useGamification } from "../context/GamificationContext";
 import { useAuth } from "../context/AuthContext";
-import { useDashboard } from "../context/DashboardContext";
 import { AnimatedProgressBar } from "./RewardAnimations";
 import StreakTracker from "./StreakTracker";
 import QuestSystem from "./QuestSystem";
