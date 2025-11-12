@@ -36,6 +36,7 @@ import AchievementSystem from "./AchievementSystem";
 import RewardSystem from "./RewardSystem";
 import MysteryBox from "./MysteryBox";
 import OnboardingModal from "./OnboardingModal";
+import DashboardViewToggle from "./DashboardViewToggle";
 
 const formatHM = (totalMinutes) => {
   const m = Math.max(0, Math.round(totalMinutes || 0));
@@ -219,7 +220,7 @@ const GamifiedDashboard = () => {
                     <ul className="space-y-1 text-purple-700">
                       <li>• Earn gems from studying, quests, or jackpots.</li>
                       <li>• Spend gems on streak savers, boosts, or cosmetic upgrades.</li>
-                      <li>��� Premium users get extra perks + higher rewards.</li>
+                      <li>• Premium users get extra perks + higher rewards.</li>
                     </ul>
                   </div>
                 </div>
