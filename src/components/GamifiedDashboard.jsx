@@ -56,7 +56,6 @@ const GamifiedDashboard = () => {
     achievements,
   } = useGamification();
   const { user } = useAuth();
-  const { toggleDashboard } = useDashboard();
 
   const [activeTab, setActiveTab] = useState("overview");
   const [showQuickActions, setShowQuickActions] = useState(false);
