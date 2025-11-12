@@ -11,7 +11,7 @@ export default function Privacy() {
       <div className="p-8 max-w-4xl mx-auto">
         {/* Dashboard View Toggle Section */}
         <div className="flex justify-between items-center px-6 py-4 mb-8 bg-black rounded-lg border border-black/10">
-          <div></div>
+          <div> <h2>Dashboard view</h2></div>
           <div className="flex items-center gap-4">
             <DashboardViewToggle />
           </div>
