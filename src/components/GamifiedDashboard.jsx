@@ -219,7 +219,7 @@ const GamifiedDashboard = () => {
                     <ul className="space-y-1 text-purple-700">
                       <li>• Earn gems from studying, quests, or jackpots.</li>
                       <li>• Spend gems on streak savers, boosts, or cosmetic upgrades.</li>
-                      <li>• Premium users get extra perks + higher rewards.</li>
+                      <li>��� Premium users get extra perks + higher rewards.</li>
                     </ul>
                   </div>
                 </div>
@@ -284,7 +284,14 @@ const GamifiedDashboard = () => {
 
             {/* Quick Actions */}
             <div className="flex items-center gap-3">
-              <button 
+              <button
+                onClick={toggleDashboard}
+                className="p-2 bg-white/20 hover:bg-white/30 rounded-xl transition-all"
+                title="Switch to classic dashboard"
+              >
+                <Maximize2 className="w-5 h-5" />
+              </button>
+              <button
                 onClick={() => setShowSettingsPopup(true)}
                 className="p-2 bg-white/20 hover:bg-white/30 rounded-xl transition-all"
               >
