@@ -299,7 +299,7 @@ export default function Dashboard() {
                     </h3>
                     <ul className="space-y-1 text-orange-700">
                       <li>• Study every day to keep your streak alive.</li>
-                      <li>• Longer streaks = bigger XP boosts.</li>
+                      <li>��� Longer streaks = bigger XP boosts.</li>
                       <li>• Miss a day? Use a Streak Saver to protect your progress.</li>
                     </ul>
                   </div>
@@ -365,7 +365,14 @@ export default function Dashboard() {
       {/* Main Content */}
       <div className="flex-1 ml-16 transition-all duration-300 ease-in-out [body>div>aside:hover_+_div&]:ml-64">
         {/* Header Section */}
-        <div className="flex justify-end p-6">
+        <div className="flex justify-end gap-3 p-6">
+          <button
+            onClick={toggleDashboard}
+            className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-all text-white backdrop-blur"
+            title="Switch to gamified dashboard"
+          >
+            <Maximize2 className="w-5 h-5" />
+          </button>
           <button
             onClick={() => setShowSettingsPopup(true)}
             className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-all text-white backdrop-blur"
