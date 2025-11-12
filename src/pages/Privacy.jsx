@@ -1,5 +1,7 @@
 import React from "react";
 import { useTheme } from "../context/ThemeContext";
+import DashboardViewToggle from "../components/DashboardViewToggle";
+import { Settings } from "lucide-react";
 
 export default function Privacy() {
   const { theme, setTheme } = useTheme();
