@@ -37,9 +37,13 @@ export default function Sidebar() {
           <LayoutDashboardIcon className="w-5 h-5 text-white opacity-1000" />
           <span className="text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Dashboard</span>
         </Link>
-        <Link to="/schedule" className="flex items-center gap-3 px-6 py-3 focus:outline-none transition theme-hover-primary-10" title="Study Planner">
-          <CalendarIcon className="w-5 h-5 text-white" />
-          <span className="text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Schedule</span>
+        <Link to="/study" className="flex items-center gap-3 px-6 py-3 focus:outline-none transition theme-hover-primary-10" title="Study">
+          <BrainIcon className="w-5 h-5 text-white" />
+          <span className="text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Study</span>
+        </Link>
+        <Link to="/insights" className="flex items-center gap-3 px-6 py-3 focus:outline-none transition theme-hover-primary-10" title="Insights">
+          <BarChart3 className="w-5 h-5 text-white" />
+          <span className="text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Insights</span>
         </Link>
         <Link to="/subjects" className="flex items-center gap-3 px-6 py-3 focus:outline-none transition theme-hover-primary-10" title="Subjects">
           <BookIcon className="w-5 h-5 text-white" />
@@ -49,13 +53,9 @@ export default function Sidebar() {
           <ListChecksIcon className="w-5 h-5 text-white" />
           <span className="text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Tasks</span>
         </Link>
-        <Link to="/study" className="flex items-center gap-3 px-6 py-3 focus:outline-none transition theme-hover-primary-10" title="Study">
-          <BrainIcon className="w-5 h-5 text-white" />
-          <span className="text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Study</span>
-        </Link>
-        <Link to="/insights" className="flex items-center gap-3 px-6 py-3 focus:outline-none transition theme-hover-primary-10" title="Insights">
-          <BarChart3 className="w-5 h-5 text-white" />
-          <span className="text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Insights</span>
+        <Link to="/schedule" className="flex items-center gap-3 px-6 py-3 focus:outline-none transition theme-hover-primary-10" title="Study Planner">
+          <CalendarIcon className="w-5 h-5 text-white" />
+          <span className="text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Schedule</span>
         </Link>
         <Link to="/resources" className="flex items-center gap-3 px-6 py-3 focus:outline-none transition theme-hover-primary-10" title="Resources">
           <GraduationCap className="w-5 h-5 text-white" />
