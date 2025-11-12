@@ -140,14 +140,14 @@ export default function Dashboard() {
     
     // Calculate total goal from all subjects
     const totalGoal = subjects.reduce((sum, subject) => sum + (subject.goalHours || 0), 0);
-    
+
     // Calculate actual hours studied this week
     const weekSessions = studySessions.filter(s => new Date(s.timestamp) >= weekStart);
     const minutesThisWeek = weekSessions.reduce((sum, s) => sum + (s.durationMinutes || 0), 0);
     const hoursThisWeek = minutesThisWeek / 60;
-    
+
     // Get accurate weekly statistics
-    const accurateStats = getAccurateWeeklyStats();
+    const accurateStats = getAccurateWeeklyStats(totalGoal);
 
     // Calculate streak
     const currentStreak = calculateStreak(studySessions);
