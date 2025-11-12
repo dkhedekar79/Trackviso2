@@ -220,7 +220,7 @@ export default function Dashboard() {
   };
 
   // Calculate accurate weekly study statistics
-  const getAccurateWeeklyStats = () => {
+  const getAccurateWeeklyStats = (goal) => {
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
@@ -235,7 +235,7 @@ export default function Dashboard() {
     return {
       sessionsThisWeek: thisWeekSessions.length,
       hoursThisWeek: thisWeekMinutes / 60,
-      progress: totalGoal > 0 ? Math.min((thisWeekMinutes / 60 / totalGoal) * 100, 100) : 0
+      progress: goal > 0 ? Math.min((thisWeekMinutes / 60 / goal) * 100, 100) : 0
     };
   };
 
