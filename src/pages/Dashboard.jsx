@@ -241,10 +241,8 @@ export default function Dashboard() {
   };
 
   return (
-     
-    <div className="min-h-screen bg-gradient-to-br from-[#1a1a2e] to-[#16213e] mt-20 flex">
+    <div className="min-h-screen bg-gradient-to-br from-[#1a1a2e] to-[#16213e] flex">
       <OnboardingModal userId={user?.id} />
-      <Sidebar />
 
       {/* Settings Popup */}
       <AnimatePresence>
@@ -363,7 +361,7 @@ export default function Dashboard() {
         )}
       </AnimatePresence>
       {/* Main Content */}
-      <div className="flex-1 ml-16 transition-all duration-300 ease-in-out [body>div>aside:hover_+_div&]:ml-64">
+      <div className="flex-1">
         {/* Header Section */}
         <div className="flex justify-end gap-3 p-6">
           <button
