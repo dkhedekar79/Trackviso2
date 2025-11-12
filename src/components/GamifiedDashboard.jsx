@@ -45,6 +45,7 @@ const formatHM = (totalMinutes) => {
 };
 
 const GamifiedDashboard = () => {
+  const navigate = useNavigate();
   const {
     userStats,
     getUserRank,
