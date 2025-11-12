@@ -22,6 +22,7 @@ import Signup from './pages/Signup';
 import OnboardingModal from "./components/OnboardingModal";
 import Footer from './components/Footer';
 import { ThemeProvider } from './context/ThemeContext';
+import { DashboardProvider } from './context/DashboardContext';
 import './styles/index.css';
 
 
