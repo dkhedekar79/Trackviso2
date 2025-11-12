@@ -203,7 +203,6 @@ function App() {
 }
 
 function DashboardToggle() {
-  const { useDashboard } = require('./context/DashboardContext');
   const { showGamified } = useDashboard();
 
   return showGamified ? <GamifiedDashboard /> : <Dashboard />;
