@@ -6,8 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "../components/Sidebar";
 import TimerCard from "../components/TimerCard";
 import OnboardingModal from "../components/OnboardingModal";
-import { useDashboard } from "../context/DashboardContext";
-import { FlameIcon, CheckCircle, Clock, XCircle, Trash2, Calendar, BookOpen, Zap, Settings, Maximize2 } from "lucide-react";
+import DashboardViewToggle from "../components/DashboardViewToggle";
+import { FlameIcon, CheckCircle, Clock, XCircle, Trash2, Calendar, BookOpen, Zap, Settings } from "lucide-react";
 
 function getStartOfWeek(date) {
   const d = new Date(date);
