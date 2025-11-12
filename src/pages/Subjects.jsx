@@ -107,7 +107,7 @@ const Subjects = () => {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-white">Subjects</h1>
-          <p className="text-gray-600">Manage your study subjects and track progress</p>
+          <p className="text-white">Manage your study subjects and track progress</p>
         </div>
         <motion.button
           whileHover={{ scale: 1.05 }}
