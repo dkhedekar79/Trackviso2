@@ -363,18 +363,21 @@ export default function Dashboard() {
       </AnimatePresence>
       {/* Main Content */}
       <div>
-        {/* Header Section */}
-        <div className="flex justify-end gap-4 p-6 items-center">
-          <DashboardViewToggle />
-          <button
-            onClick={() => setShowSettingsPopup(true)}
-            className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-all text-white backdrop-blur"
-            title="How the System Works"
-          >
-            <Settings className="w-5 h-5" />
-          </button>
+        {/* Dashboard View Toggle Section */}
+        <div className="flex justify-between items-center px-6 py-4 bg-white/5 border-b border-white/10">
+          <div></div>
+          <div className="flex items-center gap-4">
+            <DashboardViewToggle />
+            <button
+              onClick={() => setShowSettingsPopup(true)}
+              className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-all text-white backdrop-blur"
+              title="How the System Works"
+            >
+              <Settings className="w-5 h-5" />
+            </button>
+          </div>
         </div>
-        
+
         {/* Summary & Streak */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-6 px-6 py-8 bg-#F8F9FC">
           <Card title="This Week's Study">
