@@ -725,42 +725,7 @@ const OverviewTab = ({ userStats, xpProgress, achievements, setActiveTab }) => {
       </div>
 
       {/* Premium Teaser */}
-      <div className="promo-gradient rounded-2xl shadow-xl p-8 text-white">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-2xl font-bold mb-2 flex items-center gap-2">
-              <Crown className="w-7 h-7 text-yellow-300" />
-              Unlock Premium Power
-            </h3>
-            <p className="text-purple-100 mb-4">
-              Get 3x XP multiplier, unlimited streak savers, and exclusive
-              themes!
-            </p>
-            <ul className="space-y-1 text-sm text-purple-100">
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-300" />
-                3x Faster Progress
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-300" />
-                Never Lose Your Streak
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-300" />
-                Exclusive Content & Themes
-              </li>
-            </ul>
-          </div>
-
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="bg-white text-purple-600 px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
-          >
-            Upgrade Now
-          </motion.button>
-        </div>
-      </div>
+      
     </div>
   );
 };
