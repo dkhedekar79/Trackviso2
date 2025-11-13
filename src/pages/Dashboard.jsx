@@ -70,17 +70,23 @@ function calculateStreak(studySessions) {
 
 function QuoteRotator() {
   const quotes = [
-    "Believe in yourself and all that you are.",
-    "Push yourself, because no one else is going to do it for you.",
-    "Dream big. Work hard. Stay humble.",
-    "You are stronger than you think.",
-    "Discipline beats motivation every time.",
-    "Small progress is still progress.",
-    "Don’t stop when you’re tired. Stop when you’re done.",
-    "Be the energy you want to attract.",
-    "You become what you do repeatedly.",
-    "Action is the foundational key to all success.",
-  ];
+  "You don’t need to be motivated — just don’t be lazy.",
+  "Future you is watching right now. Don’t embarrass them.",
+  "Discipline > Motivation. Every. Single. Time.",
+  "Some people are praying for the opportunities you’re wasting.",
+  "The work you do when no one’s watching decides who you become.",
+  "You can cry, but finish the assignment first.",
+  "You said you wanted it — so act like it.",
+  "It’s not that deep, just do it.",
+  "1 hour of focus can fix 10 hours of procrastination.",
+  "You’re not behind, you’re just early in your story.",
+  "Romanticise your grind — candles, lo-fi, and a comeback arc.",
+  "Your ‘I’ll do it later’ is your biggest enemy.",
+  "You don’t need perfect conditions — just start.",
+  "Six months of pure focus can change everything.",
+  "Nobody cares how tired you are — show results.",
+];
+
 
   const [index, setIndex] = useState(0);
 
