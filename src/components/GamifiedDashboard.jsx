@@ -254,7 +254,7 @@ const GamifiedDashboard = () => {
       {/* Hero Section with User Stats */}
       <div className="hero-gradient text-white">
         <div className="container mx-auto px-6 py-8">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-8 h-20">
             <div className="flex items-center gap-6">
               {/* Level Circle */}
               <motion.div
@@ -284,7 +284,7 @@ const GamifiedDashboard = () => {
             </div>
 
             {/* Quick Actions */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 h-full">
               <div className="flex items-center justify-center h-full">
                   <QuoteRotator />
               </div>
