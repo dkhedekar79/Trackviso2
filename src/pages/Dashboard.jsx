@@ -220,6 +220,29 @@ export default function Dashboard() {
     return "Outstanding work this week!";
   };
 
+  function QuoteRotator() {
+    const quotes = [
+      "Believe in yourself and all that you are.",
+      "Push yourself, because no one else is going to do it for you.",
+      "Dream big. Work hard. Stay humble.",
+      "You are stronger than you think.",
+      "Discipline beats motivation every time.",
+      "Small progress is still progress.",
+      "Don’t stop when you’re tired. Stop when you’re done.",
+      "Be the energy you want to attract.",
+      "You become what you do repeatedly.",
+      "Action is the foundational key to all success.",
+    ];
+
+    const [index, setIndex] = useState(0);
+
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setIndex((prev) => (prev + 1) % quotes.length);
+      }, 4000); // every 4s
+      return () => clearInterval(interval);
+    }, []);
+
   // Calculate accurate weekly study statistics
   const getAccurateWeeklyStats = (goal) => {
     const oneWeekAgo = new Date();
