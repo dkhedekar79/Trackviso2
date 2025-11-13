@@ -285,7 +285,9 @@ const GamifiedDashboard = () => {
 
             {/* Quick Actions */}
             <div className="flex items-center gap-4">
-              <QuoteRotator />
+              <div className="flex items-center justify-center h-full">
+                  <QuoteRotator />
+              </div>
               <DashboardViewToggle />
               <button
                 onClick={() => setShowSettingsPopup(true)}
