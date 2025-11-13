@@ -26,6 +26,50 @@ function calculateStreak(studySessions) {
   }
 
 
+
+
+  // Get unique study dates (just the date part, not time)
+  const studyDates = [...new Set(
+    studySessions.map(session => 
+      getStartOfDay(new Date(session.timestamp)).toISOString().split('T')[0]
+    )
+  )].sort();
+
+  if (studyDates.length === 0) {
+    return 0;
+  }
+
+  const today = getStartOfDay(new Date()).toISOString().split('T')[0];
+  const yesterday = getStartOfDay(new Date(Date.now() - 24 * 60 * 60 * 1000)).toISOString().split('T')[0];
+
+  // Check if the student studied today or yesterday
+  const hasStudiedRecently = studyDates.includes(today) || studyDates.includes(yesterday);
+  
+  if (!hasStudiedRecently) {
+    return 0; // Streak is broken if they haven't studied today or yesterday
+  }
+
+  // Calculate consecutive days
+  let streak = 0;
+  let currentDate = new Date();
+  
+  while (true) {
+    const dateString = getStartOfDay(currentDate).toISOString().split('T')[0];
+    
+    if (studyDates.includes(dateString)) {
+      streak++;
+      currentDate.setDate(currentDate.getDate() - 1); // Go back one day
+    } else {
+      break; // Streak broken
+    }
+  }
+
+  return streak;
+}
+
+import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
+
 function QuoteRotator() {
   const quotes = [
     "Believe in yourself and all that you are.",
@@ -67,44 +111,7 @@ function QuoteRotator() {
   );
 }
 
-  // Get unique study dates (just the date part, not time)
-  const studyDates = [...new Set(
-    studySessions.map(session => 
-      getStartOfDay(new Date(session.timestamp)).toISOString().split('T')[0]
-    )
-  )].sort();
 
-  if (studyDates.length === 0) {
-    return 0;
-  }
-
-  const today = getStartOfDay(new Date()).toISOString().split('T')[0];
-  const yesterday = getStartOfDay(new Date(Date.now() - 24 * 60 * 60 * 1000)).toISOString().split('T')[0];
-
-  // Check if the student studied today or yesterday
-  const hasStudiedRecently = studyDates.includes(today) || studyDates.includes(yesterday);
-  
-  if (!hasStudiedRecently) {
-    return 0; // Streak is broken if they haven't studied today or yesterday
-  }
-
-  // Calculate consecutive days
-  let streak = 0;
-  let currentDate = new Date();
-  
-  while (true) {
-    const dateString = getStartOfDay(currentDate).toISOString().split('T')[0];
-    
-    if (studyDates.includes(dateString)) {
-      streak++;
-      currentDate.setDate(currentDate.getDate() - 1); // Go back one day
-    } else {
-      break; // Streak broken
-    }
-  }
-
-  return streak;
-}
 
 function getTaskStatusIcon(task) {
   if (task.done) {
