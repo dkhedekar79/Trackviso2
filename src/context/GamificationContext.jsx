@@ -229,47 +229,74 @@ export const GamificationProvider = ({ children }) => {
     };
   };
 
-  // Leveling formula: XP needed = 10 × Level^1.2
-  const getXPForLevel = (level) => {
-    return Math.floor(10 * Math.pow(level, 1.2));
+  // Study time required per level (in minutes)
+  // Levels 1-5: 10-15 minutes per level (much harder to level up)
+  // Level 6+: Progressively harder with exponential growth
+  const getStudyTimeForLevel = (level) => {
+    if (level <= 1) return 0;
+
+    // Define time requirements for each level
+    const levelTimes = [
+      0,    // Level 1 (starting)
+      10,   // Level 2 (10 min)
+      12,   // Level 3 (22 total)
+      14,   // Level 4 (36 total)
+      15,   // Level 5 (51 total)
+      16,   // Level 6 (67 total)
+    ];
+
+    if (level <= levelTimes.length) {
+      return levelTimes[level - 1];
+    }
+
+    // For levels 7+: exponential growth (1.35x multiplier per level)
+    let time = levelTimes[levelTimes.length - 1];
+    for (let i = levelTimes.length; i < level; i++) {
+      time = Math.round(time * 1.35);
+    }
+    return time;
   };
 
-  // Get cumulative XP required to REACH a given level (level 1 requires 0)
-  const getTotalXPForLevel = (level) => {
+  // Get cumulative study time required to REACH a given level
+  const getTotalStudyTimeForLevel = (level) => {
     if (level <= 1) return 0;
     let total = 0;
     for (let i = 2; i <= level; i++) {
-      total += getXPForLevel(i);
+      total += getStudyTimeForLevel(i);
     }
     return total;
   };
 
-  // Calculate current level from total XP
-  const getLevelFromXP = (xp) => {
+  // Calculate current level from total study time (in minutes)
+  const getLevelFromStudyTime = (totalMinutes) => {
     let level = 1;
-    let totalXPNeeded = 0;
-
-    while (totalXPNeeded <= xp) {
-      totalXPNeeded += getXPForLevel(level + 1);
-      if (totalXPNeeded <= xp) level++;
+    while (getTotalStudyTimeForLevel(level + 1) <= totalMinutes) {
+      level++;
     }
-
     return level;
   };
 
-  // Get XP progress to next level
-  const getXPProgress = () => {
+  // Get study time progress to next level
+  const getStudyTimeProgress = () => {
     const currentLevel = userStats.level;
-    const totalXPForCurrentLevel = getTotalXPForLevel(currentLevel);
-    const totalXPForNextLevel = getTotalXPForLevel(currentLevel + 1);
-    const progressXP = Math.max(0, userStats.xp - totalXPForCurrentLevel);
-    const neededXP = totalXPForNextLevel - totalXPForCurrentLevel;
+    const nextLevel = currentLevel + 1;
+
+    const currentLevelRequiredTime = getTotalStudyTimeForLevel(currentLevel);
+    const nextLevelRequiredTime = getTotalStudyTimeForLevel(nextLevel);
+
+    const progressTime = Math.max(0, userStats.totalStudyTime - currentLevelRequiredTime);
+    const neededTime = nextLevelRequiredTime - currentLevelRequiredTime;
 
     return {
-      current: progressXP,
-      needed: neededXP,
-      percentage: Math.min(100, Math.max(0, (progressXP / neededXP) * 100)),
+      current: progressTime,
+      needed: neededTime,
+      percentage: Math.min(100, Math.max(0, neededTime > 0 ? (progressTime / neededTime) * 100 : 0)),
     };
+  };
+
+  // Legacy XP progress function for compatibility
+  const getXPProgress = () => {
+    return getStudyTimeProgress();
   };
 
   // Advanced streak tracking with decay
@@ -555,16 +582,18 @@ export const GamificationProvider = ({ children }) => {
     const xpData = calculateXP(sessionDuration, subjectName, difficulty);
     const oldLevel = userStats.level;
     const newXP = userStats.xp + xpData.totalXP;
-    const newLevel = getLevelFromXP(newXP);
+    const newTotalStudyTime = userStats.totalStudyTime + sessionDuration;
+    const newLevel = getLevelFromStudyTime(newTotalStudyTime);
 
     // Update user stats
     setUserStats((prev) => {
+      const updatedStudyTime = (prev.totalStudyTime || 0) + sessionDuration;
       const newStats = {
         ...prev,
         xp: newXP,
         level: newLevel,
         totalSessions: (prev.totalSessions || 0) + 1,
-        totalStudyTime: (prev.totalStudyTime || 0) + sessionDuration,
+        totalStudyTime: updatedStudyTime,
         totalXPEarned: (prev.totalXPEarned || prev.xp || 0) + xpData.totalXP,
         weeklyXP: (prev.weeklyXP || 0) + xpData.totalXP,
         xpEvents: [
