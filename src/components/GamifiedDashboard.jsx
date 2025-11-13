@@ -36,6 +36,7 @@ import RewardSystem from "./RewardSystem";
 import MysteryBox from "./MysteryBox";
 import OnboardingModal from "./OnboardingModal";
 import DashboardViewToggle from "./DashboardViewToggle";
+import QuoteRotator from "../pages/Dashboard";
 
 const formatHM = (totalMinutes) => {
   const m = Math.max(0, Math.round(totalMinutes || 0));
@@ -281,6 +282,23 @@ const GamifiedDashboard = () => {
                 </div>
               </div>
             </div>
+
+
+            {/* Quick Actions */}
+            <div className="flex items-center gap-4">
+              <QuoteRotator />
+            </div>
+          </div>
+
+
+
+
+
+
+
+
+
+
 
             {/* Quick Actions */}
             <div className="flex items-center gap-4">
