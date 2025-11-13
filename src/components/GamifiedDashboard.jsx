@@ -322,13 +322,11 @@ const GamifiedDashboard = () => {
 
           {/* Key Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <motion.button
+            <button
               onClick={() => navigate('/insights')}
-              whileHover={{ y: -8 }}
-              transition={{ duration: 0.2 }}
-              className="text-left group cursor-pointer focus:outline-none"
+              className="group relative h-full text-left focus:outline-none"
             >
-              <div className="bg-white/10 rounded-2xl p-4 backdrop-blur group-hover:bg-white/20 transition-all">
+              <div className="bg-white/10 rounded-2xl p-4 backdrop-blur group-hover:bg-white/20 transition-all h-full flex flex-col">
                 <div className="flex items-center gap-3 mb-2">
                   <Flame className="w-6 h-6 text-orange-300" />
                   <span className="font-semibold">Current Streak</span>
@@ -338,22 +336,16 @@ const GamifiedDashboard = () => {
                   {userStats.currentStreak}
                 </div>
               </div>
-              <motion.div
-                initial={{ opacity: 0 }}
-                whileHover={{ opacity: 1 }}
-                className="mt-2 bg-black/40 rounded-lg px-3 py-2 text-white text-sm font-medium text-center"
-              >
-                Click the card for more insights
-              </motion.div>
-            </motion.button>
+              <div className="absolute inset-0 bg-black/30 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <span className="text-white font-medium text-sm">Click to see more</span>
+              </div>
+            </button>
 
-            <motion.button
+            <button
               onClick={() => navigate('/insights')}
-              whileHover={{ y: -8 }}
-              transition={{ duration: 0.2 }}
-              className="text-left group cursor-pointer focus:outline-none"
+              className="group relative h-full text-left focus:outline-none"
             >
-              <div className="bg-white/10 rounded-2xl p-4 backdrop-blur group-hover:bg-white/20 transition-all">
+              <div className="bg-white/10 rounded-2xl p-4 backdrop-blur group-hover:bg-white/20 transition-all h-full flex flex-col">
                 <div className="flex items-center gap-3 mb-2">
                   <Clock className="w-6 h-6 text-blue-300" />
                   <span className="font-semibold">Study Time</span>
@@ -362,14 +354,10 @@ const GamifiedDashboard = () => {
                   {formatHM(userStats.totalStudyTime)}
                 </div>
               </div>
-              <motion.div
-                initial={{ opacity: 0 }}
-                whileHover={{ opacity: 1 }}
-                className="mt-2 bg-black/40 rounded-lg px-3 py-2 text-white text-sm font-medium text-center"
-              >
-                Click the card for more insights
-              </motion.div>
-            </motion.button>
+              <div className="absolute inset-0 bg-black/30 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <span className="text-white font-medium text-sm">Click to see more</span>
+              </div>
+            </button>
 
             <div className="bg-white/10 rounded-2xl p-4 backdrop-blur">
               <div className="flex items-center gap-3 mb-2">
