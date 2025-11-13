@@ -85,6 +85,21 @@ function QuoteRotator() {
   "You don’t need perfect music — just start.",
   "Six months of pure focus can change everything.",
   "Nobody cares how tired you are — show results.",
+  "You’ve scrolled long enough to read this. Go revise.",
+  "Your grades aren’t gonna ‘manifest’ themselves.",
+  "Crazy how you want A’s but also 8 hours of TikTok.",
+  "You’re not overwhelmed. You’re just avoiding it creatively.",
+  "If you can overthink, you can overachieve.",
+  "You don’t need another study playlist — you need to start.",
+  "You said ‘I’ll do it later’… three days ago.",
+  "You have WiFi, coffee, and a brain. Use one of them.",
+  "The exam doesn’t care about your vibes.",
+  "Every minute you waste is another panic attack in June.",
+  "You’re not stuck, you’re just lazy with better excuses.",
+  "Don’t call it burnout if you never even lit the fire.",
+  "Your laptop isn’t broken — your discipline is.",
+  "If procrastination was a subject, you’d ace it.",
+  "Remember when you said you’d start early? Neither do I.",
 ];
 
 
