@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
   Star,
   Trophy,
@@ -34,6 +35,7 @@ import AchievementSystem from "./AchievementSystem";
 import RewardSystem from "./RewardSystem";
 import MysteryBox from "./MysteryBox";
 import OnboardingModal from "./OnboardingModal";
+import DashboardViewToggle from "./DashboardViewToggle";
 
 const formatHM = (totalMinutes) => {
   const m = Math.max(0, Math.round(totalMinutes || 0));
@@ -43,6 +45,7 @@ const formatHM = (totalMinutes) => {
 };
 
 const GamifiedDashboard = () => {
+  const navigate = useNavigate();
   const {
     userStats,
     getUserRank,
@@ -280,8 +283,9 @@ const GamifiedDashboard = () => {
             </div>
 
             {/* Quick Actions */}
-            <div className="flex items-center gap-3">
-              <button 
+            <div className="flex items-center gap-4">
+              <DashboardViewToggle />
+              <button
                 onClick={() => setShowSettingsPopup(true)}
                 className="p-2 bg-white/20 hover:bg-white/30 rounded-xl transition-all"
               >
@@ -318,26 +322,42 @@ const GamifiedDashboard = () => {
 
           {/* Key Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="bg-white/10 rounded-2xl p-4 backdrop-blur">
-              <div className="flex items-center gap-3 mb-2">
-                <Flame className="w-6 h-6 text-orange-300" />
-                <span className="font-semibold">Current Streak</span>
+            <button
+              onClick={() => navigate('/insights')}
+              className="group relative h-full text-left focus:outline-none"
+            >
+              <div className="bg-white/10 rounded-2xl p-4 backdrop-blur group-hover:bg-white/20 transition-all h-full flex flex-col">
+                <div className="flex items-center gap-3 mb-2">
+                  <Flame className="w-6 h-6 text-orange-300" />
+                  <span className="font-semibold">Current Streak</span>
+                </div>
+                <div className="text-2xl font-bold">
+                  {getStreakEmoji(userStats.currentStreak)}{" "}
+                  {userStats.currentStreak}
+                </div>
               </div>
-              <div className="text-2xl font-bold">
-                {getStreakEmoji(userStats.currentStreak)}{" "}
-                {userStats.currentStreak}
+              <div className="absolute inset-0 bg-black/30 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <span className="text-white font-medium text-sm">Click to see more</span>
               </div>
-            </div>
+            </button>
 
-            <div className="bg-white/10 rounded-2xl p-4 backdrop-blur">
-              <div className="flex items-center gap-3 mb-2">
-                <Clock className="w-6 h-6 text-blue-300" />
-                <span className="font-semibold">Study Time</span>
+            <button
+              onClick={() => navigate('/insights')}
+              className="group relative h-full text-left focus:outline-none"
+            >
+              <div className="bg-white/10 rounded-2xl p-4 backdrop-blur group-hover:bg-white/20 transition-all h-full flex flex-col">
+                <div className="flex items-center gap-3 mb-2">
+                  <Clock className="w-6 h-6 text-blue-300" />
+                  <span className="font-semibold">Study Time</span>
+                </div>
+                <div className="text-2xl font-bold">
+                  {formatHM(userStats.totalStudyTime)}
+                </div>
               </div>
-              <div className="text-2xl font-bold">
-                {formatHM(userStats.totalStudyTime)}
+              <div className="absolute inset-0 bg-black/30 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <span className="text-white font-medium text-sm">Click to see more</span>
               </div>
-            </div>
+            </button>
 
             <div className="bg-white/10 rounded-2xl p-4 backdrop-blur">
               <div className="flex items-center gap-3 mb-2">
@@ -725,42 +745,7 @@ const OverviewTab = ({ userStats, xpProgress, achievements, setActiveTab }) => {
       </div>
 
       {/* Premium Teaser */}
-      <div className="promo-gradient rounded-2xl shadow-xl p-8 text-white">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-2xl font-bold mb-2 flex items-center gap-2">
-              <Crown className="w-7 h-7 text-yellow-300" />
-              Unlock Premium Power
-            </h3>
-            <p className="text-purple-100 mb-4">
-              Get 3x XP multiplier, unlimited streak savers, and exclusive
-              themes!
-            </p>
-            <ul className="space-y-1 text-sm text-purple-100">
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-300" />
-                3x Faster Progress
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-300" />
-                Never Lose Your Streak
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-300" />
-                Exclusive Content & Themes
-              </li>
-            </ul>
-          </div>
-
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="bg-white text-purple-600 px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
-          >
-            Upgrade Now
-          </motion.button>
-        </div>
-      </div>
+      
     </div>
   );
 };

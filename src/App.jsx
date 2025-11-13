@@ -22,6 +22,7 @@ import Signup from './pages/Signup';
 import OnboardingModal from "./components/OnboardingModal";
 import Footer from './components/Footer';
 import { ThemeProvider } from './context/ThemeContext';
+import { DashboardProvider, useDashboard } from './context/DashboardContext';
 import './styles/index.css';
 
 
@@ -43,9 +44,10 @@ function App() {
       <GamificationProvider>
         <TimerProvider>
           <ThemeProvider>
-            <Router>
-              <RouteCleanup />
-            <Routes>
+            <DashboardProvider>
+              <Router>
+                <RouteCleanup />
+              <Routes>
               {/* Public Routes */}
               <Route path="/" element={<div className="flex flex-col min-h-screen"><main className="flex-1"><Landing /><Footer /></main></div>} />
               <Route path="/login" element={<div className="flex flex-col min-h-screen"><main className="flex-1"><Login /><Footer /></main></div>} />
@@ -63,7 +65,7 @@ function App() {
                     <div className="flex-1 flex flex-col">
                       <Navbar />
                       <main className="flex-1 overflow-auto">
-                        <GamifiedDashboard />
+                        <DashboardToggle />
                         <Footer withSidebar />
                       </main>
                     </div>
@@ -191,12 +193,19 @@ function App() {
                 </ProtectedRoute>
               } />
             </Routes>
-          </Router>
+              </Router>
+            </DashboardProvider>
           </ThemeProvider>
         </TimerProvider>
       </GamificationProvider>
     </AuthProvider>
   );
+}
+
+function DashboardToggle() {
+  const { showGamified } = useDashboard();
+
+  return showGamified ? <GamifiedDashboard /> : <Dashboard />;
 }
 
 export default App;

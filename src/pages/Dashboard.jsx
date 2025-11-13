@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "../components/Sidebar";
 import TimerCard from "../components/TimerCard";
 import OnboardingModal from "../components/OnboardingModal";
+import DashboardViewToggle from "../components/DashboardViewToggle";
 import { FlameIcon, CheckCircle, Clock, XCircle, Trash2, Calendar, BookOpen, Zap, Settings } from "lucide-react";
 
 function getStartOfWeek(date) {
@@ -139,14 +140,14 @@ export default function Dashboard() {
     
     // Calculate total goal from all subjects
     const totalGoal = subjects.reduce((sum, subject) => sum + (subject.goalHours || 0), 0);
-    
+
     // Calculate actual hours studied this week
     const weekSessions = studySessions.filter(s => new Date(s.timestamp) >= weekStart);
     const minutesThisWeek = weekSessions.reduce((sum, s) => sum + (s.durationMinutes || 0), 0);
     const hoursThisWeek = minutesThisWeek / 60;
-    
+
     // Get accurate weekly statistics
-    const accurateStats = getAccurateWeeklyStats();
+    const accurateStats = getAccurateWeeklyStats(totalGoal);
 
     // Calculate streak
     const currentStreak = calculateStreak(studySessions);
@@ -219,7 +220,7 @@ export default function Dashboard() {
   };
 
   // Calculate accurate weekly study statistics
-  const getAccurateWeeklyStats = () => {
+  const getAccurateWeeklyStats = (goal) => {
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
@@ -234,16 +235,16 @@ export default function Dashboard() {
     return {
       sessionsThisWeek: thisWeekSessions.length,
       hoursThisWeek: thisWeekMinutes / 60,
-      progress: totalGoal > 0 ? Math.min((thisWeekMinutes / 60 / totalGoal) * 100, 100) : 0
+      progress: goal > 0 ? Math.min((thisWeekMinutes / 60 / goal) * 100, 100) : 0
     };
   };
 
   return (
-     
-    <div className="min-h-screen bg-gradient-to-br from-[#1a1a2e] to-[#16213e] mt-20 flex">
+    <div className="min-h-screen bg-gradient-to-br from-[#1a1a2e] to-[#16213e] flex">
       <OnboardingModal userId={user?.id} />
-      <Sidebar />
 
+      {/* Main Content Container with Sidebar Offset */}
+      <div className="flex-1 pl-16">
       {/* Settings Popup */}
       <AnimatePresence>
         {showSettingsPopup && (
@@ -297,7 +298,7 @@ export default function Dashboard() {
                     </h3>
                     <ul className="space-y-1 text-orange-700">
                       <li>• Study every day to keep your streak alive.</li>
-                      <li>• Longer streaks = bigger XP boosts.</li>
+                      <li>��� Longer streaks = bigger XP boosts.</li>
                       <li>• Miss a day? Use a Streak Saver to protect your progress.</li>
                     </ul>
                   </div>
@@ -361,18 +362,22 @@ export default function Dashboard() {
         )}
       </AnimatePresence>
       {/* Main Content */}
-      <div className="flex-1 ml-16 transition-all duration-300 ease-in-out [body>div>aside:hover_+_div&]:ml-64">
-        {/* Header Section */}
-        <div className="flex justify-end p-6">
-          <button
-            onClick={() => setShowSettingsPopup(true)}
-            className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-all text-white backdrop-blur"
-            title="How the System Works"
-          >
-            <Settings className="w-5 h-5" />
-          </button>
+      <div>
+        {/* Dashboard View Toggle Section */}
+        <div className="flex justify-between items-center px-6 py-4 bg-white/5 border-b border-white/10">
+          <div></div>
+          <div className="flex items-center gap-4">
+            <DashboardViewToggle />
+            <button
+              onClick={() => setShowSettingsPopup(true)}
+              className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-all text-white backdrop-blur"
+              title="How the System Works"
+            >
+              <Settings className="w-5 h-5" />
+            </button>
+          </div>
         </div>
-        
+
         {/* Summary & Streak */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-6 px-6 py-8 bg-#F8F9FC">
           <Card title="This Week's Study">
@@ -543,12 +548,11 @@ export default function Dashboard() {
           </button>
         </section>
         {/* Footer */}
-        <footer className="py-6 text-center bg-[#3F3D56] text-white mt-10">
-          <p>© 2025 Trackviso. Keep learning, keep growing!</p>
-        </footer>
+        
       </div>
 
       
+      </div>
     </div>
   );
 }

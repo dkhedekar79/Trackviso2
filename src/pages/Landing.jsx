@@ -618,50 +618,7 @@ const Landing = () => {
         </motion.div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-16 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-8 mb-12">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-r from-emerald-500 to-blue-600 rounded-lg flex items-center justify-center">
-                  <Target className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold">Trackviso</span>
-              </div>
-              <p className="text-gray-400 mb-6">
-                Empowering students to achieve academic excellence through intelligent tracking and insights.
-              </p>
-              
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-4">Product</h4>
-              <div className="space-y-3 text-gray-400">
-                <button onClick={() => scrollToSection('features')} className="block hover:text-white transition-colors">Features</button>
-                <button onClick={() => scrollToSection('pricing')} className="block hover:text-white transition-colors">Pricing</button>
-                <button onClick={() => scrollToSection('demo')} className="block hover:text-white transition-colors">Demo</button>
-                
-              </div>
-            </div>
-            
-            
-            
-            <div>
-              <h4 className="font-semibold mb-4">Company</h4>
-              <div className="space-y-3 text-gray-400">
-                
-                <div className="hover:text-white transition-colors cursor-pointer">Privacy</div>
-                <div className="hover:text-white transition-colors cursor-pointer">Terms</div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
-            <p>&copy; 2025 Trackviso. All rights reserved. Built with ❤️ for students.</p>
-          </div>
-        </div>
-      </footer>
+      
     </div>
   );
 };
