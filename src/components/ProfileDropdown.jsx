@@ -60,12 +60,17 @@ export default function ProfileDropdown() {
     try {
       // Reset gamification stats
       resetUserStats();
-      // Clear additional app data
+      // Clear all app data
       localStorage.removeItem("tasks");
       localStorage.removeItem("mysteryBoxClaimedSessions");
-      // Optionally clear other feature flags here
+      localStorage.removeItem("subjects");
+      localStorage.removeItem("studySessions");
+      localStorage.removeItem("lastDailyQuestReset");
+      localStorage.removeItem("lastWeeklyQuestReset");
       setShowResetConfirm(false);
       setIsOpen(false);
+      // Reload page to refresh all data from localStorage
+      window.location.reload();
     } catch (e) {
       console.error("Failed to reset data", e);
       setError("Failed to reset data");
