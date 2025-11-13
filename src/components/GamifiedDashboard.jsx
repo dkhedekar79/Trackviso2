@@ -36,7 +36,6 @@ import RewardSystem from "./RewardSystem";
 import MysteryBox from "./MysteryBox";
 import OnboardingModal from "./OnboardingModal";
 import DashboardViewToggle from "./DashboardViewToggle";
-import QuoteRotator from "../pages/Dashboard";
 
 const formatHM = (totalMinutes) => {
   const m = Math.max(0, Math.round(totalMinutes || 0));
@@ -286,7 +285,13 @@ const GamifiedDashboard = () => {
 
             {/* Quick Actions */}
             <div className="flex items-center gap-4">
-              <QuoteRotator />
+              <DashboardViewToggle />
+              <button
+                onClick={() => setShowSettingsPopup(true)}
+                className="p-2 bg-white/20 hover:bg-white/30 rounded-xl transition-all"
+              >
+                <CircleHelp className="w-5 h-5" />
+              </button>
             </div>
           </div>
 
