@@ -50,8 +50,8 @@ const GamifiedDashboard = () => {
     userStats,
     getUserRank,
     getXPProgress,
-    getXPForLevel,
-    getTotalXPForLevel,
+    getStudyTimeProgress,
+    getTotalStudyTimeForLevel,
     addReward,
     generateDailyQuests,
     generateWeeklyQuests,
@@ -89,9 +89,9 @@ const GamifiedDashboard = () => {
 }
 
   const userRank = getUserRank();
-  const xpProgress = getXPProgress();
-  const nextLevelXP = getXPForLevel(userStats.level + 1);
-  const cumulativeNextLevelXP = getTotalXPForLevel(userStats.level + 1);
+  const xpProgress = getStudyTimeProgress();
+  const nextLevelTime = getTotalStudyTimeForLevel(userStats.level + 1);
+  const currentLevelTime = getTotalStudyTimeForLevel(userStats.level);
 
   const getLevelColor = (level) => {
     if (level >= 100) return "from-yellow-400 to-orange-500";
@@ -274,9 +274,9 @@ const GamifiedDashboard = () => {
                   )}
                 </p>
                 <div className="flex items-center gap-2">
-                  <Star className="w-4 h-4 text-yellow-300" />
+                  <Clock className="w-4 h-4 text-yellow-300" />
                   <span className="text-sm font-medium">
-                    {Math.floor(userStats.xp || 0).toLocaleString()} / {Math.floor(cumulativeNextLevelXP || 0).toLocaleString()} XP
+                    {Math.floor(xpProgress.current || 0)} / {Math.floor(xpProgress.needed || 0)} min to next level
                   </span>
                 </div>
               </div>

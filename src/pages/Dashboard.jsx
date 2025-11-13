@@ -25,6 +25,9 @@ function calculateStreak(studySessions) {
     return 0;
   }
 
+
+
+
   // Get unique study dates (just the date part, not time)
   const studyDates = [...new Set(
     studySessions.map(session => 
@@ -63,6 +66,71 @@ function calculateStreak(studySessions) {
 
   return streak;
 }
+
+
+function QuoteRotator() {
+  const quotes = [
+  "You don’t need to be motivated — just don’t be lazy.",
+  "Future you is watching right now. Don’t embarrass them.",
+  "Discipline > Motivation. Every. Single. Time.",
+  "Some people are praying for the opportunities you’re wasting.",
+  "The work you do when no one’s watching decides who you become.",
+  "You can cry, but finish the assignment first.",
+  "Looking at stats isn't studying.",
+  "It’s not that deep, just do it.",
+  "All those times you said you would lock in, do it now.",
+  "You’re not behind, you’re just early in your story.",
+  "It's not a sprint. Nor a marathon. It's studying. Now work.",
+  "Your ‘I’ll do it later’ is your biggest opp.",
+  "You don’t need perfect music — just start.",
+  "Six months of pure focus can change everything.",
+  "Nobody cares how tired you are — show results.",
+  "You’ve scrolled long enough to read this. Go revise.",
+  "Your grades aren’t gonna ‘manifest’ themselves.",
+  "Crazy how you want A’s but also 8 hours of TikTok.",
+  "You’re not overwhelmed. You’re just avoiding it creatively.",
+  "If you can overthink, you can overachieve.",
+  "You don’t need another study playlist — you need to start.",
+  "You said ‘I’ll do it later’… three days ago.",
+  "You have WiFi, coffee, and a brain. Use one of them.",
+  "The exam doesn’t care about your vibes.",
+  "Every minute you waste is another panic attack in June.",
+  "You’re not stuck, you’re just lazy with better excuses.",
+  "Don’t call it burnout if you never even lit the fire.",
+  "Your laptop isn’t broken — your discipline is.",
+  "If procrastination was a subject, you’d ace it.",
+  "Remember when you said you’d start early? Neither do I.",
+];
+
+
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % quotes.length);
+    }, 4000); // change every 4 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="relative h-8 flex items-center">
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={index}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 1.2 }}
+          className="text-lg font-semibold text-white text-center"
+        >
+          {quotes[index]}
+        </motion.span>
+      </AnimatePresence>
+    </div>
+  );
+}
+
+
 
 function getTaskStatusIcon(task) {
   if (task.done) {
@@ -202,6 +270,7 @@ export default function Dashboard() {
       {children}
     </motion.div>
   );
+  
 
   const getStreakMessage = (streakCount) => {
     if (streakCount === 0) return "Start your streak today!";
@@ -218,6 +287,10 @@ export default function Dashboard() {
     if (count < 10) return "Excellent productivity!";
     return "Outstanding work this week!";
   };
+
+  
+
+  
 
   // Calculate accurate weekly study statistics
   const getAccurateWeeklyStats = (goal) => {
@@ -364,8 +437,12 @@ export default function Dashboard() {
       {/* Main Content */}
       <div>
         {/* Dashboard View Toggle Section */}
-        <div className="flex justify-between items-center px-6 py-4 bg-white/5 border-b border-white/10">
-          <div></div>
+        <div className="flex justify-between items-center px-6 py-4 bg-white/5 border-b border-white/10 mt-20">
+            <div>
+              <h1>
+              <QuoteRotator />
+              </h1>
+            </div>
           <div className="flex items-center gap-4">
             <DashboardViewToggle />
             <button

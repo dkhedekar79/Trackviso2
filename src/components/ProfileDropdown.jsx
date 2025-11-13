@@ -60,12 +60,17 @@ export default function ProfileDropdown() {
     try {
       // Reset gamification stats
       resetUserStats();
-      // Clear additional app data
+      // Clear all app data
       localStorage.removeItem("tasks");
       localStorage.removeItem("mysteryBoxClaimedSessions");
-      // Optionally clear other feature flags here
+      localStorage.removeItem("subjects");
+      localStorage.removeItem("studySessions");
+      localStorage.removeItem("lastDailyQuestReset");
+      localStorage.removeItem("lastWeeklyQuestReset");
       setShowResetConfirm(false);
       setIsOpen(false);
+      // Reload page to refresh all data from localStorage
+      window.location.reload();
     } catch (e) {
       console.error("Failed to reset data", e);
       setError("Failed to reset data");
@@ -110,9 +115,9 @@ export default function ProfileDropdown() {
           <div className="p-2">
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 w-full px-3 py-2 text-left hover:bg-gray-50 rounded text-sm"
+              className="flex items-center gap-2 w-full px-3 py-2 text-left hover:bg-gray-50 rounded text-black"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-4 h-4 text-black" />
               Log Out
             </button>
 
@@ -146,13 +151,7 @@ export default function ProfileDropdown() {
               </div>
             )}
 
-            <button
-              onClick={() => setShowDeleteConfirm(!showDeleteConfirm)}
-              className="flex items-center gap-2 w-full px-3 py-2 text-left hover:bg-red-50 rounded text-sm text-red-600"
-            >
-              <Trash2 className="w-4 h-4" />
-              Delete Account
-            </button>
+            
 
             {showDeleteConfirm && (
               <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded">
