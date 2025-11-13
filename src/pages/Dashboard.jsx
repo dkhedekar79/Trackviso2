@@ -548,9 +548,7 @@ export default function Dashboard() {
           </button>
         </section>
         {/* Footer */}
-        <footer className="py-6 text-center bg-[#3F3D56] text-white mt-10">
-          <p>© 2025 Trackviso. Keep learning, keep growing!</p>
-        </footer>
+        
       </div>
 
       
