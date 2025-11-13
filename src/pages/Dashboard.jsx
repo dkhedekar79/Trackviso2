@@ -67,8 +67,6 @@ function calculateStreak(studySessions) {
   return streak;
 }
 
-import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
 
 function QuoteRotator() {
   const quotes = [
