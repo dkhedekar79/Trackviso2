@@ -412,7 +412,11 @@ export default function Dashboard() {
       <div>
         {/* Dashboard View Toggle Section */}
         <div className="flex justify-between items-center px-6 py-4 bg-white/5 border-b border-white/10 mt-20">
-          <div><h1>   <QuoteRotator /></h1></div>
+            <div>
+              <h1>
+              <QuoteRotator />
+              </h1>
+            </div>
           <div className="flex items-center gap-4">
             <DashboardViewToggle />
             <button
