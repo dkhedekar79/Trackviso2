@@ -151,13 +151,7 @@ export default function ProfileDropdown() {
               </div>
             )}
 
-            <button
-              onClick={() => setShowDeleteConfirm(!showDeleteConfirm)}
-              className="flex items-center gap-2 w-full px-3 py-2 text-left hover:bg-red-50 rounded text-sm text-red-600"
-            >
-              <Trash2 className="w-4 h-4" />
-              Delete Account
-            </button>
+            
 
             {showDeleteConfirm && (
               <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded">
