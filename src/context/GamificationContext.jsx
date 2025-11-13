@@ -1459,7 +1459,7 @@ export const GamificationProvider = ({ children }) => {
     addStudySession,
     getUserRank,
     getXPProgress,
-    getXPForLevel,
+    getStudyTimeForLevel,
     generateDailyQuests,
     generateWeeklyQuests,
     updateQuestProgress,
