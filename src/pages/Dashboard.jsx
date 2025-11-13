@@ -220,28 +220,7 @@ export default function Dashboard() {
     return "Outstanding work this week!";
   };
 
-  function QuoteRotator() {
-    const quotes = [
-      "Believe in yourself and all that you are.",
-      "Push yourself, because no one else is going to do it for you.",
-      "Dream big. Work hard. Stay humble.",
-      "You are stronger than you think.",
-      "Discipline beats motivation every time.",
-      "Small progress is still progress.",
-      "Don’t stop when you’re tired. Stop when you’re done.",
-      "Be the energy you want to attract.",
-      "You become what you do repeatedly.",
-      "Action is the foundational key to all success.",
-    ];
-
-    const [index, setIndex] = useState(0);
-
-    useEffect(() => {
-      const interval = setInterval(() => {
-        setIndex((prev) => (prev + 1) % quotes.length);
-      }, 4000); // every 4s
-      return () => clearInterval(interval);
-    }, []);
+  
 
   
 
@@ -391,7 +370,49 @@ export default function Dashboard() {
       <div>
         {/* Dashboard View Toggle Section */}
         <div className="flex justify-between items-center px-6 py-4 bg-white/5 border-b border-white/10 mt-20">
-          <div><h1></h1></div>
+            <div><h1>
+              function QuoteRotator() {
+  const quotes = [
+              "Believe in yourself and all that you are.",
+              "Push yourself, because no one else is going to do it for you.",
+              "Dream big. Work hard. Stay humble.",
+              "You are stronger than you think.",
+              "Discipline beats motivation every time.",
+              "Small progress is still progress.",
+              "Don’t stop when you’re tired. Stop when you’re done.",
+              "Be the energy you want to attract.",
+              "You become what you do repeatedly.",
+              "Action is the foundational key to all success.",
+              ];
+
+              const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+                setIndex((prev) => (prev + 1) % quotes.length);
+    }, 4000); // every 4s
+    return () => clearInterval(interval);
+  }, []);
+
+              return (
+              <div className="relative h-8 flex items-center">
+                <AnimatePresence mode="wait">
+                  <motion.h1
+                    key={index}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 1.2 }}
+                    className="text-lg font-semibold text-white text-center"
+                  >
+                    {quotes[index]}
+                  </motion.h1>
+                </AnimatePresence>
+              </div>
+              );
+}
+
+            </h1></div>
           <div className="flex items-center gap-4">
             <DashboardViewToggle />
             <button
