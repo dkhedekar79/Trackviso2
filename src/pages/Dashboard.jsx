@@ -202,6 +202,28 @@ export default function Dashboard() {
       {children}
     </motion.div>
   );
+  function QuoteRotator() {
+  const quotes = [
+    "Believe in yourself and all that you are.",
+    "Push yourself, because no one else is going to do it for you.",
+    "Dream big. Work hard. Stay humble.",
+    "You are stronger than you think.",
+    "Discipline beats motivation every time.",
+    "Small progress is still progress.",
+    "Don’t stop when you’re tired. Stop when you’re done.",
+    "Be the energy you want to attract.",
+    "You become what you do repeatedly.",
+    "Action is the foundational key to all success.",
+  ];
+
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % quotes.length);
+    }, 4000); // every 4s
+    return () => clearInterval(interval);
+  }, []);
 
   const getStreakMessage = (streakCount) => {
     if (streakCount === 0) return "Start your streak today!";
@@ -365,7 +387,7 @@ export default function Dashboard() {
       <div>
         {/* Dashboard View Toggle Section */}
         <div className="flex justify-between items-center px-6 py-4 bg-white/5 border-b border-white/10 mt-20">
-          <div></div>
+          <div><h1></h1></div>
           <div className="flex items-center gap-4">
             <DashboardViewToggle />
             <button
