@@ -243,6 +243,8 @@ export default function Dashboard() {
       return () => clearInterval(interval);
     }, []);
 
+  
+
   // Calculate accurate weekly study statistics
   const getAccurateWeeklyStats = (goal) => {
     const oneWeekAgo = new Date();
