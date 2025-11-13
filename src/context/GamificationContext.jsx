@@ -1468,7 +1468,11 @@ export const GamificationProvider = ({ children }) => {
     prestige,
     setShowRewards,
     calculateXP,
-    getTotalXPForLevel,
+    getTotalXPForLevel: getTotalStudyTimeForLevel,
+    getTotalStudyTimeForLevel,
+    getStudyTimeForLevel,
+    getLevelFromStudyTime,
+    getStudyTimeProgress,
     resetUserStats, // Debug function
   };
 
