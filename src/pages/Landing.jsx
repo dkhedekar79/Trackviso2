@@ -728,35 +728,50 @@ const Landing = () => {
       </section>
 
       {/* Final CTA */}
-      <section className="py-20 px-4 bg-gradient-to-r from-emerald-600 to-blue-700">
-        <motion.div 
-          className="max-w-4xl mx-auto text-center text-white"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+      <section className="py-32 px-4 bg-gradient-to-r from-purple-900 via-slate-900 to-purple-900 relative overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/2 left-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl -translate-y-1/2"></div>
+          <div className="absolute top-1/2 right-1/4 w-96 h-96 bg-pink-600/20 rounded-full blur-3xl -translate-y-1/2"></div>
+        </div>
+
+        <motion.div
+          className="max-w-4xl mx-auto text-center text-white relative z-10"
+          initial={{ opacity: 0, y: 50, scale: 0.95 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.7 }}
           viewport={{ once: true }}
         >
           <h2 className="text-4xl lg:text-5xl font-bold mb-6">
             Ready to Transform Your Academic Journey?
           </h2>
-          <p className="text-xl text-emerald-100 mb-10">
+          <p className="text-xl text-purple-200/80 mb-10">
             Join thousands of students who are already achieving better results with Trackviso
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
-            <Link 
-              to="/signup"
-              className="bg-white text-emerald-600 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-50 transition-all duration-300 transform hover:scale-105 flex items-center justify-center"
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.98 }}
             >
-              Start Now
-              <ArrowRight className="ml-2 w-5 h-5" />
-            </Link>
-            <button 
-              onClick={() => scrollToSection('demo')}
-              className="border-2 border-white text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white hover:text-emerald-600 transition-all duration-300 flex items-center justify-center"
+              <Link
+                to="/signup"
+                className="bg-white text-purple-600 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-all duration-300 flex items-center justify-center shadow-lg shadow-purple-500/30"
+              >
+                Start Now
+                <ArrowRight className="ml-2 w-5 h-5" />
+              </Link>
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <Play className="mr-2 w-5 h-5" />
-              Watch Demo
-            </button>
+              <button
+                onClick={() => scrollToSection('demo')}
+                className="border-2 border-white text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white/10 hover:border-purple-400 transition-all duration-300 flex items-center justify-center backdrop-blur-sm"
+              >
+                <Play className="mr-2 w-5 h-5" />
+                Watch Demo
+              </button>
+            </motion.div>
           </div>
         </motion.div>
       </section>
