@@ -159,52 +159,58 @@ const Landing = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-24 pb-16 px-4">
-        <motion.div 
-          className="max-w-7xl mx-auto text-center"
+      <section className="relative pt-32 pb-20 px-4 overflow-hidden">
+        <div className="absolute inset-0 h-96 bg-gradient-to-b from-purple-600/20 to-transparent pointer-events-none"></div>
+        <div className="absolute inset-0 h-full overflow-hidden">
+          <MagneticParticles />
+        </div>
+
+        <motion.div
+          className="max-w-7xl mx-auto text-center relative z-10"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
           <motion.div variants={itemVariants} className="mb-8">
-            <div className="inline-flex items-center bg-emerald-100 text-emerald-800 px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <div className="inline-flex items-center bg-purple-900/50 border border-purple-700/50 text-purple-300 px-4 py-2 rounded-full text-sm font-medium mb-6 backdrop-blur-sm">
               <Sparkles className="w-4 h-4 mr-2" />
               Track your academic journey like never before
             </div>
           </motion.div>
-          
-          <motion.h1 
-            className="text-5xl lg:text-7xl font-bold leading-tight mb-8"
+
+          <motion.h1
+            className="text-5xl lg:text-7xl font-bold leading-tight mb-8 text-white"
             variants={itemVariants}
+            style={{ perspective: "1000px" }}
           >
             Make every{" "}
-            <span className="bg-gradient-to-r from-emerald-500 to-blue-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent">
               Study Session
             </span>{" "}
             Count.
           </motion.h1>
-          
-          <motion.p 
-            className="text-xl lg:text-2xl text-gray-600 mb-12 max-w-4xl mx-auto"
+
+          <motion.p
+            className="text-xl lg:text-2xl text-purple-200/80 mb-12 max-w-4xl mx-auto"
             variants={itemVariants}
           >
             Your revision dashboard: study tracker, analytics, calendar, and XP system in one.
           </motion.p>
-          
-          <motion.div 
+
+          <motion.div
             className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto"
             variants={itemVariants}
           >
-            <Link 
+            <Link
               to="/signup"
-              className="bg-gradient-to-r from-emerald-600 to-blue-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center"
+              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105 flex items-center justify-center group"
             >
               It's 100% Free
-              <ArrowRight className="ml-2 w-5 h-5" />
+              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <button 
+            <button
               onClick={() => scrollToSection('demo')}
-              className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-xl font-semibold text-lg hover:border-emerald-500 hover:text-emerald-600 transition-all duration-300 flex items-center justify-center"
+              className="border-2 border-purple-500/50 text-purple-300 px-8 py-4 rounded-xl font-semibold text-lg hover:border-purple-400 hover:bg-purple-500/10 transition-all duration-300 flex items-center justify-center backdrop-blur-sm"
             >
               <Play className="mr-2 w-5 h-5" />
               Watch Demo
@@ -212,37 +218,48 @@ const Landing = () => {
           </motion.div>
 
           {/* Hero Visual */}
-          <motion.div 
-            className="mt-16 relative"
+          <motion.div
+            className="mt-20 relative"
             variants={itemVariants}
+            whileInView={{ scale: 1.05 }}
+            transition={{ duration: 0.3 }}
           >
-            <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-4xl mx-auto">
-              <div className="bg-gradient-to-br from-emerald-50 to-blue-50 rounded-2xl p-6">
+            <div className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 border border-purple-700/30 rounded-3xl shadow-2xl shadow-purple-500/20 p-8 max-w-4xl mx-auto backdrop-blur-md">
+              <div className="bg-gradient-to-br from-purple-800/20 to-slate-800/20 rounded-2xl p-6 border border-purple-700/20">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-white rounded-xl p-4 shadow-sm">
+                  <motion.div
+                    className="bg-gradient-to-br from-purple-800/40 to-slate-800/40 rounded-xl p-4 border border-purple-700/30 backdrop-blur-sm hover:border-purple-600/50 transition-all"
+                    whileHover={{ y: -5, scale: 1.02 }}
+                  >
                     <div className="flex items-center justify-between mb-3">
-                      <Clock className="w-6 h-6 text-emerald-500" />
-                      <span className="text-sm text-gray-500">This Week</span>
+                      <Clock className="w-6 h-6 text-purple-400" />
+                      <span className="text-sm text-purple-300/70">This Week</span>
                     </div>
-                    <div className="text-2xl font-bold text-gray-900">32.5h</div>
-                    <div className="text-sm text-emerald-600">+18% from last week</div>
-                  </div>
-                  <div className="bg-white rounded-xl p-4 shadow-sm">
+                    <div className="text-2xl font-bold text-white">32.5h</div>
+                    <div className="text-sm text-purple-300">+18% from last week</div>
+                  </motion.div>
+                  <motion.div
+                    className="bg-gradient-to-br from-pink-800/40 to-slate-800/40 rounded-xl p-4 border border-pink-700/30 backdrop-blur-sm hover:border-pink-600/50 transition-all"
+                    whileHover={{ y: -5, scale: 1.02 }}
+                  >
                     <div className="flex items-center justify-between mb-3">
-                      <Trophy className="w-6 h-6 text-blue-500" />
-                      <span className="text-sm text-gray-500">Goals</span>
+                      <Trophy className="w-6 h-6 text-pink-400" />
+                      <span className="text-sm text-pink-300/70">Goals</span>
                     </div>
-                    <div className="text-2xl font-bold text-gray-900">8/10</div>
-                    <div className="text-sm text-blue-600">Completed</div>
-                  </div>
-                  <div className="bg-white rounded-xl p-4 shadow-sm">
+                    <div className="text-2xl font-bold text-white">8/10</div>
+                    <div className="text-sm text-pink-300">Completed</div>
+                  </motion.div>
+                  <motion.div
+                    className="bg-gradient-to-br from-purple-800/40 to-pink-800/40 rounded-xl p-4 border border-purple-700/30 backdrop-blur-sm hover:border-purple-600/50 transition-all"
+                    whileHover={{ y: -5, scale: 1.02 }}
+                  >
                     <div className="flex items-center justify-between mb-3">
-                      <TrendingUp className="w-6 h-6 text-purple-500" />
-                      <span className="text-sm text-gray-500">Progress</span>
+                      <TrendingUp className="w-6 h-6 text-purple-400" />
+                      <span className="text-sm text-purple-300/70">Progress</span>
                     </div>
-                    <div className="text-2xl font-bold text-gray-900">94%</div>
-                    <div className="text-sm text-purple-600">On track</div>
-                  </div>
+                    <div className="text-2xl font-bold text-white">94%</div>
+                    <div className="text-sm text-purple-300">On track</div>
+                  </motion.div>
                 </div>
               </div>
             </div>
