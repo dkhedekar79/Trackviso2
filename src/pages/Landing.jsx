@@ -486,59 +486,80 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
+              initial={{ opacity: 0, x: -50, perspective: "1000px", rotateY: 20 }}
+              whileInView={{ opacity: 1, x: 0, rotateY: 0 }}
+              transition={{ duration: 0.7 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-4xl lg:text-5xl font-bold mb-6">
+              <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-white">
                 See Trackviso in{" "}
-                <span className="bg-gradient-to-r from-emerald-500 to-blue-600 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
                   Action
                 </span>
               </h2>
-              <p className="text-xl text-gray-600 mb-8">
+              <p className="text-xl text-purple-200/80 mb-8">
                 Watch how students are transforming their academic journey with intelligent tracking and insights.
               </p>
               <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="w-6 h-6 text-emerald-500" />
-                  <span className="text-lg">Real-time progress tracking</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="w-6 h-6 text-emerald-500" />
-                  <span className="text-lg">Personalized study insights</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="w-6 h-6 text-emerald-500" />
-                  <span className="text-lg">Goal achievement system</span>
-                </div>
+                <motion.div
+                  className="flex items-center space-x-3"
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                  viewport={{ once: true }}
+                >
+                  <CheckCircle className="w-6 h-6 text-purple-400 flex-shrink-0" />
+                  <span className="text-lg text-white">Real-time progress tracking</span>
+                </motion.div>
+                <motion.div
+                  className="flex items-center space-x-3"
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 }}
+                  viewport={{ once: true }}
+                >
+                  <CheckCircle className="w-6 h-6 text-pink-400 flex-shrink-0" />
+                  <span className="text-lg text-white">Personalized study insights</span>
+                </motion.div>
+                <motion.div
+                  className="flex items-center space-x-3"
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 }}
+                  viewport={{ once: true }}
+                >
+                  <CheckCircle className="w-6 h-6 text-purple-400 flex-shrink-0" />
+                  <span className="text-lg text-white">Goal achievement system</span>
+                </motion.div>
               </div>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               className="relative"
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6 }}
+              initial={{ opacity: 0, scale: 0.9, perspective: "1000px", rotateY: -20 }}
+              whileInView={{ opacity: 1, scale: 1, rotateY: 0 }}
+              transition={{ duration: 0.7 }}
               viewport={{ once: true }}
             >
-              <div 
-                className="relative bg-gradient-to-br from-emerald-600 to-blue-700 rounded-3xl overflow-hidden group cursor-pointer aspect-video flex items-center justify-center"
+              <div
+                className="relative bg-gradient-to-br from-purple-600/60 to-pink-600/60 border border-purple-500/30 rounded-3xl overflow-hidden group cursor-pointer aspect-video flex items-center justify-center backdrop-blur-sm hover:border-purple-500/60 transition-all"
                 onClick={() => setIsVideoPlaying(!isVideoPlaying)}
               >
                 {!isVideoPlaying ? (
                   <div className="text-center">
-                    <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <motion.div
+                      className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-white/20 transition-all"
+                      whileHover={{ scale: 1.2 }}
+                    >
                       <Play className="w-10 h-10 text-white ml-1" />
-                    </div>
+                    </motion.div>
                     <p className="text-white text-xl font-semibold">Watch 2-minute demo</p>
                   </div>
                 ) : (
                   <div className="text-white text-center">
                     <p className="text-xl">If the video does not play, feel free to contact us</p>
-                    <button 
-                      className="mt-4 bg-white/20 px-4 py-2 rounded-lg"
+                    <button
+                      className="mt-4 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-all backdrop-blur-sm"
                       onClick={(e) => {
                         e.stopPropagation();
                         setIsVideoPlaying(false);
