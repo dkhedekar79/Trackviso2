@@ -122,34 +122,34 @@ const Landing = () => {
               </span>
             </div>
             <div className="hidden md:flex items-center space-x-8">
-              <button 
-                onClick={() => scrollToSection('features')} 
-                className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+              <button
+                onClick={() => scrollToSection('features')}
+                className="text-purple-300 hover:text-purple-200 transition-colors cursor-pointer"
               >
                 Features
               </button>
-              <button 
-                onClick={() => scrollToSection('how-it-works')} 
-                className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+              <button
+                onClick={() => scrollToSection('how-it-works')}
+                className="text-purple-300 hover:text-purple-200 transition-colors cursor-pointer"
               >
                 How It Works
               </button>
-              <button 
-                onClick={() => scrollToSection('pricing')} 
-                className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+              <button
+                onClick={() => scrollToSection('pricing')}
+                className="text-purple-300 hover:text-purple-200 transition-colors cursor-pointer"
               >
                 Pricing
               </button>
-              <button 
-                onClick={() => scrollToSection('testimonials')} 
-                className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+              <button
+                onClick={() => scrollToSection('testimonials')}
+                className="text-purple-300 hover:text-purple-200 transition-colors cursor-pointer"
               >
                 Reviews
               </button>
-              <Link to="/login" className="text-emerald-600 hover:text-emerald-700 font-medium">Login</Link>
-              <Link 
-                to="/signup" 
-                className="bg-gradient-to-r from-emerald-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+              <Link to="/login" className="text-purple-400 hover:text-purple-300 font-medium">Login</Link>
+              <Link
+                to="/signup"
+                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105"
               >
                 Let's go!
               </Link>
