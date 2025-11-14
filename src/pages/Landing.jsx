@@ -443,14 +443,14 @@ const Landing = () => {
                 title: "Connect Your Courses",
                 desc: "Add your own subjects and tasks to create your own study experience.",
                 icon: BookOpen,
-                color: "emerald"
+                color: "purple"
               },
               {
-                step: "02", 
+                step: "02",
                 title: "Track Your Progress",
                 desc: "Log study sessions, assignments, and achievements. Earn XP and level up.",
                 icon: BarChart3,
-                color: "blue"
+                color: "pink"
               },
               {
                 step: "03",
@@ -460,20 +460,20 @@ const Landing = () => {
                 color: "purple"
               }
             ].map((item, index) => (
-              <motion.div 
+              <motion.div
                 key={index}
                 className="text-center"
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.2 }}
+                initial={{ opacity: 0, y: 50, rotateZ: index === 1 ? -5 : 5 }}
+                whileInView={{ opacity: 1, y: 0, rotateZ: 0 }}
+                transition={{ duration: 0.7, delay: index * 0.2 }}
                 viewport={{ once: true }}
               >
-                <div className={`w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-${item.color}-500 to-${item.color}-600 flex items-center justify-center text-white shadow-lg`}>
+                <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white shadow-2xl shadow-purple-500/50 transform group-hover:scale-125 transition-transform hover:scale-125">
                   <item.icon className="w-10 h-10" />
                 </div>
-                <div className={`text-4xl font-bold text-${item.color}-500 mb-4`}>{item.step}</div>
-                <h3 className="text-2xl font-bold mb-4">{item.title}</h3>
-                <p className="text-gray-600 text-lg leading-relaxed">{item.desc}</p>
+                <div className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-4">{item.step}</div>
+                <h3 className="text-2xl font-bold mb-4 text-white">{item.title}</h3>
+                <p className="text-purple-200/80 text-lg leading-relaxed">{item.desc}</p>
               </motion.div>
             ))}
           </div>
