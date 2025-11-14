@@ -385,24 +385,27 @@ const Landing = () => {
           </div>
 
           {/* Feature Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mt-16">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mt-20">
             {[
               { icon: Clock, title: "Time Tracking", desc: "Log your study sessions" },
               { icon: Award, title: "Achievement System", desc: "Gamified progress rewards" },
               { icon: Shield, title: "Privacy First", desc: "Your data stays secure" },
               { icon: Smartphone, title: "Cross-Platform", desc: "Works on all devices" }
             ].map((feature, index) => (
-              <motion.div 
+              <motion.div
                 key={index}
-                className="bg-gray-50 rounded-2xl p-6 hover:bg-white hover:shadow-lg transition-all duration-300"
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                className="bg-purple-900/30 border border-purple-700/30 rounded-2xl p-6 hover:bg-purple-800/40 hover:border-purple-600/50 transition-all duration-300 backdrop-blur-sm group"
+                initial={{ opacity: 0, y: 30, rotateX: 45 }}
+                whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
+                whileHover={{ y: -5 }}
               >
-                <feature.icon className="w-8 h-8 text-emerald-500 mb-4" />
-                <h4 className="text-lg font-semibold mb-2">{feature.title}</h4>
-                <p className="text-gray-600 text-sm">{feature.desc}</p>
+                <div className="text-purple-400 mb-4 transform group-hover:scale-125 group-hover:rotate-12 transition-all duration-300">
+                  <feature.icon className="w-8 h-8" />
+                </div>
+                <h4 className="text-lg font-semibold mb-2 text-white">{feature.title}</h4>
+                <p className="text-purple-200/70 text-sm">{feature.desc}</p>
               </motion.div>
             ))}
           </div>
