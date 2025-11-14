@@ -652,19 +652,28 @@ const Landing = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section id="testimonials" className="py-20 px-4 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold mb-6">
+      <section id="testimonials" className="py-32 px-4 bg-gradient-to-b from-purple-900/50 via-slate-900 to-slate-900 relative overflow-hidden">
+        <div className="absolute top-0 right-1/3 w-96 h-96 bg-pink-600/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-1/2 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div className="max-w-7xl mx-auto relative z-10">
+          <motion.div
+            className="text-center mb-20"
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-white">
               What Students{" "}
-              <span className="bg-gradient-to-r from-emerald-500 to-blue-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
                 Say
               </span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-purple-200/80 max-w-3xl mx-auto">
               Join thousands of students who have transformed their academic journey
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {[
@@ -675,35 +684,42 @@ const Landing = () => {
                 rating: 5
               },
               {
-                name: "IDK875_9", 
+                name: "IDK875_9",
                 role: "Secondary school student",
                 text: "It actually helped me study a fair bit, I wasn't getting lost anymore and I could keep track while having fun.",
                 rating: 5
               },
               {
                 name: "Emma_GOAT_",
-                role: "Engineering Student", 
+                role: "Engineering Student",
                 text: "Finally, a tool that actually helps me stay organized. The gamification feature keeps me motivated every day.",
                 rating: 5
               }
             ].map((testimonial, index) => (
-              <motion.div 
+              <motion.div
                 key={index}
-                className="bg-gray-50 p-8 rounded-2xl hover:shadow-lg transition-all duration-300"
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className="bg-purple-900/30 border border-purple-700/30 p-8 rounded-2xl hover:border-purple-600/50 transition-all duration-300 backdrop-blur-sm group"
+                initial={{ opacity: 0, y: 50, rotateY: 30 }}
+                whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
+                transition={{ duration: 0.7, delay: index * 0.1 }}
                 viewport={{ once: true }}
+                whileHover={{ y: -5, scale: 1.02 }}
               >
                 <div className="flex justify-center mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                    <motion.div
+                      key={i}
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 2, delay: i * 0.1, repeat: Infinity }}
+                    >
+                      <Star className="w-5 h-5 text-yellow-400 fill-current" />
+                    </motion.div>
                   ))}
                 </div>
-                <p className="text-gray-700 mb-6 text-lg leading-relaxed">"{testimonial.text}"</p>
+                <p className="text-purple-100/80 mb-6 text-lg leading-relaxed">"{testimonial.text}"</p>
                 <div className="text-center">
-                  <div className="font-semibold text-lg">{testimonial.name}</div>
-                  <div className="text-gray-500">{testimonial.role}</div>
+                  <div className="font-semibold text-lg text-white">{testimonial.name}</div>
+                  <div className="text-purple-300/70">{testimonial.role}</div>
                 </div>
               </motion.div>
             ))}
