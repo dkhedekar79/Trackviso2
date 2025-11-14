@@ -56,18 +56,46 @@ const Landing = () => {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
+        staggerChildren: 0.15,
+        delayChildren: 0.1
       }
     }
   };
 
   const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
+    hidden: { y: 30, opacity: 0 },
     visible: {
       y: 0,
       opacity: 1,
       transition: {
-        duration: 0.6
+        duration: 0.7,
+        ease: "easeOut"
+      }
+    }
+  };
+
+  const floatingVariants = {
+    hidden: { y: 0, opacity: 0 },
+    visible: {
+      y: [-10, 10, -10],
+      opacity: 1,
+      transition: {
+        duration: 3,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }
+    }
+  };
+
+  const rotateVariants = {
+    hidden: { rotateX: 0, opacity: 0 },
+    visible: {
+      rotateX: [0, 360],
+      opacity: 1,
+      transition: {
+        duration: 4,
+        repeat: Infinity,
+        ease: "linear"
       }
     }
   };
