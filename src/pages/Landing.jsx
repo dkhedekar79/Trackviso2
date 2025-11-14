@@ -576,56 +576,76 @@ const Landing = () => {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-20 px-4 bg-gradient-to-br from-gray-50 to-purple-50">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold mb-6">
+      <section id="pricing" className="py-32 px-4 bg-gradient-to-b from-slate-900 via-slate-900 to-purple-900/50 relative overflow-hidden">
+        <div className="absolute top-1/2 -left-40 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-pink-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div className="max-w-7xl mx-auto relative z-10">
+          <motion.div
+            className="text-center mb-20"
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-white">
               Simple{" "}
-              <span className="bg-gradient-to-r from-emerald-500 to-blue-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
                 Pricing
               </span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-purple-200/80 max-w-3xl mx-auto">
               Start free, Stay free. No hidden fees, No Paywalls.
             </p>
-          </div>
+          </motion.div>
 
-          <div className="bg-gradient-to-br from-emerald-500 to-blue-600 rounded-3xl shadow-xl text-white relative px-48 py-8">
-            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-              <div className="bg-yellow-400 text-yellow-900 px-4 py-1 rounded-full text-sm font-semibold">
+          <motion.div
+            className="bg-gradient-to-br from-purple-600/40 to-pink-600/40 border border-purple-500/30 rounded-3xl shadow-2xl shadow-purple-500/20 text-white relative px-8 sm:px-48 py-12 max-w-3xl mx-auto backdrop-blur-md"
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.7 }}
+            viewport={{ once: true }}
+            whileHover={{ scale: 1.02 }}
+          >
+            <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
+              <motion.div
+                className="bg-gradient-to-r from-yellow-400 to-orange-400 text-slate-900 px-6 py-2 rounded-full text-sm font-bold shadow-lg"
+                animate={{ y: [-5, 5, -5] }}
+                transition={{ duration: 3, repeat: Infinity }}
+              >
                 Most Popular
-              </div>
+              </motion.div>
             </div>
             <div className="text-center mb-8">
-              <h3 className="text-2xl font-bold mb-2">The Scholar</h3>
-              <div className="text-4xl font-bold mb-4">$0<span className="text-lg text-emerald-100">/month</span></div>
-              <p className="text-emerald-100">It's all free</p>
+              <h3 className="text-3xl font-bold mb-4">The Scholar</h3>
+              <div className="text-5xl font-bold mb-4">$0<span className="text-lg text-purple-200/80">/month</span></div>
+              <p className="text-purple-200/80">It's all free</p>
             </div>
-            <ul className="space-y-4 mb-8">
+            <ul className="space-y-4 mb-10">
               <li className="flex items-center space-x-3">
-                <CheckCircle className="w-5 h-5 text-emerald-200" />
+                <CheckCircle className="w-5 h-5 text-purple-300" />
                 <span>Unlimited subjects</span>
               </li>
               <li className="flex items-center space-x-3">
-                <CheckCircle className="w-5 h-5 text-emerald-200" />
+                <CheckCircle className="w-5 h-5 text-pink-300" />
                 <span>Unlimited logging</span>
               </li>
               <li className="flex items-center space-x-3">
-                <CheckCircle className="w-5 h-5 text-emerald-200" />
+                <CheckCircle className="w-5 h-5 text-purple-300" />
                 <span>Full insight access</span>
               </li>
               <li className="flex items-center space-x-3">
-                <CheckCircle className="w-5 h-5 text-emerald-200" />
+                <CheckCircle className="w-5 h-5 text-pink-300" />
                 <span>Full gamification access</span>
               </li>
             </ul>
             <Link
               to="/signup"
-              className="w-full bg-white text-emerald-600 py-3 rounded-xl font-semibold text-center block hover:bg-gray-50 transition-colors"
+              className="w-full bg-white text-purple-600 py-3 rounded-xl font-semibold text-center block hover:bg-gray-100 transition-all duration-300 transform hover:scale-105"
             >
               Start for free
             </Link>
-          </div>
+          </motion.div>
           <div className="grid lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
           </div>
         </div>
