@@ -293,73 +293,91 @@ const Landing = () => {
 
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Smart Analytics */}
-            <motion.div 
-              className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-3xl p-8 text-white"
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
+            <motion.div
+              className="bg-gradient-to-br from-purple-600/40 to-purple-700/40 border border-purple-500/30 rounded-3xl p-8 text-white backdrop-blur-md hover:border-purple-500/60 transition-all group cursor-pointer"
+              initial={{ opacity: 0, y: 50, rotateY: 20 }}
+              whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
+              transition={{ duration: 0.7 }}
               viewport={{ once: true }}
+              whileHover={{ y: -10, scale: 1.02 }}
             >
-              <BarChart3 className="w-12 h-12 mb-6" />
+              <div className="transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 mb-6">
+                <BarChart3 className="w-12 h-12 text-purple-300" />
+              </div>
               <h3 className="text-2xl font-bold mb-4">Track every session</h3>
-              <p className="text-emerald-100 text-lg mb-6">
+              <p className="text-purple-100/80 text-lg mb-6">
                 Smart revision timer with inbuilt pomodoro mode, custom, and stopwatch features. Log every session you do.
               </p>
-              <div className="bg-white/20 rounded-xl p-4">
+              <div className="bg-purple-500/20 rounded-xl p-4 border border-purple-500/20">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm">Time left</span>
-                  <span className="text-sm font-semibold">2 minutes</span>
+                  <span className="text-sm text-purple-200">Time left</span>
+                  <span className="text-sm font-semibold text-purple-300">2 minutes</span>
                 </div>
-                <div className="w-full bg-white/30 rounded-full h-2">
-                  <div className="bg-white h-2 rounded-full" style={{ width: '96%' }}></div>
+                <div className="w-full bg-purple-500/30 rounded-full h-2">
+                  <motion.div
+                    className="bg-gradient-to-r from-purple-400 to-pink-400 h-2 rounded-full"
+                    style={{ width: '96%' }}
+                    animate={{ opacity: [0.8, 1, 0.8] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  ></motion.div>
                 </div>
               </div>
             </motion.div>
 
             {/* Goal Tracking */}
-            <motion.div 
-              className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl p-8 text-white"
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
+            <motion.div
+              className="bg-gradient-to-br from-pink-600/40 to-purple-600/40 border border-pink-500/30 rounded-3xl p-8 text-white backdrop-blur-md hover:border-pink-500/60 transition-all group cursor-pointer"
+              initial={{ opacity: 0, y: 50, rotateY: -20 }}
+              whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
+              transition={{ duration: 0.7, delay: 0.1 }}
               viewport={{ once: true }}
+              whileHover={{ y: -10, scale: 1.02 }}
             >
-              <Target className="w-12 h-12 mb-6" />
+              <div className="transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 mb-6">
+                <Target className="w-12 h-12 text-pink-300" />
+              </div>
               <h3 className="text-2xl font-bold mb-4">Gamified experience</h3>
-              <p className="text-blue-100 text-lg mb-6">
+              <p className="text-pink-100/80 text-lg mb-6">
                 Become addicted to studying with streaks, xp, levels, achievements, quests, and more!
               </p>
-              <div className="bg-white/20 rounded-xl p-4">
+              <div className="bg-pink-500/20 rounded-xl p-4 border border-pink-500/20">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm">Level 3 - 234 XP needed</span>
-                  <span className="text-sm font-semibold">87%</span>
+                  <span className="text-sm text-pink-200">Level 3 - 234 XP needed</span>
+                  <span className="text-sm font-semibold text-pink-300">87%</span>
                 </div>
-                <div className="w-full bg-white/30 rounded-full h-2">
-                  <div className="bg-white h-2 rounded-full" style={{ width: '87%' }}></div>
+                <div className="w-full bg-pink-500/30 rounded-full h-2">
+                  <motion.div
+                    className="bg-gradient-to-r from-pink-400 to-purple-400 h-2 rounded-full"
+                    style={{ width: '87%' }}
+                    animate={{ opacity: [0.8, 1, 0.8] }}
+                    transition={{ duration: 2, repeat: Infinity, delay: 0.3 }}
+                  ></motion.div>
                 </div>
               </div>
-              
             </motion.div>
 
             {/* AI Insights */}
-            <motion.div 
-              className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-3xl p-8 text-white"
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+            <motion.div
+              className="bg-gradient-to-br from-purple-600/40 to-pink-600/40 border border-purple-500/30 rounded-3xl p-8 text-white backdrop-blur-md hover:border-purple-500/60 transition-all group cursor-pointer"
+              initial={{ opacity: 0, y: 50, rotateY: 20 }}
+              whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
               viewport={{ once: true }}
+              whileHover={{ y: -10, scale: 1.02 }}
             >
-              <Brain className="w-12 h-12 mb-6" />
+              <div className="transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 mb-6">
+                <Brain className="w-12 h-12 text-purple-300" />
+              </div>
               <h3 className="text-2xl font-bold mb-4">Get the best Insights</h3>
-              <p className="text-purple-100 text-lg mb-6">
+              <p className="text-purple-100/80 text-lg mb-6">
                 Get personalized recommendations and insights to optimize your study schedule and improve performance.
               </p>
-              <div className="bg-white/20 rounded-xl p-4">
+              <div className="bg-purple-500/20 rounded-xl p-4 border border-purple-500/20">
                 <div className="flex items-center space-x-2 mb-2">
-                  <Lightbulb className="w-4 h-4" />
-                  <span className="text-sm font-medium">Smart Tip</span>
+                  <Lightbulb className="w-4 h-4 text-yellow-300" />
+                  <span className="text-sm font-medium text-purple-200">Smart Tip</span>
                 </div>
-                <p className="text-sm text-purple-100">
+                <p className="text-sm text-purple-100/80">
                   Study math between 2-4 PM for 23% better retention
                 </p>
               </div>
