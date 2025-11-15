@@ -598,11 +598,20 @@ export default function Insights() {
           </motion.div>
 
           {/* Key Metrics Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <motion.div
+            className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
             {/* Longest Session */}
-            <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
+            <motion.div
+              className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all"
+              variants={itemVariants}
+              whileHover={{ y: -5, scale: 1.02 }}
+            >
               <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-                <Trophy className="w-5 h-5" />
+                <Trophy className="w-5 h-5 text-yellow-400" />
                 Longest Session
               </h3>
               {longestSession ? (
@@ -610,39 +619,45 @@ export default function Insights() {
                   <div className="text-3xl font-bold text-white">
                     {Math.round(longestSession.durationMinutes)} minutes
                   </div>
-                  <div className="text-gray-300">
+                  <div className="text-purple-200/80 space-y-1">
                     <div>Subject: {longestSession.subjectName}</div>
                     <div>Date: {new Date(longestSession.timestamp).toLocaleDateString()}</div>
                     {longestSession.task && <div>Task: {longestSession.task}</div>}
                   </div>
                 </div>
               ) : (
-                <div className="text-gray-400">No sessions recorded yet</div>
+                <div className="text-purple-300/70">No sessions recorded yet</div>
               )}
-            </div>
+            </motion.div>
 
             {/* Study Consistency Score */}
-            <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
+            <motion.div
+              className="bg-gradient-to-br from-pink-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-pink-700/30 hover:border-pink-600/50 transition-all"
+              variants={itemVariants}
+              whileHover={{ y: -5, scale: 1.02 }}
+            >
               <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-                <Star className="w-5 h-5" />
+                <Star className="w-5 h-5 text-yellow-400" />
                 Study Consistency
               </h3>
               <div className="space-y-4">
                 <div className="text-3xl font-bold text-white">
                   {consistencyScore.toFixed(1)}%
                 </div>
-                <div className="w-full bg-white/10 rounded-full h-3">
-                  <div 
-                    className="bg-[#6C5DD3] h-3 rounded-full transition-all duration-500"
-                    style={{ width: `${Math.min(consistencyScore, 100)}%` }}
+                <div className="w-full bg-pink-500/20 rounded-full h-3">
+                  <motion.div
+                    className="bg-gradient-to-r from-pink-400 to-purple-400 h-3 rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.min(consistencyScore, 100)}%` }}
+                    transition={{ duration: 1, delay: 0.3 }}
                   />
                 </div>
-                <div className="text-gray-300 text-sm">
+                <div className="text-pink-200/80 text-sm">
                   Studied {Math.round(consistencyScore / 100 * (timeRange === 'week' ? 7 : timeRange === 'month' ? 30 : 365))} out of {timeRange === 'week' ? 7 : timeRange === 'month' ? 30 : 365} days
                 </div>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* Subject Time Distribution */}
           <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10 mb-8">
