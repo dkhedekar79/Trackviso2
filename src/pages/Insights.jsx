@@ -866,30 +866,51 @@ export default function Insights() {
 
           {/* Mood Trends */}
           {moodTrends && (
-            <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10 mb-8">
+            <motion.div
+              className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all mb-8"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -5 }}
+            >
               <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-                <MessageSquare className="w-5 h-5" />
+                <MessageSquare className="w-5 h-5 text-purple-400" />
                 Mood Trends
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {Object.entries(moodTrends).map(([mood, count]) => {
+                {Object.entries(moodTrends).map(([mood, count], index) => {
                   const emoji = {
                     great: '😄',
                     good: '🙂',
                     okay: '😐',
                     struggled: '😫'
                   }[mood];
-                  
+
                   return (
-                    <div key={mood} className="text-center p-4 rounded-lg bg-white/5">
-                      <div className="text-2xl mb-2">{emoji}</div>
+                    <motion.div
+                      key={mood}
+                      className="text-center p-4 rounded-lg bg-purple-800/20 border border-purple-700/30 hover:bg-purple-800/40 transition-all"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.1 }}
+                      viewport={{ once: true }}
+                      whileHover={{ scale: 1.05, y: -5 }}
+                    >
+                      <motion.div
+                        className="text-2xl mb-2"
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{ duration: 2, repeat: Infinity, delay: index * 0.2 }}
+                      >
+                        {emoji}
+                      </motion.div>
                       <div className="text-white font-medium capitalize">{mood}</div>
-                      <div className="text-gray-300 text-sm">{count} sessions</div>
-                    </div>
+                      <div className="text-purple-200/80 text-sm">{count} sessions</div>
+                    </motion.div>
                   );
                 })}
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Goal Progress */}
