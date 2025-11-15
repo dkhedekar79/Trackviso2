@@ -526,16 +526,25 @@ export default function Insights() {
           </motion.div>
 
           {/* Overview Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <motion.div
+              className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all group cursor-pointer"
+              variants={itemVariants}
+              whileHover={{ y: -5, scale: 1.02 }}
+            >
               <div className="flex items-center gap-3 mb-4">
-                <Clock className="w-6 h-6 text-[#6C5DD3]" />
+                <Clock className="w-6 h-6 text-purple-400 transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300" />
                 <h3 className="text-lg font-semibold text-white">Total Study Time</h3>
               </div>
               <div className="text-3xl font-bold text-white mb-2">
                 {Math.round(totalStudyTime / 60)}h {Math.round(totalStudyTime % 60)}m
               </div>
-              <p className="text-gray-400 text-sm">{totalSessions} sessions</p>
+              <p className="text-purple-200/80 text-sm">{totalSessions} sessions</p>
               {comparison.studyTimeChange !== 0 && (
                 <div className={`flex items-center gap-1 text-xs mt-2 ${
                   comparison.studyTimeChange > 0 ? 'text-green-400' : 'text-red-400'
@@ -544,37 +553,49 @@ export default function Insights() {
                   {Math.abs(comparison.studyTimeChange).toFixed(1)}% vs previous
                 </div>
               )}
-            </div>
+            </motion.div>
 
-            <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
+            <motion.div
+              className="bg-gradient-to-br from-pink-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-pink-700/30 hover:border-pink-600/50 transition-all group cursor-pointer"
+              variants={itemVariants}
+              whileHover={{ y: -5, scale: 1.02 }}
+            >
               <div className="flex items-center gap-3 mb-4">
-                <Target className="w-6 h-6 text-[#FEC260]" />
+                <Target className="w-6 h-6 text-pink-400 transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300" />
                 <h3 className="text-lg font-semibold text-white">Avg Session</h3>
               </div>
               <div className="text-3xl font-bold text-white mb-2">
                 {Math.round(averageSessionLength)}m
               </div>
-              <p className="text-gray-400 text-sm">per session</p>
-            </div>
+              <p className="text-pink-200/80 text-sm">per session</p>
+            </motion.div>
 
-            <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
+            <motion.div
+              className="bg-gradient-to-br from-orange-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-orange-700/30 hover:border-orange-600/50 transition-all group cursor-pointer"
+              variants={itemVariants}
+              whileHover={{ y: -5, scale: 1.02 }}
+            >
               <div className="flex items-center gap-3 mb-4">
-                <Flame className="w-6 h-6 text-[#FF6B6B]" />
+                <Flame className="w-6 h-6 text-orange-400 transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300" />
                 <h3 className="text-lg font-semibold text-white">Current Streak</h3>
               </div>
               <div className="text-3xl font-bold text-white mb-2">{streakHistory.currentStreak}</div>
-              <p className="text-gray-400 text-sm">days (best: {streakHistory.longestStreak})</p>
-            </div>
+              <p className="text-orange-200/80 text-sm">days (best: {streakHistory.longestStreak})</p>
+            </motion.div>
 
-            <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
+            <motion.div
+              className="bg-gradient-to-br from-emerald-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-emerald-700/30 hover:border-emerald-600/50 transition-all group cursor-pointer"
+              variants={itemVariants}
+              whileHover={{ y: -5, scale: 1.02 }}
+            >
               <div className="flex items-center gap-3 mb-4">
-                <CheckCircle className="w-6 h-6 text-[#B6E4CF]" />
+                <CheckCircle className="w-6 h-6 text-emerald-400 transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300" />
                 <h3 className="text-lg font-semibold text-white">Task Completion</h3>
               </div>
               <div className="text-3xl font-bold text-white mb-2">{taskStats.rate.toFixed(1)}%</div>
-              <p className="text-gray-400 text-sm">{taskStats.completed}/{taskStats.total} tasks</p>
-            </div>
-          </div>
+              <p className="text-emerald-200/80 text-sm">{taskStats.completed}/{taskStats.total} tasks</p>
+            </motion.div>
+          </motion.div>
 
           {/* Key Metrics Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
