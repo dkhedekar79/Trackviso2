@@ -443,25 +443,55 @@ export default function Insights() {
     URL.revokeObjectURL(url);
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 30, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut"
+      }
+    }
+  };
+
   return (
-    <div className="min-h-screen mt-20 flex" style={{ backgroundImage: "linear-gradient(135deg, var(--study-from), var(--study-via), var(--study-to))" }}>>
+    <div className="min-h-screen mt-20 flex bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
       <Sidebar />
       <div className="flex-1 ml-16 transition-all duration-300 ease-in-out [body>div>aside:hover_+_div&]:ml-64">
         <div className="max-w-7xl mx-auto p-6">
           {/* Header */}
-          <div className="mb-8 flex justify-between items-center">
+          <motion.div
+            className="mb-8 flex justify-between items-center"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
             <div>
-              <h1 className="text-3xl font-bold text-white mb-4">Study Insights</h1>
-              <p className="text-gray-300">Track your progress and discover your study patterns</p>
+              <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent mb-4">Study Insights</h1>
+              <p className="text-purple-200/80 text-lg">Track your progress and discover your study patterns</p>
             </div>
-            <button
+            <motion.button
               onClick={exportInsights}
-              className="flex items-center gap-2 px-4 py-2 bg-[#6C5DD3] text-white rounded-lg hover:bg-[#7A6AD9] transition"
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.98 }}
             >
               <Download className="w-4 h-4" />
               Export Data
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
 
       
 
