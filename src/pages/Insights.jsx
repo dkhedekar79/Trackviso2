@@ -496,27 +496,34 @@ export default function Insights() {
       
 
           {/* Time Range Selector */}
-          <div className="mb-6">
-            <div className="flex gap-2 bg-white/5 rounded-lg p-1 w-fit">
+          <motion.div
+            className="mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
+            <div className="flex gap-2 bg-purple-900/30 backdrop-blur-md rounded-xl p-1 w-fit border border-purple-700/30">
               {[
                 { key: 'week', label: 'This Week' },
                 { key: 'month', label: 'This Month' },
                 { key: 'all', label: 'All Time' }
               ].map(range => (
-                <button
+                <motion.button
                   key={range.key}
                   onClick={() => setTimeRange(range.key)}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition ${
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
                     timeRange === range.key
-                      ? 'bg-[#6C5DD3] text-white'
-                      : 'text-gray-300 hover:text-white'
+                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50'
+                      : 'text-purple-300 hover:text-purple-200'
                   }`}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   {range.label}
-                </button>
+                </motion.button>
               ))}
             </div>
-          </div>
+          </motion.div>
 
           {/* Overview Stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
