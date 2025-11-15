@@ -948,48 +948,78 @@ export default function Insights() {
 
           {/* Recent Reflections */}
           {recentReflections.length > 0 && (
-            <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10 mb-8">
+            <motion.div
+              className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all mb-8"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -5 }}
+            >
               <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-                <MessageSquare className="w-5 h-5" />
+                <MessageSquare className="w-5 h-5 text-purple-400" />
                 Recent Reflections
               </h3>
               <div className="space-y-4">
                 {recentReflections.map((session, index) => (
-                  <div key={index} className="p-4 rounded-lg bg-white/5">
-                    <div className="text-gray-300 text-sm mb-2">
+                  <motion.div
+                    key={index}
+                    className="p-4 rounded-lg bg-purple-800/20 border border-purple-700/30 hover:bg-purple-800/40 transition-all"
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    viewport={{ once: true }}
+                    whileHover={{ x: 5 }}
+                  >
+                    <div className="text-purple-200/80 text-sm mb-2">
                       {new Date(session.timestamp).toLocaleDateString()} - {session.subjectName}
                     </div>
                     <div className="text-white italic">"{session.reflection}"</div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Upcoming Deadlines */}
           {upcomingDeadlines.length > 0 && (
-            <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10 mb-8">
+            <motion.div
+              className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all mb-8"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -5 }}
+            >
               <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-                <AlertCircle className="w-5 h-5" />
+                <AlertCircle className="w-5 h-5 text-red-400" />
                 Upcoming Deadlines
               </h3>
               <div className="space-y-3">
                 {upcomingDeadlines.map((task, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-white/5">
+                  <motion.div
+                    key={index}
+                    className="flex items-center justify-between p-3 rounded-lg bg-red-800/20 border border-red-700/30 hover:bg-red-800/40 transition-all"
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    viewport={{ once: true }}
+                    whileHover={{ x: 5 }}
+                  >
                     <div>
                       <div className="text-white font-medium">{task.name}</div>
-                      <div className="text-gray-300 text-sm">{task.subject}</div>
+                      <div className="text-purple-200/80 text-sm">{task.subject}</div>
                     </div>
                     <div className="text-right">
                       <div className="text-white text-sm">
                         {new Date(task.scheduledDate).toLocaleDateString()}
                       </div>
-                      <div className="text-gray-300 text-xs">{task.time} min</div>
+                      <div className="text-purple-200/80 text-xs">{task.time} min</div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Suggestions */}
