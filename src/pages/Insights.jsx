@@ -702,48 +702,75 @@ export default function Insights() {
           </motion.div>
 
           {/* Subject Leaderboard */}
-          <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10 mb-8">
+          <motion.div
+            className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all mb-8"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            whileHover={{ y: -5 }}
+          >
             <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-              <Trophy className="w-5 h-5" />
+              <Trophy className="w-5 h-5 text-yellow-400" />
               Subject Leaderboard (All Time)
             </h3>
             {subjectLeaderboard.length > 0 ? (
               <div className="space-y-4">
                 {subjectLeaderboard.map((subject, index) => (
-                  <div key={subject.subjectName} className="flex items-center justify-between p-4 rounded-lg bg-white/5 border border-white/10">
+                  <motion.div
+                    key={subject.subjectName}
+                    className="flex items-center justify-between p-4 rounded-lg bg-purple-800/20 border border-purple-700/30 hover:bg-purple-800/40 transition-all group cursor-pointer"
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    viewport={{ once: true }}
+                    whileHover={{ x: 10, scale: 1.02 }}
+                  >
                     <div className="flex items-center gap-4">
-                      <div className="w-8 h-8 rounded-full bg-[#6C5DD3] flex items-center justify-center text-white font-bold text-sm">
+                      <motion.div
+                        className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center text-white font-bold text-sm"
+                        whileHover={{ scale: 1.15, rotate: 5 }}
+                      >
                         {index + 1}
-                      </div>
+                      </motion.div>
                       <div>
                         <div className="text-white font-semibold text-lg">{subject.subjectName}</div>
-                        <div className="text-gray-300 text-sm">
+                        <div className="text-purple-200/80 text-sm">
                           {subject.totalHours}h {subject.totalMinutesRemaining}m total
                         </div>
                       </div>
                     </div>
                     <div className="text-right">
                       {index === 0 && (
-                        <div className="flex items-center gap-2 text-[#FEC260] mb-1">
+                        <motion.div
+                          className="flex items-center gap-2 text-yellow-400 mb-1"
+                          animate={{ y: [-3, 3, -3] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
                           <Trophy className="w-5 h-5" />
                           <span className="text-sm font-medium">Top Studier</span>
-                        </div>
+                        </motion.div>
                       )}
-                      <div className="text-2xl font-bold text-white">
+                      <div className="text-2xl font-bold text-white group-hover:text-purple-300 transition-colors">
                         {subject.totalHours}h {subject.totalMinutesRemaining}m
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8">
-                <Trophy className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                <p className="text-gray-400 text-lg">No study data yet!</p>
-                <p className="text-gray-500 text-sm">Complete your first study session to see the leaderboard</p>
-              </div>
+              <motion.div
+                className="text-center py-8"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+              >
+                <Trophy className="w-12 h-12 text-purple-400/50 mx-auto mb-3" />
+                <p className="text-purple-300/80 text-lg">No study data yet!</p>
+                <p className="text-purple-300/60 text-sm">Complete your first study session to see the leaderboard</p>
+              </motion.div>
             )}
-          </div>
+          </motion.div>
 
           {/* Study Patterns */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
