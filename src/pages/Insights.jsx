@@ -1023,20 +1023,40 @@ export default function Insights() {
           )}
 
           {/* Suggestions */}
-          <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10 mb-8">
+          <motion.div
+            className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all mb-8"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            whileHover={{ y: -5 }}
+          >
             <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-              <Lightbulb className="w-5 h-5" />
+              <Lightbulb className="w-5 h-5 text-yellow-400" />
               Personalized Suggestions
             </h3>
             <div className="space-y-3">
               {suggestions.map((suggestion, index) => (
-                <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-[#6C5DD3]/10 border border-[#6C5DD3]/20">
-                  <Lightbulb className="w-5 h-5 text-[#FEC260] mt-0.5" />
+                <motion.div
+                  key={index}
+                  className="flex items-start gap-3 p-3 rounded-lg bg-purple-800/20 border border-purple-700/30 hover:bg-purple-800/40 transition-all"
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  whileHover={{ x: 5 }}
+                >
+                  <motion.div
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ duration: 2, repeat: Infinity, delay: index * 0.2 }}
+                  >
+                    <Lightbulb className="w-5 h-5 text-yellow-400 mt-0.5" />
+                  </motion.div>
                   <div className="text-white">{suggestion}</div>
-                </div>
+                </motion.div>
               ))}
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>
