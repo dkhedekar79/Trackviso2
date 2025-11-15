@@ -773,38 +773,59 @@ export default function Insights() {
           </motion.div>
 
           {/* Study Patterns */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <motion.div
+            className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
             {/* Time of Day Heatmap */}
-            <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
+            <motion.div
+              className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all"
+              variants={itemVariants}
+              whileHover={{ y: -5 }}
+            >
               <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-                <Activity className="w-5 h-5" />
+                <Activity className="w-5 h-5 text-purple-400" />
                 Time of Day Heatmap
               </h3>
               <div className="grid grid-cols-12 gap-1">
                 {timeHeatmap.map((count, hour) => {
                   const maxCount = Math.max(...timeHeatmap);
                   const intensity = maxCount > 0 ? count / maxCount : 0;
-                  
+
                   return (
-                    <div key={hour} className="text-center">
-                      <div className="text-xs text-gray-400 mb-1">{hour}</div>
-                      <div 
-                        className="w-full rounded transition-all duration-300"
-                        style={{ 
+                    <motion.div
+                      key={hour}
+                      className="text-center"
+                      whileHover={{ scale: 1.2 }}
+                    >
+                      <div className="text-xs text-purple-300 mb-1">{hour}</div>
+                      <motion.div
+                        className="w-full rounded-sm transition-all duration-300"
+                        style={{
                           height: '20px',
-                          backgroundColor: `rgba(108, 93, 211, ${intensity})`
+                          backgroundColor: `rgba(168, 85, 247, ${intensity})`
                         }}
+                        initial={{ opacity: 0 }}
+                        whileInView={{ opacity: 1 }}
+                        transition={{ delay: hour * 0.02 }}
+                        viewport={{ once: true }}
                       />
-                    </div>
+                    </motion.div>
                   );
                 })}
               </div>
-            </div>
+            </motion.div>
 
             {/* Day of Week Breakdown */}
-            <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
+            <motion.div
+              className="bg-gradient-to-br from-pink-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-pink-700/30 hover:border-pink-600/50 transition-all"
+              variants={itemVariants}
+              whileHover={{ y: -5 }}
+            >
               <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-                <CalendarDays className="w-5 h-5" />
+                <CalendarDays className="w-5 h-5 text-pink-400" />
                 Day of Week Breakdown
               </h3>
               <div className="space-y-3">
@@ -812,25 +833,36 @@ export default function Insights() {
                   const time = dayBreakdown[index];
                   const maxTime = Math.max(...dayBreakdown);
                   const height = maxTime > 0 ? (time / maxTime) * 100 : 0;
-                  
+
                   return (
-                    <div key={day} className="flex items-center gap-3">
-                      <div className="w-8 text-sm text-gray-300">{day}</div>
-                      <div className="flex-1 bg-white/10 rounded-full h-3">
-                        <div 
-                          className="bg-[#6C5DD3] h-3 rounded-full transition-all duration-300"
+                    <motion.div
+                      key={day}
+                      className="flex items-center gap-3"
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      viewport={{ once: true }}
+                    >
+                      <div className="w-8 text-sm text-pink-300">{day}</div>
+                      <div className="flex-1 bg-pink-500/20 rounded-full h-3">
+                        <motion.div
+                          className="bg-gradient-to-r from-pink-400 to-purple-400 h-3 rounded-full transition-all duration-300"
                           style={{ width: `${height}%` }}
+                          initial={{ width: 0 }}
+                          whileInView={{ width: `${height}%` }}
+                          transition={{ delay: index * 0.1, duration: 0.6 }}
+                          viewport={{ once: true }}
                         />
                       </div>
-                      <div className="w-12 text-sm text-gray-300 text-right">
+                      <div className="w-12 text-sm text-pink-300 text-right">
                         {Math.round(time / 60)}h
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 })}
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* Mood Trends */}
           {moodTrends && (
