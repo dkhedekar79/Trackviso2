@@ -914,9 +914,16 @@ export default function Insights() {
           )}
 
           {/* Goal Progress */}
-          <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10 mb-8">
+          <motion.div
+            className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all mb-8"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            whileHover={{ y: -5 }}
+          >
             <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-              <TargetIcon className="w-5 h-5" />
+              <TargetIcon className="w-5 h-5 text-purple-400" />
               Goal Progress
             </h3>
             <div className="space-y-4">
@@ -924,17 +931,20 @@ export default function Insights() {
                 <span className="text-white">Weekly Goal Progress</span>
                 <span className="text-white font-bold">{goalProgress.percentage.toFixed(1)}%</span>
               </div>
-              <div className="w-full bg-white/10 rounded-full h-3">
-                <div 
-                  className="bg-[#6C5DD3] h-3 rounded-full transition-all duration-500"
-                  style={{ width: `${Math.min(goalProgress.percentage, 100)}%` }}
+              <div className="w-full bg-purple-500/20 rounded-full h-3">
+                <motion.div
+                  className="bg-gradient-to-r from-purple-400 to-pink-400 h-3 rounded-full transition-all duration-500"
+                  initial={{ width: 0 }}
+                  whileInView={{ width: `${Math.min(goalProgress.percentage, 100)}%` }}
+                  transition={{ duration: 1.2, delay: 0.3 }}
+                  viewport={{ once: true }}
                 />
               </div>
-              <div className="text-gray-300 text-sm">
+              <div className="text-purple-200/80 text-sm">
                 {Math.round(goalProgress.current / 60)}h / {Math.round(goalProgress.goal / 60)}h
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Recent Reflections */}
           {recentReflections.length > 0 && (
