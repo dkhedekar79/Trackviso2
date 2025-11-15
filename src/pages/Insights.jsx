@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import Sidebar from '../components/Sidebar';
-import { 
-  TrendingUp, 
-  Calendar, 
-  Clock, 
-  Target, 
-  Flame, 
-  BarChart3, 
-  BookOpen, 
+import {
+  TrendingUp,
+  Calendar,
+  Clock,
+  Target,
+  Flame,
+  BarChart3,
+  BookOpen,
   CheckCircle,
   Award,
   Zap,
