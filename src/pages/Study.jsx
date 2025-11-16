@@ -846,27 +846,33 @@ const Study = () => {
 
                   {/* Focus Mode Controls */}
                   <div className="flex items-center gap-6">
-                    <button
+                    <motion.button
                       onClick={() => setIsFocusMode(false)}
-                      className="px-6 py-3 rounded-lg bg-white/10 text-white font-semibold hover:bg-white/20 transition flex items-center gap-2"
+                      className="px-6 py-3 rounded-lg bg-purple-900/40 text-white font-semibold hover:bg-purple-900/60 border border-purple-700/40 transition flex items-center gap-2"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
                       <Target className="w-5 h-5" />
                       Exit Focus Mode
-                    </button>
-                    <button
+                    </motion.button>
+                    <motion.button
                       onClick={() => { handleCancelStudy(); navigate("/subjects"); }}
-                      className="px-6 py-3 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition flex items-center gap-2"
+                      className="px-6 py-3 rounded-lg bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold hover:shadow-lg hover:shadow-red-500/50 transition flex items-center gap-2"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
                       <X className="w-5 h-5" />
                       Cancel Study
-                    </button>
-                    <button
+                    </motion.button>
+                    <motion.button
                       onClick={() => setIsAmbientSoundOn(!isAmbientSoundOn)}
                       className={`px-6 py-3 rounded-lg transition flex items-center gap-2 ${
                         isAmbientSoundOn
-                          ? "bg-[#6C5DD3] text-white"
-                          : "bg-white/10 text-white/70 hover:bg-white/20"
+                          ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50"
+                          : "bg-purple-900/40 text-purple-300 hover:bg-purple-900/60 border border-purple-700/40"
                       }`}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
                       {isAmbientSoundOn ? (
                         <Volume2 className="w-5 h-5" />
@@ -874,7 +880,7 @@ const Study = () => {
                         <VolumeX className="w-5 h-5" />
                       )}
                       Ambient Sound
-                    </button>
+                    </motion.button>
                   </div>
                 </div>
               </div>
