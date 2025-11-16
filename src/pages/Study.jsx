@@ -347,63 +347,106 @@ const Study = () => {
     setSessionMood("");
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 30, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut"
+      }
+    }
+  };
+
   // If no subject is selected, show subject selection page
   if (!subject) {
     return (
-      <div className="min-h-screen mt-20 flex" style={{ backgroundImage: "linear-gradient(135deg, var(--study-from), var(--study-via), var(--study-to))" }}>
+      <div className="min-h-screen mt-20 flex bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
         <Sidebar />
         <div className="flex-1 ml-16 transition-all duration-300 ease-in-out [body>div>aside:hover_+_div&]:ml-64">
           <div className="max-w-4xl mx-auto p-8">
-            <div className="text-center mb-12">
-              <h1 className="text-4xl font-bold text-white mb-4">
+            <motion.div
+              className="text-center mb-12"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent mb-4">
                 Ready to Study?
               </h1>
-              <p className="text-xl text-gray-300">
+              <p className="text-xl text-purple-200/80">
                 Choose a subject to begin your study session
               </p>
-            </div>
+            </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <motion.div
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
               {subjects.map((subjectItem) => (
                 <motion.div
                   key={subjectItem.id}
-                  whileHover={{ scale: 1.05 }}
+                  variants={itemVariants}
+                  whileHover={{ y: -10, scale: 1.02 }}
                   whileTap={{ scale: 0.95 }}
-                  className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10 cursor-pointer hover:border-[#6C5DD3]/50 transition-all duration-300"
+                  className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 cursor-pointer hover:border-purple-600/50 transition-all duration-300 group"
                   onClick={() =>
                     navigate(
                       `/study?subject=${encodeURIComponent(subjectItem.name)}`,
                     )
                   }
                 >
-                  <div
+                  <motion.div
                     className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl font-bold text-white"
                     style={{ backgroundColor: subjectItem.color }}
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ duration: 2, repeat: Infinity, delay: Math.random() }}
                   >
                     {subjectItem.name.charAt(0).toUpperCase()}
-                  </div>
-                  <h3 className="text-xl font-bold text-white text-center mb-2">
+                  </motion.div>
+                  <h3 className="text-xl font-bold text-white text-center mb-2 group-hover:text-purple-300 transition-colors">
                     {subjectItem.name}
                   </h3>
-                  <p className="text-gray-300 text-center text-sm">
+                  <p className="text-purple-200/80 text-center text-sm">
                     Goal: {subjectItem.goalHours}h/week
                   </p>
                 </motion.div>
               ))}
-            </div>
+            </motion.div>
 
             {subjects.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-gray-400 text-lg mb-4">
+              <motion.div
+                className="text-center py-12"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+              >
+                <p className="text-purple-300/80 text-lg mb-4">
                   No subjects added yet!
                 </p>
-                <button
+                <motion.button
                   onClick={() => navigate("/subjects")}
-                  className="px-6 py-3 bg-[#6C5DD3] text-white rounded-lg hover:bg-[#7A6AD9] transition"
+                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300 transform"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   Add Your First Subject
-                </button>
-              </div>
+                </motion.button>
+              </motion.div>
             )}
           </div>
         </div>
