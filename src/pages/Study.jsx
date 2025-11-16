@@ -1181,7 +1181,7 @@ const Study = () => {
                     <select
                       value={currentTask}
                       onChange={(e) => handleTaskSelection(e.target.value)}
-                      className="w-full p-3 rounded-lg bg-[#1a1a2e] text-white border border-[#6C5DD3]"
+                      className="w-full p-3 rounded-lg bg-purple-900/40 text-white border border-purple-700/50 focus:outline-none focus:border-purple-600/80 transition"
                       disabled={isRunning}
                     >
                       <option value="">
@@ -1206,7 +1206,7 @@ const Study = () => {
                       type="text"
                       value={currentTask}
                       onChange={(e) => setCurrentTask(e.target.value)}
-                      className="w-full p-3 rounded-lg bg-[#1a1a2e] text-white border border-[#6C5DD3]"
+                      className="w-full p-3 rounded-lg bg-purple-900/40 text-white border border-purple-700/50 focus:outline-none focus:border-purple-600/80 transition"
                       placeholder="Or type a custom topic..."
                     />
                   </div>
