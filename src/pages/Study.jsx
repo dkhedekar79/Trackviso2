@@ -944,11 +944,21 @@ const Study = () => {
               {/* Main Study Panel */}
               <div className="space-y-6">
                 {/* Timer Card */}
-                <div className="bg-white/5 backdrop-blur rounded-2xl p-8 border border-white/10">
+                <motion.div
+                  className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-8 border border-purple-700/30"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
                   <div className="flex flex-col items-center">
                     {/* Custom Duration Input */}
                     {showCustomInput && (
-                      <div className="w-full mb-6 p-4 bg-white/5 rounded-lg border border-[#6C5DD3]/30">
+                      <motion.div
+                        className="w-full mb-6 p-4 bg-purple-900/30 rounded-lg border border-purple-700/40"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
                         <label className="block text-white text-sm font-medium mb-2">
                           Custom Duration (minutes)
                         </label>
@@ -961,34 +971,38 @@ const Study = () => {
                             onChange={(e) =>
                               setCustomMinutesInput(e.target.value)
                             }
-                            className="flex-1 p-2 rounded bg-[#1a1a2e] text-white border border-[#6C5DD3] text-sm"
+                            className="flex-1 p-2 rounded bg-purple-900/40 text-white border border-purple-700/50 text-sm focus:outline-none focus:border-purple-600/80 transition"
                             placeholder="25"
                           />
-                          <button
+                          <motion.button
                             onClick={handleCustomDuration}
-                            className="px-4 py-2 rounded bg-[#6C5DD3] text-white font-semibold hover:bg-[#7A6AD9] transition text-sm"
+                            className="px-4 py-2 rounded bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition text-sm"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                           >
                             Set
-                          </button>
+                          </motion.button>
                         </div>
-                      </div>
+                      </motion.div>
                     )}
 
                     {/* Mode Selection */}
                     <div className="flex gap-2 mb-6">
                       {MODES.map((m) => (
-                        <button
+                        <motion.button
                           key={m.key}
                           className={`px-4 py-2 rounded-full font-semibold transition-all ${
                             mode === m.key
-                              ? "bg-[#6C5DD3] text-white shadow"
-                              : "bg-white/10 text-white/70 hover:bg-[#6C5DD3]/70"
+                              ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50"
+                              : "bg-purple-900/30 text-purple-300 hover:bg-purple-900/50 border border-purple-700/30"
                           }`}
                           onClick={() => handleModeChange(m.key)}
                           disabled={isRunning}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.98 }}
                         >
                           {m.label}
-                        </button>
+                        </motion.button>
                       ))}
                     </div>
 
@@ -1055,18 +1069,20 @@ const Study = () => {
                     {/* Timer Controls */}
                     <div className="flex gap-4 mb-6">
                       {isRunning ? (
-                        <button
+                        <motion.button
                           onClick={() => {
                             pauseLocalTimer();
                             stopTimer();
                           }}
-                          className="px-8 py-3 rounded-xl bg-[#FEC260] text-[#23234a] font-bold shadow hover:bg-[#FFD580] transition flex items-center gap-2"
+                          className="px-8 py-3 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 text-slate-900 font-bold shadow-lg hover:shadow-xl hover:shadow-yellow-500/50 transition flex items-center gap-2"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
                         >
                           <Pause className="w-5 h-5" />
                           Pause
-                        </button>
+                        </motion.button>
                       ) : (
-                        <button
+                        <motion.button
                           onClick={() => {
                             startLocalTimer();
                             startTimer();
@@ -1074,33 +1090,39 @@ const Study = () => {
                           disabled={
                             mode !== "stopwatch" && getTotalDuration() === 0
                           }
-                          className="px-8 py-3 rounded-xl bg-[#6C5DD3] text-white font-bold shadow hover:bg-[#7A6AD9] transition flex items-center gap-2"
+                          className="px-8 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold shadow-lg hover:shadow-lg hover:shadow-purple-500/50 transition flex items-center gap-2 disabled:opacity-50"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
                         >
                           <Play className="w-5 h-5" />
                           Start
-                        </button>
+                        </motion.button>
                       )}
-                      <button
+                      <motion.button
                         onClick={() => {
                           resetLocalTimer();
                           resetTimer();
                         }}
-                        className="px-6 py-3 rounded-xl bg-white/10 text-white font-bold shadow hover:bg-white/20 transition flex items-center gap-2"
+                        className="px-6 py-3 rounded-xl bg-purple-900/40 text-white font-bold shadow-lg hover:bg-purple-900/60 border border-purple-700/40 transition flex items-center gap-2"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                       >
                         <RotateCcw className="w-5 h-5" />
                         Reset
-                      </button>
-                      <button
+                      </motion.button>
+                      <motion.button
                         onClick={handleEndSession}
-                        className="px-6 py-3 rounded-xl bg-red-600 text-white font-bold shadow hover:bg-red-700 transition flex items-center gap-2"
+                        className="px-6 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 text-white font-bold shadow-lg hover:shadow-lg hover:shadow-red-500/50 transition flex items-center gap-2"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                       >
                         <Square className="w-5 h-5" />
                         End
-                      </button>
+                      </motion.button>
                     </div>
 
                     {/* Debug Info */}
-                    <div className="text-xs text-gray-400 mb-4">
+                    <div className="text-xs text-purple-300/70 mb-4">
                       <div>Mode: {mode}</div>
                       <div>Running: {isRunning ? "Yes" : "No"}</div>
                       <div>Seconds Left: {secondsLeft}</div>
@@ -1109,24 +1131,28 @@ const Study = () => {
 
                     {/* Focus Mode Toggle */}
                     <div className="flex items-center gap-4">
-                      <button
+                      <motion.button
                         onClick={() => setIsFocusMode(!isFocusMode)}
                         className={`px-4 py-2 rounded-lg transition flex items-center gap-2 ${
                           isFocusMode
-                            ? "bg-[#6C5DD3] text-white"
-                            : "bg-white/10 text-white/70 hover:bg-white/20"
+                            ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50"
+                            : "bg-purple-900/40 text-purple-300 hover:bg-purple-900/60 border border-purple-700/40"
                         }`}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                       >
                         <Target className="w-4 h-4" />
                         {isFocusMode ? "Exit Focus" : "Focus Mode"}
-                      </button>
-                      <button
+                      </motion.button>
+                      <motion.button
                         onClick={() => setIsAmbientSoundOn(!isAmbientSoundOn)}
                         className={`px-4 py-2 rounded-lg transition flex items-center gap-2 ${
                           isAmbientSoundOn
-                            ? "bg-[#6C5DD3] text-white"
-                            : "bg-white/10 text-white/70 hover:bg-white/20"
+                            ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50"
+                            : "bg-purple-900/40 text-purple-300 hover:bg-purple-900/60 border border-purple-700/40"
                         }`}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                       >
                         {isAmbientSoundOn ? (
                           <Volume2 className="w-4 h-4" />
@@ -1134,10 +1160,10 @@ const Study = () => {
                           <VolumeX className="w-4 h-4" />
                         )}
                         Ambient Sound
-                      </button>
+                      </motion.button>
                     </div>
                   </div>
-                </div>
+                </motion.div>
 
                 {/* Current Task Input */}
                 <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
