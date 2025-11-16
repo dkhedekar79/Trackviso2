@@ -1166,9 +1166,14 @@ const Study = () => {
                 </motion.div>
 
                 {/* Current Task Input */}
-                <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
+                <motion.div
+                  className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                >
                   <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                    <Target className="w-5 h-5" />
+                    <Target className="w-5 h-5 text-purple-400" />
                     Current Task/Topic
                   </h3>
 
@@ -1222,72 +1227,82 @@ const Study = () => {
                       Mark task as complete
                     </label>
                   </div>
-                </div>
+                </motion.div>
               </div>
 
               {/* Sidebar - Stats Panel */}
               <div className="space-y-6">
                 {/* Today's Stats */}
-                <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
+                <motion.div
+                  className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                >
                   <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5" />
+                    <TrendingUp className="w-5 h-5 text-purple-400" />
                     Today's Progress
                   </h3>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-300">Sessions</span>
+                      <span className="text-purple-200/80">Sessions</span>
                       <span className="text-white font-bold">
                         {todayStats.sessions}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-300">Time Studied</span>
+                      <span className="text-purple-200/80">Time Studied</span>
                       <span className="text-white font-bold">
                         {Math.round(todayStats.minutes)} min
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-300">Current Streak</span>
+                      <span className="text-purple-200/80">Current Streak</span>
                       <span className="text-white font-bold flex items-center gap-1">
                         <Flame className="w-4 h-4 text-[#FEC260]" />
                         {streak} days
                       </span>
                     </div>
                   </div>
-                </div>
+                </motion.div>
 
                 {/* Weekly Progress */}
-                <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
+                <motion.div
+                  className="bg-gradient-to-br from-pink-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-pink-700/30"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                >
                   <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                    <Calendar className="w-5 h-5" />
+                    <Calendar className="w-5 h-5 text-pink-400" />
                     Weekly Goal
                   </h3>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-300">Studied</span>
+                      <span className="text-pink-200/80">Studied</span>
                       <span className="text-white font-bold">
                         {Math.round(weeklyProgress.studied / 60)}h
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-300">Goal</span>
+                      <span className="text-pink-200/80">Goal</span>
                       <span className="text-white font-bold">
                         {Math.round(weeklyProgress.goal / 60)}h
                       </span>
                     </div>
-                    <div className="w-full bg-white/10 rounded-full h-2">
-                      <div
-                        className="bg-[#6C5DD3] h-2 rounded-full transition-all duration-500"
-                        style={{
-                          width: `${Math.min(weeklyProgress.percentage, 100)}%`,
-                        }}
+                    <div className="w-full bg-pink-500/20 rounded-full h-2">
+                      <motion.div
+                        className="bg-gradient-to-r from-pink-400 to-purple-400 h-2 rounded-full transition-all duration-500"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.min(weeklyProgress.percentage, 100)}%` }}
+                        transition={{ duration: 1.5 }}
                       />
                     </div>
-                    <div className="text-center text-sm text-gray-300">
+                    <div className="text-center text-sm text-pink-200/80">
                       {weeklyProgress.percentage}% complete
                     </div>
                   </div>
-                </div>
+                </motion.div>
 
                 {/* Recent Study Logs */}
                 <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
