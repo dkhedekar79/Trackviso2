@@ -668,7 +668,12 @@ const Study = () => {
 
                   {/* Custom Duration Input */}
                   {showCustomInput && (
-                    <div className="w-full mb-8 p-6 bg-white/5 rounded-xl border border-[#6C5DD3]/30">
+                    <motion.div
+                      className="w-full mb-8 p-6 bg-purple-900/30 rounded-xl border border-purple-700/30 backdrop-blur-sm"
+                      initial={{ opacity: 0, y: -20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
                       <label className="block text-white text-lg font-medium mb-3">
                         Custom Duration (minutes)
                       </label>
@@ -681,17 +686,19 @@ const Study = () => {
                           onChange={(e) =>
                             setCustomMinutesInput(e.target.value)
                           }
-                          className="flex-1 p-3 rounded-lg bg-[#1a1a2e] text-white border border-[#6C5DD3] text-lg"
+                          className="flex-1 p-3 rounded-lg bg-purple-900/40 text-white border border-purple-700/50 text-lg focus:outline-none focus:border-purple-600/80 transition"
                           placeholder="25"
                         />
-                        <button
+                        <motion.button
                           onClick={handleCustomDuration}
-                          className="px-6 py-3 rounded-lg bg-[#6C5DD3] text-white font-semibold hover:bg-[#7A6AD9] transition text-lg"
+                          className="px-6 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition text-lg"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.98 }}
                         >
                           Set
-                        </button>
+                        </motion.button>
                       </div>
-                    </div>
+                    </motion.div>
                   )}
 
                   {/* Mode Selection */}
