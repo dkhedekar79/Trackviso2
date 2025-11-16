@@ -784,18 +784,20 @@ const Study = () => {
                   {/* Timer Controls */}
                   <div className="flex gap-6 mb-8">
                     {isRunning ? (
-                      <button
+                      <motion.button
                         onClick={() => {
                           pauseLocalTimer();
                           stopTimer();
                         }}
-                        className="px-12 py-4 rounded-xl bg-[#FEC260] text-[#23234a] font-bold shadow-lg hover:bg-[#FFD580] transition flex items-center gap-3 text-xl"
+                        className="px-12 py-4 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 text-slate-900 font-bold shadow-lg hover:shadow-xl hover:shadow-yellow-500/50 transition flex items-center gap-3 text-xl"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                       >
                         <Pause className="w-6 h-6" />
                         Pause
-                      </button>
+                      </motion.button>
                     ) : (
-                      <button
+                      <motion.button
                         onClick={() => {
                           startLocalTimer();
                           startTimer();
@@ -803,29 +805,35 @@ const Study = () => {
                         disabled={
                           mode !== "stopwatch" && getTotalDuration() === 0
                         }
-                        className="px-12 py-4 rounded-xl bg-[#6C5DD3] text-white font-bold shadow-lg hover:bg-[#7A6AD9] transition flex items-center gap-3 text-xl"
+                        className="px-12 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold shadow-lg hover:shadow-lg hover:shadow-purple-500/50 transition flex items-center gap-3 text-xl disabled:opacity-50"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                       >
                         <Play className="w-6 h-6" />
                         Start
-                      </button>
+                      </motion.button>
                     )}
-                    <button
+                    <motion.button
                       onClick={() => {
                         resetLocalTimer();
                         resetTimer();
                       }}
-                      className="px-8 py-4 rounded-xl bg-white/10 text-white font-bold shadow-lg hover:bg-white/20 transition flex items-center gap-3 text-xl"
+                      className="px-8 py-4 rounded-xl bg-purple-900/40 text-white font-bold shadow-lg hover:bg-purple-900/60 border border-purple-700/40 transition flex items-center gap-3 text-xl"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
                       <RotateCcw className="w-6 h-6" />
                       Reset
-                    </button>
-                    <button
+                    </motion.button>
+                    <motion.button
                       onClick={handleEndSession}
-                      className="px-8 py-4 rounded-xl bg-red-600 text-white font-bold shadow-lg hover:bg-red-700 transition flex items-center gap-3 text-xl"
+                      className="px-8 py-4 rounded-xl bg-gradient-to-r from-red-600 to-red-700 text-white font-bold shadow-lg hover:shadow-lg hover:shadow-red-500/50 transition flex items-center gap-3 text-xl"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
                       <Square className="w-6 h-6" />
                       End
-                    </button>
+                    </motion.button>
                   </div>
 
                   {/* Debug Info */}
