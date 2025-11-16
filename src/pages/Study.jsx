@@ -646,15 +646,15 @@ const Study = () => {
   }
 
   return (
-    <div className="min-h-screen mt-20 flex" style={{ backgroundImage: "linear-gradient(135deg, var(--study-from), var(--study-via), var(--study-to))" }}>
+    <div className="min-h-screen mt-20 flex bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
       <Sidebar />
       <div className="flex-1 ml-16 transition-all duration-300 ease-in-out [body>div>aside:hover_+_div&]:ml-64">
         {/* Focus Mode Overlay */}
         {isFocusMode && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-8" style={{ backgroundImage: "linear-gradient(135deg, var(--study-from), var(--study-via), var(--study-to))" }}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
             <div className="w-full max-w-2xl">
               {/* Focus Mode Timer Card */}
-              <div className="bg-white/5 backdrop-blur rounded-3xl p-12 border border-white/10 shadow-2xl">
+              <div className="bg-gradient-to-br from-purple-900/60 to-slate-900/60 backdrop-blur-md rounded-3xl p-12 border border-purple-700/40 shadow-2xl shadow-purple-500/20">
                 <div className="flex flex-col items-center">
                   {/* Subject Display */}
                   <div className="text-center mb-8">
