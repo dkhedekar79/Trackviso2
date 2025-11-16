@@ -893,7 +893,7 @@ const Study = () => {
           className={`transition-opacity duration-500 ${isFocusMode ? "opacity-0 pointer-events-none" : "opacity-100"}`}
         >
           {/* Top Bar - Context Panel */}
-          <div className="bg-white/5 backdrop-blur border-b border-white/10 p-4">
+          <div className="bg-gradient-to-r from-purple-900/40 to-slate-900/40 backdrop-blur-md border-b border-purple-700/30 p-4">
             <div className="max-w-7xl mx-auto flex items-center justify-between">
               <div className="flex items-center gap-6">
                 <div>
