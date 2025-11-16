@@ -1305,9 +1305,14 @@ const Study = () => {
                 </motion.div>
 
                 {/* Recent Study Logs */}
-                <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
+                <motion.div
+                  className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                >
                   <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                    <BookOpen className="w-5 h-5" />
+                    <BookOpen className="w-5 h-5 text-purple-400" />
                     Recent Study Logs
                   </h3>
                   <div className="max-h-[300px] overflow-y-auto">
@@ -1328,18 +1333,21 @@ const Study = () => {
                               }[session.mood] || "";
 
                             return (
-                              <div
+                              <motion.div
                                 key={index}
-                                className="p-3 rounded-lg bg-white/5 border border-white/10"
+                                className="p-3 rounded-lg bg-purple-800/20 border border-purple-700/30 hover:bg-purple-800/40 transition-all"
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: index * 0.05 }}
                               >
                                 <div className="flex items-center justify-between mb-2">
                                   <div className="flex items-center gap-2">
-                                    <Clock className="w-4 h-4 text-[#6C5DD3]" />
+                                    <Clock className="w-4 h-4 text-purple-400" />
                                     <span className="text-sm font-medium text-white">
                                       {session.durationMinutes.toFixed(1)} min
                                     </span>
                                   </div>
-                                  <span className="text-xs text-gray-400">
+                                  <span className="text-xs text-purple-200/80">
                                     {new Date(
                                       session.timestamp,
                                     ).toLocaleDateString("en-US", {
@@ -1352,21 +1360,21 @@ const Study = () => {
                                 </div>
 
                                 {session.task && (
-                                  <div className="text-xs text-gray-300 mb-1">
+                                  <div className="text-xs text-purple-200/80 mb-1">
                                     <span className="font-medium">Task:</span>{" "}
                                     {session.task}
                                   </div>
                                 )}
 
                                 {session.reflection && (
-                                  <div className="text-xs text-gray-300 mb-2 italic">
+                                  <div className="text-xs text-purple-200/80 mb-2 italic">
                                     "{session.reflection}"
                                   </div>
                                 )}
 
                                 <div className="flex items-center gap-3 text-xs">
                                   {session.mood && (
-                                    <span className="text-gray-400 flex items-center gap-1">
+                                    <span className="text-purple-200/80 flex items-center gap-1">
                                       <span>{moodEmoji}</span>
                                       <span className="capitalize">
                                         {session.mood}
@@ -1374,97 +1382,116 @@ const Study = () => {
                                     </span>
                                   )}
                                   {session.difficulty && (
-                                    <span className="text-gray-400">
+                                    <span className="text-purple-200/80">
                                       Difficulty: {session.difficulty}/4
                                     </span>
                                   )}
                                 </div>
 
-                                <button
+                                <motion.button
                                   onClick={() =>
                                     deleteStudySession(
                                       studySessions.indexOf(session),
                                     )
                                   }
-                                  className="mt-2 p-1 rounded hover:bg-red-600/20 transition text-red-400 hover:text-red-300"
+                                  className="mt-2 p-1 rounded hover:bg-red-600/30 transition text-red-400 hover:text-red-300"
                                   title="Delete session"
+                                  whileHover={{ scale: 1.2 }}
+                                  whileTap={{ scale: 0.9 }}
                                 >
                                   <Trash2 className="w-3 h-3" />
-                                </button>
-                              </div>
+                                </motion.button>
+                              </motion.div>
                             );
                           })}
                       </div>
                     ) : (
                       <div className="text-center py-8">
-                        <BookOpen className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                        <p className="text-gray-400 text-sm">
+                        <BookOpen className="w-8 h-8 text-purple-400/50 mx-auto mb-2" />
+                        <p className="text-purple-300/80 text-sm">
                           No study logs yet for this subject
                         </p>
-                        <p className="text-gray-500 text-xs">
+                        <p className="text-purple-300/60 text-xs">
                           Complete a session to see your logs here!
                         </p>
                       </div>
                     )}
                   </div>
-                </div>
+                </motion.div>
 
                 {/* Achievements */}
-                <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
+                <motion.div
+                  className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.5 }}
+                >
                   <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                    <Award className="w-5 h-5" />
+                    <Award className="w-5 h-5 text-yellow-400" />
                     Recent Achievements
                   </h3>
                   <div className="space-y-3">
                     {streak >= 3 && (
-                      <div className="flex items-center gap-3 p-3 rounded-lg bg-[#6C5DD3]/20 border border-[#6C5DD3]/30">
-                        <Flame className="w-5 h-5 text-[#FEC260]" />
+                      <motion.div
+                        className="flex items-center gap-3 p-3 rounded-lg bg-yellow-900/20 border border-yellow-700/30 hover:bg-yellow-900/40 transition-all"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                      >
+                        <Flame className="w-5 h-5 text-yellow-400" />
                         <div>
                           <div className="text-white text-sm font-medium">
                             Streak Master
                           </div>
-                          <div className="text-gray-300 text-xs">
+                          <div className="text-yellow-200/80 text-xs">
                             {streak} day streak!
                           </div>
                         </div>
-                      </div>
+                      </motion.div>
                     )}
                     {todayStats.minutes >= 120 && (
-                      <div className="flex items-center gap-3 p-3 rounded-lg bg-[#6C5DD3]/20 border border-[#6C5DD3]/30">
-                        <Zap className="w-5 h-5 text-[#FEC260]" />
+                      <motion.div
+                        className="flex items-center gap-3 p-3 rounded-lg bg-blue-900/20 border border-blue-700/30 hover:bg-blue-900/40 transition-all"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                      >
+                        <Zap className="w-5 h-5 text-blue-400" />
                         <div>
                           <div className="text-white text-sm font-medium">
                             Study Warrior
                           </div>
-                          <div className="text-gray-300 text-xs">
+                          <div className="text-blue-200/80 text-xs">
                             2+ hours today!
                           </div>
                         </div>
-                      </div>
+                      </motion.div>
                     )}
                     {weeklyProgress.percentage >= 80 && (
-                      <div className="flex items-center gap-3 p-3 rounded-lg bg-[#6C5DD3]/20 border border-[#6C5DD3]/30">
-                        <Target className="w-5 h-5 text-[#FEC260]" />
+                      <motion.div
+                        className="flex items-center gap-3 p-3 rounded-lg bg-emerald-900/20 border border-emerald-700/30 hover:bg-emerald-900/40 transition-all"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                      >
+                        <Target className="w-5 h-5 text-emerald-400" />
                         <div>
                           <div className="text-white text-sm font-medium">
                             Goal Crusher
                           </div>
-                          <div className="text-gray-300 text-xs">
+                          <div className="text-emerald-200/80 text-xs">
                             80%+ weekly goal!
                           </div>
                         </div>
-                      </div>
+                      </motion.div>
                     )}
                     {studySessions.length === 0 && (
                       <div className="text-center py-4">
-                        <Award className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                        <p className="text-gray-400 text-sm">
+                        <Award className="w-8 h-8 text-purple-400/50 mx-auto mb-2" />
+                        <p className="text-purple-300/80 text-sm">
                           Complete your first session to unlock achievements!
                         </p>
                       </div>
                     )}
                   </div>
-                </div>
+                </motion.div>
               </div>
             </div>
           </div>
