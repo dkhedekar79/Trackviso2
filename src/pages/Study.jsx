@@ -917,22 +917,24 @@ const Study = () => {
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-right mr-4">
-                  <div className="text-sm text-gray-300">Weekly Progress</div>
+                  <div className="text-sm text-purple-300">Weekly Progress</div>
                   <div className="text-lg font-bold text-white">
                     {Math.round(weeklyProgress.studied / 60)}h /{" "}
                     {Math.round(weeklyProgress.goal / 60)}h
                   </div>
-                  <div className="text-xs text-gray-400">
+                  <div className="text-xs text-purple-300/70">
                     {weeklyProgress.percentage}% complete
                   </div>
                 </div>
-                <button
+                <motion.button
                   onClick={() => { handleCancelStudy(); navigate("/subjects"); }}
-                  className="px-6 py-3 rounded-xl bg-red-600 text-white font-semibold shadow hover:bg-red-700 transition flex items-center gap-2"
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold shadow-lg hover:shadow-lg hover:shadow-red-500/50 transition flex items-center gap-2"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
                   <X className="w-4 h-4" />
                   Cancel Study
-                </button>
+                </motion.button>
               </div>
             </div>
           </div>
