@@ -697,18 +697,20 @@ const Study = () => {
                   {/* Mode Selection */}
                   <div className="flex gap-3 mb-8">
                     {MODES.map((m) => (
-                      <button
+                      <motion.button
                         key={m.key}
                         className={`px-6 py-3 rounded-full font-semibold transition-all text-lg ${
                           mode === m.key
-                            ? "bg-[#6C5DD3] text-white shadow-lg"
-                            : "bg-white/10 text-white/70 hover:bg-[#6C5DD3]/70"
+                            ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50"
+                            : "bg-purple-900/30 text-purple-300 hover:bg-purple-800/40 border border-purple-700/30"
                         }`}
                         onClick={() => handleModeChange(m.key)}
                         disabled={isRunning}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.98 }}
                       >
                         {m.label}
-                      </button>
+                      </motion.button>
                     ))}
                   </div>
 
