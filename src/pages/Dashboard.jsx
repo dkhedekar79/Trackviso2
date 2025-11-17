@@ -637,26 +637,37 @@ export default function Dashboard() {
         {/* Flashcard Reminder */}
         
         {/* Quick Access */}
-        <section className="px-6 py-8 flex flex-wrap gap-4">
-          <button 
+        <motion.section
+          className="px-6 py-8 flex flex-wrap gap-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.6 }}
+        >
+          <motion.button
             onClick={() => navigate('/subjects')}
-            className="flex-1 min-w-[200px] px-6 py-4 rounded-2xl bg-[#6C5DD3] text-white font-semibold shadow hover:bg-[#7A6AD9] transition"
+            className="flex-1 min-w-[200px] px-6 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold shadow-lg hover:shadow-lg hover:shadow-purple-500/50 transition"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             + Add Subject
-          </button>
-          <button 
+          </motion.button>
+          <motion.button
             onClick={() => navigate('/tasks')}
-            className="flex-1 min-w-[200px] px-6 py-4 rounded-2xl bg-[#6C5DD3] text-white font-semibold shadow hover:bg-[#7A6AD9] transition"
+            className="flex-1 min-w-[200px] px-6 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold shadow-lg hover:shadow-lg hover:shadow-purple-500/50 transition"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             + Add Task
-          </button>
-          <button 
+          </motion.button>
+          <motion.button
             onClick={() => navigate('/schedule')}
-            className="flex-1 min-w-[200px] px-6 py-4 rounded-2xl bg-[#6C5DD3] text-white font-semibold shadow hover:bg-[#7A6AD9] transition"
+            className="flex-1 min-w-[200px] px-6 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold shadow-lg hover:shadow-lg hover:shadow-purple-500/50 transition"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             + Schedule tasks
-          </button>
-        </section>
+          </motion.button>
+        </motion.section>
         {/* Footer */}
         
       </div>
