@@ -537,37 +537,52 @@ export default function Dashboard() {
           <Card title="Today's Tasks" icon={"📘"}>
             <div className="space-y-4">
               {/* Top: Today's Tasks */}
-              <div>
-                <h3 className="text-sm font-semibold text-white mb-3">Today's Tasks</h3>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.1 }}
+              >
+                <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-purple-400" />
+                  Today's Tasks
+                </h3>
                 {todaysTasks.length > 0 ? (
                   <div className="space-y-2">
-                    {todaysTasks.map((task) => (
-                      <div key={task.id} className="flex items-center justify-between p-2 rounded-lg bg-white/5">
+                    {todaysTasks.map((task, idx) => (
+                      <motion.div
+                        key={task.id}
+                        className="flex items-center justify-between p-3 rounded-lg bg-purple-800/20 border border-purple-700/30 hover:bg-purple-800/40 transition-all"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.05 }}
+                      >
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <span className="text-xs font-medium text-white">{task.name}</span>
                             {getTaskStatusIcon(task)}
                           </div>
-                          <div className="text-xs text-gray-400 mt-1">
+                          <div className="text-xs text-purple-200/80 mt-1">
                             {task.subject} • {task.time} min
                           </div>
                         </div>
-                      </div>
+                      </motion.div>
                     ))}
                   </div>
                 ) : (
                   <div className="text-center py-4">
-                    <p className="text-gray-400 text-xs mb-1">No tasks scheduled</p>
-                    <p className="text-gray-500 text-xs">Great job staying on top!</p>
+                    <p className="text-purple-300/80 text-xs mb-1">No tasks scheduled</p>
+                    <p className="text-purple-300/60 text-xs">Great job staying on top!</p>
                   </div>
                 )}
-                <button 
-                  className="w-full mt-3 px-3 py-2 rounded-lg bg-[#6C5DD3] text-white font-semibold shadow hover:bg-[#7A6AD9] transition text-sm"
+                <motion.button
+                  className="w-full mt-3 px-3 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold shadow-lg hover:shadow-lg hover:shadow-purple-500/50 transition text-sm"
                   onClick={() => navigate('/tasks')}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
                   + Add Task
-                </button>
-              </div>
+                </motion.button>
+              </motion.div>
 
               {/* Bottom: Study Logs */}
               <div>
