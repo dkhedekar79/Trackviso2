@@ -470,7 +470,7 @@ export default function Dashboard() {
       {/* Main Content */}
       <div>
         {/* Dashboard View Toggle Section */}
-        <div className="flex justify-between items-center px-6 py-4 bg-white/5 border-b border-white/10 mt-20">
+        <div className="flex justify-between items-center px-6 py-4 bg-gradient-to-r from-purple-900/40 to-slate-900/40 backdrop-blur-md border-b border-purple-700/30 mt-20">
             <div>
               <h1>
               <QuoteRotator />
