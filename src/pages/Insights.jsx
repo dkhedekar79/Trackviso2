@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import Sidebar from '../components/Sidebar';
-import { 
-  TrendingUp, 
-  Calendar, 
-  Clock, 
-  Target, 
-  Flame, 
-  BarChart3, 
-  BookOpen, 
+import {
+  TrendingUp,
+  Calendar,
+  Clock,
+  Target,
+  Flame,
+  BarChart3,
+  BookOpen,
   CheckCircle,
   Award,
   Zap,
@@ -442,62 +443,108 @@ export default function Insights() {
     URL.revokeObjectURL(url);
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 30, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut"
+      }
+    }
+  };
+
   return (
-    <div className="min-h-screen mt-20 flex" style={{ backgroundImage: "linear-gradient(135deg, var(--study-from), var(--study-via), var(--study-to))" }}>>
+    <div className="min-h-screen mt-20 flex bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
       <Sidebar />
       <div className="flex-1 ml-16 transition-all duration-300 ease-in-out [body>div>aside:hover_+_div&]:ml-64">
         <div className="max-w-7xl mx-auto p-6">
           {/* Header */}
-          <div className="mb-8 flex justify-between items-center">
+          <motion.div
+            className="mb-8 flex justify-between items-center"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
             <div>
-              <h1 className="text-3xl font-bold text-white mb-4">Study Insights</h1>
-              <p className="text-gray-300">Track your progress and discover your study patterns</p>
+              <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent mb-4">Study Insights</h1>
+              <p className="text-purple-200/80 text-lg">Track your progress and discover your study patterns</p>
             </div>
-            <button
+            <motion.button
               onClick={exportInsights}
-              className="flex items-center gap-2 px-4 py-2 bg-[#6C5DD3] text-white rounded-lg hover:bg-[#7A6AD9] transition"
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.98 }}
             >
               <Download className="w-4 h-4" />
               Export Data
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
 
       
 
           {/* Time Range Selector */}
-          <div className="mb-6">
-            <div className="flex gap-2 bg-white/5 rounded-lg p-1 w-fit">
+          <motion.div
+            className="mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
+            <div className="flex gap-2 bg-purple-900/30 backdrop-blur-md rounded-xl p-1 w-fit border border-purple-700/30">
               {[
                 { key: 'week', label: 'This Week' },
                 { key: 'month', label: 'This Month' },
                 { key: 'all', label: 'All Time' }
               ].map(range => (
-                <button
+                <motion.button
                   key={range.key}
                   onClick={() => setTimeRange(range.key)}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition ${
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
                     timeRange === range.key
-                      ? 'bg-[#6C5DD3] text-white'
-                      : 'text-gray-300 hover:text-white'
+                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50'
+                      : 'text-purple-300 hover:text-purple-200'
                   }`}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   {range.label}
-                </button>
+                </motion.button>
               ))}
             </div>
-          </div>
+          </motion.div>
 
           {/* Overview Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <motion.div
+              className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all group cursor-pointer"
+              variants={itemVariants}
+              whileHover={{ y: -5, scale: 1.02 }}
+            >
               <div className="flex items-center gap-3 mb-4">
-                <Clock className="w-6 h-6 text-[#6C5DD3]" />
+                <Clock className="w-6 h-6 text-purple-400 transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300" />
                 <h3 className="text-lg font-semibold text-white">Total Study Time</h3>
               </div>
               <div className="text-3xl font-bold text-white mb-2">
                 {Math.round(totalStudyTime / 60)}h {Math.round(totalStudyTime % 60)}m
               </div>
-              <p className="text-gray-400 text-sm">{totalSessions} sessions</p>
+              <p className="text-purple-200/80 text-sm">{totalSessions} sessions</p>
               {comparison.studyTimeChange !== 0 && (
                 <div className={`flex items-center gap-1 text-xs mt-2 ${
                   comparison.studyTimeChange > 0 ? 'text-green-400' : 'text-red-400'
@@ -506,44 +553,65 @@ export default function Insights() {
                   {Math.abs(comparison.studyTimeChange).toFixed(1)}% vs previous
                 </div>
               )}
-            </div>
+            </motion.div>
 
-            <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
+            <motion.div
+              className="bg-gradient-to-br from-pink-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-pink-700/30 hover:border-pink-600/50 transition-all group cursor-pointer"
+              variants={itemVariants}
+              whileHover={{ y: -5, scale: 1.02 }}
+            >
               <div className="flex items-center gap-3 mb-4">
-                <Target className="w-6 h-6 text-[#FEC260]" />
+                <Target className="w-6 h-6 text-pink-400 transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300" />
                 <h3 className="text-lg font-semibold text-white">Avg Session</h3>
               </div>
               <div className="text-3xl font-bold text-white mb-2">
                 {Math.round(averageSessionLength)}m
               </div>
-              <p className="text-gray-400 text-sm">per session</p>
-            </div>
+              <p className="text-pink-200/80 text-sm">per session</p>
+            </motion.div>
 
-            <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
+            <motion.div
+              className="bg-gradient-to-br from-orange-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-orange-700/30 hover:border-orange-600/50 transition-all group cursor-pointer"
+              variants={itemVariants}
+              whileHover={{ y: -5, scale: 1.02 }}
+            >
               <div className="flex items-center gap-3 mb-4">
-                <Flame className="w-6 h-6 text-[#FF6B6B]" />
+                <Flame className="w-6 h-6 text-orange-400 transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300" />
                 <h3 className="text-lg font-semibold text-white">Current Streak</h3>
               </div>
               <div className="text-3xl font-bold text-white mb-2">{streakHistory.currentStreak}</div>
-              <p className="text-gray-400 text-sm">days (best: {streakHistory.longestStreak})</p>
-            </div>
+              <p className="text-orange-200/80 text-sm">days (best: {streakHistory.longestStreak})</p>
+            </motion.div>
 
-            <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
+            <motion.div
+              className="bg-gradient-to-br from-emerald-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-emerald-700/30 hover:border-emerald-600/50 transition-all group cursor-pointer"
+              variants={itemVariants}
+              whileHover={{ y: -5, scale: 1.02 }}
+            >
               <div className="flex items-center gap-3 mb-4">
-                <CheckCircle className="w-6 h-6 text-[#B6E4CF]" />
+                <CheckCircle className="w-6 h-6 text-emerald-400 transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300" />
                 <h3 className="text-lg font-semibold text-white">Task Completion</h3>
               </div>
               <div className="text-3xl font-bold text-white mb-2">{taskStats.rate.toFixed(1)}%</div>
-              <p className="text-gray-400 text-sm">{taskStats.completed}/{taskStats.total} tasks</p>
-            </div>
-          </div>
+              <p className="text-emerald-200/80 text-sm">{taskStats.completed}/{taskStats.total} tasks</p>
+            </motion.div>
+          </motion.div>
 
           {/* Key Metrics Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <motion.div
+            className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
             {/* Longest Session */}
-            <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
+            <motion.div
+              className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all"
+              variants={itemVariants}
+              whileHover={{ y: -5, scale: 1.02 }}
+            >
               <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-                <Trophy className="w-5 h-5" />
+                <Trophy className="w-5 h-5 text-yellow-400" />
                 Longest Session
               </h3>
               {longestSession ? (
@@ -551,144 +619,213 @@ export default function Insights() {
                   <div className="text-3xl font-bold text-white">
                     {Math.round(longestSession.durationMinutes)} minutes
                   </div>
-                  <div className="text-gray-300">
+                  <div className="text-purple-200/80 space-y-1">
                     <div>Subject: {longestSession.subjectName}</div>
                     <div>Date: {new Date(longestSession.timestamp).toLocaleDateString()}</div>
                     {longestSession.task && <div>Task: {longestSession.task}</div>}
                   </div>
                 </div>
               ) : (
-                <div className="text-gray-400">No sessions recorded yet</div>
+                <div className="text-purple-300/70">No sessions recorded yet</div>
               )}
-            </div>
+            </motion.div>
 
             {/* Study Consistency Score */}
-            <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
+            <motion.div
+              className="bg-gradient-to-br from-pink-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-pink-700/30 hover:border-pink-600/50 transition-all"
+              variants={itemVariants}
+              whileHover={{ y: -5, scale: 1.02 }}
+            >
               <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-                <Star className="w-5 h-5" />
+                <Star className="w-5 h-5 text-yellow-400" />
                 Study Consistency
               </h3>
               <div className="space-y-4">
                 <div className="text-3xl font-bold text-white">
                   {consistencyScore.toFixed(1)}%
                 </div>
-                <div className="w-full bg-white/10 rounded-full h-3">
-                  <div 
-                    className="bg-[#6C5DD3] h-3 rounded-full transition-all duration-500"
-                    style={{ width: `${Math.min(consistencyScore, 100)}%` }}
+                <div className="w-full bg-pink-500/20 rounded-full h-3">
+                  <motion.div
+                    className="bg-gradient-to-r from-pink-400 to-purple-400 h-3 rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.min(consistencyScore, 100)}%` }}
+                    transition={{ duration: 1, delay: 0.3 }}
                   />
                 </div>
-                <div className="text-gray-300 text-sm">
+                <div className="text-pink-200/80 text-sm">
                   Studied {Math.round(consistencyScore / 100 * (timeRange === 'week' ? 7 : timeRange === 'month' ? 30 : 365))} out of {timeRange === 'week' ? 7 : timeRange === 'month' ? 30 : 365} days
                 </div>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* Subject Time Distribution */}
-          <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10 mb-8">
+          <motion.div
+            className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all mb-8"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            whileHover={{ y: -5 }}
+          >
             <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-              <PieChart className="w-5 h-5" />
+              <PieChart className="w-5 h-5 text-purple-400" />
               Subject Time Distribution
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {Object.entries(subjectTimeDistribution).map(([subject, time]) => {
+              {Object.entries(subjectTimeDistribution).map(([subject, time], index) => {
                 const percentage = totalStudyTime > 0 ? (time / totalStudyTime) * 100 : 0;
                 const subjectData = subjects.find(s => s.name === subject);
-                
+
                 return (
-                  <div key={subject} className="flex items-center gap-3 p-3 rounded-lg bg-white/5">
-                    <div 
+                  <motion.div
+                    key={subject}
+                    className="flex items-center gap-3 p-3 rounded-lg bg-purple-800/20 border border-purple-700/30 hover:bg-purple-800/40 transition-all"
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    viewport={{ once: true }}
+                    whileHover={{ x: 5 }}
+                  >
+                    <div
                       className="w-4 h-4 rounded-full"
                       style={{ backgroundColor: subjectData?.color || '#6C5DD3' }}
                     />
                     <div className="flex-1">
                       <div className="text-white font-medium">{subject}</div>
-                      <div className="text-gray-300 text-sm">{Math.round(time / 60)}h ({percentage.toFixed(1)}%)</div>
+                      <div className="text-purple-200/80 text-sm">{Math.round(time / 60)}h ({percentage.toFixed(1)}%)</div>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>
-          </div>
+          </motion.div>
 
           {/* Subject Leaderboard */}
-          <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10 mb-8">
+          <motion.div
+            className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all mb-8"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            whileHover={{ y: -5 }}
+          >
             <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-              <Trophy className="w-5 h-5" />
+              <Trophy className="w-5 h-5 text-yellow-400" />
               Subject Leaderboard (All Time)
             </h3>
             {subjectLeaderboard.length > 0 ? (
               <div className="space-y-4">
                 {subjectLeaderboard.map((subject, index) => (
-                  <div key={subject.subjectName} className="flex items-center justify-between p-4 rounded-lg bg-white/5 border border-white/10">
+                  <motion.div
+                    key={subject.subjectName}
+                    className="flex items-center justify-between p-4 rounded-lg bg-purple-800/20 border border-purple-700/30 hover:bg-purple-800/40 transition-all group cursor-pointer"
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    viewport={{ once: true }}
+                    whileHover={{ x: 10, scale: 1.02 }}
+                  >
                     <div className="flex items-center gap-4">
-                      <div className="w-8 h-8 rounded-full bg-[#6C5DD3] flex items-center justify-center text-white font-bold text-sm">
+                      <motion.div
+                        className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center text-white font-bold text-sm"
+                        whileHover={{ scale: 1.15, rotate: 5 }}
+                      >
                         {index + 1}
-                      </div>
+                      </motion.div>
                       <div>
                         <div className="text-white font-semibold text-lg">{subject.subjectName}</div>
-                        <div className="text-gray-300 text-sm">
+                        <div className="text-purple-200/80 text-sm">
                           {subject.totalHours}h {subject.totalMinutesRemaining}m total
                         </div>
                       </div>
                     </div>
                     <div className="text-right">
                       {index === 0 && (
-                        <div className="flex items-center gap-2 text-[#FEC260] mb-1">
+                        <motion.div
+                          className="flex items-center gap-2 text-yellow-400 mb-1"
+                          animate={{ y: [-3, 3, -3] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
                           <Trophy className="w-5 h-5" />
                           <span className="text-sm font-medium">Top Studier</span>
-                        </div>
+                        </motion.div>
                       )}
-                      <div className="text-2xl font-bold text-white">
+                      <div className="text-2xl font-bold text-white group-hover:text-purple-300 transition-colors">
                         {subject.totalHours}h {subject.totalMinutesRemaining}m
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8">
-                <Trophy className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                <p className="text-gray-400 text-lg">No study data yet!</p>
-                <p className="text-gray-500 text-sm">Complete your first study session to see the leaderboard</p>
-              </div>
+              <motion.div
+                className="text-center py-8"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+              >
+                <Trophy className="w-12 h-12 text-purple-400/50 mx-auto mb-3" />
+                <p className="text-purple-300/80 text-lg">No study data yet!</p>
+                <p className="text-purple-300/60 text-sm">Complete your first study session to see the leaderboard</p>
+              </motion.div>
             )}
-          </div>
+          </motion.div>
 
           {/* Study Patterns */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <motion.div
+            className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
             {/* Time of Day Heatmap */}
-            <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
+            <motion.div
+              className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all"
+              variants={itemVariants}
+              whileHover={{ y: -5 }}
+            >
               <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-                <Activity className="w-5 h-5" />
+                <Activity className="w-5 h-5 text-purple-400" />
                 Time of Day Heatmap
               </h3>
               <div className="grid grid-cols-12 gap-1">
                 {timeHeatmap.map((count, hour) => {
                   const maxCount = Math.max(...timeHeatmap);
                   const intensity = maxCount > 0 ? count / maxCount : 0;
-                  
+
                   return (
-                    <div key={hour} className="text-center">
-                      <div className="text-xs text-gray-400 mb-1">{hour}</div>
-                      <div 
-                        className="w-full rounded transition-all duration-300"
-                        style={{ 
+                    <motion.div
+                      key={hour}
+                      className="text-center"
+                      whileHover={{ scale: 1.2 }}
+                    >
+                      <div className="text-xs text-purple-300 mb-1">{hour}</div>
+                      <motion.div
+                        className="w-full rounded-sm transition-all duration-300"
+                        style={{
                           height: '20px',
-                          backgroundColor: `rgba(108, 93, 211, ${intensity})`
+                          backgroundColor: `rgba(168, 85, 247, ${intensity})`
                         }}
+                        initial={{ opacity: 0 }}
+                        whileInView={{ opacity: 1 }}
+                        transition={{ delay: hour * 0.02 }}
+                        viewport={{ once: true }}
                       />
-                    </div>
+                    </motion.div>
                   );
                 })}
               </div>
-            </div>
+            </motion.div>
 
             {/* Day of Week Breakdown */}
-            <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
+            <motion.div
+              className="bg-gradient-to-br from-pink-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-pink-700/30 hover:border-pink-600/50 transition-all"
+              variants={itemVariants}
+              whileHover={{ y: -5 }}
+            >
               <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-                <CalendarDays className="w-5 h-5" />
+                <CalendarDays className="w-5 h-5 text-pink-400" />
                 Day of Week Breakdown
               </h3>
               <div className="space-y-3">
@@ -696,58 +833,97 @@ export default function Insights() {
                   const time = dayBreakdown[index];
                   const maxTime = Math.max(...dayBreakdown);
                   const height = maxTime > 0 ? (time / maxTime) * 100 : 0;
-                  
+
                   return (
-                    <div key={day} className="flex items-center gap-3">
-                      <div className="w-8 text-sm text-gray-300">{day}</div>
-                      <div className="flex-1 bg-white/10 rounded-full h-3">
-                        <div 
-                          className="bg-[#6C5DD3] h-3 rounded-full transition-all duration-300"
+                    <motion.div
+                      key={day}
+                      className="flex items-center gap-3"
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      viewport={{ once: true }}
+                    >
+                      <div className="w-8 text-sm text-pink-300">{day}</div>
+                      <div className="flex-1 bg-pink-500/20 rounded-full h-3">
+                        <motion.div
+                          className="bg-gradient-to-r from-pink-400 to-purple-400 h-3 rounded-full transition-all duration-300"
                           style={{ width: `${height}%` }}
+                          initial={{ width: 0 }}
+                          whileInView={{ width: `${height}%` }}
+                          transition={{ delay: index * 0.1, duration: 0.6 }}
+                          viewport={{ once: true }}
                         />
                       </div>
-                      <div className="w-12 text-sm text-gray-300 text-right">
+                      <div className="w-12 text-sm text-pink-300 text-right">
                         {Math.round(time / 60)}h
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 })}
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* Mood Trends */}
           {moodTrends && (
-            <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10 mb-8">
+            <motion.div
+              className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all mb-8"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -5 }}
+            >
               <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-                <MessageSquare className="w-5 h-5" />
+                <MessageSquare className="w-5 h-5 text-purple-400" />
                 Mood Trends
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {Object.entries(moodTrends).map(([mood, count]) => {
+                {Object.entries(moodTrends).map(([mood, count], index) => {
                   const emoji = {
                     great: '😄',
                     good: '🙂',
                     okay: '😐',
                     struggled: '😫'
                   }[mood];
-                  
+
                   return (
-                    <div key={mood} className="text-center p-4 rounded-lg bg-white/5">
-                      <div className="text-2xl mb-2">{emoji}</div>
+                    <motion.div
+                      key={mood}
+                      className="text-center p-4 rounded-lg bg-purple-800/20 border border-purple-700/30 hover:bg-purple-800/40 transition-all"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.1 }}
+                      viewport={{ once: true }}
+                      whileHover={{ scale: 1.05, y: -5 }}
+                    >
+                      <motion.div
+                        className="text-2xl mb-2"
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{ duration: 2, repeat: Infinity, delay: index * 0.2 }}
+                      >
+                        {emoji}
+                      </motion.div>
                       <div className="text-white font-medium capitalize">{mood}</div>
-                      <div className="text-gray-300 text-sm">{count} sessions</div>
-                    </div>
+                      <div className="text-purple-200/80 text-sm">{count} sessions</div>
+                    </motion.div>
                   );
                 })}
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Goal Progress */}
-          <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10 mb-8">
+          <motion.div
+            className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all mb-8"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            whileHover={{ y: -5 }}
+          >
             <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-              <TargetIcon className="w-5 h-5" />
+              <TargetIcon className="w-5 h-5 text-purple-400" />
               Goal Progress
             </h3>
             <div className="space-y-4">
@@ -755,79 +931,132 @@ export default function Insights() {
                 <span className="text-white">Weekly Goal Progress</span>
                 <span className="text-white font-bold">{goalProgress.percentage.toFixed(1)}%</span>
               </div>
-              <div className="w-full bg-white/10 rounded-full h-3">
-                <div 
-                  className="bg-[#6C5DD3] h-3 rounded-full transition-all duration-500"
-                  style={{ width: `${Math.min(goalProgress.percentage, 100)}%` }}
+              <div className="w-full bg-purple-500/20 rounded-full h-3">
+                <motion.div
+                  className="bg-gradient-to-r from-purple-400 to-pink-400 h-3 rounded-full transition-all duration-500"
+                  initial={{ width: 0 }}
+                  whileInView={{ width: `${Math.min(goalProgress.percentage, 100)}%` }}
+                  transition={{ duration: 1.2, delay: 0.3 }}
+                  viewport={{ once: true }}
                 />
               </div>
-              <div className="text-gray-300 text-sm">
+              <div className="text-purple-200/80 text-sm">
                 {Math.round(goalProgress.current / 60)}h / {Math.round(goalProgress.goal / 60)}h
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Recent Reflections */}
           {recentReflections.length > 0 && (
-            <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10 mb-8">
+            <motion.div
+              className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all mb-8"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -5 }}
+            >
               <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-                <MessageSquare className="w-5 h-5" />
+                <MessageSquare className="w-5 h-5 text-purple-400" />
                 Recent Reflections
               </h3>
               <div className="space-y-4">
                 {recentReflections.map((session, index) => (
-                  <div key={index} className="p-4 rounded-lg bg-white/5">
-                    <div className="text-gray-300 text-sm mb-2">
+                  <motion.div
+                    key={index}
+                    className="p-4 rounded-lg bg-purple-800/20 border border-purple-700/30 hover:bg-purple-800/40 transition-all"
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    viewport={{ once: true }}
+                    whileHover={{ x: 5 }}
+                  >
+                    <div className="text-purple-200/80 text-sm mb-2">
                       {new Date(session.timestamp).toLocaleDateString()} - {session.subjectName}
                     </div>
                     <div className="text-white italic">"{session.reflection}"</div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Upcoming Deadlines */}
           {upcomingDeadlines.length > 0 && (
-            <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10 mb-8">
+            <motion.div
+              className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all mb-8"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -5 }}
+            >
               <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-                <AlertCircle className="w-5 h-5" />
+                <AlertCircle className="w-5 h-5 text-red-400" />
                 Upcoming Deadlines
               </h3>
               <div className="space-y-3">
                 {upcomingDeadlines.map((task, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-white/5">
+                  <motion.div
+                    key={index}
+                    className="flex items-center justify-between p-3 rounded-lg bg-red-800/20 border border-red-700/30 hover:bg-red-800/40 transition-all"
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    viewport={{ once: true }}
+                    whileHover={{ x: 5 }}
+                  >
                     <div>
                       <div className="text-white font-medium">{task.name}</div>
-                      <div className="text-gray-300 text-sm">{task.subject}</div>
+                      <div className="text-purple-200/80 text-sm">{task.subject}</div>
                     </div>
                     <div className="text-right">
                       <div className="text-white text-sm">
                         {new Date(task.scheduledDate).toLocaleDateString()}
                       </div>
-                      <div className="text-gray-300 text-xs">{task.time} min</div>
+                      <div className="text-purple-200/80 text-xs">{task.time} min</div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Suggestions */}
-          <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10 mb-8">
+          <motion.div
+            className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all mb-8"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            whileHover={{ y: -5 }}
+          >
             <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-              <Lightbulb className="w-5 h-5" />
+              <Lightbulb className="w-5 h-5 text-yellow-400" />
               Personalized Suggestions
             </h3>
             <div className="space-y-3">
               {suggestions.map((suggestion, index) => (
-                <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-[#6C5DD3]/10 border border-[#6C5DD3]/20">
-                  <Lightbulb className="w-5 h-5 text-[#FEC260] mt-0.5" />
+                <motion.div
+                  key={index}
+                  className="flex items-start gap-3 p-3 rounded-lg bg-purple-800/20 border border-purple-700/30 hover:bg-purple-800/40 transition-all"
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  whileHover={{ x: 5 }}
+                >
+                  <motion.div
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ duration: 2, repeat: Infinity, delay: index * 0.2 }}
+                  >
+                    <Lightbulb className="w-5 h-5 text-yellow-400 mt-0.5" />
+                  </motion.div>
                   <div className="text-white">{suggestion}</div>
-                </div>
+                </motion.div>
               ))}
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>

@@ -347,63 +347,106 @@ const Study = () => {
     setSessionMood("");
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 30, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut"
+      }
+    }
+  };
+
   // If no subject is selected, show subject selection page
   if (!subject) {
     return (
-      <div className="min-h-screen mt-20 flex" style={{ backgroundImage: "linear-gradient(135deg, var(--study-from), var(--study-via), var(--study-to))" }}>
+      <div className="min-h-screen mt-20 flex bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
         <Sidebar />
         <div className="flex-1 ml-16 transition-all duration-300 ease-in-out [body>div>aside:hover_+_div&]:ml-64">
           <div className="max-w-4xl mx-auto p-8">
-            <div className="text-center mb-12">
-              <h1 className="text-4xl font-bold text-white mb-4">
+            <motion.div
+              className="text-center mb-12"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent mb-4">
                 Ready to Study?
               </h1>
-              <p className="text-xl text-gray-300">
+              <p className="text-xl text-purple-200/80">
                 Choose a subject to begin your study session
               </p>
-            </div>
+            </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <motion.div
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
               {subjects.map((subjectItem) => (
                 <motion.div
                   key={subjectItem.id}
-                  whileHover={{ scale: 1.05 }}
+                  variants={itemVariants}
+                  whileHover={{ y: -10, scale: 1.02 }}
                   whileTap={{ scale: 0.95 }}
-                  className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10 cursor-pointer hover:border-[#6C5DD3]/50 transition-all duration-300"
+                  className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 cursor-pointer hover:border-purple-600/50 transition-all duration-300 group"
                   onClick={() =>
                     navigate(
                       `/study?subject=${encodeURIComponent(subjectItem.name)}`,
                     )
                   }
                 >
-                  <div
+                  <motion.div
                     className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl font-bold text-white"
                     style={{ backgroundColor: subjectItem.color }}
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ duration: 2, repeat: Infinity, delay: Math.random() }}
                   >
                     {subjectItem.name.charAt(0).toUpperCase()}
-                  </div>
-                  <h3 className="text-xl font-bold text-white text-center mb-2">
+                  </motion.div>
+                  <h3 className="text-xl font-bold text-white text-center mb-2 group-hover:text-purple-300 transition-colors">
                     {subjectItem.name}
                   </h3>
-                  <p className="text-gray-300 text-center text-sm">
+                  <p className="text-purple-200/80 text-center text-sm">
                     Goal: {subjectItem.goalHours}h/week
                   </p>
                 </motion.div>
               ))}
-            </div>
+            </motion.div>
 
             {subjects.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-gray-400 text-lg mb-4">
+              <motion.div
+                className="text-center py-12"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+              >
+                <p className="text-purple-300/80 text-lg mb-4">
                   No subjects added yet!
                 </p>
-                <button
+                <motion.button
                   onClick={() => navigate("/subjects")}
-                  className="px-6 py-3 bg-[#6C5DD3] text-white rounded-lg hover:bg-[#7A6AD9] transition"
+                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300 transform"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   Add Your First Subject
-                </button>
-              </div>
+                </motion.button>
+              </motion.div>
             )}
           </div>
         </div>
@@ -603,15 +646,15 @@ const Study = () => {
   }
 
   return (
-    <div className="min-h-screen mt-20 flex" style={{ backgroundImage: "linear-gradient(135deg, var(--study-from), var(--study-via), var(--study-to))" }}>
+    <div className="min-h-screen mt-20 flex bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
       <Sidebar />
       <div className="flex-1 ml-16 transition-all duration-300 ease-in-out [body>div>aside:hover_+_div&]:ml-64">
         {/* Focus Mode Overlay */}
         {isFocusMode && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-8" style={{ backgroundImage: "linear-gradient(135deg, var(--study-from), var(--study-via), var(--study-to))" }}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
             <div className="w-full max-w-2xl">
               {/* Focus Mode Timer Card */}
-              <div className="bg-white/5 backdrop-blur rounded-3xl p-12 border border-white/10 shadow-2xl">
+              <div className="bg-gradient-to-br from-purple-900/60 to-slate-900/60 backdrop-blur-md rounded-3xl p-12 border border-purple-700/40 shadow-2xl shadow-purple-500/20">
                 <div className="flex flex-col items-center">
                   {/* Subject Display */}
                   <div className="text-center mb-8">
@@ -625,7 +668,12 @@ const Study = () => {
 
                   {/* Custom Duration Input */}
                   {showCustomInput && (
-                    <div className="w-full mb-8 p-6 bg-white/5 rounded-xl border border-[#6C5DD3]/30">
+                    <motion.div
+                      className="w-full mb-8 p-6 bg-purple-900/30 rounded-xl border border-purple-700/30 backdrop-blur-sm"
+                      initial={{ opacity: 0, y: -20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
                       <label className="block text-white text-lg font-medium mb-3">
                         Custom Duration (minutes)
                       </label>
@@ -638,34 +686,38 @@ const Study = () => {
                           onChange={(e) =>
                             setCustomMinutesInput(e.target.value)
                           }
-                          className="flex-1 p-3 rounded-lg bg-[#1a1a2e] text-white border border-[#6C5DD3] text-lg"
+                          className="flex-1 p-3 rounded-lg bg-purple-900/40 text-white border border-purple-700/50 text-lg focus:outline-none focus:border-purple-600/80 transition"
                           placeholder="25"
                         />
-                        <button
+                        <motion.button
                           onClick={handleCustomDuration}
-                          className="px-6 py-3 rounded-lg bg-[#6C5DD3] text-white font-semibold hover:bg-[#7A6AD9] transition text-lg"
+                          className="px-6 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition text-lg"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.98 }}
                         >
                           Set
-                        </button>
+                        </motion.button>
                       </div>
-                    </div>
+                    </motion.div>
                   )}
 
                   {/* Mode Selection */}
                   <div className="flex gap-3 mb-8">
                     {MODES.map((m) => (
-                      <button
+                      <motion.button
                         key={m.key}
                         className={`px-6 py-3 rounded-full font-semibold transition-all text-lg ${
                           mode === m.key
-                            ? "bg-[#6C5DD3] text-white shadow-lg"
-                            : "bg-white/10 text-white/70 hover:bg-[#6C5DD3]/70"
+                            ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50"
+                            : "bg-purple-900/30 text-purple-300 hover:bg-purple-800/40 border border-purple-700/30"
                         }`}
                         onClick={() => handleModeChange(m.key)}
                         disabled={isRunning}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.98 }}
                       >
                         {m.label}
-                      </button>
+                      </motion.button>
                     ))}
                   </div>
 
@@ -732,18 +784,20 @@ const Study = () => {
                   {/* Timer Controls */}
                   <div className="flex gap-6 mb-8">
                     {isRunning ? (
-                      <button
+                      <motion.button
                         onClick={() => {
                           pauseLocalTimer();
                           stopTimer();
                         }}
-                        className="px-12 py-4 rounded-xl bg-[#FEC260] text-[#23234a] font-bold shadow-lg hover:bg-[#FFD580] transition flex items-center gap-3 text-xl"
+                        className="px-12 py-4 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 text-slate-900 font-bold shadow-lg hover:shadow-xl hover:shadow-yellow-500/50 transition flex items-center gap-3 text-xl"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                       >
                         <Pause className="w-6 h-6" />
                         Pause
-                      </button>
+                      </motion.button>
                     ) : (
-                      <button
+                      <motion.button
                         onClick={() => {
                           startLocalTimer();
                           startTimer();
@@ -751,29 +805,35 @@ const Study = () => {
                         disabled={
                           mode !== "stopwatch" && getTotalDuration() === 0
                         }
-                        className="px-12 py-4 rounded-xl bg-[#6C5DD3] text-white font-bold shadow-lg hover:bg-[#7A6AD9] transition flex items-center gap-3 text-xl"
+                        className="px-12 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold shadow-lg hover:shadow-lg hover:shadow-purple-500/50 transition flex items-center gap-3 text-xl disabled:opacity-50"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                       >
                         <Play className="w-6 h-6" />
                         Start
-                      </button>
+                      </motion.button>
                     )}
-                    <button
+                    <motion.button
                       onClick={() => {
                         resetLocalTimer();
                         resetTimer();
                       }}
-                      className="px-8 py-4 rounded-xl bg-white/10 text-white font-bold shadow-lg hover:bg-white/20 transition flex items-center gap-3 text-xl"
+                      className="px-8 py-4 rounded-xl bg-purple-900/40 text-white font-bold shadow-lg hover:bg-purple-900/60 border border-purple-700/40 transition flex items-center gap-3 text-xl"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
                       <RotateCcw className="w-6 h-6" />
                       Reset
-                    </button>
-                    <button
+                    </motion.button>
+                    <motion.button
                       onClick={handleEndSession}
-                      className="px-8 py-4 rounded-xl bg-red-600 text-white font-bold shadow-lg hover:bg-red-700 transition flex items-center gap-3 text-xl"
+                      className="px-8 py-4 rounded-xl bg-gradient-to-r from-red-600 to-red-700 text-white font-bold shadow-lg hover:shadow-lg hover:shadow-red-500/50 transition flex items-center gap-3 text-xl"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
                       <Square className="w-6 h-6" />
                       End
-                    </button>
+                    </motion.button>
                   </div>
 
                   {/* Debug Info */}
@@ -786,27 +846,33 @@ const Study = () => {
 
                   {/* Focus Mode Controls */}
                   <div className="flex items-center gap-6">
-                    <button
+                    <motion.button
                       onClick={() => setIsFocusMode(false)}
-                      className="px-6 py-3 rounded-lg bg-white/10 text-white font-semibold hover:bg-white/20 transition flex items-center gap-2"
+                      className="px-6 py-3 rounded-lg bg-purple-900/40 text-white font-semibold hover:bg-purple-900/60 border border-purple-700/40 transition flex items-center gap-2"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
                       <Target className="w-5 h-5" />
                       Exit Focus Mode
-                    </button>
-                    <button
+                    </motion.button>
+                    <motion.button
                       onClick={() => { handleCancelStudy(); navigate("/subjects"); }}
-                      className="px-6 py-3 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition flex items-center gap-2"
+                      className="px-6 py-3 rounded-lg bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold hover:shadow-lg hover:shadow-red-500/50 transition flex items-center gap-2"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
                       <X className="w-5 h-5" />
                       Cancel Study
-                    </button>
-                    <button
+                    </motion.button>
+                    <motion.button
                       onClick={() => setIsAmbientSoundOn(!isAmbientSoundOn)}
                       className={`px-6 py-3 rounded-lg transition flex items-center gap-2 ${
                         isAmbientSoundOn
-                          ? "bg-[#6C5DD3] text-white"
-                          : "bg-white/10 text-white/70 hover:bg-white/20"
+                          ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50"
+                          : "bg-purple-900/40 text-purple-300 hover:bg-purple-900/60 border border-purple-700/40"
                       }`}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
                       {isAmbientSoundOn ? (
                         <Volume2 className="w-5 h-5" />
@@ -814,7 +880,7 @@ const Study = () => {
                         <VolumeX className="w-5 h-5" />
                       )}
                       Ambient Sound
-                    </button>
+                    </motion.button>
                   </div>
                 </div>
               </div>
@@ -827,7 +893,7 @@ const Study = () => {
           className={`transition-opacity duration-500 ${isFocusMode ? "opacity-0 pointer-events-none" : "opacity-100"}`}
         >
           {/* Top Bar - Context Panel */}
-          <div className="bg-white/5 backdrop-blur border-b border-white/10 p-4">
+          <div className="bg-gradient-to-r from-purple-900/40 to-slate-900/40 backdrop-blur-md border-b border-purple-700/30 p-4">
             <div className="max-w-7xl mx-auto flex items-center justify-between">
               <div className="flex items-center gap-6">
                 <div>
@@ -851,22 +917,24 @@ const Study = () => {
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-right mr-4">
-                  <div className="text-sm text-gray-300">Weekly Progress</div>
+                  <div className="text-sm text-purple-300">Weekly Progress</div>
                   <div className="text-lg font-bold text-white">
                     {Math.round(weeklyProgress.studied / 60)}h /{" "}
                     {Math.round(weeklyProgress.goal / 60)}h
                   </div>
-                  <div className="text-xs text-gray-400">
+                  <div className="text-xs text-purple-300/70">
                     {weeklyProgress.percentage}% complete
                   </div>
                 </div>
-                <button
+                <motion.button
                   onClick={() => { handleCancelStudy(); navigate("/subjects"); }}
-                  className="px-6 py-3 rounded-xl bg-red-600 text-white font-semibold shadow hover:bg-red-700 transition flex items-center gap-2"
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold shadow-lg hover:shadow-lg hover:shadow-red-500/50 transition flex items-center gap-2"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
                   <X className="w-4 h-4" />
                   Cancel Study
-                </button>
+                </motion.button>
               </div>
             </div>
           </div>
@@ -876,11 +944,21 @@ const Study = () => {
               {/* Main Study Panel */}
               <div className="space-y-6">
                 {/* Timer Card */}
-                <div className="bg-white/5 backdrop-blur rounded-2xl p-8 border border-white/10">
+                <motion.div
+                  className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-8 border border-purple-700/30"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
                   <div className="flex flex-col items-center">
                     {/* Custom Duration Input */}
                     {showCustomInput && (
-                      <div className="w-full mb-6 p-4 bg-white/5 rounded-lg border border-[#6C5DD3]/30">
+                      <motion.div
+                        className="w-full mb-6 p-4 bg-purple-900/30 rounded-lg border border-purple-700/40"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
                         <label className="block text-white text-sm font-medium mb-2">
                           Custom Duration (minutes)
                         </label>
@@ -893,34 +971,38 @@ const Study = () => {
                             onChange={(e) =>
                               setCustomMinutesInput(e.target.value)
                             }
-                            className="flex-1 p-2 rounded bg-[#1a1a2e] text-white border border-[#6C5DD3] text-sm"
+                            className="flex-1 p-2 rounded bg-purple-900/40 text-white border border-purple-700/50 text-sm focus:outline-none focus:border-purple-600/80 transition"
                             placeholder="25"
                           />
-                          <button
+                          <motion.button
                             onClick={handleCustomDuration}
-                            className="px-4 py-2 rounded bg-[#6C5DD3] text-white font-semibold hover:bg-[#7A6AD9] transition text-sm"
+                            className="px-4 py-2 rounded bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition text-sm"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                           >
                             Set
-                          </button>
+                          </motion.button>
                         </div>
-                      </div>
+                      </motion.div>
                     )}
 
                     {/* Mode Selection */}
                     <div className="flex gap-2 mb-6">
                       {MODES.map((m) => (
-                        <button
+                        <motion.button
                           key={m.key}
                           className={`px-4 py-2 rounded-full font-semibold transition-all ${
                             mode === m.key
-                              ? "bg-[#6C5DD3] text-white shadow"
-                              : "bg-white/10 text-white/70 hover:bg-[#6C5DD3]/70"
+                              ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50"
+                              : "bg-purple-900/30 text-purple-300 hover:bg-purple-900/50 border border-purple-700/30"
                           }`}
                           onClick={() => handleModeChange(m.key)}
                           disabled={isRunning}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.98 }}
                         >
                           {m.label}
-                        </button>
+                        </motion.button>
                       ))}
                     </div>
 
@@ -987,18 +1069,20 @@ const Study = () => {
                     {/* Timer Controls */}
                     <div className="flex gap-4 mb-6">
                       {isRunning ? (
-                        <button
+                        <motion.button
                           onClick={() => {
                             pauseLocalTimer();
                             stopTimer();
                           }}
-                          className="px-8 py-3 rounded-xl bg-[#FEC260] text-[#23234a] font-bold shadow hover:bg-[#FFD580] transition flex items-center gap-2"
+                          className="px-8 py-3 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 text-slate-900 font-bold shadow-lg hover:shadow-xl hover:shadow-yellow-500/50 transition flex items-center gap-2"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
                         >
                           <Pause className="w-5 h-5" />
                           Pause
-                        </button>
+                        </motion.button>
                       ) : (
-                        <button
+                        <motion.button
                           onClick={() => {
                             startLocalTimer();
                             startTimer();
@@ -1006,33 +1090,39 @@ const Study = () => {
                           disabled={
                             mode !== "stopwatch" && getTotalDuration() === 0
                           }
-                          className="px-8 py-3 rounded-xl bg-[#6C5DD3] text-white font-bold shadow hover:bg-[#7A6AD9] transition flex items-center gap-2"
+                          className="px-8 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold shadow-lg hover:shadow-lg hover:shadow-purple-500/50 transition flex items-center gap-2 disabled:opacity-50"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
                         >
                           <Play className="w-5 h-5" />
                           Start
-                        </button>
+                        </motion.button>
                       )}
-                      <button
+                      <motion.button
                         onClick={() => {
                           resetLocalTimer();
                           resetTimer();
                         }}
-                        className="px-6 py-3 rounded-xl bg-white/10 text-white font-bold shadow hover:bg-white/20 transition flex items-center gap-2"
+                        className="px-6 py-3 rounded-xl bg-purple-900/40 text-white font-bold shadow-lg hover:bg-purple-900/60 border border-purple-700/40 transition flex items-center gap-2"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                       >
                         <RotateCcw className="w-5 h-5" />
                         Reset
-                      </button>
-                      <button
+                      </motion.button>
+                      <motion.button
                         onClick={handleEndSession}
-                        className="px-6 py-3 rounded-xl bg-red-600 text-white font-bold shadow hover:bg-red-700 transition flex items-center gap-2"
+                        className="px-6 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 text-white font-bold shadow-lg hover:shadow-lg hover:shadow-red-500/50 transition flex items-center gap-2"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                       >
                         <Square className="w-5 h-5" />
                         End
-                      </button>
+                      </motion.button>
                     </div>
 
                     {/* Debug Info */}
-                    <div className="text-xs text-gray-400 mb-4">
+                    <div className="text-xs text-purple-300/70 mb-4">
                       <div>Mode: {mode}</div>
                       <div>Running: {isRunning ? "Yes" : "No"}</div>
                       <div>Seconds Left: {secondsLeft}</div>
@@ -1041,24 +1131,28 @@ const Study = () => {
 
                     {/* Focus Mode Toggle */}
                     <div className="flex items-center gap-4">
-                      <button
+                      <motion.button
                         onClick={() => setIsFocusMode(!isFocusMode)}
                         className={`px-4 py-2 rounded-lg transition flex items-center gap-2 ${
                           isFocusMode
-                            ? "bg-[#6C5DD3] text-white"
-                            : "bg-white/10 text-white/70 hover:bg-white/20"
+                            ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50"
+                            : "bg-purple-900/40 text-purple-300 hover:bg-purple-900/60 border border-purple-700/40"
                         }`}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                       >
                         <Target className="w-4 h-4" />
                         {isFocusMode ? "Exit Focus" : "Focus Mode"}
-                      </button>
-                      <button
+                      </motion.button>
+                      <motion.button
                         onClick={() => setIsAmbientSoundOn(!isAmbientSoundOn)}
                         className={`px-4 py-2 rounded-lg transition flex items-center gap-2 ${
                           isAmbientSoundOn
-                            ? "bg-[#6C5DD3] text-white"
-                            : "bg-white/10 text-white/70 hover:bg-white/20"
+                            ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50"
+                            : "bg-purple-900/40 text-purple-300 hover:bg-purple-900/60 border border-purple-700/40"
                         }`}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                       >
                         {isAmbientSoundOn ? (
                           <Volume2 className="w-4 h-4" />
@@ -1066,15 +1160,20 @@ const Study = () => {
                           <VolumeX className="w-4 h-4" />
                         )}
                         Ambient Sound
-                      </button>
+                      </motion.button>
                     </div>
                   </div>
-                </div>
+                </motion.div>
 
                 {/* Current Task Input */}
-                <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
+                <motion.div
+                  className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                >
                   <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                    <Target className="w-5 h-5" />
+                    <Target className="w-5 h-5 text-purple-400" />
                     Current Task/Topic
                   </h3>
 
@@ -1082,7 +1181,7 @@ const Study = () => {
                     <select
                       value={currentTask}
                       onChange={(e) => handleTaskSelection(e.target.value)}
-                      className="w-full p-3 rounded-lg bg-[#1a1a2e] text-white border border-[#6C5DD3]"
+                      className="w-full p-3 rounded-lg bg-purple-900/40 text-white border border-purple-700/50 focus:outline-none focus:border-purple-600/80 transition"
                       disabled={isRunning}
                     >
                       <option value="">
@@ -1107,7 +1206,7 @@ const Study = () => {
                       type="text"
                       value={currentTask}
                       onChange={(e) => setCurrentTask(e.target.value)}
-                      className="w-full p-3 rounded-lg bg-[#1a1a2e] text-white border border-[#6C5DD3]"
+                      className="w-full p-3 rounded-lg bg-purple-900/40 text-white border border-purple-700/50 focus:outline-none focus:border-purple-600/80 transition"
                       placeholder="Or type a custom topic..."
                     />
                   </div>
@@ -1128,77 +1227,92 @@ const Study = () => {
                       Mark task as complete
                     </label>
                   </div>
-                </div>
+                </motion.div>
               </div>
 
               {/* Sidebar - Stats Panel */}
               <div className="space-y-6">
                 {/* Today's Stats */}
-                <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
+                <motion.div
+                  className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                >
                   <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5" />
+                    <TrendingUp className="w-5 h-5 text-purple-400" />
                     Today's Progress
                   </h3>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-300">Sessions</span>
+                      <span className="text-purple-200/80">Sessions</span>
                       <span className="text-white font-bold">
                         {todayStats.sessions}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-300">Time Studied</span>
+                      <span className="text-purple-200/80">Time Studied</span>
                       <span className="text-white font-bold">
                         {Math.round(todayStats.minutes)} min
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-300">Current Streak</span>
+                      <span className="text-purple-200/80">Current Streak</span>
                       <span className="text-white font-bold flex items-center gap-1">
                         <Flame className="w-4 h-4 text-[#FEC260]" />
                         {streak} days
                       </span>
                     </div>
                   </div>
-                </div>
+                </motion.div>
 
                 {/* Weekly Progress */}
-                <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
+                <motion.div
+                  className="bg-gradient-to-br from-pink-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-pink-700/30"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                >
                   <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                    <Calendar className="w-5 h-5" />
+                    <Calendar className="w-5 h-5 text-pink-400" />
                     Weekly Goal
                   </h3>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-300">Studied</span>
+                      <span className="text-pink-200/80">Studied</span>
                       <span className="text-white font-bold">
                         {Math.round(weeklyProgress.studied / 60)}h
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-300">Goal</span>
+                      <span className="text-pink-200/80">Goal</span>
                       <span className="text-white font-bold">
                         {Math.round(weeklyProgress.goal / 60)}h
                       </span>
                     </div>
-                    <div className="w-full bg-white/10 rounded-full h-2">
-                      <div
-                        className="bg-[#6C5DD3] h-2 rounded-full transition-all duration-500"
-                        style={{
-                          width: `${Math.min(weeklyProgress.percentage, 100)}%`,
-                        }}
+                    <div className="w-full bg-pink-500/20 rounded-full h-2">
+                      <motion.div
+                        className="bg-gradient-to-r from-pink-400 to-purple-400 h-2 rounded-full transition-all duration-500"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.min(weeklyProgress.percentage, 100)}%` }}
+                        transition={{ duration: 1.5 }}
                       />
                     </div>
-                    <div className="text-center text-sm text-gray-300">
+                    <div className="text-center text-sm text-pink-200/80">
                       {weeklyProgress.percentage}% complete
                     </div>
                   </div>
-                </div>
+                </motion.div>
 
                 {/* Recent Study Logs */}
-                <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
+                <motion.div
+                  className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                >
                   <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                    <BookOpen className="w-5 h-5" />
+                    <BookOpen className="w-5 h-5 text-purple-400" />
                     Recent Study Logs
                   </h3>
                   <div className="max-h-[300px] overflow-y-auto">
@@ -1219,18 +1333,21 @@ const Study = () => {
                               }[session.mood] || "";
 
                             return (
-                              <div
+                              <motion.div
                                 key={index}
-                                className="p-3 rounded-lg bg-white/5 border border-white/10"
+                                className="p-3 rounded-lg bg-purple-800/20 border border-purple-700/30 hover:bg-purple-800/40 transition-all"
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: index * 0.05 }}
                               >
                                 <div className="flex items-center justify-between mb-2">
                                   <div className="flex items-center gap-2">
-                                    <Clock className="w-4 h-4 text-[#6C5DD3]" />
+                                    <Clock className="w-4 h-4 text-purple-400" />
                                     <span className="text-sm font-medium text-white">
                                       {session.durationMinutes.toFixed(1)} min
                                     </span>
                                   </div>
-                                  <span className="text-xs text-gray-400">
+                                  <span className="text-xs text-purple-200/80">
                                     {new Date(
                                       session.timestamp,
                                     ).toLocaleDateString("en-US", {
@@ -1243,21 +1360,21 @@ const Study = () => {
                                 </div>
 
                                 {session.task && (
-                                  <div className="text-xs text-gray-300 mb-1">
+                                  <div className="text-xs text-purple-200/80 mb-1">
                                     <span className="font-medium">Task:</span>{" "}
                                     {session.task}
                                   </div>
                                 )}
 
                                 {session.reflection && (
-                                  <div className="text-xs text-gray-300 mb-2 italic">
+                                  <div className="text-xs text-purple-200/80 mb-2 italic">
                                     "{session.reflection}"
                                   </div>
                                 )}
 
                                 <div className="flex items-center gap-3 text-xs">
                                   {session.mood && (
-                                    <span className="text-gray-400 flex items-center gap-1">
+                                    <span className="text-purple-200/80 flex items-center gap-1">
                                       <span>{moodEmoji}</span>
                                       <span className="capitalize">
                                         {session.mood}
@@ -1265,97 +1382,116 @@ const Study = () => {
                                     </span>
                                   )}
                                   {session.difficulty && (
-                                    <span className="text-gray-400">
+                                    <span className="text-purple-200/80">
                                       Difficulty: {session.difficulty}/4
                                     </span>
                                   )}
                                 </div>
 
-                                <button
+                                <motion.button
                                   onClick={() =>
                                     deleteStudySession(
                                       studySessions.indexOf(session),
                                     )
                                   }
-                                  className="mt-2 p-1 rounded hover:bg-red-600/20 transition text-red-400 hover:text-red-300"
+                                  className="mt-2 p-1 rounded hover:bg-red-600/30 transition text-red-400 hover:text-red-300"
                                   title="Delete session"
+                                  whileHover={{ scale: 1.2 }}
+                                  whileTap={{ scale: 0.9 }}
                                 >
                                   <Trash2 className="w-3 h-3" />
-                                </button>
-                              </div>
+                                </motion.button>
+                              </motion.div>
                             );
                           })}
                       </div>
                     ) : (
                       <div className="text-center py-8">
-                        <BookOpen className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                        <p className="text-gray-400 text-sm">
+                        <BookOpen className="w-8 h-8 text-purple-400/50 mx-auto mb-2" />
+                        <p className="text-purple-300/80 text-sm">
                           No study logs yet for this subject
                         </p>
-                        <p className="text-gray-500 text-xs">
+                        <p className="text-purple-300/60 text-xs">
                           Complete a session to see your logs here!
                         </p>
                       </div>
                     )}
                   </div>
-                </div>
+                </motion.div>
 
                 {/* Achievements */}
-                <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
+                <motion.div
+                  className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.5 }}
+                >
                   <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                    <Award className="w-5 h-5" />
+                    <Award className="w-5 h-5 text-yellow-400" />
                     Recent Achievements
                   </h3>
                   <div className="space-y-3">
                     {streak >= 3 && (
-                      <div className="flex items-center gap-3 p-3 rounded-lg bg-[#6C5DD3]/20 border border-[#6C5DD3]/30">
-                        <Flame className="w-5 h-5 text-[#FEC260]" />
+                      <motion.div
+                        className="flex items-center gap-3 p-3 rounded-lg bg-yellow-900/20 border border-yellow-700/30 hover:bg-yellow-900/40 transition-all"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                      >
+                        <Flame className="w-5 h-5 text-yellow-400" />
                         <div>
                           <div className="text-white text-sm font-medium">
                             Streak Master
                           </div>
-                          <div className="text-gray-300 text-xs">
+                          <div className="text-yellow-200/80 text-xs">
                             {streak} day streak!
                           </div>
                         </div>
-                      </div>
+                      </motion.div>
                     )}
                     {todayStats.minutes >= 120 && (
-                      <div className="flex items-center gap-3 p-3 rounded-lg bg-[#6C5DD3]/20 border border-[#6C5DD3]/30">
-                        <Zap className="w-5 h-5 text-[#FEC260]" />
+                      <motion.div
+                        className="flex items-center gap-3 p-3 rounded-lg bg-blue-900/20 border border-blue-700/30 hover:bg-blue-900/40 transition-all"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                      >
+                        <Zap className="w-5 h-5 text-blue-400" />
                         <div>
                           <div className="text-white text-sm font-medium">
                             Study Warrior
                           </div>
-                          <div className="text-gray-300 text-xs">
+                          <div className="text-blue-200/80 text-xs">
                             2+ hours today!
                           </div>
                         </div>
-                      </div>
+                      </motion.div>
                     )}
                     {weeklyProgress.percentage >= 80 && (
-                      <div className="flex items-center gap-3 p-3 rounded-lg bg-[#6C5DD3]/20 border border-[#6C5DD3]/30">
-                        <Target className="w-5 h-5 text-[#FEC260]" />
+                      <motion.div
+                        className="flex items-center gap-3 p-3 rounded-lg bg-emerald-900/20 border border-emerald-700/30 hover:bg-emerald-900/40 transition-all"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                      >
+                        <Target className="w-5 h-5 text-emerald-400" />
                         <div>
                           <div className="text-white text-sm font-medium">
                             Goal Crusher
                           </div>
-                          <div className="text-gray-300 text-xs">
+                          <div className="text-emerald-200/80 text-xs">
                             80%+ weekly goal!
                           </div>
                         </div>
-                      </div>
+                      </motion.div>
                     )}
                     {studySessions.length === 0 && (
                       <div className="text-center py-4">
-                        <Award className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                        <p className="text-gray-400 text-sm">
+                        <Award className="w-8 h-8 text-purple-400/50 mx-auto mb-2" />
+                        <p className="text-purple-300/80 text-sm">
                           Complete your first session to unlock achievements!
                         </p>
                       </div>
                     )}
                   </div>
-                </div>
+                </motion.div>
               </div>
             </div>
           </div>
