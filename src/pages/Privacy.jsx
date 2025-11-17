@@ -39,16 +39,19 @@ export default function Privacy() {
             {/* Aurora */}
             <button
               type="button"
-              onClick={() => setTheme("aurora")}
-              className={`text-left rounded-2xl p-4 border transition-all ${theme === "aurora" ? "ring-2 ring-[var(--primary)] border-transparent" : "border-gray-200 hover:shadow"}`}
+              disabled
+              className="text-left rounded-2xl p-4 border transition-all border-gray-200 opacity-60 cursor-not-allowed"
               style={{ background: "linear-gradient(135deg, #ecfeff, #e0f2fe)", color: "#064e3b" }}
             >
               <div className="flex items-center justify-between mb-3">
                 <span className="font-semibold">Aurora</span>
-                {theme === "aurora" && <span className="text-sm bg-black/10 px-2 py-0.5 rounded">Selected</span>}
+                <span className="text-xs bg-gray-400 text-white px-2 py-1 rounded-full flex items-center gap-1">
+                  <Lock className="w-3 h-3" />
+                  Locked
+                </span>
               </div>
-              <div className="h-20 rounded-xl" style={{ background: "linear-gradient(135deg,#10b981,#2563eb)" }}></div>
-              <p className="mt-3 text-sm opacity-80">Blue/green gradient, bright and energetic.</p>
+              <div className="h-20 rounded-xl opacity-50" style={{ background: "linear-gradient(135deg,#10b981,#2563eb)" }}></div>
+              <p className="mt-3 text-sm opacity-60">Coming soon. Brighter theme variant in development.</p>
             </button>
           </div>
         </section>
