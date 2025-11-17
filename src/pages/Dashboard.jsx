@@ -257,19 +257,52 @@ export default function Dashboard() {
     localStorage.setItem('studySessions', JSON.stringify(updatedSessions));
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 30, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut"
+      }
+    }
+  };
+
   // Card component
-  const Card = ({ title, icon, children, className = "" }) => (
-    <motion.div
-      whileHover={{ scale: 1.015 }}
-      className={`rounded-xl bg-white/5 p-5 border border-white/10 backdrop-blur shadow-xl ${className}`}
-    >
-      <div className="flex items-center gap-3 mb-4">
-        {icon && <div className="text-purple-400 text-2xl">{icon}</div>}
-        <h2 className="text-lg font-semibold text-white">{title}</h2>
-      </div>
-      {children}
-    </motion.div>
-  );
+  const Card = ({ title, icon, children, className = "", variant = "default" }) => {
+    const variants = {
+      default: "bg-gradient-to-br from-purple-900/40 to-slate-900/40 border-purple-700/30",
+      pink: "bg-gradient-to-br from-pink-900/40 to-slate-900/40 border-pink-700/30",
+      emerald: "bg-gradient-to-br from-emerald-900/40 to-slate-900/40 border-emerald-700/30",
+      orange: "bg-gradient-to-br from-orange-900/40 to-slate-900/40 border-orange-700/30"
+    };
+
+    return (
+      <motion.div
+        whileHover={{ y: -5, scale: 1.02 }}
+        variants={itemVariants}
+        className={`rounded-2xl p-6 border backdrop-blur-md shadow-xl transition-all ${variants[variant]} ${className}`}
+      >
+        <div className="flex items-center gap-3 mb-4">
+          {icon && <div className="text-purple-400 text-2xl">{icon}</div>}
+          <h2 className="text-lg font-semibold text-white">{title}</h2>
+        </div>
+        {children}
+      </motion.div>
+    );
+  };
   
 
   const getStreakMessage = (streakCount) => {
