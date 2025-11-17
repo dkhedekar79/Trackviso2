@@ -9,16 +9,6 @@ export default function DashboardViewToggle() {
       <button
         onClick={toggleDashboard}
         className={`px-4 py-2 rounded-md font-semibold text-sm transition-all ${
-          showGamified
-            ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg'
-            : 'text-white/70 hover:text-white'
-        }`}
-      >
-        Full View
-      </button>
-      <button
-        onClick={toggleDashboard}
-        className={`px-4 py-2 rounded-md font-semibold text-sm transition-all ${
           !showGamified
             ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg'
             : 'text-white/70 hover:text-white'
@@ -26,6 +16,19 @@ export default function DashboardViewToggle() {
       >
         Basic View
       </button>
+      
+      
+      <button
+        onClick={toggleDashboard}
+        className={`px-4 py-2 rounded-md font-semibold text-sm transition-all ${
+          showGamified
+            ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg'
+            : 'text-white/70 hover:text-white'
+        }`}
+      >
+        Full View
+      </button>
+      
     </div>
   );
 }
