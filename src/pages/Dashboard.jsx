@@ -346,7 +346,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1a1a2e] to-[#16213e] flex">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 flex">
       <OnboardingModal userId={user?.id} />
 
       {/* Main Content Container with Sidebar Offset */}
