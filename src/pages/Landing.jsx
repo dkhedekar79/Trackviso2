@@ -558,8 +558,7 @@ const Landing = () => {
                 ) : (
                   <div className="text-white text-center">
                       <video
-      src="https://drive.google.com/uc?export=download&id=1hXiG3e49LLT23sgfpnyf9rCX3sm6UwPv
-"              // ← place your MP4 file in /public
+      src="https://res.cloudinary.com/do6sjcdau/video/upload/v1763497430/1118_i9nwr8.mov"              // ← place your MP4 file in /public
       className="w-full h-full object-cover rounded-3xl"
       controls
       autoPlay
