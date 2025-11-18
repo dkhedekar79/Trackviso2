@@ -11,9 +11,11 @@ import {
   Award,
   Target
 } from 'lucide-react';
+import Sidebar from "../components/Sidebar";
 import { useNavigate } from 'react-router-dom';
 import { useTimer } from '../context/TimerContext';
 import { useGamification } from '../context/GamificationContext';
+
 
 const Subjects = () => {
   const [subjects, setSubjects] = useState([]);
@@ -102,18 +104,20 @@ const Subjects = () => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-[#012E23] to-[#0B4A68] min-h-screen mt-20 pl-[100px] pr-6 py-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-white">Subjects</h1>
-          <p className="text-white">Manage your study subjects and track progress</p>
+    <div className="min-h-screen mt-20 flex bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
+      <Sidebar />
+      <div className="flex-1 ml-16 transition-all duration-300 ease-in-out [body>div>aside:hover_+_div&]:ml-64">
+        <div className="max-w-4xl mx-auto p-8">
+          <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent mb-4">Subjects</h1>
+              <p className="text-xl text-purple-200/80">Manage your study subjects and track progress</p>
         </div>
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setShowModal(true)}
-          className="flex items-center space-x-2 px-6 py-3 bg-[#6C5DD3] text-white rounded-xl font-semibold shadow-lg hover:bg-[#7A6AD9] transition-colors"
+          className="flex items-center space-x-2 px-6 py-3 bg-purple-600 text-white rounded-xl font-semibold shadow-lg hover:bg-purple-700 transition-colors"
         >
           <Plus className="w-5 h-5" />
           <span>Add Subject</span>
@@ -136,19 +140,17 @@ const Subjects = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               whileHover={{ scale: 1.02 }}
-              className="relative overflow-hidden rounded-2xl shadow-lg"
-              style={{ backgroundColor: subject.color }}
+              className="relative overflow-hidden rounded-2xl shadow-lg border-4 bg-white/10"
+              style={{ borderColor: subject.color }}
             >
               {/* Subject Badge */}
-              <div className="absolute top-3 right-3">
-                <div className={`${badge.color} text-2xl`}>{badge.icon}</div>
-              </div>
+              
 
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
-                    <h3 className={`text-xl font-bold ${textColor} mb-1`}>{subject.name}</h3>
-                    <p className={`text-sm ${textColor} opacity-80`}>{badge.name} Level {level}</p>
+                    <h3 className="text-xl font-bold text-purple-200/80 mb-1">{subject.name}</h3>
+                    <p className="text-sm text-purple-300">{badge.name} Level {level}</p>
                   </div>
                   <div className="flex space-x-2">
                     <motion.button
@@ -158,7 +160,7 @@ const Subjects = () => {
                         setEditingSubject(subject);
                         setShowModal(true);
                       }}
-                      className={`p-2 rounded-lg ${textColor} opacity-70 hover:opacity-100 transition-opacity`}
+                      className="p-2 rounded-lg text-purple-200/80 opacity-70 hover:opacity-100 transition-opacity"
                     >
                       <Edit className="w-4 h-4" />
                     </motion.button>
@@ -166,7 +168,7 @@ const Subjects = () => {
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                       onClick={() => handleDeleteSubject(subject.id)}
-                      className={`p-2 rounded-lg ${textColor} opacity-70 hover:opacity-100 transition-opacity`}
+                      className="p-2 rounded-lg text-purple-200/80 opacity-70 hover:opacity-100 transition-opacity"
                     >
                       <Trash2 className="w-4 h-4" />
                     </motion.button>
@@ -176,8 +178,8 @@ const Subjects = () => {
                 {/* Study Stats */}
                 <div className="space-y-3 mb-4">
                   <div className="flex justify-between items-center">
-                    <span className={`text-sm ${textColor} opacity-80`}>Total Studied</span>
-                    <span className={`font-semibold ${textColor}`}>
+                    <span className="text-sm text-purple-300">Total Studied</span>
+                    <span className="font-semibold text-purple-200/80">
                       {Math.round(studyTime / 60)}h {Math.round(studyTime % 60)}m
                     </span>
                   </div>
@@ -185,15 +187,15 @@ const Subjects = () => {
                   {subject.goalHours > 0 && (
                     <div>
                       <div className="flex justify-between items-center mb-1">
-                        <span className={`text-sm ${textColor} opacity-80`}>Weekly Goal</span>
-                        <span className={`text-sm ${textColor} opacity-80`}>{Math.round(progress)}%</span>
+                        <span className="text-sm text-purple-300">Weekly Goal</span>
+                        <span className="text-sm text-purple-300">{Math.round(progress)}%</span>
                       </div>
-                      <div className="w-full bg-black bg-opacity-20 rounded-full h-2">
+                      <div className="w-full bg-white/20 rounded-full h-2">
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{ width: `${progress}%` }}
                           transition={{ duration: 1, ease: "easeOut" }}
-                          className="bg-white bg-opacity-80 h-2 rounded-full"
+                          className="bg-purple-400 h-2 rounded-full"
                         ></motion.div>
                       </div>
                     </div>
@@ -201,8 +203,8 @@ const Subjects = () => {
 
                   {lastStudied && (
                     <div className="flex justify-between items-center">
-                      <span className={`text-sm ${textColor} opacity-80`}>Last Studied</span>
-                      <span className={`text-sm ${textColor} opacity-80`}>
+                      <span className="text-sm text-purple-300">Last Studied</span>
+                      <span className="text-sm text-purple-300">
                         {new Date(lastStudied).toLocaleDateString()}
                       </span>
                     </div>
@@ -215,27 +217,13 @@ const Subjects = () => {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => handleStartTimer(subject.name)}
-                    className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-lg font-semibold transition-colors ${
-                      textColor === 'text-white' 
-                        ? 'bg-white bg-opacity-20 text-white hover:bg-opacity-30' 
-                        : 'bg-black bg-opacity-10 text-gray-800 hover:bg-opacity-20'
-                    }`}
+                    className="flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-lg font-semibold transition-colors bg-purple-700 text-white hover:bg-purple-800"
                   >
                     <Play className="w-4 h-4" />
                     <span>Start Timer</span>
                   </motion.button>
                   
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className={`flex items-center justify-center p-2 rounded-lg transition-colors ${
-                      textColor === 'text-white' 
-                        ? 'bg-white bg-opacity-20 text-white hover:bg-opacity-30' 
-                        : 'bg-black bg-opacity-10 text-gray-800 hover:bg-opacity-20'
-                    }`}
-                  >
-                    <BookOpen className="w-4 h-4" />
-                  </motion.button>
+                 
                 </div>
               </div>
             </motion.div>
@@ -272,13 +260,13 @@ const Subjects = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="bg-white rounded-2xl p-6 w-full max-w-md mx-4"
           >
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            <h2 className="text-2xl font-bold text-black mb-4">
               {editingSubject ? 'Edit Subject' : 'Add New Subject'}
             </h2>
             
-            <div className="space-y-4">
+            <div className="space-y-4 text-black">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Subject Name</label>
+                <label className="block text-sm font-medium text-black mb-2">Subject Name</label>
                 <input
                   type="text"
                   value={editingSubject ? editingSubject.name : newSubject.name}
@@ -289,13 +277,13 @@ const Subjects = () => {
                       setNewSubject({ ...newSubject, name: e.target.value });
                     }
                   }}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6C5DD3] focus:border-transparent"
+                  className="w-full px-4 py-2 border border-black rounded-lg focus:ring-2 focus:ring-[#6C5DD3] focus:border-transparent"
                   placeholder="Enter subject name"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Color</label>
+                <label className="block text-sm font-medium text-black mb-2">Color</label>
                 <input
                   type="color"
                   value={editingSubject ? editingSubject.color : newSubject.color}
@@ -306,12 +294,12 @@ const Subjects = () => {
                       setNewSubject({ ...newSubject, color: e.target.value });
                     }
                   }}
-                  className="w-full h-12 border border-gray-300 rounded-lg cursor-pointer"
+                  className="w-full h-12 border border-black rounded-lg cursor-pointer"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Weekly Goal (hours)</label>
+                <label className="block text-sm font-medium text-black mb-2">Weekly Goal (hours)</label>
                 <input
                   type="number"
                   value={editingSubject ? editingSubject.goalHours : newSubject.goalHours}
@@ -322,7 +310,7 @@ const Subjects = () => {
                       setNewSubject({ ...newSubject, goalHours: parseFloat(e.target.value) || 0 });
                     }
                   }}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6C5DD3] focus:border-transparent"
+                  className="w-full px-4 py-2 border border-black rounded-lg focus:ring-2 focus:ring-[#6C5DD3] focus:border-transparent"
                   placeholder="0"
                   min="0"
                   step="0.5"
@@ -354,7 +342,10 @@ const Subjects = () => {
             </div>
           </motion.div>
         </div>
+        
       )}
+    </div>
+    </div>
     </div>
   );
 };
