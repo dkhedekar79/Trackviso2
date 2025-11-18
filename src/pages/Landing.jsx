@@ -557,7 +557,12 @@ const Landing = () => {
                   </div>
                 ) : (
                   <div className="text-white text-center">
-                    <p className="text-xl">If the video does not play, feel free to contact us</p>
+                      <video
+      src="/demo.mp4"              // ← place your MP4 file in /public
+      className="w-full h-full object-cover"
+      controls
+      autoPlay
+    ></video>
                     <button
                       className="mt-4 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-all backdrop-blur-sm"
                       onClick={(e) => {
