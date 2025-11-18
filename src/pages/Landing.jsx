@@ -558,7 +558,7 @@ const Landing = () => {
                 ) : (
                   <div className="text-white text-center">
                       <video
-      src="/demo.mp4"              // ← place your MP4 file in /public
+      src="https://drive.google.com/file/d/1hXiG3e49LLT23sgfpnyf9rCX3sm6UwPv/view?usp=sharing"              // ← place your MP4 file in /public
       className="w-full h-full object-cover"
       controls
       autoPlay
