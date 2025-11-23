@@ -5,7 +5,6 @@ import Sidebar from '../components/Sidebar';
 import { BookOpen, ChevronDown, Zap, CheckCircle, AlertCircle, Lightbulb, Brain, Settings } from 'lucide-react';
 import KnowledgeSetupModal from '../components/KnowledgeSetupModal';
 import { knowledgeDatabase, getTopicsForSubject, getNotesForTopic } from '../data/knowledgeData';
-import { fetchTopicsFromHuggingFace, generateNotesFromHuggingFace } from "../api/huggingface";
 
 
 
@@ -115,20 +114,6 @@ export default function Knowledge() {
       }
     }
   };
-
-  const [qualification, setQualification] = useState("");
-  const [subject, setSubject] = useState("");
-  const [examBoard, setExamBoard] = useState("");
-
-  const [topics, setTopics] = useState([]);
-  const [loadingTopics, setLoadingTopics] = useState(false);
-
-  const [selectedTopic, setSelectedTopic] = useState(null);
-  const [notes, setNotes] = useState(null);
-  const [loadingNotes, setLoadingNotes] = useState(false);
-
-  const [error, setError] = useState("");
-
 
   return (
     <div className="min-h-screen mt-20 flex bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
