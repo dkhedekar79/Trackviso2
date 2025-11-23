@@ -119,6 +119,21 @@ function App() {
                 </ProtectedRoute>
               } />
 
+              <Route path="/knowledge" element={
+                <ProtectedRoute>
+                  <div className="flex h-screen bg-[var(--app-bg)]">
+                    <Sidebar />
+                    <div className="flex-1 flex flex-col">
+                      <Navbar />
+                      <main className="flex-1 overflow-auto">
+                        <Knowledge />
+                        <Footer withSidebar />
+                      </main>
+                    </div>
+                  </div>
+                </ProtectedRoute>
+              } />
+
               <Route path="/tasks" element={
                 <ProtectedRoute>
                   <div className="flex h-screen bg-[var(--app-bg)]">
