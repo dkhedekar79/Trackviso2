@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import { BookOpen, ChevronDown, Zap, CheckCircle, AlertCircle, Lightbulb, Brain, Settings } from 'lucide-react';
 import KnowledgeSetupModal from '../components/KnowledgeSetupModal';
-import { generateNotesFromHuggingFace } from '../utils/huggingfaceApi';
+import { knowledgeDatabase, getTopicsForSubject, getNotesForTopic } from '../data/knowledgeData';
 
 export default function Knowledge() {
   const [activeSection, setActiveSection] = useState('notes'); // notes or practice
