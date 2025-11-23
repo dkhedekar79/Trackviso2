@@ -120,7 +120,7 @@ export const knowledgeDatabase = {
                       }
                     ]
                   }
-                }
+                },
                 {
                   id: 'geometry',
                   name: 'Geometry',
