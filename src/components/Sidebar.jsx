@@ -17,18 +17,21 @@ export default function Sidebar() {
           <BrainIcon className="w-5 h-5 text-white" />
         </div>
         <div className="absolute w-16 h-12 flex items-center justify-center transition-opacity duration-300 group-hover:opacity-0" style={{ top: '208px' }}>
-          <BarChart3 className="w-5 h-5 text-white" />
+          <BookOpen className="w-5 h-5 text-white" />
         </div>
         <div className="absolute w-16 h-12 flex items-center justify-center transition-opacity duration-300 group-hover:opacity-0" style={{ top: '264px' }}>
-          <BookIcon className="w-5 h-5 text-white" />
+          <BarChart3 className="w-5 h-5 text-white" />
         </div>
         <div className="absolute w-16 h-12 flex items-center justify-center transition-opacity duration-300 group-hover:opacity-0" style={{ top: '320px' }}>
-          <ListChecksIcon className="w-5 h-5 text-white" />
+          <BookIcon className="w-5 h-5 text-white" />
         </div>
         <div className="absolute w-16 h-12 flex items-center justify-center transition-opacity duration-300 group-hover:opacity-0" style={{ top: '376px' }}>
-          <CalendarIcon className="w-5 h-5 text-white" />
+          <ListChecksIcon className="w-5 h-5 text-white" />
         </div>
         <div className="absolute w-16 h-12 flex items-center justify-center transition-opacity duration-300 group-hover:opacity-0" style={{ top: '432px' }}>
+          <CalendarIcon className="w-5 h-5 text-white" />
+        </div>
+        <div className="absolute w-16 h-12 flex items-center justify-center transition-opacity duration-300 group-hover:opacity-0" style={{ top: '488px' }}>
           <GraduationCap className="w-5 h-5 text-white" />
         </div>
       </div>
