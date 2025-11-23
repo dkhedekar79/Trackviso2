@@ -40,34 +40,31 @@ export default function Knowledge() {
     setLoading(true);
 
     try {
-      // Check if notes are already cached
-      const savedNotes = JSON.parse(localStorage.getItem('knowledgeNotes') || '{}');
-      if (savedNotes[topic]) {
-        setNotes(savedNotes[topic]);
-        setPracticeQuestions(savedNotes[topic].practiceQuestions);
-        setLoading(false);
-        return;
+      // Simulate a small delay for UX
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Fetch notes from local data
+      const topicData = getTopicsForSubject(userSetup.qualification, userSetup.examBoard, userSetup.subject);
+      const topicRecord = topicData.find(t => t.name === topic || t.id === topic);
+
+      if (topicRecord && topicRecord.notes) {
+        setNotes(topicRecord.notes);
+        setPracticeQuestions(topicRecord.notes.practiceQuestions || []);
+      } else {
+        setNotes({
+          title: topic,
+          summary: `Notes for "${topic}" are not available yet. They will be added soon!`,
+          mainPoints: [],
+          keyTerms: [],
+          practiceQuestions: []
+        });
+        setPracticeQuestions([]);
       }
-
-      // Generate notes using Hugging Face API
-      const notesContent = await generateNotesFromHuggingFace(
-        topic,
-        userSetup.qualification,
-        userSetup.subject,
-        userSetup.examBoard
-      );
-
-      setNotes(notesContent);
-      setPracticeQuestions(notesContent.practiceQuestions);
-
-      // Save to localStorage for future reference
-      savedNotes[topic] = notesContent;
-      localStorage.setItem('knowledgeNotes', JSON.stringify(savedNotes));
     } catch (error) {
-      console.error('Error generating notes:', error);
+      console.error('Error loading notes:', error);
       setNotes({
         title: topic,
-        summary: `Unable to generate notes for "${topic}" at the moment. Please try again later or with a different topic.`,
+        summary: 'Unable to load notes at the moment. Please try again.',
         mainPoints: [],
         keyTerms: [],
         practiceQuestions: []
