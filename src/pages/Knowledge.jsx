@@ -39,153 +39,40 @@ export default function Knowledge() {
 
     setLoading(true);
 
-    // Simulate API call with delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
     try {
-      // Mock data generation - in production, replace with actual API call
-      const notesContent = {
-        title: `${topic} - Comprehensive Study Guide`,
-        summary: `A comprehensive guide to ${topic} designed for ${userSetup.qualification} level ${userSetup.subject} students studying with the ${userSetup.examBoard} exam board. This guide covers all key concepts, definitions, and practical applications you need to master this topic.`,
-        mainPoints: [
-          {
-            heading: `Understanding ${topic}`,
-            content: `${topic} is a fundamental concept in ${userSetup.subject}. It encompasses various principles and applications that are essential for your exam preparation. This section breaks down the core ideas into manageable, easy-to-understand concepts.`,
-            examples: [
-              `Example 1: Basic application of ${topic}`,
-              `Example 2: Real-world scenario involving ${topic}`,
-              `Example 3: Common exam question about ${topic}`
-            ]
-          },
-          {
-            heading: `Key Principles and Concepts`,
-            content: `There are several important principles to understand when studying ${topic}. These include foundational concepts that build upon each other, creating a comprehensive understanding of the subject matter. Pay special attention to how these principles interconnect.`,
-            examples: [
-              `Principle 1: Core foundation`,
-              `Principle 2: Development and application`,
-              `Principle 3: Advanced understanding`
-            ]
-          },
-          {
-            heading: `Practical Applications`,
-            content: `${topic} has numerous real-world applications that you should understand. These applications demonstrate why this topic is important and how it's used in various contexts. Understanding these applications helps with retention and exam performance.`,
-            examples: [
-              `Application in science and research`,
-              `Application in industry and technology`,
-              `Application in everyday scenarios`
-            ]
-          },
-          {
-            heading: `Exam Tips and Common Mistakes`,
-            content: `When answering exam questions about ${topic}, remember these crucial tips. Many students make common mistakes that can cost valuable marks. By understanding what examiners are looking for, you can significantly improve your exam performance.`,
-            examples: [
-              `Avoid oversimplification - provide detailed explanations`,
-              `Use appropriate terminology consistently`,
-              `Show your working and reasoning clearly`
-            ]
-          }
-        ],
-        keyTerms: [
-          {
-            term: `${topic} Definition`,
-            definition: `The fundamental definition of ${topic} as it pertains to ${userSetup.subject} at ${userSetup.qualification} level.`
-          },
-          {
-            term: 'Core Concept 1',
-            definition: 'An essential concept related to the main topic that forms the basis of understanding.'
-          },
-          {
-            term: 'Core Concept 2',
-            definition: 'Another important concept that builds upon the first core concept.'
-          },
-          {
-            term: 'Applied Term 1',
-            definition: 'A term that describes the practical application or extension of the main concept.'
-          },
-          {
-            term: 'Applied Term 2',
-            definition: 'Another important term that relates to real-world use of this topic.'
-          },
-          {
-            term: 'Exam Keyword',
-            definition: 'A keyword frequently used in exam papers that you should be familiar with.'
-          }
-        ],
-        practiceQuestions: [
-          {
-            question: `What is the primary characteristic of ${topic}?`,
-            options: [
-              'Option A: The fundamental property',
-              'Option B: A secondary feature',
-              'Option C: A common misconception',
-              'Option D: An outdated concept'
-            ],
-            correctAnswer: 'Option A: The fundamental property',
-            explanation: 'This is correct because the fundamental property is the defining characteristic of the topic as established in modern understanding of the subject.'
-          },
-          {
-            question: `How does ${topic} relate to other concepts in ${userSetup.subject}?`,
-            options: [
-              'Option A: It is completely independent',
-              'Option B: It builds upon and connects to other concepts',
-              'Option C: It is obsolete',
-              'Option D: It has no practical relevance'
-            ],
-            correctAnswer: 'Option B: It builds upon and connects to other concepts',
-            explanation: 'This is correct because understanding how topics interconnect is crucial for comprehensive knowledge and exam success.'
-          },
-          {
-            question: `Which of the following is NOT an example of ${topic} in practice?`,
-            options: [
-              'Option A: Real-world application 1',
-              'Option B: Real-world application 2',
-              'Option C: Unrelated concept',
-              'Option D: Real-world application 3'
-            ],
-            correctAnswer: 'Option C: Unrelated concept',
-            explanation: 'This is correct as it is not an example of the topic. The other options are legitimate applications you would see in exam questions.'
-          },
-          {
-            question: `When studying ${topic}, what is the most important aspect to focus on for exams?`,
-            options: [
-              'Option A: Memorization of all details',
-              'Option B: Understanding principles and application',
-              'Option C: Ignoring practical examples',
-              'Option D: Focusing only on definitions'
-            ],
-            correctAnswer: 'Option B: Understanding principles and application',
-            explanation: 'Modern exams emphasize understanding and application rather than pure memorization. This approach leads to better performance and deeper learning.'
-          },
-          {
-            question: `How should you approach answering questions about ${topic}?`,
-            options: [
-              'Option A: Keep answers brief and vague',
-              'Option B: Provide detailed explanations with examples',
-              'Option C: Only state the definition',
-              'Option D: Guess based on keywords'
-            ],
-            correctAnswer: 'Option B: Provide detailed explanations with examples',
-            explanation: 'Detailed explanations with examples show comprehensive understanding and are rewarded by examiners with higher marks.'
-          }
-        ]
-      };
+      // Check if notes are already cached
+      const savedNotes = JSON.parse(localStorage.getItem('knowledgeNotes') || '{}');
+      if (savedNotes[topic]) {
+        setNotes(savedNotes[topic]);
+        setPracticeQuestions(savedNotes[topic].practiceQuestions);
+        setLoading(false);
+        return;
+      }
+
+      // Generate notes using Hugging Face API
+      const notesContent = await generateNotesFromHuggingFace(
+        topic,
+        userSetup.qualification,
+        userSetup.subject,
+        userSetup.examBoard
+      );
 
       setNotes(notesContent);
       setPracticeQuestions(notesContent.practiceQuestions);
 
       // Save to localStorage for future reference
-      const savedNotes = JSON.parse(localStorage.getItem('knowledgeNotes') || '{}');
       savedNotes[topic] = notesContent;
       localStorage.setItem('knowledgeNotes', JSON.stringify(savedNotes));
     } catch (error) {
       console.error('Error generating notes:', error);
       setNotes({
         title: topic,
-        summary: 'Unable to generate notes at the moment. Please try again later.',
+        summary: `Unable to generate notes for "${topic}" at the moment. Please try again later or with a different topic.`,
         mainPoints: [],
         keyTerms: [],
         practiceQuestions: []
       });
+      setPracticeQuestions([]);
     } finally {
       setLoading(false);
     }
