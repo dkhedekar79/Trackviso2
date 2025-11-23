@@ -128,7 +128,7 @@ const Subjects = () => {
           const level = getSubjectLevel(studyTime);
           const progress = getSubjectProgress(studyTime, subject.goalHours);
           const badge = getSubjectBadge(studyTime);
-          const textColor = calculateLuminance(subject.color) > 0.5 ? 'text-gray-800' : 'text-white';
+          const textColor = calculateLuminance(subject.color) > 0.5 ? 'text-white' : 'text-white';
 
           return (
             <motion.div
