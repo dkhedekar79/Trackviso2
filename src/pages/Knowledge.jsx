@@ -24,8 +24,6 @@ export default function Knowledge() {
     const savedSetup = localStorage.getItem('knowledgeSetup');
     if (savedSetup) {
       setUserSetup(JSON.parse(savedSetup));
-    } else {
-      setShowSetupModal(true);
     }
   }, []);
 
