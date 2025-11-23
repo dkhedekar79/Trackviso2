@@ -4,7 +4,7 @@ const API_URL = `https://api-inference.huggingface.co/models/${MODEL_ID}`;
 
 export async function fetchTopicsFromHuggingFace(qualification, subject, examBoard) {
   try {
-    const prompt = `You are an educational assistant. Based on the following qualification, subject, and exam board, provide a JSON list of all the main topics/chapters that students need to study.
+    const prompt = `You are an educational assistant. You search the internet based on the following qualification, subject, and exam board, provide a JSON list of all the main topics that have been detailed in the specification subject overview that students need to study.
 
 Qualification: ${qualification}
 Subject: ${subject}
