@@ -261,7 +261,7 @@ export default function Knowledge() {
                     className="w-full px-4 py-3 bg-purple-900/40 border border-purple-700/50 rounded-lg text-white appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-500"
                   >
                     <option value="">Choose a topic...</option>
-                    {getTopicsForSubject().map((topic, index) => (
+                    {getTopicsForDisplay().map((topic, index) => (
                       <option key={index} value={topic}>
                         {topic}
                       </option>
