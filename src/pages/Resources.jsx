@@ -163,7 +163,7 @@ export default function Resources() {
                   List
                 </button>
             </div>
-          </motion.div>    
+        </motion.div>    
       </div>
 
         {/* Filters */}
