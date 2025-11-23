@@ -130,7 +130,7 @@ export default function Resources() {
   const selectCls = "rounded-lg border px-3 py-2 bg-white/10 text-white border-white/20";
 
   return (
-    <div className="min-h-screen mt-20 flex bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 pl-6">
+    <div className="min-h-screen mt-20 p-6 bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 text-white">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
           <div>
