@@ -107,7 +107,7 @@ export default function KnowledgeSetupModal({ subjects, onComplete, onClose }) {
           <X className="w-5 h-5" />
         </motion.button>
         {/* Progress Indicator */}
-        <div className="mb-8">
+        <div className="mb-8 pr-8">
           <div className="flex justify-between items-center mb-4">
             {[1, 2, 3].map((num) => (
               <div key={num} className="flex items-center">
