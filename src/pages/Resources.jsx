@@ -134,7 +134,7 @@ export default function Resources() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Resources</h1>
+            <h1 lassName="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent mb-4>Resources</h1>
             <p className="text-white/80">Find syllabus pages, past papers, specifications and official guidance from UK exam boards. Filter by level, subject, board, type, and year.</p>
           </div>
           {/* View toggle */}
