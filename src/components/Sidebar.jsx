@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import {
   FlameIcon, BookIcon, CalendarIcon, ListChecksIcon, BrainIcon,
-  BarChart2Icon, Settings2Icon, LayoutDashboardIcon, BarChart3, GraduationCap
+  BarChart2Icon, Settings2Icon, LayoutDashboardIcon, BarChart3, GraduationCap, BookOpen
 } from "lucide-react";
 
 export default function Sidebar() {
