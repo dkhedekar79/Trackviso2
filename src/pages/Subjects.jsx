@@ -136,7 +136,7 @@ const Subjects = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               whileHover={{ scale: 1.02 }}
-              className="relative overflow-hidden rounded-2xl shadow-lg border-4 bg-white/10"
+              className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all group cursor-pointer"
               style={{ borderColor: subject.color }}
             >
               {/* Subject Badge */}
