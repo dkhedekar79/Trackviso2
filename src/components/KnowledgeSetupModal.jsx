@@ -46,14 +46,25 @@ export default function KnowledgeSetupModal({ subjects, onComplete, onClose }) {
     }
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     if (qualification && subject && examBoard) {
-      onComplete({
-        qualification,
-        subject,
-        examBoard,
-        setupDate: new Date().toISOString()
-      });
+      setLoading(true);
+      setError(null);
+      try {
+        // Fetch topics from Hugging Face
+        const topics = await fetchTopicsFromHuggingFace(qualification, subject, examBoard);
+
+        onComplete({
+          qualification,
+          subject,
+          examBoard,
+          topics,
+          setupDate: new Date().toISOString()
+        });
+      } catch (err) {
+        setError(err.message || 'Failed to fetch topics. Please try again with a different qualification/subject combination.');
+        setLoading(false);
+      }
     }
   };
 
