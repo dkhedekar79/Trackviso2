@@ -106,7 +106,7 @@ const Subjects = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white">Subjects</h1>
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent mb-4">Subjects</h1>
           <p className="text-white">Manage your study subjects and track progress</p>
         </div>
         <motion.button
