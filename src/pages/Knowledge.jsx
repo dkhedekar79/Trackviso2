@@ -75,14 +75,12 @@ export default function Knowledge() {
     }
   };
 
-  const getTopicsForSubject = () => {
+  const getTopicsForDisplay = () => {
     if (!userSetup) return [];
-    // Use topics from setup if available, otherwise fallback to subject topics
-    if (userSetup.topics && Array.isArray(userSetup.topics)) {
-      return userSetup.topics;
-    }
-    const subject = subjects.find(s => s.name === userSetup.subject);
-    return subject?.topics || [];
+
+    // Fetch from knowledge database
+    const topics = getTopicsForSubject(userSetup.qualification, userSetup.examBoard, userSetup.subject);
+    return topics.map(t => t.name); // Return topic names for display
   };
 
   const handleTopicChange = (topic) => {
