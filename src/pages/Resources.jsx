@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion';
 
 const LEVELS = ["GCSE", "A Level"];
 const SUBJECTS = [
@@ -131,123 +131,120 @@ export default function Resources() {
   const selectCls = "rounded-lg border px-3 py-2 bg-white/10 text-white border-white/20";
 
   return (
-    <>
-      <div className="min-h-screen mt-20 p-6 bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 text-white pl-[100px] pr-6 py-6">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            className="mb-8 flex justify-between items-center"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-              <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
-                <div>
-                  <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent mb-4">Resources</h1>
-                  <p className="text-white/80">Find syllabus pages, past papers, specifications and official guidance from UK exam boards. Filter by level, subject, board, type, and year.</p>
-                </div>
-                {/* View toggle */}
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    aria-pressed={view === "grid"}
-                    onClick={() => setView("grid")}
-                    className={`px-3 py-2 rounded-lg border text-sm ${view === "grid" ? "bg-white/20 text-white border-white/0" : "bg-white/10 text-white border-white/20"}`}
-                  >
-                    Grid
-                  </button>
-                  <button
-                    type="button"
-                    aria-pressed={view === "list"}
-                    onClick={() => setView("list")}
-                    className={`px-3 py-2 rounded-lg border text-sm ${view === "list" ? "bg-white/20 text-white border-white/0" : "bg-white/10 text-white border-white/20"}`}
-                  >
-                    List
-                  </button>
-                </div>  
+    <div className="min-h-screen mt-20 p-6 bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 text-white pl-[100px] pr-6 py-6">
+      <div className="max-w-7xl mx-auto">
+        <motion.div
+          className="mb-8 flex justify-between items-center"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+            <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent mb-4">Resources</h1>
+                <p className="text-white/80">Find syllabus pages, past papers, specifications and official guidance from UK exam boards. Filter by level, subject, board, type, and year.</p>
               </div>
+              {/* View toggle */}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  aria-pressed={view === "grid"}
+                  onClick={() => setView("grid")}
+                  className={`px-3 py-2 rounded-lg border text-sm ${view === "grid" ? "bg-white/20 text-white border-white/0" : "bg-white/10 text-white border-white/20"}`}
+                >
+                  Grid
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={view === "list"}
+                  onClick={() => setView("list")}
+                  className={`px-3 py-2 rounded-lg border text-sm ${view === "list" ? "bg-white/20 text-white border-white/0" : "bg-white/10 text-white border-white/20"}`}
+                >
+                  List
+                </button>
+            </div>
           </motion.div>    
         </div>
 
-          {/* Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
-            <div className="flex flex-col">
-              <label className="text-sm mb-1 text-white/80">Level</label>
-              <select value={level} onChange={(e) => setLevel(e.target.value)} className={selectCls}>
-                <option>All</option>
-                {LEVELS.map((l) => (<option key={l} value={l}>{l}</option>))}
-              </select>
-            </div>
-            <div className="flex flex-col">
-              <label className="text-sm mb-1 text-white/80">Subject</label>
-              <select value={subject} onChange={(e) => setSubject(e.target.value)} className={selectCls}>
-                <option>All</option>
-                {SUBJECTS.map((s) => (<option key={s} value={s}>{s}</option>))}
-              </select>
-            </div>
-            <div className="flex flex-col">
-              <label className="text-sm mb-1 text-white/80">Exam Board</label>
-              <select value={board} onChange={(e) => setBoard(e.target.value)} className={selectCls}>
-                <option>All</option>
-                {BOARDS.map((b) => (<option key={b} value={b}>{b}</option>))}
-              </select>
-            </div>
-            <div className="flex flex-col">
-              <label className="text-sm mb-1 text-white/80">Type</label>
-              <select value={type} onChange={(e) => setType(e.target.value)} className={selectCls}>
-                {TYPES.map((t) => (<option key={t.key} value={t.key}>{t.label}</option>))}
-              </select>
-            </div>
-            <div className="flex flex-col">
-              <label className="text-sm mb-1 text-white/80">Year (past papers)</label>
-              <select value={year} onChange={(e) => setYear(e.target.value === "All" ? "All" : parseInt(e.target.value))} className={selectCls}>
-                {YEARS.map((y) => (<option key={y} value={y}>{y}</option>))}
-              </select>
-            </div>
+        {/* Filters */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+          <div className="flex flex-col">
+            <label className="text-sm mb-1 text-white/80">Level</label>
+            <select value={level} onChange={(e) => setLevel(e.target.value)} className={selectCls}>
+              <option>All</option>
+              {LEVELS.map((l) => (<option key={l} value={l}>{l}</option>))}
+            </select>
           </div>
-
-          {/* Results */}
-          {view === "grid" ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filtered.map((r) => (
-                <a
-                  key={`${r.board}-${r.level}-${r.subject}-${r.type}-${r.year ?? "any"}-${r.url}`}
-                  href={r.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-2xl p-4 border hover:shadow transition bg-white/10 flex flex-col"
-                  style={{ borderColor: "rgba(255,255,255,0.2)" }}
-                >
-                  <div className="text-xs font-semibold mb-1 text-white/70">
-                    {sanitize(r.level)} - {sanitize(r.subject)} - {sanitize(r.board)} - {r.type === "past_paper" ? `Past papers${r.year ? ` - ${r.year}` : ""}` : "Specification"}
-                  </div>
-                  <div className="text-lg font-semibold mb-2" style={{ color: "var(--on-primary)" }}>{sanitize(r.title)}</div>
-                  <div className="mt-auto text-sm text-blue-200">Open official page →</div>
-                </a>
-              ))}
-            </div>
-          ) : (
-            <div className="bg-white/10 rounded-2xl border" style={{ borderColor: "rgba(255,255,255,0.2)" }}>
-              <ul className="divide-y" style={{ borderColor: "rgba(255,255,255,0.2)" }}>
-                {filtered.map((r) => (
-                  <li key={`${r.board}-${r.level}-${r.subject}-${r.type}-${r.year ?? "any"}-${r.url}`} className="p-4 hover:bg-white/10 transition">
-                    <a href={r.url} target="_blank" rel="noopener noreferrer" className="flex flex-col sm:flex-row sm:items-center gap-2">
-                      <span className="text-sm text-white/70 flex-1">
-                        {sanitize(r.level)} - {sanitize(r.subject)} - {sanitize(r.board)} - {r.type === "past_paper" ? `Past papers${r.year ? ` - ${r.year}` : ""}` : "Specification"}
-                      </span>
-                      <span className="font-semibold" style={{ color: "var(--on-primary)" }}>{sanitize(r.title)}</span>
-                      <span className="text-blue-200 text-sm">Open →</span>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {filtered.length === 0 && (
-            <div className="text-white/70 text-center py-16">No resources found. Try different filters.</div>
-          )}
+          <div className="flex flex-col">
+            <label className="text-sm mb-1 text-white/80">Subject</label>
+            <select value={subject} onChange={(e) => setSubject(e.target.value)} className={selectCls}>
+              <option>All</option>
+              {SUBJECTS.map((s) => (<option key={s} value={s}>{s}</option>))}
+            </select>
+          </div>
+          <div className="flex flex-col">
+            <label className="text-sm mb-1 text-white/80">Exam Board</label>
+            <select value={board} onChange={(e) => setBoard(e.target.value)} className={selectCls}>
+              <option>All</option>
+              {BOARDS.map((b) => (<option key={b} value={b}>{b}</option>))}
+            </select>
+          </div>
+          <div className="flex flex-col">
+            <label className="text-sm mb-1 text-white/80">Type</label>
+            <select value={type} onChange={(e) => setType(e.target.value)} className={selectCls}>
+              {TYPES.map((t) => (<option key={t.key} value={t.key}>{t.label}</option>))}
+            </select>
+          </div>
+          <div className="flex flex-col">
+            <label className="text-sm mb-1 text-white/80">Year (past papers)</label>
+            <select value={year} onChange={(e) => setYear(e.target.value === "All" ? "All" : parseInt(e.target.value))} className={selectCls}>
+              {YEARS.map((y) => (<option key={y} value={y}>{y}</option>))}
+            </select>
+          </div>
         </div>
-      </div >
-    </>  
+
+        {/* Results */}
+        {view === "grid" ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filtered.map((r) => (
+              <a
+                key={`${r.board}-${r.level}-${r.subject}-${r.type}-${r.year ?? "any"}-${r.url}`}
+                href={r.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-2xl p-4 border hover:shadow transition bg-white/10 flex flex-col"
+                style={{ borderColor: "rgba(255,255,255,0.2)" }}
+              >
+                <div className="text-xs font-semibold mb-1 text-white/70">
+                  {sanitize(r.level)} - {sanitize(r.subject)} - {sanitize(r.board)} - {r.type === "past_paper" ? `Past papers${r.year ? ` - ${r.year}` : ""}` : "Specification"}
+                </div>
+                <div className="text-lg font-semibold mb-2" style={{ color: "var(--on-primary)" }}>{sanitize(r.title)}</div>
+                <div className="mt-auto text-sm text-blue-200">Open official page →</div>
+              </a>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white/10 rounded-2xl border" style={{ borderColor: "rgba(255,255,255,0.2)" }}>
+            <ul className="divide-y" style={{ borderColor: "rgba(255,255,255,0.2)" }}>
+              {filtered.map((r) => (
+                <li key={`${r.board}-${r.level}-${r.subject}-${r.type}-${r.year ?? "any"}-${r.url}`} className="p-4 hover:bg-white/10 transition">
+                  <a href={r.url} target="_blank" rel="noopener noreferrer" className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <span className="text-sm text-white/70 flex-1">
+                      {sanitize(r.level)} - {sanitize(r.subject)} - {sanitize(r.board)} - {r.type === "past_paper" ? `Past papers${r.year ? ` - ${r.year}` : ""}` : "Specification"}
+                    </span>
+                    <span className="font-semibold" style={{ color: "var(--on-primary)" }}>{sanitize(r.title)}</span>
+                    <span className="text-blue-200 text-sm">Open →</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {filtered.length === 0 && (
+          <div className="text-white/70 text-center py-16">No resources found. Try different filters.</div>
+        )}
+      </div>
+    </div>
   );
 }
