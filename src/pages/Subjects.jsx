@@ -106,7 +106,7 @@ const Subjects = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <motion.div
-          className="mb-8 flex justify-between"
+          className="mb-8 flex justify-between items-center"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
