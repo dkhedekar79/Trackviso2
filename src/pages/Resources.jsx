@@ -162,6 +162,7 @@ export default function Resources() {
                 >
                   List
                 </button>
+              </div>  
             </div>
         </motion.div>    
       </div>
