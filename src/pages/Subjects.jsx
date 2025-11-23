@@ -113,7 +113,7 @@ const Subjects = () => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setShowModal(true)}
-          className="flex items-center space-x-2 px-6 py-3 bg-[#6C5DD3] text-white rounded-xl font-semibold shadow-lg hover:bg-[#7A6AD9] transition-colors"
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105"
         >
           <Plus className="w-5 h-5" />
           <span>Add Subject</span>
