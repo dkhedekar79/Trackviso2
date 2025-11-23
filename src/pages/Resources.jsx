@@ -131,7 +131,7 @@ export default function Resources() {
   const selectCls = "rounded-lg border px-3 py-2 bg-white/10 text-white border-white/20";
 
   return (
-    <div>
+    <>
       <div className="min-h-screen mt-20 p-6 bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 text-white pl-[100px] pr-6 py-6">
         <div className="max-w-7xl mx-auto">
           <motion.div
@@ -248,6 +248,6 @@ export default function Resources() {
           )}
         </div>
       </div >
-    </div>  
+    </>  
   );
 }
