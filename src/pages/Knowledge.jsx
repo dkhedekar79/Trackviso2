@@ -286,32 +286,78 @@ export default function Knowledge() {
             </div>
           </motion.div>
 
-          {userSetup && (
-            <>
-              {/* User Setup Info */}
+          {/* Setup Info or Setup Prompt */}
+          {!userSetup ? (
+            subjects.length === 0 ? (
+              // No subjects - show link to subjects page
               <motion.div
-                className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 mb-8"
+                className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-12 border border-purple-700/30 mb-8 text-center"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
               >
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                  <div className="space-y-2">
-                    <p className="text-purple-300 text-sm">Study Program</p>
-                    <p className="text-white text-lg font-semibold">
-                      {userSetup.qualification} - {userSetup.subject} ({userSetup.examBoard})
-                    </p>
-                  </div>
-                  <motion.button
-                    onClick={() => setShowSetupModal(true)}
-                    className="px-4 py-2 text-sm text-purple-300 border border-purple-500/50 rounded-lg hover:bg-purple-600/20 transition"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    Change
-                  </motion.button>
-                </div>
+                <BookOpen className="w-12 h-12 text-purple-400 mx-auto mb-4" />
+                <p className="text-white text-lg font-semibold mb-2">No Subjects Found</p>
+                <p className="text-purple-200/80 mb-6">Create subjects first to use the Knowledge Base. Head to the Subjects page to get started.</p>
+                <Link
+                  to="/subjects"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition-all transform hover:scale-105"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  Go to Subjects
+                </Link>
               </motion.div>
+            ) : (
+              // Has subjects - show setup button
+              <motion.div
+                className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-12 border border-purple-700/30 mb-8 text-center"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                <Settings className="w-12 h-12 text-purple-400 mx-auto mb-4" />
+                <p className="text-white text-lg font-semibold mb-2">Get Started with Knowledge Base</p>
+                <p className="text-purple-200/80 mb-6">Configure your qualification and subject to begin accessing AI-generated study notes and practice questions tailored just for you.</p>
+                <motion.button
+                  onClick={() => setShowSetupModal(true)}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition-all transform hover:scale-105"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Settings className="w-4 h-4" />
+                  Configure Now
+                </motion.button>
+              </motion.div>
+            )
+          ) : (
+            // Setup exists - show setup info
+            <motion.div
+              className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 mb-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div className="space-y-2">
+                  <p className="text-purple-300 text-sm">Study Program</p>
+                  <p className="text-white text-lg font-semibold">
+                    {userSetup.qualification} - {userSetup.subject} ({userSetup.examBoard})
+                  </p>
+                </div>
+                <motion.button
+                  onClick={() => setShowSetupModal(true)}
+                  className="px-4 py-2 text-sm text-purple-300 border border-purple-500/50 rounded-lg hover:bg-purple-600/20 transition"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Change
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+
+          {userSetup && (
+            <>
 
               {/* Topic Selector */}
               <motion.div
