@@ -193,6 +193,10 @@ export default function Knowledge() {
 
   const getTopicsForSubject = () => {
     if (!userSetup) return [];
+    // Use topics from setup if available, otherwise fallback to subject topics
+    if (userSetup.topics && Array.isArray(userSetup.topics)) {
+      return userSetup.topics;
+    }
     const subject = subjects.find(s => s.name === userSetup.subject);
     return subject?.topics || [];
   };
