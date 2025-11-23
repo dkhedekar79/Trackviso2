@@ -87,13 +87,25 @@ export default function KnowledgeSetupModal({ subjects, onComplete, onClose }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      onClick={onClose}
     >
       <motion.div
-        className="bg-gradient-to-br from-purple-900 to-slate-900 rounded-3xl p-8 max-w-2xl w-full mx-4 border border-purple-700/50 shadow-2xl"
+        className="bg-gradient-to-br from-purple-900 to-slate-900 rounded-3xl p-8 max-w-2xl w-full mx-4 border border-purple-700/50 shadow-2xl relative"
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+        onClick={(e) => e.stopPropagation()}
       >
+        {/* Close Button */}
+        <motion.button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 text-purple-300 hover:text-white hover:bg-purple-800/50 rounded-lg transition"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          title="Close"
+        >
+          <X className="w-5 h-5" />
+        </motion.button>
         {/* Progress Indicator */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-4">
