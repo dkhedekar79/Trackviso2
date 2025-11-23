@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { motion } from 'framer-motion';
 
 const LEVELS = ["GCSE", "A Level"];
 const SUBJECTS = [
@@ -130,32 +131,32 @@ export default function Resources() {
   const selectCls = "rounded-lg border px-3 py-2 bg-white/10 text-white border-white/20";
 
   return (
-    <div className="min-h-screen mt-20 p-6 hero-gradient text-white">
+    <div className="min-h-screen mt-20 p-6 bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 text-white pl-[100px] pr-6 py-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Resources</h1>
-            <p className="text-white/80">Find syllabus pages, past papers, specifications and official guidance from UK exam boards. Filter by level, subject, board, type, and year.</p>
-          </div>
-          {/* View toggle */}
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              aria-pressed={view === "grid"}
-              onClick={() => setView("grid")}
-              className={`px-3 py-2 rounded-lg border text-sm ${view === "grid" ? "bg-white/20 text-white border-white/0" : "bg-white/10 text-white border-white/20"}`}
-            >
-              Grid
-            </button>
-            <button
-              type="button"
-              aria-pressed={view === "list"}
-              onClick={() => setView("list")}
-              className={`px-3 py-2 rounded-lg border text-sm ${view === "list" ? "bg-white/20 text-white border-white/0" : "bg-white/10 text-white border-white/20"}`}
-            >
-              List
-            </button>
-          </div>
+            <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent mb-4">Resources</h1>
+                <p className="text-white/80">Find syllabus pages, past papers, specifications and official guidance from UK exam boards. Filter by level, subject, board, type, and year.</p>
+              </div>
+              {/* View toggle */}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  aria-pressed={view === "grid"}
+                  onClick={() => setView("grid")}
+                  className={`px-3 py-2 rounded-lg border text-sm ${view === "grid" ? "bg-white/20 text-white border-white/0" : "bg-white/10 text-white border-white/20"}`}
+                >
+                  Grid
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={view === "list"}
+                  onClick={() => setView("list")}
+                  className={`px-3 py-2 rounded-lg border text-sm ${view === "list" ? "bg-white/20 text-white border-white/0" : "bg-white/10 text-white border-white/20"}`}
+                >
+                  List
+                </button>
+              </div>
         </div>
 
         {/* Filters */}

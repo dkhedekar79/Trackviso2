@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import {
   FlameIcon, BookIcon, CalendarIcon, ListChecksIcon, BrainIcon,
-  BarChart2Icon, Settings2Icon, LayoutDashboardIcon, BarChart3, GraduationCap
+  BarChart2Icon, Settings2Icon, LayoutDashboardIcon, BarChart3, GraduationCap, BookOpen
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -17,18 +17,21 @@ export default function Sidebar() {
           <BrainIcon className="w-5 h-5 text-white" />
         </div>
         <div className="absolute w-16 h-12 flex items-center justify-center transition-opacity duration-300 group-hover:opacity-0" style={{ top: '208px' }}>
-          <BarChart3 className="w-5 h-5 text-white" />
+          <BookOpen className="w-5 h-5 text-white" />
         </div>
         <div className="absolute w-16 h-12 flex items-center justify-center transition-opacity duration-300 group-hover:opacity-0" style={{ top: '264px' }}>
-          <BookIcon className="w-5 h-5 text-white" />
+          <BarChart3 className="w-5 h-5 text-white" />
         </div>
         <div className="absolute w-16 h-12 flex items-center justify-center transition-opacity duration-300 group-hover:opacity-0" style={{ top: '320px' }}>
-          <ListChecksIcon className="w-5 h-5 text-white" />
+          <BookIcon className="w-5 h-5 text-white" />
         </div>
         <div className="absolute w-16 h-12 flex items-center justify-center transition-opacity duration-300 group-hover:opacity-0" style={{ top: '376px' }}>
-          <CalendarIcon className="w-5 h-5 text-white" />
+          <ListChecksIcon className="w-5 h-5 text-white" />
         </div>
         <div className="absolute w-16 h-12 flex items-center justify-center transition-opacity duration-300 group-hover:opacity-0" style={{ top: '432px' }}>
+          <CalendarIcon className="w-5 h-5 text-white" />
+        </div>
+        <div className="absolute w-16 h-12 flex items-center justify-center transition-opacity duration-300 group-hover:opacity-0" style={{ top: '488px' }}>
           <GraduationCap className="w-5 h-5 text-white" />
         </div>
       </div>
@@ -40,6 +43,10 @@ export default function Sidebar() {
         <Link to="/study" className="flex items-center gap-3 px-6 py-3 focus:outline-none transition theme-hover-primary-10" title="Study">
           <BrainIcon className="w-5 h-5 text-white" />
           <span className="text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Study</span>
+        </Link>
+        <Link to="/knowledge" className="flex items-center gap-3 px-6 py-3 focus:outline-none transition theme-hover-primary-10" title="Knowledge">
+          <BookOpen className="w-5 h-5 text-white" />
+          <span className="text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Knowledge</span>
         </Link>
         <Link to="/insights" className="flex items-center gap-3 px-6 py-3 focus:outline-none transition theme-hover-primary-10" title="Insights">
           <BarChart3 className="w-5 h-5 text-white" />
