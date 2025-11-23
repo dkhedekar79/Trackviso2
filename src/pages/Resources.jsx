@@ -133,7 +133,12 @@ export default function Resources() {
     <div className="min-h-screen mt-20 p-6 bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 text-white pl-[100px] pr-6 py-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
-          
+          <motion.div
+            className="mb-8 flex justify-between items-center"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
             <div>
               <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent mb-4">Resources</h1>
               <p className="text-white/80">Find syllabus pages, past papers, specifications and official guidance from UK exam boards. Filter by level, subject, board, type, and year.</p>
@@ -157,6 +162,7 @@ export default function Resources() {
                 List
               </button>
             </div>
+          </motion.div>  
         </div>
 
         {/* Filters */}
