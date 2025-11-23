@@ -37,7 +37,7 @@ const Navbar = () => {
       
       {/* Center: Page Title & Date */}
       <div className="flex flex-col items-center flex-1 min-w-0">
-        {(["/dashboard","/tasks","/schedule","/subjects","/study","/settings","/insights","/resources"].includes(location.pathname)) && (
+        {(["/dashboard","/tasks","/schedule","/subjects","/study","/settings","/insights","/resources","/knowledge"].includes(location.pathname)) && (
           <>
             <span className="text-2xl font-extrabold tracking-widest bg-[white] text-transparent bg-clip-text">
               {location.pathname === "/dashboard" && "DASHBOARD"}
@@ -48,6 +48,7 @@ const Navbar = () => {
               {location.pathname === "/settings" && "SETTINGS"}
               {location.pathname === "/insights" && "INSIGHTS"}
               {location.pathname === "/resources" && "RESOURCES"}
+              {location.pathname === "/knowledge" && "KNOWLEDGE"}
             </span>
             <span className="text-sm font-medium text-[var(--on-primary-muted)] mt-1">
               {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
