@@ -28,6 +28,8 @@ export default function KnowledgeSetupModal({ subjects, onComplete, onClose }) {
   const [qualification, setQualification] = useState('');
   const [subject, setSubject] = useState('');
   const [examBoard, setExamBoard] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const subjectNames = subjects.map(s => s.name);
   const availableExamBoards = qualification ? (examBoards[qualification] || []) : [];
