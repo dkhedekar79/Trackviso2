@@ -164,7 +164,7 @@ export default function Resources() {
                 </button>
             </div>
           </motion.div>    
-        </div>
+      </div>
 
         {/* Filters */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
