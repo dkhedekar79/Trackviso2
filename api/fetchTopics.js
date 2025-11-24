@@ -41,6 +41,11 @@ export default async function handler(req, res) {
     if (!HF_API_KEY) {
       return res.status(500).json({ error: 'HuggingFace API key not configured. Please set HUGGINGFACE_API_KEY environment variable.' });
     }
+    
+    // Validate API key format
+    if (!HF_API_KEY.startsWith('hf_')) {
+      console.warn('Warning: HuggingFace API key should start with "hf_". Current key starts with:', HF_API_KEY.substring(0, 3));
+    }
 
     // Step 1: Search the web for current specification and topics
     let webSearchResults = '';
