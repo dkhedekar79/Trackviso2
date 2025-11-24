@@ -109,51 +109,149 @@ export default async function handler(req, res) {
 
     // Step 1: Search the web for current specification and topics
     let webSearchResults = '';
+    let specificationTopics = [];
+    
     if (TAVILY_API_KEY) {
       try {
-        const searchQuery = `${qualification} ${subject} ${examBoard} specification topics syllabus`;
-        const tavilyResponse = await fetch('https://api.tavily.com/search', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            api_key: TAVILY_API_KEY,
-            query: searchQuery,
-            search_depth: 'advanced',
-            max_results: 5,
-          }),
-        });
+        // Search for official specification documents - multiple targeted searches
+        const searchQueries = [
+          `"${examBoard}" "${qualification}" "${subject}" specification "at a glance" topics`,
+          `"${examBoard}" "${qualification}" "${subject}" specification overview topics list`,
+          `"${examBoard}" "${qualification}" "${subject}" syllabus content topics`,
+          `site:${examBoard.toLowerCase()}.org.uk ${qualification} ${subject} specification topics`,
+          `${examBoard} ${qualification} ${subject} specification document topics`,
+        ];
+        
+        // Try multiple searches to find the best results
+        for (const searchQuery of searchQueries) {
+          try {
+            const tavilyResponse = await fetch('https://api.tavily.com/search', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                api_key: TAVILY_API_KEY,
+                query: searchQuery,
+                search_depth: 'advanced',
+                max_results: 8,
+                include_answer: true,
+                include_raw_content: false,
+              }),
+            });
 
-        if (tavilyResponse.ok) {
-          const tavilyData = await tavilyResponse.json();
-          if (tavilyData.results && tavilyData.results.length > 0) {
-            webSearchResults = tavilyData.results
-              .map((result, idx) => `${idx + 1}. ${result.title}: ${result.content.substring(0, 300)}`)
-              .join('\n\n');
+            if (tavilyResponse.ok) {
+              const tavilyData = await tavilyResponse.json();
+              
+              // Use the answer if available (Tavily's AI-generated summary)
+              if (tavilyData.answer) {
+                webSearchResults += `\n\nAnswer: ${tavilyData.answer}\n\n`;
+              }
+              
+              if (tavilyData.results && tavilyData.results.length > 0) {
+                const results = tavilyData.results
+                  .map((result, idx) => {
+                    const content = result.content || '';
+                    
+                    // Extract topics from content - look for various patterns
+                    // Pattern 1: Numbered lists (1. Topic, 2. Topic, etc.)
+                    const numberedTopics = content.match(/(?:^|\n)\s*\d+[\.\)]\s*([A-Z][^\n]{10,100}?)(?=\n|$)/g);
+                    if (numberedTopics && numberedTopics.length > 2) {
+                      specificationTopics.push(...numberedTopics.map(t => t.replace(/^\s*\d+[\.\)]\s*/, '').trim()));
+                    }
+                    
+                    // Pattern 2: Bullet points (- Topic, * Topic, • Topic)
+                    const bulletTopics = content.match(/(?:^|\n)\s*[-*•]\s*([A-Z][^\n]{10,100}?)(?=\n|$)/g);
+                    if (bulletTopics && bulletTopics.length > 2) {
+                      specificationTopics.push(...bulletTopics.map(t => t.replace(/^\s*[-*•]\s*/, '').trim()));
+                    }
+                    
+                    // Pattern 3: Lines that look like topics (capitalized, reasonable length)
+                    const topicLines = content.split('\n')
+                      .filter(line => {
+                        const trimmed = line.trim();
+                        return trimmed.length > 10 && 
+                               trimmed.length < 100 && 
+                               /^[A-Z]/.test(trimmed) &&
+                               !trimmed.includes('http') &&
+                               !trimmed.includes('www.');
+                      })
+                      .slice(0, 20);
+                    
+                    if (topicLines.length > 3) {
+                      specificationTopics.push(...topicLines.map(t => t.trim()));
+                    }
+                    
+                    return `${idx + 1}. ${result.title}\nURL: ${result.url}\n${content.substring(0, 800)}`;
+                  })
+                  .join('\n\n');
+                
+                webSearchResults += results;
+              }
+            }
+          } catch (searchError) {
+            console.error('Web search error for query:', searchQuery, searchError);
+            // Continue with next search
           }
         }
+        
+        // Remove duplicates from specification topics
+        specificationTopics = [...new Set(specificationTopics)].slice(0, 30);
+        
       } catch (searchError) {
         console.error('Web search error:', searchError);
         // Continue without web search if it fails
       }
     }
 
-    // Step 2: Generate topics using HuggingFace
-    const prompt = `You are an expert educational assistant. ${webSearchResults ? `Based on the following web search results:\n${webSearchResults}\n\n` : ''}Your task is to provide a comprehensive list of main topics that students need to study for a specific qualification, subject, and exam board.
+    // Step 2: Generate topics using HuggingFace with web search results
+    // If we found topics directly in search results, use those
+    if (specificationTopics.length >= 5) {
+      console.log('Found topics directly from web search, using those');
+      return res.status(200).json({ 
+        topics: specificationTopics.slice(0, 30),
+        source: 'web_search'
+      });
+    }
+    
+    let prompt = '';
+    
+    if (webSearchResults) {
+      prompt = `You are a specification extraction assistant. Your ONLY job is to extract the EXACT topic names from the official ${examBoard} ${qualification} ${subject} specification documents provided below.
+
+WEB SEARCH RESULTS FROM OFFICIAL SPECIFICATIONS:
+${webSearchResults}
+
+YOUR TASK:
+1. Read the web search results above carefully
+2. Find the section that lists topics (look for "Specification at a Glance", "Topics", "Content", "Syllabus", etc.)
+3. Extract ONLY the exact topic names as they appear in the specification
+4. Do NOT create, invent, or guess topics
+5. Do NOT use generic topics - only use what's actually in the specification
+6. If you see a numbered list or bullet list of topics, extract those EXACTLY
 
 Qualification: ${qualification}
 Subject: ${subject}
 Exam Board: ${examBoard}
 
-Please provide a comprehensive list of all main topics that students need to study for this qualification and subject. Base your response on the official specification and syllabus information.
-
-Return ONLY a valid JSON object with this structure:
+Return ONLY a JSON object with this structure:
 {
-  "topics": ["Topic 1", "Topic 2", "Topic 3", ...]
+  "topics": ["Topic 1 exactly as written", "Topic 2 exactly as written", ...]
 }
 
-Make sure the list is comprehensive and includes all major topics. Respond ONLY with the JSON object, no other text.`;
+CRITICAL: If the web search results do not contain a clear list of topics, return an empty array: {"topics": []}
+Do NOT make up topics. Only extract what is actually written in the specification documents above.
+Respond ONLY with the JSON object, no other text.`;
+    } else {
+      // If no web search, we can't get accurate topics - use fallback
+      console.log('No web search results available, using fallback topics');
+      const fallbackTopics = generateFallbackTopics(qualification, subject, examBoard);
+      return res.status(200).json({ 
+        topics: fallbackTopics,
+        fallback: true,
+        message: 'Web search is required for accurate specification topics. Please ensure TAVILY_API_KEY is set.'
+      });
+    }
 
     // Try multiple models in sequence if one fails
     const modelsToTry = [PRIMARY_MODEL, ...FALLBACK_MODELS.filter(m => m !== PRIMARY_MODEL)];

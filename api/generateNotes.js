@@ -46,28 +46,58 @@ export default async function handler(req, res) {
     let webSearchResults = '';
     if (TAVILY_API_KEY) {
       try {
-        const searchQuery = `${qualification} ${subject} ${topic} ${examBoard} study notes revision`;
-        const tavilyResponse = await fetch('https://api.tavily.com/search', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            api_key: TAVILY_API_KEY,
-            query: searchQuery,
-            search_depth: 'advanced',
-            max_results: 5,
-          }),
-        });
+        // Multiple targeted searches for better results
+        const searchQueries = [
+          `"${examBoard}" "${qualification}" "${subject}" "${topic}" specification content`,
+          `"${examBoard}" "${qualification}" "${subject}" "${topic}" study guide notes`,
+          `${qualification} ${subject} ${topic} ${examBoard} revision notes`,
+          `${examBoard} ${qualification} ${subject} ${topic} exam content`,
+        ];
+        
+        let allResults = [];
+        
+        for (const searchQuery of searchQueries) {
+          try {
+            const tavilyResponse = await fetch('https://api.tavily.com/search', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                api_key: TAVILY_API_KEY,
+                query: searchQuery,
+                search_depth: 'advanced',
+                max_results: 5,
+                include_answer: true,
+              }),
+            });
 
-        if (tavilyResponse.ok) {
-          const tavilyData = await tavilyResponse.json();
-          if (tavilyData.results && tavilyData.results.length > 0) {
-            webSearchResults = tavilyData.results
-              .map((result, idx) => `${idx + 1}. ${result.title}: ${result.content.substring(0, 400)}`)
-              .join('\n\n');
+            if (tavilyResponse.ok) {
+              const tavilyData = await tavilyResponse.json();
+              
+              // Use Tavily's AI-generated answer if available
+              if (tavilyData.answer) {
+                webSearchResults += `\n\nAI Summary: ${tavilyData.answer}\n\n`;
+              }
+              
+              if (tavilyData.results && tavilyData.results.length > 0) {
+                const results = tavilyData.results.map((result, idx) => 
+                  `${idx + 1}. ${result.title}\nURL: ${result.url}\n${result.content.substring(0, 600)}`
+                );
+                allResults.push(...results);
+              }
+            }
+          } catch (searchError) {
+            console.error('Web search error for query:', searchQuery, searchError);
+            // Continue with next search
           }
         }
+        
+        // Combine all results, remove duplicates
+        webSearchResults += allResults
+          .filter((v, i, a) => a.indexOf(v) === i)
+          .join('\n\n');
+          
       } catch (searchError) {
         console.error('Web search error:', searchError);
         // Continue without web search if it fails
@@ -75,9 +105,16 @@ export default async function handler(req, res) {
     }
 
     // Step 2: Generate comprehensive notes using HuggingFace
-    const prompt = `You are an expert educational tutor specializing in creating comprehensive, exam-focused study notes. Your notes should be clear, concise, and suitable for exam preparation.
+    const prompt = `You are an expert educational tutor. Create comprehensive study notes using ONLY the information from the web search results below.
 
-${webSearchResults ? `Use the following web search results as reference:\n${webSearchResults}\n\n` : ''}Create comprehensive study notes for the following:
+${webSearchResults ? `WEB SEARCH RESULTS (USE THIS INFORMATION):\n${webSearchResults}\n\n` : 'WARNING: No web search results available. Use your knowledge but note that information may not be current.\n\n'}CRITICAL INSTRUCTIONS:
+1. Base your notes PRIMARILY on the web search results above
+2. Use accurate information from official sources
+3. Include specific details, examples, and facts from the search results
+4. Make sure definitions and explanations match what's in the official specifications
+5. Create practice questions that test understanding of the actual content
+
+Create comprehensive study notes for:
 
 Topic: ${topic}
 Qualification: ${qualification}
