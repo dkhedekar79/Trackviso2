@@ -25,7 +25,8 @@ export default async function handler(req, res) {
 
     // Use HuggingFace API with web search for accurate note generation
     const HF_API_KEY = process.env.HUGGINGFACE_API_KEY || process.env.VITE_HUGGINGFACE_API_KEY;
-    const MODEL_ID = process.env.HUGGINGFACE_MODEL_ID || 'meta-llama/Llama-3.1-8B-Instruct';
+    // Use a reliable model that works with inference API
+    const MODEL_ID = process.env.HUGGINGFACE_MODEL_ID || 'mistralai/Mistral-7B-Instruct-v0.2';
     const TAVILY_API_KEY = process.env.TAVILY_API_KEY;
 
     if (!HF_API_KEY) {
@@ -129,6 +130,9 @@ Respond ONLY with the JSON object, no other text.`;
           temperature: 0.7,
           return_full_text: false,
         },
+        options: {
+          wait_for_model: true,
+        },
       }),
     });
 
@@ -141,7 +145,12 @@ Respond ONLY with the JSON object, no other text.`;
         throw new Error('HuggingFace model is loading. Please wait a moment and try again.');
       }
       
-      throw new Error(`HuggingFace API error: ${hfResponse.statusText}`);
+      // Handle "Gone" (410) - model endpoint no longer available
+      if (hfResponse.status === 410) {
+        throw new Error(`The HuggingFace model "${MODEL_ID}" is no longer available at this endpoint. Please try a different model or contact support.`);
+      }
+      
+      throw new Error(`HuggingFace API error: ${hfResponse.statusText} (Status: ${hfResponse.status})`);
     }
 
     const hfData = await hfResponse.json();

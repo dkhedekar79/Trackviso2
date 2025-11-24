@@ -25,7 +25,8 @@ export default async function handler(req, res) {
 
     // Use HuggingFace API with web search for accurate topic generation
     const HF_API_KEY = process.env.HUGGINGFACE_API_KEY || process.env.VITE_HUGGINGFACE_API_KEY;
-    const MODEL_ID = process.env.HUGGINGFACE_MODEL_ID || 'meta-llama/Llama-3.1-8B-Instruct';
+    // Try alternative models if default fails - use models that support inference API
+    const MODEL_ID = process.env.HUGGINGFACE_MODEL_ID || 'mistralai/Mistral-7B-Instruct-v0.2';
     const TAVILY_API_KEY = process.env.TAVILY_API_KEY;
 
     if (!HF_API_KEY) {
@@ -80,7 +81,10 @@ Return ONLY a valid JSON object with this structure:
 
 Make sure the list is comprehensive and includes all major topics. Respond ONLY with the JSON object, no other text.`;
 
-    const hfApiUrl = `https://api-inference.huggingface.co/models/${MODEL_ID}`;
+    // Try using the Text Generation Inference API first, fallback to inference API
+    let hfApiUrl = `https://api-inference.huggingface.co/models/${MODEL_ID}`;
+    
+    // First, try with wait_for_model parameter to handle model loading
     const hfResponse = await fetch(hfApiUrl, {
       method: 'POST',
       headers: {
@@ -94,19 +98,28 @@ Make sure the list is comprehensive and includes all major topics. Respond ONLY 
           temperature: 0.7,
           return_full_text: false,
         },
+        options: {
+          wait_for_model: true,
+        },
       }),
     });
 
     if (!hfResponse.ok) {
       const errorText = await hfResponse.text();
       console.error('HuggingFace API error:', errorText);
+      console.error('Response status:', hfResponse.status);
       
       // Handle model loading errors
       if (hfResponse.status === 503) {
         throw new Error('HuggingFace model is loading. Please wait a moment and try again.');
       }
       
-      throw new Error(`HuggingFace API error: ${hfResponse.statusText}`);
+      // Handle "Gone" (410) - model endpoint no longer available
+      if (hfResponse.status === 410) {
+        throw new Error(`The HuggingFace model "${MODEL_ID}" is no longer available at this endpoint. Please try a different model or contact support.`);
+      }
+      
+      throw new Error(`HuggingFace API error: ${hfResponse.statusText} (Status: ${hfResponse.status})`);
     }
 
     const hfData = await hfResponse.json();
