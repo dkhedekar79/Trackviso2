@@ -26,14 +26,15 @@ export default async function handler(req, res) {
     // Use HuggingFace API with web search for accurate topic generation
     const HF_API_KEY = process.env.HUGGINGFACE_API_KEY || process.env.VITE_HUGGINGFACE_API_KEY;
     // Try multiple models - fallback list if one doesn't work
-    // Using smaller, reliable models that work with Inference API
-    const PRIMARY_MODEL = process.env.HUGGINGFACE_MODEL_ID || 'google/flan-t5-large';
+    // Using models that are known to work with Inference API
+    // Start with simpler models first
+    const PRIMARY_MODEL = process.env.HUGGINGFACE_MODEL_ID || 'gpt2';
     const FALLBACK_MODELS = [
-      'google/flan-t5-large',
-      'google/flan-t5-base',
-      'google/flan-ul2',
-      'microsoft/DialoGPT-medium',
+      'gpt2',
       'distilgpt2',
+      'google/flan-t5-base',
+      'google/flan-t5-small',
+      'facebook/opt-1.3b',
     ];
     const TAVILY_API_KEY = process.env.TAVILY_API_KEY;
 
@@ -121,8 +122,22 @@ Make sure the list is comprehensive and includes all major topics. Respond ONLY 
 
         if (!hfResponse.ok) {
           const errorText = await hfResponse.text();
-          console.error(`HuggingFace API error for ${MODEL_ID}:`, errorText);
+          let errorDetails = '';
+          try {
+            const errorJson = JSON.parse(errorText);
+            errorDetails = errorJson.error || errorJson.message || errorText;
+          } catch {
+            errorDetails = errorText;
+          }
+          
+          console.error(`HuggingFace API error for ${MODEL_ID}:`, errorDetails);
           console.error('Response status:', hfResponse.status);
+          console.error('Full error response:', errorText);
+          
+          // Handle authentication errors
+          if (hfResponse.status === 401 || hfResponse.status === 403) {
+            throw new Error(`Authentication failed. Please check your HuggingFace API key. Error: ${errorDetails}`);
+          }
           
           // Handle model loading errors - skip and try next
           if (hfResponse.status === 503) {
@@ -137,8 +152,14 @@ Make sure the list is comprehensive and includes all major topics. Respond ONLY 
             continue;
           }
           
-          // For other errors, try next model
-          lastError = new Error(`HuggingFace API error: ${hfResponse.statusText} (Status: ${hfResponse.status})`);
+          // Handle quota/rate limit errors
+          if (hfResponse.status === 429) {
+            lastError = new Error(`Rate limit exceeded for model "${MODEL_ID}". Trying next model...`);
+            continue;
+          }
+          
+          // For other errors, save the details and try next model
+          lastError = new Error(`HuggingFace API error (${hfResponse.status}): ${errorDetails}`);
           continue;
         }
         
@@ -157,7 +178,8 @@ Make sure the list is comprehensive and includes all major topics. Respond ONLY 
     
     // If all models failed
     if (!hfData) {
-      throw new Error(`All HuggingFace models failed to respond. Please check your API key is valid and has access to inference API. Last error: ${lastError?.message || 'Unknown error'}`);
+      const errorMsg = lastError?.message || 'Unknown error';
+      throw new Error(`All HuggingFace models failed to respond. Please check your API key is valid and has access to inference API. Last error: ${errorMsg}. Make sure your API key has the correct permissions and is not expired.`);
     }
 
     // Handle HuggingFace response format (array of objects with generated_text)
