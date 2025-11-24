@@ -7,7 +7,6 @@ import ProtectedRoute from './routes/ProtectedRoute';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
-import GamifiedDashboard from './components/GamifiedDashboard';
 import Subjects from './pages/Subjects';
 import Study from './pages/Study';
 import Tasks from './pages/Tasks';
@@ -23,7 +22,6 @@ import Signup from './pages/Signup';
 import OnboardingModal from "./components/OnboardingModal";
 import Footer from './components/Footer';
 import { ThemeProvider } from './context/ThemeContext';
-import { DashboardProvider, useDashboard } from './context/DashboardContext';
 import './styles/index.css';
 
 
@@ -45,10 +43,9 @@ function App() {
       <GamificationProvider>
         <TimerProvider>
           <ThemeProvider>
-            <DashboardProvider>
-              <Router>
-                <RouteCleanup />
-              <Routes>
+            <Router>
+              <RouteCleanup />
+            <Routes>
               {/* Public Routes */}
               <Route path="/" element={<div className="flex flex-col min-h-screen"><main className="flex-1"><Landing /><Footer /></main></div>} />
               <Route path="/login" element={<div className="flex flex-col min-h-screen"><main className="flex-1"><Login /><Footer /></main></div>} />
@@ -60,21 +57,6 @@ function App() {
 
               {/* Protected Routes */}
               <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <div className="flex h-screen bg-[var(--app-bg)]">
-                    <Sidebar />
-                    <div className="flex-1 flex flex-col">
-                      <Navbar />
-                      <main className="flex-1 overflow-auto">
-                        <DashboardToggle />
-                        <Footer withSidebar />
-                      </main>
-                    </div>
-                  </div>
-                </ProtectedRoute>
-              } />
-
-              <Route path="/classic-dashboard" element={
                 <ProtectedRoute>
                   <div className="flex h-screen bg-[var(--app-bg)]">
                     <Sidebar />
@@ -209,19 +191,12 @@ function App() {
                 </ProtectedRoute>
               } />
             </Routes>
-              </Router>
-            </DashboardProvider>
+            </Router>
           </ThemeProvider>
         </TimerProvider>
       </GamificationProvider>
     </AuthProvider>
   );
-}
-
-function DashboardToggle() {
-  const { showGamified } = useDashboard();
-
-  return showGamified ? <GamifiedDashboard /> : <Dashboard />;
 }
 
 export default App;

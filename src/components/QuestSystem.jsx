@@ -265,10 +265,10 @@ const QuestProgressTracker = ({ quest, onComplete }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ scale: 1.02, y: -5 }}
-      className={`p-6 rounded-2xl border-2 transition-all ${
+      className={`p-6 rounded-2xl border-2 transition-all backdrop-blur ${
         isCompleted 
-          ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 shadow-green-100/50' 
-          : 'bg-white border-gray-200 hover:border-purple-300'
+          ? 'bg-green-500/20 border-green-400/50 shadow-green-500/20' 
+          : 'bg-white/10 border-purple-700/30 hover:border-blue-400/50'
       } shadow-lg`}
     >
       <div className="flex items-start justify-between mb-4">
@@ -281,12 +281,12 @@ const QuestProgressTracker = ({ quest, onComplete }) => {
           
           <div>
             <h3 className={`font-bold text-lg ${
-              isCompleted ? 'text-green-800' : 'text-gray-800'
+              isCompleted ? 'text-green-300' : 'text-white'
             }`}>
               {quest.name || 'Unknown Quest'}
             </h3>
             <p className={`text-sm ${
-              isCompleted ? 'text-green-600' : 'text-gray-600'
+              isCompleted ? 'text-green-200' : 'text-gray-300'
             }`}>
               {quest.description || 'No description available'}
             </p>
@@ -305,14 +305,14 @@ const QuestProgressTracker = ({ quest, onComplete }) => {
             </motion.div>
           ) : (
             <div className="text-right">
-              <span className="text-sm font-medium text-gray-600">
+              <span className="text-sm font-medium text-gray-300">
                 {progress} / {quest.target || 1}
               </span>
               <div className={`px-2 py-1 rounded-full text-xs font-bold ${
-                quest.difficulty === 'easy' ? 'bg-green-100 text-green-700' :
-                quest.difficulty === 'medium' ? 'bg-blue-100 text-blue-700' :
-                quest.difficulty === 'hard' ? 'bg-purple-100 text-purple-700' :
-                'bg-yellow-100 text-yellow-700'
+                quest.difficulty === 'easy' ? 'bg-green-500/30 text-green-300 border border-green-400/50' :
+                quest.difficulty === 'medium' ? 'bg-blue-500/30 text-blue-300 border border-blue-400/50' :
+                quest.difficulty === 'hard' ? 'bg-purple-500/30 text-purple-300 border border-purple-400/50' :
+                'bg-yellow-500/30 text-yellow-300 border border-yellow-400/50'
               }`}>
                 {(quest.difficulty || 'medium').toUpperCase()}
               </div>
@@ -534,14 +534,14 @@ const QuestSystem = () => {
   const earnedXP = completedQuests.reduce((sum, quest) => sum + (quest.xp || 0), 0);
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-3">
-          <Target className="w-8 h-8 text-purple-500" />
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-white mb-2 flex items-center gap-3">
+          <Target className="w-6 h-6 text-blue-400" />
           Quest Center
         </h1>
-        <p className="text-gray-600">
+        <p className="text-gray-300">
           Complete challenges to earn XP and unlock achievements!
         </p>
       </div>
@@ -562,8 +562,8 @@ const QuestSystem = () => {
               onClick={() => setActiveCategory(key)}
               className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-semibold transition-all ${
                 activeCategory === key
-                  ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
-                  : 'bg-white text-gray-600 hover:bg-gray-50 shadow'
+                  ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg'
+                  : 'bg-white/10 text-gray-300 hover:bg-white/20 backdrop-blur'
               }`}
             >
               <Icon className="w-5 h-5" />
@@ -579,9 +579,9 @@ const QuestSystem = () => {
       </div>
       
       {/* Quest Overview */}
-      <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+      <div className="bg-white/10 rounded-xl p-6 mb-6 backdrop-blur">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-800">
+          <h2 className="text-xl font-bold text-white">
             {QUEST_CATEGORIES[activeCategory].name} Overview
           </h2>
           
@@ -590,8 +590,8 @@ const QuestSystem = () => {
               onClick={() => setShowCompleted(false)}
               className={`px-4 py-2 rounded-lg font-medium transition-all ${
                 !showCompleted 
-                  ? 'bg-purple-100 text-purple-700' 
-                  : 'text-gray-500 hover:bg-gray-100'
+                  ? 'bg-blue-500/30 text-white border border-blue-400/50' 
+                  : 'text-gray-300 hover:bg-white/10'
               }`}
             >
               Active ({activeQuests.length})
@@ -600,8 +600,8 @@ const QuestSystem = () => {
               onClick={() => setShowCompleted(true)}
               className={`px-4 py-2 rounded-lg font-medium transition-all ${
                 showCompleted 
-                  ? 'bg-purple-100 text-purple-700' 
-                  : 'text-gray-500 hover:bg-gray-100'
+                  ? 'bg-blue-500/30 text-white border border-blue-400/50' 
+                  : 'text-gray-300 hover:bg-white/10'
               }`}
             >
               Completed ({completedQuests.length})
@@ -612,18 +612,18 @@ const QuestSystem = () => {
         {/* Progress Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
           <div className="text-center">
-            <div className="text-3xl font-bold text-purple-600">{completionPercentage.toFixed(0)}%</div>
-            <div className="text-sm text-gray-600">Complete</div>
+            <div className="text-3xl font-bold text-blue-400">{completionPercentage.toFixed(0)}%</div>
+            <div className="text-sm text-gray-300">Complete</div>
           </div>
           
           <div className="text-center">
-            <div className="text-3xl font-bold text-green-600">{earnedXP}</div>
-            <div className="text-sm text-gray-600">XP Earned</div>
+            <div className="text-3xl font-bold text-green-400">{earnedXP}</div>
+            <div className="text-sm text-gray-300">XP Earned</div>
           </div>
           
           <div className="text-center">
-            <div className="text-3xl font-bold text-blue-600">{totalXP - earnedXP}</div>
-            <div className="text-sm text-gray-600">XP Available</div>
+            <div className="text-3xl font-bold text-cyan-400">{totalXP - earnedXP}</div>
+            <div className="text-sm text-gray-300">XP Available</div>
           </div>
         </div>
         
@@ -657,10 +657,10 @@ const QuestSystem = () => {
                 <Target className="w-16 h-16 mx-auto" />
               )}
             </div>
-            <h3 className="text-lg font-semibold text-gray-600 mb-2">
+            <h3 className="text-lg font-semibold text-gray-300 mb-2">
               {showCompleted ? 'No completed quests yet' : 'No active quests'}
             </h3>
-            <p className="text-gray-500">
+            <p className="text-gray-400">
               {showCompleted 
                 ? 'Complete some quests to see them here!' 
                 : 'New quests will appear soon!'

@@ -103,37 +103,47 @@ export const GamificationProvider = ({ children }) => {
   }, [userStats]);
 
   // Advanced XP calculation with variable rewards
+  // Base rate: 10 XP per minute (600 XP per hour)
+  // With bonuses, typical session can give 15-30 XP/min (900-1800 XP/hour)
+  // This makes level 100 (~80k XP) achievable in 3-4 months with 1 hour/day
   const calculateXP = (sessionDuration, subjectName, difficulty = 1.0) => {
-    const baseXP = Math.floor(sessionDuration / 0.1); // 10 XP per minute
+    // Base XP: 10 XP per minute (600 XP per hour)
+    const baseXP = Math.floor(sessionDuration * 10);
 
-    // Focus multiplier scales with session length (longer sessions = higher multiplier)
-    const focusMultiplier = Math.min(3.0, 1.0 + sessionDuration / 120); // Max 3x at 2+ hours
+    // Focus multiplier: longer sessions get bonus (encourages deep focus)
+    // 25-60 min: 1.2x, 60-120 min: 1.5x, 120+ min: 2.0x max
+    let focusMultiplier = 1.0;
+    if (sessionDuration >= 120) {
+      focusMultiplier = 2.0; // 2x for 2+ hour sessions
+    } else if (sessionDuration >= 60) {
+      focusMultiplier = 1.0 + (sessionDuration - 60) / 120; // Scales from 1.0x to 2.0x
+    } else if (sessionDuration >= 25) {
+      focusMultiplier = 1.0 + (sessionDuration - 25) / 100; // Scales from 1.0x to 1.35x
+    }
 
-    // Streak bonus scales exponentially with current streak
-    const streakBonus = Math.floor(
-      userStats.currentStreak * (Math.log(userStats.currentStreak + 1) * 5),
-    );
+    // Streak bonus: rewards consistency (max +50% for 30+ day streak)
+    const streakMultiplier = Math.min(1.5, 1.0 + (userStats.currentStreak || 0) / 60);
 
-    // Subject mastery bonus (20% bonus for well-studied subjects)
-    const masteryBonus =
-      userStats.subjectMastery[subjectName] >= 1000 ? baseXP * 0.2 : 0;
+    // Subject mastery bonus: 10% bonus for subjects with 10+ hours studied
+    const subjectHours = (userStats.subjectMastery[subjectName] || 0) / 60;
+    const masteryBonus = subjectHours >= 10 ? baseXP * 0.1 : 0;
 
-    // Prestige multiplier
-    const prestigeMultiplier = 1.0 + userStats.prestigeLevel * 0.1;
+    // Prestige multiplier: +10% per prestige level
+    const prestigeMultiplier = 1.0 + (userStats.prestigeLevel || 0) * 0.1;
 
     // Premium multiplier
     const premiumMultiplier = userStats.isPremium
-      ? userStats.xpMultiplier
+      ? (userStats.xpMultiplier || 1.2)
       : 1.0;
 
-    // Calculate base XP with all multipliers
+    // Calculate total XP with all multipliers
     let totalXP = Math.floor(
-      (baseXP * focusMultiplier + streakBonus + masteryBonus) *
+      (baseXP * focusMultiplier * streakMultiplier + masteryBonus) *
         prestigeMultiplier *
-        premiumMultiplier,
+        premiumMultiplier
     );
 
-    // Variable reward system
+    // Variable reward system (can add bonus XP)
     const variableReward = calculateVariableReward(totalXP, sessionDuration);
     totalXP += variableReward.bonusXP;
 
@@ -142,10 +152,10 @@ export const GamificationProvider = ({ children }) => {
       totalXP,
       bonuses: {
         focus: Math.floor(baseXP * (focusMultiplier - 1)),
-        streak: streakBonus,
+        streak: Math.floor(baseXP * (streakMultiplier - 1)),
         mastery: Math.floor(masteryBonus),
-        prestige: Math.floor(totalXP * (prestigeMultiplier - 1)),
-        premium: Math.floor(totalXP * (premiumMultiplier - 1)),
+        prestige: Math.floor((baseXP * focusMultiplier * streakMultiplier + masteryBonus) * (prestigeMultiplier - 1)),
+        premium: Math.floor((baseXP * focusMultiplier * streakMultiplier + masteryBonus) * prestigeMultiplier * (premiumMultiplier - 1)),
         variable: variableReward.bonusXP,
       },
       reward: variableReward,
@@ -229,74 +239,120 @@ export const GamificationProvider = ({ children }) => {
     };
   };
 
-  // Study time required per level (in minutes)
-  // Levels 1-5: 10-15 minutes per level (much harder to level up)
-  // Level 6+: Progressively harder with exponential growth
-  const getStudyTimeForLevel = (level) => {
+  // XP required to REACH a specific level (cumulative)
+  // Balanced so level 100 is achievable with decent effort (roughly 3-4 months of consistent study)
+  // Total XP needed for level 100: ~80,000 XP
+  const getTotalXPForLevel = (level) => {
     if (level <= 1) return 0;
-
-    // Define time requirements for each level
-    const levelTimes = [
-      0,    // Level 1 (starting)
-      10,   // Level 2 (10 min)
-      12,   // Level 3 (22 total)
-      14,   // Level 4 (36 total)
-      15,   // Level 5 (51 total)
-      16,   // Level 6 (67 total)
-    ];
-
-    if (level <= levelTimes.length) {
-      return levelTimes[level - 1];
+    if (level === 2) return 100;
+    
+    let totalXP = 100; // Level 2 requirement
+    
+    // Levels 2-10: Easy progression (100 XP per level)
+    // 2-10 = 9 levels × 100 XP = 900 more XP
+    if (level <= 10) {
+      totalXP += (level - 2) * 100;
+      return totalXP;
     }
-
-    // For levels 7+: exponential growth (1.35x multiplier per level)
-    let time = levelTimes[levelTimes.length - 1];
-    for (let i = levelTimes.length; i < level; i++) {
-      time = Math.round(time * 1.35);
+    totalXP += 9 * 100; // 900 XP for levels 2-10
+    
+    // Levels 11-25: Moderate progression (200 XP per level)
+    // 11-25 = 15 levels × 200 XP = 3000 more XP
+    if (level <= 25) {
+      totalXP += (level - 10) * 200;
+      return totalXP;
     }
-    return time;
+    totalXP += 15 * 200; // 3000 XP for levels 11-25
+    
+    // Levels 26-50: Harder progression (500 XP per level)
+    // 26-50 = 25 levels × 500 XP = 12500 more XP
+    if (level <= 50) {
+      totalXP += (level - 25) * 500;
+      return totalXP;
+    }
+    totalXP += 25 * 500; // 12500 XP for levels 26-50
+    
+    // Levels 51-75: Even harder (1000 XP per level)
+    // 51-75 = 25 levels × 1000 XP = 25000 more XP
+    if (level <= 75) {
+      totalXP += (level - 50) * 1000;
+      return totalXP;
+    }
+    totalXP += 25 * 1000; // 25000 XP for levels 51-75
+    
+    // Levels 76-100: Very hard (1500 XP per level)
+    // 76-100 = 25 levels × 1500 XP = 37500 more XP
+    totalXP += (level - 75) * 1500;
+    
+    return totalXP;
   };
 
-  // Get cumulative study time required to REACH a given level
-  const getTotalStudyTimeForLevel = (level) => {
+  // XP required to go from one level to the next
+  const getXPForLevel = (level) => {
     if (level <= 1) return 0;
-    let total = 0;
-    for (let i = 2; i <= level; i++) {
-      total += getStudyTimeForLevel(i);
-    }
-    return total;
+    return getTotalXPForLevel(level) - getTotalXPForLevel(level - 1);
   };
 
-  // Calculate current level from total study time (in minutes)
-  const getLevelFromStudyTime = (totalMinutes) => {
-    let level = 1;
-    while (getTotalStudyTimeForLevel(level + 1) <= totalMinutes) {
-      level++;
-    }
-    return level;
+  // Calculate current level from total XP
+  const getLevelFromXP = (totalXP) => {
+    if (totalXP < 100) return 1; // Level 1
+    if (totalXP < 1000) return Math.floor((totalXP - 100) / 100) + 2; // Levels 2-10
+    if (totalXP < 4000) return Math.floor((totalXP - 1000) / 200) + 11; // Levels 11-25
+    if (totalXP < 16500) return Math.floor((totalXP - 4000) / 500) + 26; // Levels 26-50
+    if (totalXP < 41500) return Math.floor((totalXP - 16500) / 1000) + 51; // Levels 51-75
+    // Levels 76-100
+    const remainingXP = totalXP - 41500;
+    if (remainingXP < 0) return 75;
+    return Math.min(100, Math.floor(remainingXP / 1500) + 76);
   };
 
-  // Get study time progress to next level
-  const getStudyTimeProgress = () => {
-    const currentLevel = userStats.level;
-    const nextLevel = currentLevel + 1;
+  // Get XP progress to next level
+  const getXPProgress = () => {
+    const currentLevel = userStats.level || 1;
+    const totalXP = userStats.xp || 0;
+    const nextLevel = Math.min(100, currentLevel + 1);
 
-    const currentLevelRequiredTime = getTotalStudyTimeForLevel(currentLevel);
-    const nextLevelRequiredTime = getTotalStudyTimeForLevel(nextLevel);
+    const currentLevelRequiredXP = getTotalXPForLevel(currentLevel);
+    const nextLevelRequiredXP = getTotalXPForLevel(nextLevel);
 
-    const progressTime = Math.max(0, userStats.totalStudyTime - currentLevelRequiredTime);
-    const neededTime = nextLevelRequiredTime - currentLevelRequiredTime;
+    const progressXP = Math.max(0, totalXP - currentLevelRequiredXP);
+    const neededXP = nextLevelRequiredXP - currentLevelRequiredXP;
 
     return {
-      current: progressTime,
-      needed: neededTime,
-      percentage: Math.min(100, Math.max(0, neededTime > 0 ? (progressTime / neededTime) * 100 : 0)),
+      current: progressXP,
+      needed: neededXP,
+      percentage: Math.min(100, Math.max(0, neededXP > 0 ? (progressXP / neededXP) * 100 : 0)),
+      currentXP: totalXP,
+      nextLevelXP: nextLevelRequiredXP,
     };
   };
 
-  // Legacy XP progress function for compatibility
-  const getXPProgress = () => {
-    return getStudyTimeProgress();
+  // Legacy functions for backward compatibility (now based on XP conversion)
+  // Approximate: 1 minute = 10 XP base, so time ≈ XP / 10
+  const getStudyTimeForLevel = (level) => {
+    const xpRequired = getXPForLevel(level);
+    return Math.round(xpRequired / 10); // Convert XP to approximate minutes
+  };
+
+  const getTotalStudyTimeForLevel = (level) => {
+    const xpRequired = getTotalXPForLevel(level);
+    return Math.round(xpRequired / 10); // Convert XP to approximate minutes
+  };
+
+  const getLevelFromStudyTime = (totalMinutes) => {
+    // Convert minutes to approximate XP (10 XP per minute base)
+    const approximateXP = totalMinutes * 10;
+    return getLevelFromXP(approximateXP);
+  };
+
+  const getStudyTimeProgress = () => {
+    const xpProgress = getXPProgress();
+    // Convert XP progress to approximate time progress
+    return {
+      current: Math.round(xpProgress.current / 10),
+      needed: Math.round(xpProgress.needed / 10),
+      percentage: xpProgress.percentage,
+    };
   };
 
   // Advanced streak tracking with decay
@@ -453,21 +509,33 @@ export const GamificationProvider = ({ children }) => {
     return ok;
   };
 
-  // Grant raw XP (e.g., from rewards)
+  // Grant raw XP (e.g., from rewards, quests)
   const grantXP = (amount, source = "reward") => {
     if (!amount || amount <= 0) return;
     setUserStats((prev) => {
-      const newXP = (prev.xp || 0) + amount;
+      const oldLevel = prev.level || 1;
+      const oldXP = prev.xp || 0;
+      const newXP = oldXP + amount;
       const newLevel = getLevelFromXP(newXP);
       const event = { amount, source, timestamp: new Date().toISOString() };
-      return {
+      const updatedStats = {
         ...prev,
         xp: newXP,
         level: newLevel,
-        totalXPEarned: (prev.totalXPEarned || prev.xp || 0) + amount,
+        totalXPEarned: (prev.totalXPEarned || 0) + amount,
         weeklyXP: (prev.weeklyXP || 0) + amount,
         xpEvents: [event, ...(prev.xpEvents || [])].slice(0, 500),
       };
+      
+      // Check for level up
+      if (newLevel > oldLevel) {
+        const levelsGained = newLevel - oldLevel;
+        for (let i = 1; i <= levelsGained; i++) {
+          setTimeout(() => handleLevelUp(oldLevel + i), 100 * i);
+        }
+      }
+      
+      return updatedStats;
     });
   };
 
@@ -580,10 +648,10 @@ export const GamificationProvider = ({ children }) => {
   // Award XP for study session with enhanced rewards
   const awardXP = (sessionDuration, subjectName, difficulty = 1.0) => {
     const xpData = calculateXP(sessionDuration, subjectName, difficulty);
-    const oldLevel = userStats.level;
-    const newXP = userStats.xp + xpData.totalXP;
-    const newTotalStudyTime = userStats.totalStudyTime + sessionDuration;
-    const newLevel = getLevelFromStudyTime(newTotalStudyTime);
+    const oldLevel = userStats.level || 1;
+    const oldXP = userStats.xp || 0;
+    const newXP = oldXP + xpData.totalXP;
+    const newLevel = getLevelFromXP(newXP);
 
     // Update user stats
     setUserStats((prev) => {
@@ -594,7 +662,7 @@ export const GamificationProvider = ({ children }) => {
         level: newLevel,
         totalSessions: (prev.totalSessions || 0) + 1,
         totalStudyTime: updatedStudyTime,
-        totalXPEarned: (prev.totalXPEarned || prev.xp || 0) + xpData.totalXP,
+        totalXPEarned: (prev.totalXPEarned || 0) + xpData.totalXP,
         weeklyXP: (prev.weeklyXP || 0) + xpData.totalXP,
         xpEvents: [
           { amount: xpData.totalXP, source: "session", timestamp: new Date().toISOString() },
@@ -610,10 +678,12 @@ export const GamificationProvider = ({ children }) => {
       console.log("🎯 Awarding XP:", {
         sessionDuration,
         subjectName,
-        oldXP: prev.xp,
+        oldXP,
         newXP,
         xpGained: xpData.totalXP,
-        oldTotalXPEarned: prev.totalXPEarned,
+        oldLevel,
+        newLevel,
+        oldTotalXPEarned: prev.totalXPEarned || 0,
         newTotalXPEarned: newStats.totalXPEarned,
       });
 
@@ -634,7 +704,7 @@ export const GamificationProvider = ({ children }) => {
       addReward(xpData.reward);
     }
 
-    // Check for level up
+    // Check for level up (based on XP now, not time)
     if (newLevel > oldLevel) {
       const levelsGained = newLevel - oldLevel;
       for (let i = 1; i <= levelsGained; i++) {
@@ -880,6 +950,8 @@ export const GamificationProvider = ({ children }) => {
   };
 
   // Daily quest templates
+  // Balanced to give 60-150 XP each (roughly 10-25% of an hour's study)
+  // Average study session: 600 XP/hour, so quests give ~10-25% bonus
   const dailyQuestTemplates = [
     {
       id: "complete_session",
@@ -887,7 +959,7 @@ export const GamificationProvider = ({ children }) => {
       description: "Complete 1 study session today",
       type: "sessions",
       target: 1,
-      xp: 50,
+      xp: 75,
       icon: "✅",
     },
     {
@@ -896,7 +968,7 @@ export const GamificationProvider = ({ children }) => {
       description: "Study for at least 25 minutes (Pomodoro length)",
       type: "time",
       target: 25,
-      xp: 75,
+      xp: 100,
       icon: "⏰",
     },
     {
@@ -905,7 +977,7 @@ export const GamificationProvider = ({ children }) => {
       description: "Finish 1 assigned task",
       type: "tasks",
       target: 1,
-      xp: 60,
+      xp: 80,
       icon: "📋",
     },
     {
@@ -914,7 +986,7 @@ export const GamificationProvider = ({ children }) => {
       description: "Maintain your streak (log in + study)",
       type: "streak",
       target: 1,
-      xp: 100,
+      xp: 125,
       icon: "🔥",
     },
     {
@@ -923,7 +995,7 @@ export const GamificationProvider = ({ children }) => {
       description: "Earn at least 50 XP today",
       type: "xp",
       target: 50,
-      xp: 25,
+      xp: 50,
       icon: "⭐",
     },
     {
@@ -932,7 +1004,7 @@ export const GamificationProvider = ({ children }) => {
       description: "Beat your personal best focus time from yesterday",
       type: "personal_best",
       target: 1,
-      xp: 80,
+      xp: 100,
       icon: "🏆",
     },
     {
@@ -941,7 +1013,7 @@ export const GamificationProvider = ({ children }) => {
       description: "Use the app before 10 AM (early bird bonus)",
       type: "early_bird",
       target: 1,
-      xp: 60,
+      xp: 75,
       icon: "🐦",
     },
     {
@@ -950,7 +1022,7 @@ export const GamificationProvider = ({ children }) => {
       description: "Study after 8 PM (night owl bonus)",
       type: "night_owl",
       target: 1,
-      xp: 60,
+      xp: 75,
       icon: "🦉",
     },
     {
@@ -959,7 +1031,7 @@ export const GamificationProvider = ({ children }) => {
       description: "Explore a new subject/topic (not yesterday's)",
       type: "new_subject",
       target: 1,
-      xp: 70,
+      xp: 90,
       icon: "🌟",
     },
     {
@@ -968,7 +1040,7 @@ export const GamificationProvider = ({ children }) => {
       description: "Study two different subjects in one day",
       type: "subjects",
       target: 2,
-      xp: 80,
+      xp: 100,
       icon: "📚",
     },
     {
@@ -977,12 +1049,14 @@ export const GamificationProvider = ({ children }) => {
       description: "Use the app for 3 separate study sessions",
       type: "sessions",
       target: 3,
-      xp: 120,
+      xp: 150,
       icon: "🔄",
     },
   ];
 
   // Weekly quest templates
+  // Balanced to give 500-1200 XP each (roughly 1-2 hours' worth of study)
+  // Study: ~600 XP/hour, so weekly quests give substantial bonus for consistency
   const weeklyQuestTemplates = [
     {
       id: "weekly_7_sessions",
@@ -990,7 +1064,7 @@ export const GamificationProvider = ({ children }) => {
       description: "Complete 7 study sessions this week",
       type: "sessions",
       target: 7,
-      xp: 300,
+      xp: 600,
       icon: "🏆",
     },
     {
@@ -999,7 +1073,7 @@ export const GamificationProvider = ({ children }) => {
       description: "Study for 5+ total hours this week",
       type: "time",
       target: 300,
-      xp: 400,
+      xp: 800,
       icon: "⏳",
     },
     {
@@ -1008,7 +1082,7 @@ export const GamificationProvider = ({ children }) => {
       description: "Earn 1,000 XP this week",
       type: "xp",
       target: 1000,
-      xp: 200,
+      xp: 500,
       icon: "💎",
     },
     {
@@ -1017,7 +1091,7 @@ export const GamificationProvider = ({ children }) => {
       description: "Hit your streak at least 5 days in a row",
       type: "streak",
       target: 5,
-      xp: 350,
+      xp: 700,
       icon: "🔥",
     },
     {
@@ -1026,7 +1100,7 @@ export const GamificationProvider = ({ children }) => {
       description: "Finish 5 tasks this week",
       type: "tasks",
       target: 5,
-      xp: 250,
+      xp: 500,
       icon: "✅",
     },
     {
@@ -1035,7 +1109,7 @@ export const GamificationProvider = ({ children }) => {
       description: "Reach a new level",
       type: "level",
       target: 1,
-      xp: 500,
+      xp: 1000,
       icon: "📈",
     },
     {
@@ -1044,7 +1118,7 @@ export const GamificationProvider = ({ children }) => {
       description: "Unlock at least 1 achievement",
       type: "achievement",
       target: 1,
-      xp: 200,
+      xp: 400,
       icon: "🏅",
     },
     {
@@ -1053,7 +1127,7 @@ export const GamificationProvider = ({ children }) => {
       description: "Study on both a weekday and a weekend",
       type: "week_balance",
       target: 1,
-      xp: 150,
+      xp: 500,
       icon: "📅",
     },
     {
@@ -1062,7 +1136,7 @@ export const GamificationProvider = ({ children }) => {
       description: "Do two double study days (2+ hours each)",
       type: "double_days",
       target: 2,
-      xp: 400,
+      xp: 900,
       icon: "⚡",
     },
   ];
@@ -1468,7 +1542,10 @@ export const GamificationProvider = ({ children }) => {
     prestige,
     setShowRewards,
     calculateXP,
-    getTotalXPForLevel: getTotalStudyTimeForLevel,
+    getTotalXPForLevel,
+    getXPForLevel,
+    getLevelFromXP,
+    // Legacy time-based functions (now XP-based internally)
     getTotalStudyTimeForLevel,
     getLevelFromStudyTime,
     getStudyTimeProgress,

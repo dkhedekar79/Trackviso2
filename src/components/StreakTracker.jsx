@@ -278,23 +278,23 @@ const StreakCalendar = ({ sessionHistory, currentStreak }) => {
   const days = getLast30Days();
   
   const intensityColors = {
-    none: 'bg-gray-200',
-    low: 'bg-green-200',
-    medium: 'bg-green-400',
-    high: 'bg-green-600'
+    none: 'bg-white/5',
+    low: 'bg-green-500/30',
+    medium: 'bg-green-500/50',
+    high: 'bg-green-500/70'
   };
   
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6">
+    <div className="bg-white/10 rounded-xl p-6 backdrop-blur">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-purple-500" />
+        <h3 className="text-lg font-bold text-white flex items-center gap-2">
+          <Calendar className="w-5 h-5 text-orange-400" />
           Study Calendar
         </h3>
         
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="text-gray-500 hover:text-gray-700 transition-colors"
+          className="text-gray-300 hover:text-white transition-colors"
         >
           {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
         </button>
@@ -310,7 +310,7 @@ const StreakCalendar = ({ sessionHistory, currentStreak }) => {
           >
             <div className="grid grid-cols-7 gap-1 mb-4">
               {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => (
-                <div key={day} className="text-center text-xs font-medium text-gray-500 p-2">
+                <div key={day} className="text-center text-xs font-medium text-gray-300 p-2">
                   {day}
                 </div>
               ))}
@@ -324,9 +324,9 @@ const StreakCalendar = ({ sessionHistory, currentStreak }) => {
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: index * 0.02 }}
                   className={`aspect-square rounded-lg ${intensityColors[day.intensity]} border-2 ${
-                    day.hasSession ? 'border-green-500' : 'border-transparent'
+                    day.hasSession ? 'border-green-400/50' : 'border-transparent'
                   } flex items-center justify-center text-xs font-medium ${
-                    day.intensity === 'none' ? 'text-gray-500' : 'text-white'
+                    day.intensity === 'none' ? 'text-gray-400' : 'text-white'
                   } relative group cursor-pointer`}
                   title={`${day.date.toLocaleDateString()}: ${day.totalMinutes}min`}
                 >
@@ -340,7 +340,7 @@ const StreakCalendar = ({ sessionHistory, currentStreak }) => {
               ))}
             </div>
             
-            <div className="flex items-center justify-between mt-4 text-xs text-gray-600">
+            <div className="flex items-center justify-between mt-4 text-xs text-gray-300">
               <div className="flex items-center gap-2">
                 <span>Less</span>
                 <div className="flex gap-1">
@@ -434,7 +434,7 @@ const StreakTracker = () => {
   return (
     <div className="space-y-6">
       {/* Main Streak Display */}
-      <div className={`rounded-3xl shadow-xl p-8 border-2 ${streakStatus.borderColor} ${streakStatus.bgColor} transition-all`}>
+      <div className={`rounded-3xl shadow-xl p-8 border-2 backdrop-blur bg-white/10 border-orange-700/30 transition-all`}>
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             <motion.div
@@ -452,14 +452,14 @@ const StreakTracker = () => {
             </motion.div>
             
             <div>
-              <h2 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
+              <h2 className="text-3xl font-bold text-white flex items-center gap-2">
                 {userStats.currentStreak}
-                <span className="text-lg font-normal text-gray-600">day streak</span>
+                <span className="text-lg font-normal text-gray-300">day streak</span>
               </h2>
-              <p className={`text-lg font-medium ${streakStatus.color}`}>
+              <p className="text-lg font-medium text-orange-300">
                 {currentTier.name} • {currentTier.description}
               </p>
-              <p className={`text-sm ${streakStatus.color}`}>
+              <p className="text-sm text-orange-200">
                 {streakStatus.message}
               </p>
             </div>
@@ -479,7 +479,7 @@ const StreakTracker = () => {
               </motion.button>
             )}
             
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2 text-sm text-gray-300">
               <Shield className="w-4 h-4" />
               <span>{userStats.streakSavers} streak savers</span>
             </div>
@@ -490,10 +490,10 @@ const StreakTracker = () => {
         {nextTier && (
           <div className="mb-6">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium text-gray-300">
                 Progress to {nextTier.name}
               </span>
-              <span className="text-sm font-bold text-gray-900">
+              <span className="text-sm font-bold text-white">
                 {userStats.currentStreak} / {nextTier.days[0]}
               </span>
             </div>
@@ -513,25 +513,23 @@ const StreakTracker = () => {
               scale: streakStatus.status === STREAK_STATUS.DANGER ? [1, 1.02, 1] : 1
             }}
             transition={{ duration: 1, repeat: Infinity }}
-            className={`p-4 rounded-2xl ${
-              streakStatus.status === STREAK_STATUS.DANGER ? 'bg-red-100' : 'bg-orange-100'
-            } border-2 ${
-              streakStatus.status === STREAK_STATUS.DANGER ? 'border-red-200' : 'border-orange-200'
-            }`}
+            className={`p-4 rounded-2xl backdrop-blur ${
+              streakStatus.status === STREAK_STATUS.DANGER ? 'bg-red-500/20 border-red-400/50' : 'bg-orange-500/20 border-orange-400/50'
+            } border-2`}
           >
             <div className="flex items-center gap-3">
               <Timer className={`w-6 h-6 ${
-                streakStatus.status === STREAK_STATUS.DANGER ? 'text-red-600' : 'text-orange-600'
+                streakStatus.status === STREAK_STATUS.DANGER ? 'text-red-300' : 'text-orange-300'
               }`} />
               
               <div>
                 <p className={`font-semibold ${
-                  streakStatus.status === STREAK_STATUS.DANGER ? 'text-red-800' : 'text-orange-800'
+                  streakStatus.status === STREAK_STATUS.DANGER ? 'text-red-300' : 'text-orange-300'
                 }`}>
                   Time Remaining: {timeLeft.hours}h {timeLeft.minutes}m
                 </p>
                 <p className={`text-sm ${
-                  streakStatus.status === STREAK_STATUS.DANGER ? 'text-red-600' : 'text-orange-600'
+                  streakStatus.status === STREAK_STATUS.DANGER ? 'text-red-200' : 'text-orange-200'
                 }`}>
                   Study now to maintain your streak!
                 </p>
@@ -542,16 +540,16 @@ const StreakTracker = () => {
         
         {/* Streak Benefits */}
         <div className="grid grid-cols-2 gap-4 mt-6">
-          <div className="bg-white/50 rounded-xl p-4 text-center">
-            <Star className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
-            <p className="text-sm font-medium text-gray-700">XP Multiplier</p>
-            <p className="text-2xl font-bold text-gray-800">{currentTier.multiplier}x</p>
+          <div className="bg-white/10 rounded-xl p-4 text-center backdrop-blur">
+            <Star className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
+            <p className="text-sm font-medium text-gray-300">XP Multiplier</p>
+            <p className="text-2xl font-bold text-white">{currentTier.multiplier}x</p>
           </div>
           
-          <div className="bg-white/50 rounded-xl p-4 text-center">
-            <Crown className="w-8 h-8 text-purple-500 mx-auto mb-2" />
-            <p className="text-sm font-medium text-gray-700">Longest Streak</p>
-            <p className="text-2xl font-bold text-gray-800">{userStats.longestStreak}</p>
+          <div className="bg-white/10 rounded-xl p-4 text-center backdrop-blur">
+            <Crown className="w-8 h-8 text-purple-400 mx-auto mb-2" />
+            <p className="text-sm font-medium text-gray-300">Longest Streak</p>
+            <p className="text-2xl font-bold text-white">{userStats.longestStreak}</p>
           </div>
         </div>
       </div>

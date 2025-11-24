@@ -470,10 +470,10 @@ const AchievementBadge = ({ achievement, unlocked, onClick, showLocked = true })
       whileHover={{ scale: 1.05, y: -5 }}
       whileTap={{ scale: 0.95 }}
       onClick={() => onClick?.(achievement)}
-      className={`relative cursor-pointer p-4 rounded-2xl border-2 ${
+      className={`relative cursor-pointer p-4 rounded-2xl border-2 backdrop-blur ${
         unlocked 
           ? `bg-gradient-to-br ${tier.color} ${tier.borderColor} ${tier.glowColor} shadow-lg` 
-          : 'bg-gray-100 border-gray-300 opacity-60'
+          : 'bg-white/5 border-gray-600/50 opacity-60'
       } transition-all duration-300`}
     >
       {/* Rarity indicator */}
@@ -493,7 +493,7 @@ const AchievementBadge = ({ achievement, unlocked, onClick, showLocked = true })
       
       {/* Achievement details */}
       <div className="text-center">
-        <h3 className={`font-bold text-sm mb-1 ${unlocked ? 'text-white' : 'text-gray-600'}`}>
+        <h3 className={`font-bold text-sm mb-1 ${unlocked ? 'text-white' : 'text-gray-400'}`}>
           {achievement.name}
         </h3>
         <p className={`text-xs ${unlocked ? 'text-white/90' : 'text-gray-500'}`}>
@@ -612,38 +612,38 @@ const AchievementSystem = () => {
   };
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4 flex items-center gap-3">
-          <Trophy className="w-8 h-8 text-yellow-500" />
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
+          <Trophy className="w-6 h-6 text-yellow-400" />
           Achievement Gallery
         </h1>
         
         {/* Progress Overview */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+        <div className="bg-white/10 rounded-xl p-6 mb-6 backdrop-blur">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-xl font-bold text-gray-800">Your Progress</h2>
-              <p className="text-gray-600">
+              <h2 className="text-xl font-bold text-white">Your Progress</h2>
+              <p className="text-gray-300">
                 {unlockedCount} of {totalCount} achievements unlocked
               </p>
             </div>
             <div className="text-right">
-              <div className="text-3xl font-bold text-purple-600">
+              <div className="text-3xl font-bold text-yellow-400">
                 {Math.round((unlockedCount / totalCount) * 100)}%
               </div>
-              <p className="text-sm text-gray-600">Complete</p>
+              <p className="text-sm text-gray-300">Complete</p>
             </div>
           </div>
           
           {/* Progress bar */}
-          <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+          <div className="w-full bg-white/10 rounded-full h-4 overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${(unlockedCount / totalCount) * 100}%` }}
               transition={{ duration: 1, ease: "easeOut" }}
-              className="h-full bg-gradient-to-r from-purple-500 to-blue-600 rounded-full"
+              className="h-full bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full"
             />
           </div>
         </div>
@@ -656,8 +656,8 @@ const AchievementSystem = () => {
               onClick={() => setFilter(filterOption)}
               className={`px-4 py-2 rounded-full font-medium transition-all ${
                 filter === filterOption
-                  ? 'bg-purple-600 text-white shadow-lg'
-                  : 'bg-white text-gray-600 hover:bg-gray-50 shadow'
+                  ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-lg'
+                  : 'bg-white/10 text-gray-300 hover:bg-white/20 backdrop-blur'
               }`}
             >
               {filterOption.charAt(0).toUpperCase() + filterOption.slice(1)}
