@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Test with a simple model
+    // Test with gpt2 - simplest model, should always work
     const testResponse = await fetch('https://api-inference.huggingface.co/models/gpt2', {
       method: 'POST',
       headers: {
@@ -24,21 +24,33 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         inputs: 'Hello',
         parameters: {
-          max_new_tokens: 5,
+          max_new_tokens: 10,
+        },
+        options: {
+          wait_for_model: true,
         },
       }),
     });
 
     const status = testResponse.status;
     const responseText = await testResponse.text();
+    let parsedResponse = null;
+    try {
+      parsedResponse = JSON.parse(responseText);
+    } catch {
+      parsedResponse = { raw: responseText };
+    }
     
     return res.status(200).json({
       status,
       statusText: testResponse.statusText,
-      response: responseText.substring(0, 500),
+      response: parsedResponse,
+      responseText: responseText.substring(0, 1000),
       apiKeyPresent: !!HF_API_KEY,
-      apiKeyPrefix: HF_API_KEY.substring(0, 5) + '...',
-      success: testResponse.ok
+      apiKeyPrefix: HF_API_KEY ? HF_API_KEY.substring(0, 5) + '...' : 'none',
+      apiKeyLength: HF_API_KEY ? HF_API_KEY.length : 0,
+      success: testResponse.ok,
+      error: !testResponse.ok ? parsedResponse : null
     });
   } catch (error) {
     return res.status(500).json({
