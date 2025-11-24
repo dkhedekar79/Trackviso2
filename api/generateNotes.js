@@ -211,10 +211,46 @@ Respond ONLY with the JSON object, no other text.`;
       }
     }
     
-    // If all models failed
+    // If all models failed, provide a fallback with example notes
     if (!hfData) {
-      const errorMsg = lastError?.message || 'Unknown error';
-      throw new Error(`All HuggingFace models failed to respond. Please check your API key is valid and has access to inference API. Last error: ${errorMsg}. Make sure your API key has the correct permissions and is not expired.`);
+      console.error('All HuggingFace models failed. Using fallback notes.');
+      console.error('Last error:', lastError);
+      
+      // Generate example notes structure
+      const fallbackNotes = {
+        title: topic,
+        summary: `This topic covers important concepts in ${subject} at ${qualification} level. Study the key terms and practice questions below to master this topic.`,
+        mainPoints: [
+          {
+            heading: 'Key Concepts',
+            content: `This topic introduces fundamental concepts that are essential for understanding ${subject} at this level.`,
+            examples: ['Example 1', 'Example 2']
+          },
+          {
+            heading: 'Important Applications',
+            content: `These concepts are applied in various contexts within ${subject}. Understanding these applications will help you in exams.`,
+            examples: ['Application 1', 'Application 2']
+          }
+        ],
+        keyTerms: [
+          { term: 'Term 1', definition: 'Definition of term 1' },
+          { term: 'Term 2', definition: 'Definition of term 2' },
+        ],
+        practiceQuestions: [
+          {
+            question: `What is a key concept in ${topic}?`,
+            options: ['Option A', 'Option B', 'Option C', 'Option D'],
+            correctAnswer: 'Option A',
+            explanation: 'This is the correct answer because...'
+          }
+        ]
+      };
+      
+      return res.status(200).json({ 
+        notes: fallbackNotes,
+        fallback: true,
+        message: 'Note: Using example notes structure. HuggingFace API is currently unavailable. Please check your API key or try again later.'
+      });
     }
     
     // Handle HuggingFace response format (array of objects with generated_text)

@@ -1,3 +1,56 @@
+// Fallback function to generate example topics when HuggingFace is unavailable
+function generateFallbackTopics(qualification, subject, examBoard) {
+  // Common topics by qualification level
+  const topicsByLevel = {
+    'GCSE': [
+      'Introduction to the Subject',
+      'Core Concepts and Fundamentals',
+      'Key Skills and Techniques',
+      'Applications and Real-World Examples',
+      'Analysis and Evaluation',
+      'Revision and Exam Preparation',
+    ],
+    'A-Level': [
+      'Advanced Concepts',
+      'Theoretical Frameworks',
+      'Critical Analysis',
+      'Research Methods',
+      'Case Studies',
+      'Extended Writing',
+      'Independent Study Skills',
+    ],
+    'IB': [
+      'Core Topics',
+      'Higher Level Extensions',
+      'Internal Assessment',
+      'Extended Essay',
+      'Theory of Knowledge Connections',
+      'International Perspectives',
+    ],
+    'AP': [
+      'Course Content Overview',
+      'Essential Knowledge',
+      'Skills and Practices',
+      'Exam Format and Strategies',
+      'Sample Questions',
+    ],
+  };
+  
+  // Subject-specific topics
+  const subjectTopics = {
+    'Mathematics': ['Algebra', 'Geometry', 'Statistics', 'Calculus', 'Number Theory'],
+    'Science': ['Scientific Method', 'Experiments', 'Data Analysis', 'Theories', 'Applications'],
+    'English': ['Literature Analysis', 'Writing Skills', 'Language Study', 'Creative Writing'],
+    'History': ['Historical Events', 'Source Analysis', 'Essay Writing', 'Historical Context'],
+  };
+  
+  // Combine qualification and subject topics
+  const baseTopics = topicsByLevel[qualification] || topicsByLevel['GCSE'];
+  const specificTopics = subjectTopics[subject] || [];
+  
+  return [...baseTopics, ...specificTopics].slice(0, 12);
+}
+
 export default async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -36,16 +89,12 @@ export default async function handler(req, res) {
         VITE_HUGGINGFACE_API_KEY: !!process.env.VITE_HUGGINGFACE_API_KEY
       }
     });
-    // Try multiple models - fallback list if one doesn't work
-    // Using models that are known to work with Inference API
-    // Start with simpler models first
+    // Try multiple models - use basic models that should be available
+    // Note: HuggingFace free tier has limited models available
     const PRIMARY_MODEL = process.env.HUGGINGFACE_MODEL_ID || 'gpt2';
     const FALLBACK_MODELS = [
-      'gpt2',
-      'distilgpt2',
-      'google/flan-t5-base',
-      'google/flan-t5-small',
-      'facebook/opt-1.3b',
+      'gpt2',  // OpenAI's GPT-2 - most basic, should work
+      'distilgpt2',  // Distilled version
     ];
     const TAVILY_API_KEY = process.env.TAVILY_API_KEY;
 
@@ -192,10 +241,25 @@ Make sure the list is comprehensive and includes all major topics. Respond ONLY 
       }
     }
     
-    // If all models failed
+    // If all models failed, provide helpful error with fallback
     if (!hfData) {
       const errorMsg = lastError?.message || 'Unknown error';
-      throw new Error(`All HuggingFace models failed to respond. Please check your API key is valid and has access to inference API. Last error: ${errorMsg}. Make sure your API key has the correct permissions and is not expired.`);
+      
+      // If even gpt2 failed, the API might not be accessible
+      if (errorMsg.includes('410') || errorMsg.includes('no longer available')) {
+        console.error('All HuggingFace models returned 410. Free tier may have limited model access.');
+        
+        // Provide fallback topics so app still works
+        const exampleTopics = generateFallbackTopics(qualification, subject, examBoard);
+        
+        return res.status(200).json({ 
+          topics: exampleTopics,
+          fallback: true,
+          warning: 'HuggingFace Inference API models are not available on the free tier. Using example topics. To use AI-generated topics, consider upgrading your HuggingFace account or using a different AI service.'
+        });
+      }
+      
+      throw new Error(`All HuggingFace models failed: ${errorMsg}. Please verify your API key is valid and has Inference API access.`);
     }
 
     // Handle HuggingFace response format (array of objects with generated_text)
