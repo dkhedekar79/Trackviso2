@@ -25,6 +25,17 @@ export default async function handler(req, res) {
 
     // Use HuggingFace API with web search for accurate topic generation
     const HF_API_KEY = process.env.HUGGINGFACE_API_KEY || process.env.VITE_HUGGINGFACE_API_KEY;
+    
+    // Log for debugging (don't log the full key)
+    console.log('API Key check:', {
+      hasKey: !!HF_API_KEY,
+      keyLength: HF_API_KEY ? HF_API_KEY.length : 0,
+      keyPrefix: HF_API_KEY ? HF_API_KEY.substring(0, 5) : 'none',
+      envVars: {
+        HUGGINGFACE_API_KEY: !!process.env.HUGGINGFACE_API_KEY,
+        VITE_HUGGINGFACE_API_KEY: !!process.env.VITE_HUGGINGFACE_API_KEY
+      }
+    });
     // Try multiple models - fallback list if one doesn't work
     // Using models that are known to work with Inference API
     // Start with simpler models first
