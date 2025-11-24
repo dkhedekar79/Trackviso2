@@ -107,22 +107,20 @@ export default async function handler(req, res) {
       console.warn('Warning: HuggingFace API key should start with "hf_". Current key starts with:', HF_API_KEY.substring(0, 3));
     }
 
-    // Step 1: Search the web for current specification and topics
+    // Step 1: Search the web for "Specification at a Glance" section ONLY
     let webSearchResults = '';
-    let specificationTopics = [];
+    let specificationAtAGlanceContent = '';
     
     if (TAVILY_API_KEY) {
       try {
-        // Search for official specification documents - multiple targeted searches
+        // Focus ONLY on "Specification at a Glance" searches
         const searchQueries = [
-          `"${examBoard}" "${qualification}" "${subject}" specification "at a glance" topics`,
-          `"${examBoard}" "${qualification}" "${subject}" specification overview topics list`,
-          `"${examBoard}" "${qualification}" "${subject}" syllabus content topics`,
-          `site:${examBoard.toLowerCase()}.org.uk ${qualification} ${subject} specification topics`,
-          `${examBoard} ${qualification} ${subject} specification document topics`,
+          `"${examBoard}" "${qualification}" "${subject}" "specification at a glance"`,
+          `"${examBoard}" "${qualification}" "${subject}" specification at a glance topics`,
+          `${examBoard} ${qualification} ${subject} specification at a glance PDF`,
         ];
         
-        // Try multiple searches to find the best results
+        // Collect only results that mention "specification at a glance"
         for (const searchQuery of searchQueries) {
           try {
             const tavilyResponse = await fetch('https://api.tavily.com/search', {
@@ -134,59 +132,71 @@ export default async function handler(req, res) {
                 api_key: TAVILY_API_KEY,
                 query: searchQuery,
                 search_depth: 'advanced',
-                max_results: 8,
+                max_results: 5,
                 include_answer: true,
-                include_raw_content: false,
+                include_raw_content: true,
               }),
             });
 
             if (tavilyResponse.ok) {
               const tavilyData = await tavilyResponse.json();
               
-              // Use the answer if available (Tavily's AI-generated summary)
-              if (tavilyData.answer) {
-                webSearchResults += `\n\nAnswer: ${tavilyData.answer}\n\n`;
-              }
-              
               if (tavilyData.results && tavilyData.results.length > 0) {
-                const results = tavilyData.results
-                  .map((result, idx) => {
-                    const content = result.content || '';
-                    
-                    // Extract topics from content - look for various patterns
-                    // Pattern 1: Numbered lists (1. Topic, 2. Topic, etc.)
-                    const numberedTopics = content.match(/(?:^|\n)\s*\d+[\.\)]\s*([A-Z][^\n]{10,100}?)(?=\n|$)/g);
-                    if (numberedTopics && numberedTopics.length > 2) {
-                      specificationTopics.push(...numberedTopics.map(t => t.replace(/^\s*\d+[\.\)]\s*/, '').trim()));
-                    }
-                    
-                    // Pattern 2: Bullet points (- Topic, * Topic, • Topic)
-                    const bulletTopics = content.match(/(?:^|\n)\s*[-*•]\s*([A-Z][^\n]{10,100}?)(?=\n|$)/g);
-                    if (bulletTopics && bulletTopics.length > 2) {
-                      specificationTopics.push(...bulletTopics.map(t => t.replace(/^\s*[-*•]\s*/, '').trim()));
-                    }
-                    
-                    // Pattern 3: Lines that look like topics (capitalized, reasonable length)
-                    const topicLines = content.split('\n')
-                      .filter(line => {
-                        const trimmed = line.trim();
-                        return trimmed.length > 10 && 
-                               trimmed.length < 100 && 
-                               /^[A-Z]/.test(trimmed) &&
-                               !trimmed.includes('http') &&
-                               !trimmed.includes('www.');
-                      })
-                      .slice(0, 20);
-                    
-                    if (topicLines.length > 3) {
-                      specificationTopics.push(...topicLines.map(t => t.trim()));
-                    }
-                    
-                    return `${idx + 1}. ${result.title}\nURL: ${result.url}\n${content.substring(0, 800)}`;
-                  })
-                  .join('\n\n');
+                // Filter results to only include those with "specification at a glance" or similar
+                const relevantResults = tavilyData.results.filter(result => {
+                  const titleLower = (result.title || '').toLowerCase();
+                  const urlLower = (result.url || '').toLowerCase();
+                  const contentLower = (result.content || '').toLowerCase();
+                  
+                  return titleLower.includes('specification at a glance') ||
+                         titleLower.includes('specification') && titleLower.includes('glance') ||
+                         urlLower.includes('specification') || 
+                         contentLower.includes('specification at a glance') ||
+                         contentLower.includes('specification') && contentLower.includes('glance');
+                });
                 
-                webSearchResults += results;
+                for (const result of relevantResults) {
+                  const content = result.content || '';
+                  const title = result.title || '';
+                  const url = result.url || '';
+                  
+                  // Find the "Specification at a Glance" section in the content
+                  // Look for the section header and extract until next major section
+                  let sectionContent = '';
+                  
+                  // Try multiple patterns to find the "Specification at a Glance" section
+                  const patterns = [
+                    /specification\s+at\s+a\s+glance[:\s]*\n([^]*?)(?=\n\s*(?:assessment|content|subject|overview|resources|specification|teaching|assessment objectives|grade|level|paper|\d+\.\s+[A-Z]|$))/i,
+                    /specification\s+at\s+a\s+glance[^]*?(?=\n\s*[A-Z]{2,}\s+[A-Z]{2,}|\n\s*\d+\.\s+assessment|\n\s*assessment objectives|$)/i,
+                    /at\s+a\s+glance[:\s]*\n([^]*?)(?=\n\n[A-Z][a-z]+\s+[A-Z]|\n\s*assessment|$)/i,
+                  ];
+                  
+                  for (const pattern of patterns) {
+                    const match = content.match(pattern);
+                    if (match && match[0] && match[0].length > 200) {
+                      sectionContent = match[0];
+                      break;
+                    }
+                  }
+                  
+                  // If no specific section found but title suggests it's the right page
+                  if (!sectionContent && (title.toLowerCase().includes('specification at a glance') || 
+                                         title.toLowerCase().includes('at a glance') ||
+                                         url.toLowerCase().includes('specification') && url.toLowerCase().includes('glance'))) {
+                    // Extract content before common section headers
+                    const beforeAssessment = content.split(/\n\s*(?:assessment|content overview|subject content|teaching)/i)[0];
+                    if (beforeAssessment && beforeAssessment.length > 300) {
+                      sectionContent = beforeAssessment.substring(0, 2500);
+                    }
+                  }
+                  
+                  if (sectionContent) {
+                    specificationAtAGlanceContent += `\n\n=== ${title} ===\nURL: ${url}\n${sectionContent}\n`;
+                    
+                    // Also add to webSearchResults for AI processing
+                    webSearchResults += `\n\n=== ${title} ===\nURL: ${url}\n${sectionContent.substring(0, 1500)}\n`;
+                  }
+                }
               }
             }
           } catch (searchError) {
@@ -195,56 +205,16 @@ export default async function handler(req, res) {
           }
         }
         
-        // Remove duplicates from specification topics
-        specificationTopics = [...new Set(specificationTopics)].slice(0, 30);
-        
       } catch (searchError) {
         console.error('Web search error:', searchError);
         // Continue without web search if it fails
       }
     }
 
-    // Step 2: Generate topics using HuggingFace with web search results
-    // If we found topics directly in search results, use those
-    if (specificationTopics.length >= 5) {
-      console.log('Found topics directly from web search, using those');
-      return res.status(200).json({ 
-        topics: specificationTopics.slice(0, 30),
-        source: 'web_search'
-      });
-    }
-    
-    let prompt = '';
-    
-    if (webSearchResults) {
-      prompt = `You are a specification extraction assistant. Your ONLY job is to extract the EXACT topic names from the official ${examBoard} ${qualification} ${subject} specification documents provided below.
-
-WEB SEARCH RESULTS FROM OFFICIAL SPECIFICATIONS:
-${webSearchResults}
-
-YOUR TASK:
-1. Read the web search results above carefully
-2. Find the section that lists topics (look for "Specification at a Glance", "Topics", "Content", "Syllabus", etc.)
-3. Extract ONLY the exact topic names as they appear in the specification
-4. Do NOT create, invent, or guess topics
-5. Do NOT use generic topics - only use what's actually in the specification
-6. If you see a numbered list or bullet list of topics, extract those EXACTLY
-
-Qualification: ${qualification}
-Subject: ${subject}
-Exam Board: ${examBoard}
-
-Return ONLY a JSON object with this structure:
-{
-  "topics": ["Topic 1 exactly as written", "Topic 2 exactly as written", ...]
-}
-
-CRITICAL: If the web search results do not contain a clear list of topics, return an empty array: {"topics": []}
-Do NOT make up topics. Only extract what is actually written in the specification documents above.
-Respond ONLY with the JSON object, no other text.`;
-    } else {
+    // Step 2: Extract topics from "Specification at a Glance" section
+    if (!specificationAtAGlanceContent && !webSearchResults) {
       // If no web search, we can't get accurate topics - use fallback
-      console.log('No web search results available, using fallback topics');
+      console.log('No "Specification at a Glance" content found, using fallback topics');
       const fallbackTopics = generateFallbackTopics(qualification, subject, examBoard);
       return res.status(200).json({ 
         topics: fallbackTopics,
@@ -252,6 +222,122 @@ Respond ONLY with the JSON object, no other text.`;
         message: 'Web search is required for accurate specification topics. Please ensure TAVILY_API_KEY is set.'
       });
     }
+    
+    // Extract topics directly from the "Specification at a Glance" content
+    let extractedTopics = [];
+    const contentToParse = specificationAtAGlanceContent || webSearchResults;
+    
+    // Try to extract topics using pattern matching from the "Specification at a Glance" section
+    if (contentToParse) {
+      // First, try to find a clear list section within the content
+      const lines = contentToParse.split('\n');
+      let inTopicList = false;
+      let topicLines = [];
+      
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        
+        // Detect start of topic list (numbered or bulleted)
+        if ((/^\d+[\.\)]\s+[A-Z]/.test(line) || /^[-*•]\s+[A-Z]/.test(line)) && line.length > 10 && line.length < 120) {
+          inTopicList = true;
+          topicLines.push(line);
+        } 
+        // Continue collecting if we're in a topic list
+        else if (inTopicList && (/^\d+[\.\)]\s+/.test(line) || /^[-*•]\s+/.test(line)) && line.length > 10 && line.length < 120) {
+          topicLines.push(line);
+        }
+        // Stop if we hit a blank line and have enough topics, or hit a section header
+        else if (inTopicList && (line === '' && topicLines.length >= 3) || 
+                 /^[A-Z][A-Z\s]{5,}$/.test(line) && line.length < 50) {
+          break;
+        }
+      }
+      
+      if (topicLines.length >= 3) {
+        extractedTopics = topicLines.map(line => {
+          return line.replace(/^\s*\d+[\.\)]\s+/, '')
+                     .replace(/^\s*[-*•]\s+/, '')
+                     .trim()
+                     .replace(/^[^\w]*/, '')
+                     .replace(/\s{2,}/g, ' ')
+                     .trim();
+        }).filter(topic => {
+          const lower = topic.toLowerCase();
+          return topic.length > 8 && 
+                 topic.length < 100 &&
+                 !lower.includes('http') &&
+                 !lower.includes('download') &&
+                 !lower.includes('click') &&
+                 !lower.includes('page');
+        });
+      }
+      
+      // Fallback: regex patterns if line-by-line didn't work
+      if (extractedTopics.length < 3) {
+        const numberedMatches = contentToParse.match(/(?:^|\n)\s*\d+[\.\)]\s+([A-Z][^\n]{8,90}?)(?=\s*(?:\n\s*\d+[\.\)]|\n\s*[A-Z]{2,}\s|$))/gm);
+        if (numberedMatches && numberedMatches.length >= 3) {
+          extractedTopics = numberedMatches.map(match => {
+            return match.replace(/^\s*\d+[\.\)]\s+/, '').trim()
+              .replace(/^[^\w]*/, '')
+              .replace(/\s{2,}/g, ' ')
+              .trim();
+          }).filter(topic => {
+            const lower = topic.toLowerCase();
+            return topic.length > 8 && topic.length < 100 &&
+                   !lower.includes('http') && !lower.includes('www.');
+          });
+        }
+      }
+    }
+    
+    // Clean up extracted topics - remove duplicates and invalid entries
+    extractedTopics = [...new Set(extractedTopics)]
+      .filter(topic => {
+        // Filter out common non-topic phrases
+        const lowerTopic = topic.toLowerCase();
+        return !lowerTopic.includes('http') &&
+               !lowerTopic.includes('www.') &&
+               !lowerTopic.includes('click here') &&
+               !lowerTopic.includes('download') &&
+               !lowerTopic.includes('page') &&
+               topic.length > 5;
+      })
+      .slice(0, 30);
+    
+    // If we extracted enough topics directly, use them
+    if (extractedTopics.length >= 5) {
+      console.log(`Found ${extractedTopics.length} topics directly from "Specification at a Glance"`);
+      return res.status(200).json({ 
+        topics: extractedTopics,
+        source: 'specification_at_a_glance'
+      });
+    }
+    
+    // Otherwise, use AI to extract topics from the "Specification at a Glance" section
+    const prompt = `You are a specification extraction assistant. Extract ONLY the topic names from the "Specification at a Glance" section below.
+
+SPECIFICATION AT A GLANCE CONTENT:
+${contentToParse}
+
+CRITICAL INSTRUCTIONS:
+1. Find the "Specification at a Glance" section in the content above
+2. Extract ONLY the topic names listed in that section
+3. Use the EXACT topic names as written - do not modify or paraphrase
+4. Ignore any other text outside the "Specification at a Glance" section
+5. Do NOT extract topics from other sections like "Assessment", "Resources", etc.
+6. If you cannot find a clear "Specification at a Glance" section with topic names, return empty array
+
+Qualification: ${qualification}
+Subject: ${subject}
+Exam Board: ${examBoard}
+
+Return ONLY a JSON object:
+{
+  "topics": ["Exact topic name 1", "Exact topic name 2", ...]
+}
+
+If no topics found in "Specification at a Glance", return: {"topics": []}
+Respond ONLY with the JSON object, no other text.`;
 
     // Try multiple models in sequence if one fails
     const modelsToTry = [PRIMARY_MODEL, ...FALLBACK_MODELS.filter(m => m !== PRIMARY_MODEL)];
