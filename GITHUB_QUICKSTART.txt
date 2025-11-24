@@ -1,0 +1,34 @@
+═══════════════════════════════════════════════════════════════
+  QUICK START: Push to GitHub
+═══════════════════════════════════════════════════════════════
+
+STEP 1: Open your terminal and navigate to your project:
+  cd /Users/daiwik7/Downloads/Trackviso2-main
+
+STEP 2: Run these commands one by one:
+
+  git init
+  
+  git add .
+  
+  git commit -m "Initial commit: Trackviso app with AI features"
+
+STEP 3: Create a GitHub repository:
+  - Go to: https://github.com/new
+  - Name it: Trackviso (or any name you want)
+  - Don't check "Initialize with README"
+  - Click "Create repository"
+
+STEP 4: After creating the repo, run these (replace YOUR_USERNAME):
+  
+  git remote add origin https://github.com/YOUR_USERNAME/Trackviso.git
+  
+  git branch -M main
+  
+  git push -u origin main
+
+  (It will ask for your GitHub username and password/token)
+
+═══════════════════════════════════════════════════════════════
+  That's it! Your code will be on GitHub.
+═══════════════════════════════════════════════════════════════
