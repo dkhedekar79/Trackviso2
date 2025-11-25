@@ -126,7 +126,7 @@ export default function Knowledge() {
             transition={{ duration: 0.6 }}
           >
             <div>
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent mb-4">Knowledge Base</h1>
+              <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent mb-4">Mastery</h1>
               <p className="text-purple-200/80 text-lg">AI-powered study notes and practice questions for mastery</p>
             </div>
           </motion.div>
