@@ -26,23 +26,15 @@ import { useNavigate } from 'react-router-dom';
 import { useTimer } from '../context/TimerContext';
 import { useGamification } from '../context/GamificationContext';
 
-// Fixed list of 15 most common GCSE subjects with predefined colors and icons
+// Fixed list of GCSE subjects with predefined colors and icons
 const GCSE_SUBJECTS = [
   { name: 'Mathematics', color: '#6C5DD3', icon: Calculator },
-  { name: 'English Language', color: '#B6E4CF', icon: BookText },
-  { name: 'English Literature', color: '#FEC260', icon: Book },
   { name: 'Biology', color: '#4ECDC4', icon: Dna },
   { name: 'Chemistry', color: '#FF6B6B', icon: FlaskConical },
   { name: 'Physics', color: '#95E1D3', icon: Atom },
-  { name: 'History', color: '#F38181', icon: Scroll },
+  { name: 'Economics', color: '#FFB347', icon: TrendingUp },
   { name: 'Geography', color: '#AA96DA', icon: Globe },
-  { name: 'French', color: '#C5E3F6', icon: Languages },
-  { name: 'Spanish', color: '#FCBAD3', icon: Languages },
-  { name: 'German', color: '#FFD93D', icon: Languages },
-  { name: 'Computer Science', color: '#6BCB77', icon: Code2 },
-  { name: 'Art & Design', color: '#FF6B9D', icon: Palette },
-  { name: 'Religious Studies', color: '#C7CEEA', icon: Church },
-  { name: 'Business Studies', color: '#FFB347', icon: TrendingUp },
+  { name: 'History', color: '#F38181', icon: Scroll },
 ];
 
 const Subjects = () => {
