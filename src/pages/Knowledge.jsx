@@ -217,30 +217,146 @@ export default function Knowledge() {
           {userSetup && (
             <>
 
-              {/* Topic Selector */}
+              {/* Topic Selector with Checkboxes */}
               <motion.div
-                className="mb-8"
+                className="mb-12"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
               >
-                <label className="block text-white text-sm font-medium mb-2">Select Topic</label>
-                <div className="relative">
-                  <select
-                    value={selectedTopic || ''}
-                    onChange={(e) => handleTopicChange(e.target.value)}
-                    className="w-full px-4 py-3 bg-purple-900/40 border border-purple-700/50 rounded-lg text-white appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  >
-                    <option value="">Choose a topic...</option>
-                    {getTopicsForDisplay().map((topic, index) => (
-                      <option key={index} value={topic}>
-                        {topic}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-3 top-3.5 w-5 h-5 text-purple-300 pointer-events-none" />
+                <h2 className="text-white text-xl font-bold mb-4">Select Topics to Study</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {getTopicsForSubject(userSetup.qualification, userSetup.examBoard, userSetup.subject).map((topic) => (
+                    <motion.button
+                      key={topic.id}
+                      onClick={() => handleTopicToggle(topic.id)}
+                      className={`p-4 rounded-lg border-2 text-left transition-all ${
+                        selectedTopics.includes(topic.id)
+                          ? 'bg-gradient-to-br from-purple-600 to-pink-600 border-purple-400 text-white shadow-lg shadow-purple-500/50'
+                          : 'bg-purple-900/30 border-purple-700/50 text-purple-200 hover:border-purple-600 hover:bg-purple-900/50'
+                      }`}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`w-5 h-5 rounded border-2 mt-1 flex items-center justify-center flex-shrink-0 transition ${
+                          selectedTopics.includes(topic.id)
+                            ? 'bg-white border-white'
+                            : 'border-purple-400'
+                        }`}>
+                          {selectedTopics.includes(topic.id) && (
+                            <CheckCircle className="w-4 h-4 text-purple-600" />
+                          )}
+                        </div>
+                        <span className="font-medium text-sm">{topic.name}</span>
+                      </div>
+                    </motion.button>
+                  ))}
                 </div>
               </motion.div>
+
+              {/* Three Mode Overview Cards */}
+              {selectedTopics.length > 0 && (
+                <motion.div
+                  className="mb-12"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.4 }}
+                >
+                  <h2 className="text-white text-xl font-bold mb-6">Study Modes</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Flashcard Mode */}
+                    <motion.div
+                      className="bg-gradient-to-br from-cyan-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-8 border border-cyan-700/30 hover:border-cyan-600/50 transition-all cursor-pointer group"
+                      whileHover={{ y: -5, scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <div className="flex items-start gap-4 mb-4">
+                        <div className="p-3 bg-cyan-600/30 rounded-lg group-hover:bg-cyan-600/50 transition">
+                          <Layers className="w-6 h-6 text-cyan-400" />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold text-white">Flashcards</h3>
+                          <p className="text-cyan-300/70 text-sm mt-1">Interactive learning</p>
+                        </div>
+                      </div>
+                      <p className="text-cyan-200/80 text-sm leading-relaxed mb-6">
+                        Master topics with spaced repetition. Review key concepts through digital flashcards designed for active recall and long-term retention.
+                      </p>
+                      <motion.button
+                        className="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-cyan-500/50 transition-all"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        Start Flashcards
+                      </motion.button>
+                      <p className="text-cyan-400/60 text-xs mt-3 text-center">
+                        {selectedTopics.length} topic{selectedTopics.length !== 1 ? 's' : ''} selected
+                      </p>
+                    </motion.div>
+
+                    {/* Quick Quiz Mode */}
+                    <motion.div
+                      className="bg-gradient-to-br from-amber-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-8 border border-amber-700/30 hover:border-amber-600/50 transition-all cursor-pointer group"
+                      whileHover={{ y: -5, scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <div className="flex items-start gap-4 mb-4">
+                        <div className="p-3 bg-amber-600/30 rounded-lg group-hover:bg-amber-600/50 transition">
+                          <BarChart3 className="w-6 h-6 text-amber-400" />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold text-white">Quick Quiz</h3>
+                          <p className="text-amber-300/70 text-sm mt-1">Quick assessments</p>
+                        </div>
+                      </div>
+                      <p className="text-amber-200/80 text-sm leading-relaxed mb-6">
+                        Test your knowledge with quick quizzes. Get instant feedback on your answers and identify areas that need more study.
+                      </p>
+                      <motion.button
+                        className="w-full py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-amber-500/50 transition-all"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        Start Quiz
+                      </motion.button>
+                      <p className="text-amber-400/60 text-xs mt-3 text-center">
+                        {selectedTopics.length} topic{selectedTopics.length !== 1 ? 's' : ''} selected
+                      </p>
+                    </motion.div>
+
+                    {/* Mock Exam Mode */}
+                    <motion.div
+                      className="bg-gradient-to-br from-pink-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-8 border border-pink-700/30 hover:border-pink-600/50 transition-all cursor-pointer group"
+                      whileHover={{ y: -5, scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <div className="flex items-start gap-4 mb-4">
+                        <div className="p-3 bg-pink-600/30 rounded-lg group-hover:bg-pink-600/50 transition">
+                          <ClipboardList className="w-6 h-6 text-pink-400" />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold text-white">Mock Exam</h3>
+                          <p className="text-pink-300/70 text-sm mt-1">Full simulations</p>
+                        </div>
+                      </div>
+                      <p className="text-pink-200/80 text-sm leading-relaxed mb-6">
+                        Experience realistic exam conditions. Complete full-length practice papers with timed questions to build exam confidence.
+                      </p>
+                      <motion.button
+                        className="w-full py-3 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-pink-500/50 transition-all"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        Start Mock Exam
+                      </motion.button>
+                      <p className="text-pink-400/60 text-xs mt-3 text-center">
+                        {selectedTopics.length} topic{selectedTopics.length !== 1 ? 's' : ''} selected
+                      </p>
+                    </motion.div>
+                  </div>
+                </motion.div>
+              )}
 
 
               {/* Practice Section */}
