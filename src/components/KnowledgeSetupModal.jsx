@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, ChevronLeft, CheckCircle, X, AlertCircle, Zap } from 'lucide-react';
-import { fetchTopicsFromHuggingFace } from '../utils/huggingfaceApi';
+import { getTopicsForSubject } from '../data/masteryTopics';
 
 const qualifications = [
   { name: 'GCSE', available: true },
