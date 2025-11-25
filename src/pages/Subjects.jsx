@@ -1,25 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Play, 
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Play,
   BookOpen,
   X,
   Check,
   Calculator,
-  BookText,
-  Book,
   Dna,
   FlaskConical,
   Atom,
   Scroll,
   Globe,
-  Languages,
-  Code2,
-  Palette,
-  Church,
   TrendingUp
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
