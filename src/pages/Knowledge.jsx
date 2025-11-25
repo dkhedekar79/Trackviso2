@@ -9,7 +9,7 @@ import { generateNotesFromHuggingFace } from '../utils/huggingfaceApi';
 
 
 export default function Knowledge() {
-  const [activeSection, setActiveSection] = useState('notes'); // notes or practice
+  const [activeSection, setActiveSection] = useState('practice');
   const [userSetup, setUserSetup] = useState(null);
   const [showSetupModal, setShowSetupModal] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState(null);
@@ -127,7 +127,7 @@ export default function Knowledge() {
           >
             <div>
               <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent mb-4">Mastery</h1>
-              <p className="text-purple-200/80 text-lg">AI-powered study notes and practice questions for mastery</p>
+              <p className="text-purple-200/80 text-lg">AI-powered flashcards, quizzes and mock exams</p>
             </div>
           </motion.div>
 
