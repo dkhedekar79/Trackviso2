@@ -4,13 +4,13 @@ import { ChevronRight, ChevronLeft, CheckCircle, X, AlertCircle, Zap } from 'luc
 import { fetchTopicsFromHuggingFace } from '../utils/huggingfaceApi';
 
 const qualifications = [
-  'GCSE',
-  'A-Level',
-  'IB',
-  'AP',
-  'High School',
-  'University',
-  'Professional'
+  { name: 'GCSE', available: true },
+  { name: 'A-Level', available: false },
+  { name: 'IB', available: false },
+  { name: 'AP', available: false },
+  { name: 'High School', available: false },
+  { name: 'University', available: false },
+  { name: 'Professional', available: false }
 ];
 
 const examBoards = {
@@ -33,6 +33,7 @@ export default function KnowledgeSetupModal({ subjects, onComplete, onClose }) {
 
   const subjectNames = subjects.map(s => s.name);
   const availableExamBoards = qualification ? (examBoards[qualification] || []) : [];
+  const qualificationName = typeof qualification === 'string' ? qualification : qualification?.name;
 
   const handleNext = () => {
     if (step < 3) {
@@ -47,15 +48,16 @@ export default function KnowledgeSetupModal({ subjects, onComplete, onClose }) {
   };
 
   const handleComplete = async () => {
-    if (qualification && subject && examBoard) {
+    const qualName = typeof qualification === 'string' ? qualification : qualification?.name;
+    if (qualName && subject && examBoard) {
       setLoading(true);
       setError(null);
       try {
         // Fetch topics from AI API with web search
-        const topics = await fetchTopicsFromHuggingFace(qualification, subject, examBoard);
+        const topics = await fetchTopicsFromHuggingFace(qualName, subject, examBoard);
 
         onComplete({
-          qualification,
+          qualification: qualName,
           subject,
           examBoard,
           topics,
@@ -70,7 +72,7 @@ export default function KnowledgeSetupModal({ subjects, onComplete, onClose }) {
     }
   };
 
-  const isStep1Complete = qualification !== '';
+  const isStep1Complete = qualification !== '' && (typeof qualification === 'string' ? true : qualification.available);
   const isStep2Complete = subject !== '';
   const isStep3Complete = examBoard !== '';
   const isAllComplete = isStep1Complete && isStep2Complete && isStep3Complete;
@@ -190,21 +192,33 @@ export default function KnowledgeSetupModal({ subjects, onComplete, onClose }) {
                 <p className="text-purple-200/80 mb-6">Select your qualification level</p>
                 
                 <div className="grid grid-cols-2 gap-3">
-                  {qualifications.map((qual) => (
-                    <motion.button
-                      key={qual}
-                      onClick={() => setQualification(qual)}
-                      className={`px-4 py-3 rounded-lg font-medium transition border ${
-                        qualification === qual
-                          ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white border-transparent shadow-lg shadow-purple-500/50'
-                          : 'bg-purple-800/30 text-purple-200 border-purple-700/50 hover:bg-purple-800/50'
-                      }`}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      {qual}
-                    </motion.button>
-                  ))}
+                  {qualifications.map((qual) => {
+                    const qualName = typeof qual === 'string' ? qual : qual.name;
+                    const isAvailable = typeof qual === 'string' ? true : qual.available;
+                    const isSelected = typeof qualification === 'string' ? qualification === qualName : qualification?.name === qualName;
+
+                    return (
+                      <motion.button
+                        key={qualName}
+                        onClick={() => isAvailable && setQualification(qualName)}
+                        disabled={!isAvailable}
+                        className={`px-4 py-3 rounded-lg font-medium transition border relative ${
+                          isSelected && isAvailable
+                            ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white border-transparent shadow-lg shadow-purple-500/50'
+                            : isAvailable
+                              ? 'bg-purple-800/30 text-purple-200 border-purple-700/50 hover:bg-purple-800/50 cursor-pointer'
+                              : 'bg-purple-900/20 text-purple-400/50 border-purple-800/30 cursor-not-allowed'
+                        }`}
+                        whileHover={isAvailable ? { scale: 1.05 } : {}}
+                        whileTap={isAvailable ? { scale: 0.95 } : {}}
+                      >
+                        {qualName}
+                        {!isAvailable && (
+                          <span className="text-xs ml-2 opacity-70">Coming Soon</span>
+                        )}
+                      </motion.button>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -244,7 +258,7 @@ export default function KnowledgeSetupModal({ subjects, onComplete, onClose }) {
             {step === 3 && (
               <div>
                 <h2 className="text-2xl font-bold text-white mb-2">Which exam board?</h2>
-                <p className="text-purple-200/80 mb-6">Select your exam board for {qualification}</p>
+                <p className="text-purple-200/80 mb-6">Select your exam board for {qualificationName}</p>
                 
                 {availableExamBoards.length > 0 ? (
                   <div className="grid grid-cols-2 gap-3">
