@@ -44,9 +44,9 @@ export default function Sidebar() {
           <BrainIcon className="w-5 h-5 text-white" />
           <span className="text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Study</span>
         </Link>
-        <Link to="/knowledge" className="flex items-center gap-3 px-6 py-3 focus:outline-none transition theme-hover-primary-10" title="Knowledge">
+        <Link to="/mastery" className="flex items-center gap-3 px-6 py-3 focus:outline-none transition theme-hover-primary-10" title="Mastery">
           <BookOpen className="w-5 h-5 text-white" />
-          <span className="text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Knowledge</span>
+          <span className="text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Mastery</span>
         </Link>
         <Link to="/insights" className="flex items-center gap-3 px-6 py-3 focus:outline-none transition theme-hover-primary-10" title="Insights">
           <BarChart3 className="w-5 h-5 text-white" />
