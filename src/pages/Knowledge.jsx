@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
-import { BookOpen, ChevronDown, Zap, CheckCircle, AlertCircle, Lightbulb, Brain, Settings } from 'lucide-react';
+import { BookOpen, ChevronDown, Zap, CheckCircle, AlertCircle, Lightbulb, Brain, Settings, Layers, BarChart3, ClipboardList } from 'lucide-react';
 import KnowledgeSetupModal from '../components/KnowledgeSetupModal';
 import { generateNotesFromHuggingFace } from '../utils/huggingfaceApi';
+import { getTopicsForSubject } from '../data/masteryTopics';
 
 
 
