@@ -4,9 +4,13 @@ export const masteryTopics = {
       Mathematics: [
         { id: 'algebra', name: 'Algebra' },
         { id: 'geometry', name: 'Geometry' }
+        { id: 'number', name: 'Number' }
+        { id: 'ratio', name: 'Ratio, proportion and rates of change' }
+        { id: 'statistics', name: 'Statistics' }
+        { id: 'probability', name: 'Probability'}
       ],
-      'English Literature': [
-        { id: 'shakespeare', name: 'Shakespeare Plays' }
+      Biology: [
+        { id: 'cells', name: ' Cell biology' }
       ]
     },
     Edexcel: {
