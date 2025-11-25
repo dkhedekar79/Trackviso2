@@ -47,28 +47,17 @@ export default function KnowledgeSetupModal({ subjects, onComplete, onClose }) {
     }
   };
 
-  const handleComplete = async () => {
+  const handleComplete = () => {
     const qualName = typeof qualification === 'string' ? qualification : qualification?.name;
     if (qualName && subject && examBoard) {
-      setLoading(true);
-      setError(null);
-      try {
-        // Fetch topics from AI API with web search
-        const topics = await fetchTopicsFromHuggingFace(qualName, subject, examBoard);
-
-        onComplete({
-          qualification: qualName,
-          subject,
-          examBoard,
-          topics,
-          setupDate: new Date().toISOString()
-        });
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching topics:', err);
-        setError(err.message || 'Failed to fetch topics. Please check your API configuration and try again.');
-        setLoading(false);
-      }
+      const topics = getTopicsForSubject(qualName, examBoard, subject);
+      onComplete({
+        qualification: qualName,
+        subject,
+        examBoard,
+        topics,
+        setupDate: new Date().toISOString()
+      });
     }
   };
 
