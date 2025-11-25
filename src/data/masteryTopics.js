@@ -3,11 +3,11 @@ export const masteryTopics = {
     AQA: {
       Mathematics: [
         { id: 'algebra', name: 'Algebra' },
-        { id: 'geometry', name: 'Geometry' }
-        { id: 'number', name: 'Number' }
-        { id: 'ratio', name: 'Ratio, proportion and rates of change' }
-        { id: 'statistics', name: 'Statistics' }
-        { id: 'probability', name: 'Probability'}
+        { id: 'geometry', name: 'Geometry' },
+        { id: 'number', name: 'Number' },
+        { id: 'ratio', name: 'Ratio, proportion and rates of change' },
+        { id: 'statistics', name: 'Statistics' },
+        { id: 'probability', name: 'Probability'},
       ],
       Biology: [
         { id: 'cells', name: ' Cell biology' }
