@@ -775,7 +775,7 @@ const Study = () => {
                       </svg>
                     )}
                     <div
-                      className={`absolute inset-0 rounded-full bg-white/10 flex items-center justify-center ${mode === "pomodoro" && elapsedSeconds > getTotalDuration() && pomodoroPhaseRef.current === "work" ? "text-red-400" : "text-white"}`}
+                      className={`absolute inset-0 rounded-full bg-white/10 flex items-center justify-center ${mode === "pomodoro" && isPomodoroBreak ? "text-green-400" : mode === "pomodoro" && elapsedSeconds > getTotalDuration() && pomodoroPhaseRef.current === "work" ? "text-red-400" : "text-white"}`}
                     >
                       <span className="text-8xl font-mono drop-shadow-2xl">
                         {getDisplayTime()}
@@ -1060,7 +1060,7 @@ const Study = () => {
                         </svg>
                       )}
                       <div
-                        className={`absolute inset-0 rounded-full bg-white/10 flex items-center justify-center ${mode === "pomodoro" && elapsedSeconds > getTotalDuration() && pomodoroPhaseRef.current === "work" ? "text-red-400" : "text-white"}`}
+                        className={`absolute inset-0 rounded-full bg-white/10 flex items-center justify-center ${mode === "pomodoro" && isPomodoroBreak ? "text-green-400" : mode === "pomodoro" && elapsedSeconds > getTotalDuration() && pomodoroPhaseRef.current === "work" ? "text-red-400" : "text-white"}`}
                       >
                         <span className={`text-6xl font-mono drop-shadow-lg`}>
                           {getDisplayTime()}
