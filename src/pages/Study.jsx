@@ -754,11 +754,13 @@ const Study = () => {
                           cy="160"
                           r="144"
                           stroke={
-                            mode === "pomodoro" &&
-                            elapsedSeconds > getTotalDuration() &&
-                            pomodoroPhaseRef.current === "work"
-                              ? "#EF4444"
-                              : "var(--primary)"
+                            mode === "pomodoro" && isPomodoroBreak
+                              ? "#4ADE80"
+                              : mode === "pomodoro" &&
+                                elapsedSeconds > getTotalDuration() &&
+                                pomodoroPhaseRef.current === "work"
+                                ? "#EF4444"
+                                : "var(--primary)"
                           }
                           strokeWidth="12"
                           fill="none"
