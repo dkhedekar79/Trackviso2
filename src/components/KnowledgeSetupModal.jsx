@@ -327,28 +327,16 @@ export default function KnowledgeSetupModal({ subjects, onComplete, onClose }) {
             ) : (
               <motion.button
                 onClick={handleComplete}
-                disabled={!isAllComplete || loading}
+                disabled={!isAllComplete}
                 className={`flex items-center gap-2 px-8 py-3 rounded-lg font-semibold transition ${
-                  isAllComplete && !loading
+                  isAllComplete
                     ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:shadow-lg hover:shadow-green-500/50'
                     : 'bg-gradient-to-r from-green-800/30 to-emerald-800/30 text-green-400/50 cursor-not-allowed'
                 }`}
-                whileHover={isAllComplete && !loading ? { scale: 1.05 } : {}}
-                whileTap={isAllComplete && !loading ? { scale: 0.95 } : {}}
+                whileHover={isAllComplete ? { scale: 1.05 } : {}}
+                whileTap={isAllComplete ? { scale: 0.95 } : {}}
               >
-                {loading ? (
-                  <>
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity }}
-                    >
-                      <Zap className="w-4 h-4" />
-                    </motion.div>
-                    Fetching Topics...
-                  </>
-                ) : (
-                  'Complete Setup'
-                )}
+                Complete Setup
               </motion.button>
             )}
           </div>
