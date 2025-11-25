@@ -14,6 +14,7 @@ export default function Knowledge() {
   const [userSetup, setUserSetup] = useState(null);
   const [showSetupModal, setShowSetupModal] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState(null);
+  const [selectedTopics, setSelectedTopics] = useState([]);
   const [notes, setNotes] = useState(null);
   const [practiceQuestions, setPracticeQuestions] = useState(null);
   const [loading, setLoading] = useState(false);
