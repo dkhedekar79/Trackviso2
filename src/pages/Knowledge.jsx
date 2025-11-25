@@ -131,39 +131,6 @@ export default function Knowledge() {
             </div>
           </motion.div>
 
-          {/* Section Toggle */}
-          <motion.div
-            className="mb-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-          >
-            <div className="flex gap-2 bg-purple-900/30 backdrop-blur-md rounded-xl p-1 w-fit border border-purple-700/30">
-              {[
-                { key: 'notes', label: 'Notes', icon: BookOpen },
-                { key: 'practice', label: 'Practice', icon: Brain }
-              ].map(section => {
-                const Icon = section.icon;
-                return (
-                  <motion.button
-                    key={section.key}
-                    onClick={() => setActiveSection(section.key)}
-                    className={`flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-medium transition ${
-                      activeSection === section.key
-                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50'
-                        : 'text-purple-300 hover:text-purple-200'
-                    }`}
-                    whileHover={{ y: -2 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Icon className="w-4 h-4" />
-                    {section.label}
-                  </motion.button>
-                );
-              })}
-            </div>
-          </motion.div>
-
           {/* Setup Info or Setup Prompt */}
           {!userSetup ? (
             subjects.length === 0 ? (
