@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, ChevronLeft, CheckCircle, X, AlertCircle, Zap } from 'lucide-react';
+import { ChevronRight, ChevronLeft, CheckCircle, X } from 'lucide-react';
 import { getTopicsForSubject } from '../data/masteryTopics';
 
 const qualifications = [
