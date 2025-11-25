@@ -724,8 +724,8 @@ const Study = () => {
                   {/* Mode Status */}
                   {mode === "pomodoro" && (
                     <div className="text-center mb-8">
-                      <div className="text-xl text-white font-medium">
-                        {isPomodoroBreak ? "Break Time" : "Work Time"}
+                      <div className={`text-xl font-medium ${isPomodoroBreak ? 'text-green-400' : 'text-white'}`}>
+                        {isPomodoroBreak ? "🌴 Break Time" : "📚 Work Time"}
                       </div>
                       <div className="text-gray-300 text-lg">
                         {pomodoroCount} pomodoros completed
