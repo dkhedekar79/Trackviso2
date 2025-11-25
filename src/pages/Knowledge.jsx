@@ -36,6 +36,17 @@ export default function Knowledge() {
     setUserSetup(setup);
     localStorage.setItem('knowledgeSetup', JSON.stringify(setup));
     setShowSetupModal(false);
+    setSelectedTopics([]);
+  };
+
+  const handleTopicToggle = (topicId) => {
+    setSelectedTopics(prev => {
+      if (prev.includes(topicId)) {
+        return prev.filter(id => id !== topicId);
+      } else {
+        return [...prev, topicId];
+      }
+    });
   };
 
   const generateNotes = async (topic) => {
