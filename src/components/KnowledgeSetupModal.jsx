@@ -142,21 +142,6 @@ export default function KnowledgeSetupModal({ subjects, onComplete, onClose }) {
           <p className="text-center text-purple-200 text-sm">Step {step} of 3</p>
         </div>
 
-        {/* Error Message */}
-        {error && (
-          <motion.div
-            className="mb-6 p-4 bg-red-900/40 border border-red-700/50 rounded-lg flex items-start gap-3"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-          >
-            <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-red-200 font-semibold text-sm">Error Fetching Topics</p>
-              <p className="text-red-300/80 text-xs mt-1">{error}</p>
-            </div>
-          </motion.div>
-        )}
 
         {/* Step Content */}
         <AnimatePresence mode="wait" custom={step}>
