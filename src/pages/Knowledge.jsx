@@ -136,61 +136,9 @@ export default function Knowledge() {
   };
 
   const createFallbackQuickQuizQuestions = (topicNames, setup) => {
-    const baseTopic = topicNames[0] || setup?.subject || 'this subject';
-    const subject = setup?.subject || 'your course';
-    const qualification = setup?.qualification || 'your qualification';
-
-    return [
-      {
-        question: `In ${qualification} ${subject}, what is the main reason teachers expect you to know the topic "${baseTopic}" well?`,
-        options: [
-          `It contains core ideas and facts that exam questions often test in ${subject}.`,
-          'It is mainly trivia that is rarely examined.',
-          'It only appears in optional extra reading, never in exams.',
-          'It is included just to fill space in the textbook.',
-        ],
-        correctAnswer: `It contains core ideas and facts that exam questions often test in ${subject}.`,
-        explanation: `Exam boards usually pick topics like "${baseTopic}" because they are core to understanding ${subject} and repeatedly appear in questions.`,
-      },
-      {
-        question: `Which strategy is MOST effective for revising a topic such as "${baseTopic}"?`,
-        options: [
-          'Actively testing yourself with questions and checking answers with explanations.',
-          'Reading the textbook once and hoping to remember it.',
-          'Only highlighting key sentences without practising recall.',
-          'Cramming everything the night before the exam.',
-        ],
-        correctAnswer: 'Actively testing yourself with questions and checking answers with explanations.',
-        explanation:
-          'Active recall (testing yourself) plus feedback is consistently shown to be more effective than passive reading or highlighting.',
-      },
-      {
-        question: `During a quick quiz on ${subject}, you get a question on "${baseTopic}" wrong. What is the BEST next step?`,
-        options: [
-          'Read the explanation, make a short note on the mistake, and try a similar question again later.',
-          'Ignore it and move on because it was just one question.',
-          'Delete the topic from your notes because it is too hard.',
-          'Only memorise the correct option letter (A/B/C/D) for next time.',
-        ],
-        correctAnswer:
-          'Read the explanation, make a short note on the mistake, and try a similar question again later.',
-        explanation:
-          'Using mistakes as feedback, writing them down, and re‑testing later is how you turn wrong answers into marks gained.',
-      },
-      {
-        question: `Why is spacing several short quick quizzes on "${baseTopic}" over a week better than doing one long session?`,
-        options: [
-          'Spacing practice strengthens memory and reduces forgetting between sessions.',
-          'There is no difference; both approaches work identically.',
-          'Short quizzes are only useful for easy topics, not core ones.',
-          'Long sessions are always scientifically better than spaced practice.',
-        ],
-        correctAnswer:
-          'Spacing practice strengthens memory and reduces forgetting between sessions.',
-        explanation:
-          'The spacing effect shows that revisiting a topic multiple times over days helps your brain store the information more strongly.',
-      },
-    ];
+    // Don't create fallback questions - we should always try to get real questions from AI
+    // If we truly can't, return empty array and show an error
+    return [];
   };
 
   const startQuickQuiz = async () => {
@@ -210,6 +158,12 @@ export default function Knowledge() {
       }
     }
 
+    if (topicNames.length === 0) {
+      setQuizError('Please select at least one topic to generate quiz questions.');
+      setActiveSection('quiz');
+      return;
+    }
+
     setActiveSection('quiz');
     setQuizLoading(true);
     setQuizError(null);
@@ -219,41 +173,86 @@ export default function Knowledge() {
     setQuizAnswered(false);
 
     try {
-      // Use the existing notes generator to create AI-powered questions
-      const combinedTopic =
-        topicNames.length > 0 ? topicNames.join(', ') : userSetup.subject;
-      const generatedNotes = await generateNotesFromHuggingFace(
-        combinedTopic,
-        userSetup.qualification,
-        userSetup.subject,
-        userSetup.examBoard
-      );
+      // Generate questions for EACH topic individually to get real content questions
+      const allQuestions = [];
+      
+      // Process topics one by one to get better quality questions
+      for (const topicName of topicNames.slice(0, 5)) { // Limit to 5 topics max
+        try {
+          const generatedNotes = await generateNotesFromHuggingFace(
+            topicName,
+            userSetup.qualification,
+            userSetup.subject,
+            userSetup.examBoard
+          );
 
-      const questions = (generatedNotes.practiceQuestions || []).filter(
-        (q) => q && Array.isArray(q.options) && q.options.length >= 2
-      );
+          const topicQuestions = (generatedNotes.practiceQuestions || []).filter(
+            (q) => 
+              q && 
+              q.question && 
+              q.question.trim().length > 0 &&
+              Array.isArray(q.options) && 
+              q.options.length >= 2 &&
+              q.correctAnswer &&
+              q.explanation
+          );
 
-      if (questions.length === 0) {
-        // Fallback to locally generated quick quiz questions so there is always content
-        const fallbackQuestions = createFallbackQuickQuizQuestions(
-          topicNames,
-          userSetup
-        );
-        setQuizQuestions(fallbackQuestions);
-        return;
+          // Only add questions that are actually about the topic (not generic)
+          const validQuestions = topicQuestions.filter(q => {
+            const questionText = q.question.toLowerCase();
+            const topicLower = topicName.toLowerCase();
+            // Check if question mentions the topic or seems topic-specific
+            return questionText.includes(topicLower) || 
+                   questionText.length > 30; // Real questions are usually longer
+          });
+
+          allQuestions.push(...validQuestions);
+        } catch (topicError) {
+          console.error(`Error generating questions for topic ${topicName}:`, topicError);
+          // Continue with other topics
+        }
       }
 
-      // Limit to a manageable number of questions for a "quick" quiz
-      setQuizQuestions(questions.slice(0, 8));
+      // If we got questions, use them
+      if (allQuestions.length > 0) {
+        // Shuffle and limit to 8-10 questions for a quick quiz
+        const shuffled = allQuestions.sort(() => Math.random() - 0.5);
+        setQuizQuestions(shuffled.slice(0, 10));
+      } else {
+        // If no questions were generated, try one more time with all topics combined
+        try {
+          const combinedTopic = topicNames.join(', ');
+          const generatedNotes = await generateNotesFromHuggingFace(
+            combinedTopic,
+            userSetup.qualification,
+            userSetup.subject,
+            userSetup.examBoard
+          );
+
+          const questions = (generatedNotes.practiceQuestions || []).filter(
+            (q) => 
+              q && 
+              q.question && 
+              q.question.trim().length > 0 &&
+              Array.isArray(q.options) && 
+              q.options.length >= 2 &&
+              q.correctAnswer &&
+              q.explanation
+          );
+
+          if (questions.length > 0) {
+            setQuizQuestions(questions.slice(0, 10));
+          } else {
+            setQuizError('Unable to generate quiz questions. Please check your API configuration or try selecting different topics.');
+          }
+        } catch (finalError) {
+          console.error('Error in final question generation attempt:', finalError);
+          setQuizError('Unable to generate quiz questions. Please check your API configuration or try again later.');
+        }
+      }
     } catch (error) {
       console.error('Error starting quick quiz:', error);
-      // If the AI call fails, still provide a working quiz using local questions
-      const fallbackQuestions = createFallbackQuickQuizQuestions(
-        topicNames,
-        userSetup
-      );
-      setQuizQuestions(fallbackQuestions);
-      setQuizError(null);
+      setQuizError('Failed to generate quiz. Please try again or check your API configuration.');
     } finally {
       setQuizLoading(false);
     }
@@ -910,18 +909,28 @@ function QuickQuizQuestion({
         </motion.div>
       )}
 
-      <div className="flex justify-between items-center">
-        <p className="text-amber-200/80 text-xs">
+      <div className="flex justify-between items-center mt-6 pt-4 border-t border-amber-700/30">
+        <p className="text-amber-200/80 text-sm">
           Question {questionNumber} of {totalQuestions}
         </p>
         <motion.button
           onClick={onNext}
           disabled={!answered}
-          className="px-5 py-2 rounded-lg bg-gradient-to-r from-amber-600 to-orange-600 text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-amber-500/50 transition-all"
+          className="px-6 py-3 rounded-lg bg-gradient-to-r from-amber-600 to-orange-600 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-amber-500/50 transition-all flex items-center gap-2"
           whileHover={answered ? { scale: 1.05 } : {}}
           whileTap={answered ? { scale: 0.95 } : {}}
         >
-          {questionNumber === totalQuestions ? 'Finish Quiz' : 'Next Question'}
+          {questionNumber === totalQuestions ? (
+            <>
+              <CheckCircle className="w-4 h-4" />
+              Finish Quiz
+            </>
+          ) : (
+            <>
+              Next Question
+              <span className="text-lg">→</span>
+            </>
+          )}
         </motion.button>
       </div>
     </motion.div>
