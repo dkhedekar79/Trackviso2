@@ -19,6 +19,17 @@ export default function Knowledge() {
   const [practiceQuestions, setPracticeQuestions] = useState(null);
   const [loading, setLoading] = useState(false);
   const [subjects, setSubjects] = useState([]);
+  const [quizQuestions, setQuizQuestions] = useState([]);
+  const [quizLoading, setQuizLoading] = useState(false);
+  const [quizError, setQuizError] = useState(null);
+  const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
+  const [quizSelectedAnswer, setQuizSelectedAnswer] = useState(null);
+  const [quizAnswered, setQuizAnswered] = useState(false);
+  const [quizStats, setQuizStats] = useState({
+    attempted: 0,
+    correct: 0,
+    wrong: 0,
+  });
 
   useEffect(() => {
     const savedSubjects = localStorage.getItem('subjects');
@@ -30,7 +41,25 @@ export default function Knowledge() {
     if (savedSetup) {
       setUserSetup(JSON.parse(savedSetup));
     }
+
+    const savedQuizStats = localStorage.getItem('quickQuizStats');
+    if (savedQuizStats) {
+      try {
+        setQuizStats(JSON.parse(savedQuizStats));
+      } catch {
+        // ignore parse errors and start fresh
+      }
+    }
   }, []);
+
+  // Persist quiz stats so they "exist somewhere" beyond this session
+  useEffect(() => {
+    try {
+      localStorage.setItem('quickQuizStats', JSON.stringify(quizStats));
+    } catch {
+      // ignore storage errors
+    }
+  }, [quizStats]);
 
   const handleSetupComplete = (setup) => {
     setUserSetup(setup);
@@ -92,6 +121,89 @@ export default function Knowledge() {
     setNotes(null);
     setPracticeQuestions(null);
     generateNotes(topic);
+  };
+
+  const getSelectedTopicNames = () => {
+    if (!userSetup) return [];
+    const allTopics = getTopicsForSubject(
+      userSetup.qualification,
+      userSetup.examBoard,
+      userSetup.subject
+    );
+    return allTopics
+      .filter((topic) => selectedTopics.includes(topic.id))
+      .map((topic) => topic.name);
+  };
+
+  const startQuickQuiz = async () => {
+    if (!userSetup) return;
+    const topicNames = getSelectedTopicNames();
+    if (topicNames.length === 0) return;
+
+    setActiveSection('quiz');
+    setQuizLoading(true);
+    setQuizError(null);
+    setQuizQuestions([]);
+    setCurrentQuizIndex(0);
+    setQuizSelectedAnswer(null);
+    setQuizAnswered(false);
+
+    try {
+      // Use the existing notes generator to create AI-powered questions
+      const combinedTopic = topicNames.join(', ');
+      const generatedNotes = await generateNotesFromHuggingFace(
+        combinedTopic,
+        userSetup.qualification,
+        userSetup.subject,
+        userSetup.examBoard
+      );
+
+      const questions = (generatedNotes.practiceQuestions || []).filter(
+        (q) => q && Array.isArray(q.options) && q.options.length >= 2
+      );
+
+      if (questions.length === 0) {
+        setQuizError('No quiz questions were generated. Please try again.');
+        return;
+      }
+
+      // Limit to a manageable number of questions for a "quick" quiz
+      setQuizQuestions(questions.slice(0, 8));
+    } catch (error) {
+      console.error('Error starting quick quiz:', error);
+      setQuizError(
+        error.message || 'Unable to start quick quiz right now. Please try again.'
+      );
+    } finally {
+      setQuizLoading(false);
+    }
+  };
+
+  const handleQuizAnswer = (option) => {
+    if (!quizQuestions[currentQuizIndex] || quizAnswered) return;
+
+    const currentQuestion = quizQuestions[currentQuizIndex];
+    const isCorrect = option === currentQuestion.correctAnswer;
+
+    setQuizSelectedAnswer(option);
+    setQuizAnswered(true);
+    setQuizStats((prev) => ({
+      attempted: prev.attempted + 1,
+      correct: prev.correct + (isCorrect ? 1 : 0),
+      wrong: prev.wrong + (isCorrect ? 0 : 1),
+    }));
+  };
+
+  const goToNextQuizQuestion = () => {
+    if (currentQuizIndex + 1 < quizQuestions.length) {
+      setCurrentQuizIndex((prev) => prev + 1);
+      setQuizSelectedAnswer(null);
+      setQuizAnswered(false);
+    } else {
+      // End of quiz - keep results visible and reset current question selection
+      setQuizSelectedAnswer(null);
+      setQuizAnswered(false);
+    }
   };
 
   const containerVariants = {
@@ -314,6 +426,7 @@ export default function Knowledge() {
                         Test your knowledge with quick quizzes. Get instant feedback on your answers and identify areas that need more study.
                       </p>
                       <motion.button
+                        onClick={startQuickQuiz}
                         className="w-full py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-amber-500/50 transition-all"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
@@ -422,6 +535,130 @@ export default function Knowledge() {
                   )}
                 </motion.div>
               )}
+
+              {/* Quick Quiz Section */}
+              {activeSection === 'quiz' && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  {quizLoading ? (
+                    <motion.div
+                      className="bg-gradient-to-br from-amber-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-12 border border-amber-700/30 flex flex-col items-center justify-center"
+                      animate={{ scale: [0.95, 1.05, 0.95] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      <BarChart3 className="w-12 h-12 text-amber-400 mb-4" />
+                      <p className="text-white text-lg font-semibold">Generating your quick quiz...</p>
+                    </motion.div>
+                  ) : quizError ? (
+                    <motion.div
+                      className="bg-gradient-to-br from-red-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-12 border border-red-700/30 text-center"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                    >
+                      <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+                      <p className="text-white text-lg font-semibold mb-2">Quick quiz unavailable</p>
+                      <p className="text-red-200/80 text-sm mb-6">{quizError}</p>
+                      <motion.button
+                        onClick={startQuickQuiz}
+                        className="px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-amber-500/50 transition-all"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        Try Again
+                      </motion.button>
+                    </motion.div>
+                  ) : quizQuestions.length === 0 ? (
+                    <motion.div
+                      className="bg-gradient-to-br from-amber-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-12 border border-amber-700/30 text-center"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                    >
+                      <BarChart3 className="w-12 h-12 text-amber-400 mx-auto mb-4" />
+                      <p className="text-white text-lg font-semibold">No quiz generated yet</p>
+                      <p className="text-amber-200/80 text-sm mt-2 mb-6">
+                        Select one or more topics and click &quot;Start Quiz&quot; to generate AI-powered questions.
+                      </p>
+                      <motion.button
+                        onClick={startQuickQuiz}
+                        className="px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-amber-500/50 transition-all"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        Start Quiz
+                      </motion.button>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      className="space-y-6"
+                      variants={containerVariants}
+                      initial="hidden"
+                      animate="visible"
+                    >
+                      <motion.div
+                        className="bg-gradient-to-br from-amber-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-8 border border-amber-700/30"
+                        variants={itemVariants}
+                      >
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                          <div>
+                            <h2 className="text-3xl font-bold text-white mb-1">Quick Quiz</h2>
+                            <p className="text-amber-200/80 text-sm">
+                              Question {Math.min(currentQuizIndex + 1, quizQuestions.length)} of {quizQuestions.length}
+                            </p>
+                          </div>
+                          <div className="flex flex-wrap gap-4 text-sm">
+                            <div className="px-3 py-2 rounded-lg bg-emerald-900/40 border border-emerald-600/40 text-emerald-200">
+                              Correct: <span className="font-semibold">{quizStats.correct}</span>
+                            </div>
+                            <div className="px-3 py-2 rounded-lg bg-red-900/40 border border-red-600/40 text-red-200">
+                              Wrong: <span className="font-semibold">{quizStats.wrong}</span>
+                            </div>
+                            <div className="px-3 py-2 rounded-lg bg-slate-900/60 border border-slate-600/40 text-slate-200">
+                              Attempted: <span className="font-semibold">{quizStats.attempted}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+
+                      {currentQuizIndex < quizQuestions.length ? (
+                        <QuickQuizQuestion
+                          question={quizQuestions[currentQuizIndex]}
+                          questionNumber={currentQuizIndex + 1}
+                          totalQuestions={quizQuestions.length}
+                          variants={itemVariants}
+                          selectedAnswer={quizSelectedAnswer}
+                          answered={quizAnswered}
+                          onAnswer={handleQuizAnswer}
+                          onNext={goToNextQuizQuestion}
+                        />
+                      ) : (
+                        <motion.div
+                          className="bg-gradient-to-br from-emerald-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-10 border border-emerald-700/40 text-center"
+                          variants={itemVariants}
+                        >
+                          <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto mb-4" />
+                          <p className="text-white text-xl font-semibold mb-2">Quiz complete!</p>
+                          <p className="text-emerald-200/80 text-sm mb-6">
+                            You answered {quizStats.correct} out of {quizStats.attempted} questions correctly.
+                          </p>
+                          <div className="flex justify-center gap-4">
+                            <motion.button
+                              onClick={startQuickQuiz}
+                              className="px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-amber-500/50 transition-all"
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              New Quiz
+                            </motion.button>
+                          </div>
+                        </motion.div>
+                      )}
+                    </motion.div>
+                  )}
+                </motion.div>
+              )}
             </>
           )}
         </div>
@@ -508,6 +745,105 @@ function PracticeQuestion({ question, questionNumber, variants }) {
           <p className="text-gray-300 text-sm">{question.explanation}</p>
         </motion.div>
       )}
+    </motion.div>
+  );
+}
+
+function QuickQuizQuestion({
+  question,
+  questionNumber,
+  totalQuestions,
+  variants,
+  selectedAnswer,
+  answered,
+  onAnswer,
+  onNext,
+}) {
+  const isCorrect = selectedAnswer === question.correctAnswer;
+
+  return (
+    <motion.div
+      className="bg-gradient-to-br from-amber-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-amber-700/30 hover:border-amber-600/50 transition-all"
+      variants={variants}
+      whileHover={{ y: -5 }}
+      initial={{ opacity: 0, x: -20 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true }}
+    >
+      <div className="flex items-start gap-4 mb-4">
+        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 flex items-center justify-center text-white font-bold text-sm">
+          {questionNumber}
+        </div>
+        <h3 className="text-white text-lg font-semibold flex-1">{question.question}</h3>
+      </div>
+
+      <div className="space-y-3 mb-6">
+        {question.options &&
+          question.options.map((option, index) => (
+            <motion.button
+              key={index}
+              onClick={() => !answered && onAnswer(option)}
+              className={`w-full text-left px-4 py-3 rounded-lg border transition ${
+                selectedAnswer === option
+                  ? isCorrect
+                    ? 'bg-green-800/40 border-green-600/50 text-green-200'
+                    : 'bg-red-800/40 border-red-600/50 text-red-200'
+                  : answered && option === question.correctAnswer
+                    ? 'bg-green-800/40 border-green-600/50 text-green-200'
+                    : 'bg-amber-800/20 border-amber-700/30 text-amber-100 hover:bg-amber-800/40'
+              }`}
+              whileHover={!answered ? { scale: 1.02 } : {}}
+              whileTap={!answered ? { scale: 0.98 } : {}}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-4 h-4 rounded border border-current" />
+                <span>{option}</span>
+              </div>
+            </motion.button>
+          ))}
+      </div>
+
+      {answered && (
+        <motion.div
+          className={`p-4 rounded-lg border mb-4 ${
+            isCorrect
+              ? 'bg-green-800/20 border-green-600/30'
+              : 'bg-red-800/20 border-red-600/30'
+          }`}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            {isCorrect ? (
+              <>
+                <CheckCircle className="w-5 h-5 text-green-400" />
+                <p className="text-green-200 font-semibold">Correct!</p>
+              </>
+            ) : (
+              <>
+                <AlertCircle className="w-5 h-5 text-red-400" />
+                <p className="text-red-200 font-semibold">Incorrect</p>
+              </>
+            )}
+          </div>
+          <p className="text-gray-300 text-sm">{question.explanation}</p>
+        </motion.div>
+      )}
+
+      <div className="flex justify-between items-center">
+        <p className="text-amber-200/80 text-xs">
+          Question {questionNumber} of {totalQuestions}
+        </p>
+        <motion.button
+          onClick={onNext}
+          disabled={!answered}
+          className="px-5 py-2 rounded-lg bg-gradient-to-r from-amber-600 to-orange-600 text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-amber-500/50 transition-all"
+          whileHover={answered ? { scale: 1.05 } : {}}
+          whileTap={answered ? { scale: 0.95 } : {}}
+        >
+          {questionNumber === totalQuestions ? 'Finish Quiz' : 'Next Question'}
+        </motion.button>
+      </div>
     </motion.div>
   );
 }
