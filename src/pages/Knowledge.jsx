@@ -135,10 +135,80 @@ export default function Knowledge() {
       .map((topic) => topic.name);
   };
 
+  const createFallbackQuickQuizQuestions = (topicNames, setup) => {
+    const baseTopic = topicNames[0] || setup?.subject || 'this subject';
+    const subject = setup?.subject || 'your course';
+    const qualification = setup?.qualification || 'your qualification';
+
+    return [
+      {
+        question: `In ${qualification} ${subject}, what is the main reason teachers expect you to know the topic "${baseTopic}" well?`,
+        options: [
+          `It contains core ideas and facts that exam questions often test in ${subject}.`,
+          'It is mainly trivia that is rarely examined.',
+          'It only appears in optional extra reading, never in exams.',
+          'It is included just to fill space in the textbook.',
+        ],
+        correctAnswer: `It contains core ideas and facts that exam questions often test in ${subject}.`,
+        explanation: `Exam boards usually pick topics like "${baseTopic}" because they are core to understanding ${subject} and repeatedly appear in questions.`,
+      },
+      {
+        question: `Which strategy is MOST effective for revising a topic such as "${baseTopic}"?`,
+        options: [
+          'Actively testing yourself with questions and checking answers with explanations.',
+          'Reading the textbook once and hoping to remember it.',
+          'Only highlighting key sentences without practising recall.',
+          'Cramming everything the night before the exam.',
+        ],
+        correctAnswer: 'Actively testing yourself with questions and checking answers with explanations.',
+        explanation:
+          'Active recall (testing yourself) plus feedback is consistently shown to be more effective than passive reading or highlighting.',
+      },
+      {
+        question: `During a quick quiz on ${subject}, you get a question on "${baseTopic}" wrong. What is the BEST next step?`,
+        options: [
+          'Read the explanation, make a short note on the mistake, and try a similar question again later.',
+          'Ignore it and move on because it was just one question.',
+          'Delete the topic from your notes because it is too hard.',
+          'Only memorise the correct option letter (A/B/C/D) for next time.',
+        ],
+        correctAnswer:
+          'Read the explanation, make a short note on the mistake, and try a similar question again later.',
+        explanation:
+          'Using mistakes as feedback, writing them down, and re‑testing later is how you turn wrong answers into marks gained.',
+      },
+      {
+        question: `Why is spacing several short quick quizzes on "${baseTopic}" over a week better than doing one long session?`,
+        options: [
+          'Spacing practice strengthens memory and reduces forgetting between sessions.',
+          'There is no difference; both approaches work identically.',
+          'Short quizzes are only useful for easy topics, not core ones.',
+          'Long sessions are always scientifically better than spaced practice.',
+        ],
+        correctAnswer:
+          'Spacing practice strengthens memory and reduces forgetting between sessions.',
+        explanation:
+          'The spacing effect shows that revisiting a topic multiple times over days helps your brain store the information more strongly.',
+      },
+    ];
+  };
+
   const startQuickQuiz = async () => {
     if (!userSetup) return;
-    const topicNames = getSelectedTopicNames();
-    if (topicNames.length === 0) return;
+    let topicNames = getSelectedTopicNames();
+    // If no topics have been selected, fall back to the first few syllabus topics
+    if (topicNames.length === 0) {
+      try {
+        const allTopics = getTopicsForSubject(
+          userSetup.qualification,
+          userSetup.examBoard,
+          userSetup.subject
+        );
+        topicNames = (allTopics || []).slice(0, 3).map((t) => t.name);
+      } catch {
+        topicNames = [];
+      }
+    }
 
     setActiveSection('quiz');
     setQuizLoading(true);
@@ -150,7 +220,8 @@ export default function Knowledge() {
 
     try {
       // Use the existing notes generator to create AI-powered questions
-      const combinedTopic = topicNames.join(', ');
+      const combinedTopic =
+        topicNames.length > 0 ? topicNames.join(', ') : userSetup.subject;
       const generatedNotes = await generateNotesFromHuggingFace(
         combinedTopic,
         userSetup.qualification,
@@ -163,7 +234,12 @@ export default function Knowledge() {
       );
 
       if (questions.length === 0) {
-        setQuizError('No quiz questions were generated. Please try again.');
+        // Fallback to locally generated quick quiz questions so there is always content
+        const fallbackQuestions = createFallbackQuickQuizQuestions(
+          topicNames,
+          userSetup
+        );
+        setQuizQuestions(fallbackQuestions);
         return;
       }
 
@@ -171,9 +247,13 @@ export default function Knowledge() {
       setQuizQuestions(questions.slice(0, 8));
     } catch (error) {
       console.error('Error starting quick quiz:', error);
-      setQuizError(
-        error.message || 'Unable to start quick quiz right now. Please try again.'
+      // If the AI call fails, still provide a working quiz using local questions
+      const fallbackQuestions = createFallbackQuickQuizQuestions(
+        topicNames,
+        userSetup
       );
+      setQuizQuestions(fallbackQuestions);
+      setQuizError(null);
     } finally {
       setQuizLoading(false);
     }
