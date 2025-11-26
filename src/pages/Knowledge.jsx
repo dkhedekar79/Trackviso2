@@ -2,17 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
-import { BookOpen, ChevronDown, Zap, CheckCircle, AlertCircle, Lightbulb, Brain, Settings } from 'lucide-react';
+import { BookOpen, ChevronDown, Zap, CheckCircle, AlertCircle, Lightbulb, Brain, Settings, Layers, BarChart3, ClipboardList } from 'lucide-react';
 import KnowledgeSetupModal from '../components/KnowledgeSetupModal';
 import { generateNotesFromHuggingFace } from '../utils/huggingfaceApi';
+import { getTopicsForSubject } from '../data/masteryTopics';
 
 
 
 export default function Knowledge() {
-  const [activeSection, setActiveSection] = useState('notes'); // notes or practice
+  const [activeSection, setActiveSection] = useState('practice');
   const [userSetup, setUserSetup] = useState(null);
   const [showSetupModal, setShowSetupModal] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState(null);
+  const [selectedTopics, setSelectedTopics] = useState([]);
   const [notes, setNotes] = useState(null);
   const [practiceQuestions, setPracticeQuestions] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -34,6 +36,17 @@ export default function Knowledge() {
     setUserSetup(setup);
     localStorage.setItem('knowledgeSetup', JSON.stringify(setup));
     setShowSetupModal(false);
+    setSelectedTopics([]);
+  };
+
+  const handleTopicToggle = (topicId) => {
+    setSelectedTopics(prev => {
+      if (prev.includes(topicId)) {
+        return prev.filter(id => id !== topicId);
+      } else {
+        return [...prev, topicId];
+      }
+    });
   };
 
   const generateNotes = async (topic) => {
@@ -126,41 +139,8 @@ export default function Knowledge() {
             transition={{ duration: 0.6 }}
           >
             <div>
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent mb-4">Knowledge Base</h1>
-              <p className="text-purple-200/80 text-lg">AI-powered study notes and practice questions for mastery</p>
-            </div>
-          </motion.div>
-
-          {/* Section Toggle */}
-          <motion.div
-            className="mb-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-          >
-            <div className="flex gap-2 bg-purple-900/30 backdrop-blur-md rounded-xl p-1 w-fit border border-purple-700/30">
-              {[
-                { key: 'notes', label: 'Notes', icon: BookOpen },
-                { key: 'practice', label: 'Practice', icon: Brain }
-              ].map(section => {
-                const Icon = section.icon;
-                return (
-                  <motion.button
-                    key={section.key}
-                    onClick={() => setActiveSection(section.key)}
-                    className={`flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-medium transition ${
-                      activeSection === section.key
-                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50'
-                        : 'text-purple-300 hover:text-purple-200'
-                    }`}
-                    whileHover={{ y: -2 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Icon className="w-4 h-4" />
-                    {section.label}
-                  </motion.button>
-                );
-              })}
+              <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent mb-4">Mastery</h1>
+              <p className="text-purple-200/80 text-lg">AI-powered flashcards, quizzes and mock exams</p>
             </div>
           </motion.div>
 
@@ -237,152 +217,147 @@ export default function Knowledge() {
           {userSetup && (
             <>
 
-              {/* Topic Selector */}
+              {/* Topic Selector with Checkboxes */}
               <motion.div
-                className="mb-8"
+                className="mb-12"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
               >
-                <label className="block text-white text-sm font-medium mb-2">Select Topic</label>
-                <div className="relative">
-                  <select
-                    value={selectedTopic || ''}
-                    onChange={(e) => handleTopicChange(e.target.value)}
-                    className="w-full px-4 py-3 bg-purple-900/40 border border-purple-700/50 rounded-lg text-white appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  >
-                    <option value="">Choose a topic...</option>
-                    {getTopicsForDisplay().map((topic, index) => (
-                      <option key={index} value={topic}>
-                        {topic}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-3 top-3.5 w-5 h-5 text-purple-300 pointer-events-none" />
+                <h2 className="text-white text-xl font-bold mb-4">Select Topics to Study</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {getTopicsForSubject(userSetup.qualification, userSetup.examBoard, userSetup.subject).map((topic) => (
+                    <motion.button
+                      key={topic.id}
+                      onClick={() => handleTopicToggle(topic.id)}
+                      className={`p-4 rounded-lg border-2 text-left transition-all ${
+                        selectedTopics.includes(topic.id)
+                          ? 'bg-gradient-to-br from-purple-600 to-pink-600 border-purple-400 text-white shadow-lg shadow-purple-500/50'
+                          : 'bg-purple-900/30 border-purple-700/50 text-purple-200 hover:border-purple-600 hover:bg-purple-900/50'
+                      }`}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`w-5 h-5 rounded border-2 mt-1 flex items-center justify-center flex-shrink-0 transition ${
+                          selectedTopics.includes(topic.id)
+                            ? 'bg-white border-white'
+                            : 'border-purple-400'
+                        }`}>
+                          {selectedTopics.includes(topic.id) && (
+                            <CheckCircle className="w-4 h-4 text-purple-600" />
+                          )}
+                        </div>
+                        <span className="font-medium text-sm">{topic.name}</span>
+                      </div>
+                    </motion.button>
+                  ))}
                 </div>
               </motion.div>
 
-              {/* Notes Section */}
-              {activeSection === 'notes' && (
+              {/* Three Mode Overview Cards */}
+              {selectedTopics.length > 0 && (
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5 }}
+                  className="mb-12"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.4 }}
                 >
-                  {loading ? (
+                  <h2 className="text-white text-xl font-bold mb-6">Study Modes</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Flashcard Mode */}
                     <motion.div
-                      className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-12 border border-purple-700/30 flex flex-col items-center justify-center"
-                      animate={{ scale: [0.95, 1.05, 0.95] }}
-                      transition={{ duration: 2, repeat: Infinity }}
+                      className="bg-gradient-to-br from-cyan-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-8 border border-cyan-700/30 hover:border-cyan-600/50 transition-all cursor-pointer group"
+                      whileHover={{ y: -5, scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                     >
-                      <Zap className="w-12 h-12 text-purple-400 mb-4" />
-                      <p className="text-white text-lg font-semibold">Generating notes...</p>
-                      <p className="text-purple-200/80 text-sm mt-2">Our AI is creating comprehensive study materials for you</p>
-                    </motion.div>
-                  ) : notes && selectedTopic ? (
-                    <motion.div
-                      className="space-y-6"
-                      variants={containerVariants}
-                      initial="hidden"
-                      animate="visible"
-                    >
-                      {/* Notes Title */}
-                      <motion.div
-                        className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-8 border border-purple-700/30"
-                        variants={itemVariants}
+                      <div className="flex items-start gap-4 mb-4">
+                        <div className="p-3 bg-cyan-600/30 rounded-lg group-hover:bg-cyan-600/50 transition">
+                          <Layers className="w-6 h-6 text-cyan-400" />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold text-white">Flashcards</h3>
+                          <p className="text-cyan-300/70 text-sm mt-1">Interactive learning</p>
+                        </div>
+                      </div>
+                      <p className="text-cyan-200/80 text-sm leading-relaxed mb-6">
+                        Master topics with spaced repetition. Review key concepts through digital flashcards designed for active recall and long-term retention.
+                      </p>
+                      <motion.button
+                        className="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-cyan-500/50 transition-all"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                       >
-                        <h2 className="text-3xl font-bold text-white mb-2">{notes.title}</h2>
-                        <p className="text-purple-200/80">{notes.summary}</p>
-                      </motion.div>
+                        Start Flashcards
+                      </motion.button>
+                      <p className="text-cyan-400/60 text-xs mt-3 text-center">
+                        {selectedTopics.length} topic{selectedTopics.length !== 1 ? 's' : ''} selected
+                      </p>
+                    </motion.div>
 
-                      {/* Main Points */}
-                      {notes.mainPoints && notes.mainPoints.length > 0 && (
-                        <motion.div
-                          className="space-y-4"
-                          variants={itemVariants}
-                        >
-                          {notes.mainPoints.map((point, index) => (
-                            <motion.div
-                              key={index}
-                              className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all"
-                              whileHover={{ y: -5 }}
-                              initial={{ opacity: 0, x: -20 }}
-                              whileInView={{ opacity: 1, x: 0 }}
-                              transition={{ delay: index * 0.1 }}
-                              viewport={{ once: true }}
-                            >
-                              <h3 className="text-xl font-semibold text-white mb-3 flex items-center gap-2">
-                                <Lightbulb className="w-5 h-5 text-yellow-400" />
-                                {point.heading}
-                              </h3>
-                              <p className="text-purple-200/90 mb-4">{point.content}</p>
-                              {point.examples && point.examples.length > 0 && (
-                                <div className="bg-purple-800/30 rounded-lg p-3 mt-4">
-                                  <p className="text-purple-300 text-sm font-medium mb-2">Examples:</p>
-                                  <ul className="space-y-1">
-                                    {point.examples.map((example, idx) => (
-                                      <li key={idx} className="text-purple-200/80 text-sm">• {example}</li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              )}
-                            </motion.div>
-                          ))}
-                        </motion.div>
-                      )}
+                    {/* Quick Quiz Mode */}
+                    <motion.div
+                      className="bg-gradient-to-br from-amber-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-8 border border-amber-700/30 hover:border-amber-600/50 transition-all cursor-pointer group"
+                      whileHover={{ y: -5, scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <div className="flex items-start gap-4 mb-4">
+                        <div className="p-3 bg-amber-600/30 rounded-lg group-hover:bg-amber-600/50 transition">
+                          <BarChart3 className="w-6 h-6 text-amber-400" />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold text-white">Quick Quiz</h3>
+                          <p className="text-amber-300/70 text-sm mt-1">Quick assessments</p>
+                        </div>
+                      </div>
+                      <p className="text-amber-200/80 text-sm leading-relaxed mb-6">
+                        Test your knowledge with quick quizzes. Get instant feedback on your answers and identify areas that need more study.
+                      </p>
+                      <motion.button
+                        className="w-full py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-amber-500/50 transition-all"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        Start Quiz
+                      </motion.button>
+                      <p className="text-amber-400/60 text-xs mt-3 text-center">
+                        {selectedTopics.length} topic{selectedTopics.length !== 1 ? 's' : ''} selected
+                      </p>
+                    </motion.div>
 
-                      {/* Key Terms */}
-                      {notes.keyTerms && notes.keyTerms.length > 0 && (
-                        <motion.div
-                          className="bg-gradient-to-br from-pink-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-pink-700/30 hover:border-pink-600/50 transition-all"
-                          variants={itemVariants}
-                          whileHover={{ y: -5 }}
-                        >
-                          <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-                            <BookOpen className="w-5 h-5 text-pink-400" />
-                            Key Terms & Definitions
-                          </h3>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {notes.keyTerms.map((term, index) => (
-                              <motion.div
-                                key={index}
-                                className="bg-pink-800/20 rounded-lg p-4 border border-pink-700/30"
-                                initial={{ opacity: 0 }}
-                                whileInView={{ opacity: 1 }}
-                                transition={{ delay: index * 0.05 }}
-                                viewport={{ once: true }}
-                              >
-                                <p className="text-white font-semibold text-sm mb-1">{term.term}</p>
-                                <p className="text-pink-200/80 text-sm">{term.definition}</p>
-                              </motion.div>
-                            ))}
-                          </div>
-                        </motion.div>
-                      )}
-                    </motion.div>
-                  ) : selectedTopic ? (
+                    {/* Mock Exam Mode */}
                     <motion.div
-                      className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-12 border border-purple-700/30 text-center"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
+                      className="bg-gradient-to-br from-pink-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-8 border border-pink-700/30 hover:border-pink-600/50 transition-all cursor-pointer group"
+                      whileHover={{ y: -5, scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                     >
-                      <AlertCircle className="w-12 h-12 text-purple-400 mx-auto mb-4" />
-                      <p className="text-white text-lg font-semibold">No notes available</p>
-                      <p className="text-purple-200/80 text-sm mt-2">Please select a topic to get started</p>
+                      <div className="flex items-start gap-4 mb-4">
+                        <div className="p-3 bg-pink-600/30 rounded-lg group-hover:bg-pink-600/50 transition">
+                          <ClipboardList className="w-6 h-6 text-pink-400" />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold text-white">Mock Exam</h3>
+                          <p className="text-pink-300/70 text-sm mt-1">Full simulations</p>
+                        </div>
+                      </div>
+                      <p className="text-pink-200/80 text-sm leading-relaxed mb-6">
+                        Experience realistic exam conditions. Complete full-length practice papers with timed questions to build exam confidence.
+                      </p>
+                      <motion.button
+                        className="w-full py-3 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-pink-500/50 transition-all"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        Start Mock Exam
+                      </motion.button>
+                      <p className="text-pink-400/60 text-xs mt-3 text-center">
+                        {selectedTopics.length} topic{selectedTopics.length !== 1 ? 's' : ''} selected
+                      </p>
                     </motion.div>
-                  ) : (
-                    <motion.div
-                      className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-12 border border-purple-700/30 text-center"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                    >
-                      <BookOpen className="w-12 h-12 text-purple-400 mx-auto mb-4" />
-                      <p className="text-white text-lg font-semibold">Select a topic to begin</p>
-                      <p className="text-purple-200/80 text-sm mt-2">Choose a topic from the dropdown above to view AI-generated study notes</p>
-                    </motion.div>
-                  )}
+                  </div>
                 </motion.div>
               )}
+
 
               {/* Practice Section */}
               {activeSection === 'practice' && (

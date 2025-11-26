@@ -724,8 +724,8 @@ const Study = () => {
                   {/* Mode Status */}
                   {mode === "pomodoro" && (
                     <div className="text-center mb-8">
-                      <div className="text-xl text-white font-medium">
-                        {isPomodoroBreak ? "Break Time" : "Work Time"}
+                      <div className={`text-xl font-medium ${isPomodoroBreak ? 'text-green-400' : 'text-white'}`}>
+                        {isPomodoroBreak ? "🌴 Break Time" : "📚 Work Time"}
                       </div>
                       <div className="text-gray-300 text-lg">
                         {pomodoroCount} pomodoros completed
@@ -754,11 +754,13 @@ const Study = () => {
                           cy="160"
                           r="144"
                           stroke={
-                            mode === "pomodoro" &&
-                            elapsedSeconds > getTotalDuration() &&
-                            pomodoroPhaseRef.current === "work"
-                              ? "#EF4444"
-                              : "var(--primary)"
+                            mode === "pomodoro" && isPomodoroBreak
+                              ? "#4ADE80"
+                              : mode === "pomodoro" &&
+                                elapsedSeconds > getTotalDuration() &&
+                                pomodoroPhaseRef.current === "work"
+                                ? "#EF4444"
+                                : "var(--primary)"
                           }
                           strokeWidth="12"
                           fill="none"
@@ -773,7 +775,7 @@ const Study = () => {
                       </svg>
                     )}
                     <div
-                      className={`absolute inset-0 rounded-full bg-white/10 flex items-center justify-center ${mode === "pomodoro" && elapsedSeconds > getTotalDuration() && pomodoroPhaseRef.current === "work" ? "text-red-400" : "text-white"}`}
+                      className={`absolute inset-0 rounded-full bg-white/10 flex items-center justify-center ${mode === "pomodoro" && isPomodoroBreak ? "text-green-400" : mode === "pomodoro" && elapsedSeconds > getTotalDuration() && pomodoroPhaseRef.current === "work" ? "text-red-400" : "text-white"}`}
                     >
                       <span className="text-8xl font-mono drop-shadow-2xl">
                         {getDisplayTime()}
@@ -1058,7 +1060,7 @@ const Study = () => {
                         </svg>
                       )}
                       <div
-                        className={`absolute inset-0 rounded-full bg-white/10 flex items-center justify-center ${mode === "pomodoro" && elapsedSeconds > getTotalDuration() && pomodoroPhaseRef.current === "work" ? "text-red-400" : "text-white"}`}
+                        className={`absolute inset-0 rounded-full bg-white/10 flex items-center justify-center ${mode === "pomodoro" && isPomodoroBreak ? "text-green-400" : mode === "pomodoro" && elapsedSeconds > getTotalDuration() && pomodoroPhaseRef.current === "work" ? "text-red-400" : "text-white"}`}
                       >
                         <span className={`text-6xl font-mono drop-shadow-lg`}>
                           {getDisplayTime()}

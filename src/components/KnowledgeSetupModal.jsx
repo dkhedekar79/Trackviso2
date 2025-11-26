@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, ChevronLeft, CheckCircle, X, AlertCircle, Zap } from 'lucide-react';
-import { fetchTopicsFromHuggingFace } from '../utils/huggingfaceApi';
+import { ChevronRight, ChevronLeft, CheckCircle, X } from 'lucide-react';
+import { getTopicsForSubject } from '../data/masteryTopics';
 
 const qualifications = [
-  'GCSE',
-  'A-Level',
-  'IB',
-  'AP',
-  'High School',
-  'University',
-  'Professional'
+  { name: 'GCSE', available: true },
+  { name: 'A-Level', available: false },
+  { name: 'IB', available: false },
+  { name: 'AP', available: false },
+  { name: 'High School', available: false },
+  { name: 'University', available: false },
+  { name: 'Professional', available: false }
 ];
 
 const examBoards = {
@@ -28,11 +28,10 @@ export default function KnowledgeSetupModal({ subjects, onComplete, onClose }) {
   const [qualification, setQualification] = useState('');
   const [subject, setSubject] = useState('');
   const [examBoard, setExamBoard] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   const subjectNames = subjects.map(s => s.name);
   const availableExamBoards = qualification ? (examBoards[qualification] || []) : [];
+  const qualificationName = typeof qualification === 'string' ? qualification : qualification?.name;
 
   const handleNext = () => {
     if (step < 3) {
@@ -46,31 +45,21 @@ export default function KnowledgeSetupModal({ subjects, onComplete, onClose }) {
     }
   };
 
-  const handleComplete = async () => {
-    if (qualification && subject && examBoard) {
-      setLoading(true);
-      setError(null);
-      try {
-        // Fetch topics from AI API with web search
-        const topics = await fetchTopicsFromHuggingFace(qualification, subject, examBoard);
-
-        onComplete({
-          qualification,
-          subject,
-          examBoard,
-          topics,
-          setupDate: new Date().toISOString()
-        });
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching topics:', err);
-        setError(err.message || 'Failed to fetch topics. Please check your API configuration and try again.');
-        setLoading(false);
-      }
+  const handleComplete = () => {
+    const qualName = typeof qualification === 'string' ? qualification : qualification?.name;
+    if (qualName && subject && examBoard) {
+      const topics = getTopicsForSubject(qualName, examBoard, subject);
+      onComplete({
+        qualification: qualName,
+        subject,
+        examBoard,
+        topics,
+        setupDate: new Date().toISOString()
+      });
     }
   };
 
-  const isStep1Complete = qualification !== '';
+  const isStep1Complete = qualification !== '' && (typeof qualification === 'string' ? true : qualification.available);
   const isStep2Complete = subject !== '';
   const isStep3Complete = examBoard !== '';
   const isAllComplete = isStep1Complete && isStep2Complete && isStep3Complete;
@@ -153,21 +142,6 @@ export default function KnowledgeSetupModal({ subjects, onComplete, onClose }) {
           <p className="text-center text-purple-200 text-sm">Step {step} of 3</p>
         </div>
 
-        {/* Error Message */}
-        {error && (
-          <motion.div
-            className="mb-6 p-4 bg-red-900/40 border border-red-700/50 rounded-lg flex items-start gap-3"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-          >
-            <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-red-200 font-semibold text-sm">Error Fetching Topics</p>
-              <p className="text-red-300/80 text-xs mt-1">{error}</p>
-            </div>
-          </motion.div>
-        )}
 
         {/* Step Content */}
         <AnimatePresence mode="wait" custom={step}>
@@ -190,21 +164,33 @@ export default function KnowledgeSetupModal({ subjects, onComplete, onClose }) {
                 <p className="text-purple-200/80 mb-6">Select your qualification level</p>
                 
                 <div className="grid grid-cols-2 gap-3">
-                  {qualifications.map((qual) => (
-                    <motion.button
-                      key={qual}
-                      onClick={() => setQualification(qual)}
-                      className={`px-4 py-3 rounded-lg font-medium transition border ${
-                        qualification === qual
-                          ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white border-transparent shadow-lg shadow-purple-500/50'
-                          : 'bg-purple-800/30 text-purple-200 border-purple-700/50 hover:bg-purple-800/50'
-                      }`}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      {qual}
-                    </motion.button>
-                  ))}
+                  {qualifications.map((qual) => {
+                    const qualName = typeof qual === 'string' ? qual : qual.name;
+                    const isAvailable = typeof qual === 'string' ? true : qual.available;
+                    const isSelected = typeof qualification === 'string' ? qualification === qualName : qualification?.name === qualName;
+
+                    return (
+                      <motion.button
+                        key={qualName}
+                        onClick={() => isAvailable && setQualification(qualName)}
+                        disabled={!isAvailable}
+                        className={`px-4 py-3 rounded-lg font-medium transition border relative ${
+                          isSelected && isAvailable
+                            ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white border-transparent shadow-lg shadow-purple-500/50'
+                            : isAvailable
+                              ? 'bg-purple-800/30 text-purple-200 border-purple-700/50 hover:bg-purple-800/50 cursor-pointer'
+                              : 'bg-purple-900/20 text-purple-400/50 border-purple-800/30 cursor-not-allowed'
+                        }`}
+                        whileHover={isAvailable ? { scale: 1.05 } : {}}
+                        whileTap={isAvailable ? { scale: 0.95 } : {}}
+                      >
+                        {qualName}
+                        {!isAvailable && (
+                          <span className="text-xs ml-2 opacity-70">Coming Soon</span>
+                        )}
+                      </motion.button>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -244,7 +230,7 @@ export default function KnowledgeSetupModal({ subjects, onComplete, onClose }) {
             {step === 3 && (
               <div>
                 <h2 className="text-2xl font-bold text-white mb-2">Which exam board?</h2>
-                <p className="text-purple-200/80 mb-6">Select your exam board for {qualification}</p>
+                <p className="text-purple-200/80 mb-6">Select your exam board for {qualificationName}</p>
                 
                 {availableExamBoards.length > 0 ? (
                   <div className="grid grid-cols-2 gap-3">
@@ -324,28 +310,16 @@ export default function KnowledgeSetupModal({ subjects, onComplete, onClose }) {
             ) : (
               <motion.button
                 onClick={handleComplete}
-                disabled={!isAllComplete || loading}
+                disabled={!isAllComplete}
                 className={`flex items-center gap-2 px-8 py-3 rounded-lg font-semibold transition ${
-                  isAllComplete && !loading
+                  isAllComplete
                     ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:shadow-lg hover:shadow-green-500/50'
                     : 'bg-gradient-to-r from-green-800/30 to-emerald-800/30 text-green-400/50 cursor-not-allowed'
                 }`}
-                whileHover={isAllComplete && !loading ? { scale: 1.05 } : {}}
-                whileTap={isAllComplete && !loading ? { scale: 0.95 } : {}}
+                whileHover={isAllComplete ? { scale: 1.05 } : {}}
+                whileTap={isAllComplete ? { scale: 0.95 } : {}}
               >
-                {loading ? (
-                  <>
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity }}
-                    >
-                      <Zap className="w-4 h-4" />
-                    </motion.div>
-                    Fetching Topics...
-                  </>
-                ) : (
-                  'Complete Setup'
-                )}
+                Complete Setup
               </motion.button>
             )}
           </div>

@@ -164,9 +164,24 @@ export const TimerProvider = ({ children }) => {
   const handleTimerComplete = () => {
     if (mode === 'pomodoro') {
       if (isPomodoroBreak) {
-        setTimerState(prev => ({ ...prev, isPomodoroBreak: false, pomodoroCount: prev.pomodoroCount + 1, startTime: Date.now(), pausedTime: null }));
+        // Break is complete, restart work phase
+        setTimerState(prev => ({
+          ...prev,
+          isPomodoroBreak: false,
+          pomodoroCount: prev.pomodoroCount + 1,
+          startTime: Date.now(),
+          pausedTime: null,
+          secondsLeft: 25 * 60
+        }));
       } else {
-        setTimerState(prev => ({ ...prev, isPomodoroBreak: true, startTime: Date.now(), pausedTime: null }));
+        // Work phase is complete, start break
+        setTimerState(prev => ({
+          ...prev,
+          isPomodoroBreak: true,
+          startTime: Date.now(),
+          pausedTime: null,
+          secondsLeft: 5 * 60
+        }));
       }
     } else {
       stopTimer();

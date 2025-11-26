@@ -101,7 +101,7 @@ function App() {
                 </ProtectedRoute>
               } />
 
-              <Route path="/knowledge" element={
+              <Route path="/mastery" element={
                 <ProtectedRoute>
                   <div className="flex h-screen bg-[var(--app-bg)]">
                     <Sidebar />
