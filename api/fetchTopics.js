@@ -89,12 +89,12 @@ export default async function handler(req, res) {
         VITE_HUGGINGFACE_API_KEY: !!process.env.VITE_HUGGINGFACE_API_KEY
       }
     });
-    // Try multiple models - use basic models that should be available
-    // Note: HuggingFace free tier has limited models available
-    const PRIMARY_MODEL = process.env.HUGGINGFACE_MODEL_ID || 'gpt2';
+    // Use Llama 3 8B Instruct - much better for instruction following
+    const PRIMARY_MODEL = process.env.HUGGINGFACE_MODEL_ID || 'meta-llama/Meta-Llama-3-8B-Instruct';
     const FALLBACK_MODELS = [
-      'gpt2',  // OpenAI's GPT-2 - most basic, should work
-      'distilgpt2',  // Distilled version
+      'meta-llama/Meta-Llama-3-8B-Instruct',
+      'mistralai/Mistral-7B-Instruct-v0.2',
+      'google/flan-t5-xxl',
     ];
     const TAVILY_API_KEY = process.env.TAVILY_API_KEY;
 
@@ -350,23 +350,45 @@ Respond ONLY with the JSON object, no other text.`;
         console.log(`Trying model: ${MODEL_ID}`);
         const hfApiUrl = `https://api-inference.huggingface.co/models/${MODEL_ID}`;
         
+        // For Llama 3 Instruct and other chat models, use chat format
+        const isChatModel = MODEL_ID.includes('llama') || MODEL_ID.includes('instruct') || MODEL_ID.includes('chat');
+        
+        const requestBody = isChatModel ? {
+          inputs: [
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          parameters: {
+            max_new_tokens: 2000,
+            temperature: 0.7,
+            top_p: 0.9,
+            return_full_text: false,
+            do_sample: true,
+          },
+          options: {
+            wait_for_model: true,
+          },
+        } : {
+          inputs: prompt,
+          parameters: {
+            max_new_tokens: 1000,
+            temperature: 0.7,
+            return_full_text: false,
+          },
+          options: {
+            wait_for_model: true,
+          },
+        };
+        
         const hfResponse = await fetch(hfApiUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${HF_API_KEY}`,
           },
-          body: JSON.stringify({
-            inputs: prompt,
-            parameters: {
-              max_new_tokens: 1000,
-              temperature: 0.7,
-              return_full_text: false,
-            },
-            options: {
-              wait_for_model: true,
-            },
-          }),
+          body: JSON.stringify(requestBody),
         });
 
         if (!hfResponse.ok) {
@@ -447,13 +469,27 @@ Respond ONLY with the JSON object, no other text.`;
     }
 
     // Handle HuggingFace response format (array of objects with generated_text)
+    // For chat models, response might be in different format
     let content = '';
     if (Array.isArray(hfData) && hfData.length > 0) {
-      content = hfData[0]?.generated_text || hfData[0]?.summary || '';
+      // Check for chat response format first
+      if (hfData[0]?.generated_text) {
+        content = hfData[0].generated_text;
+      } else if (hfData[0]?.message?.content) {
+        content = hfData[0].message.content;
+      } else if (typeof hfData[0] === 'string') {
+        content = hfData[0];
+      } else {
+        content = hfData[0]?.summary || JSON.stringify(hfData[0]);
+      }
     } else if (hfData.generated_text) {
       content = hfData.generated_text;
+    } else if (hfData.message?.content) {
+      content = hfData.message.content;
     } else if (typeof hfData === 'string') {
       content = hfData;
+    } else if (hfData.choices && hfData.choices[0]?.message?.content) {
+      content = hfData.choices[0].message.content;
     }
 
     if (!content || content.trim().length === 0) {

@@ -25,16 +25,12 @@ export default async function handler(req, res) {
 
     // Use HuggingFace API with web search for accurate note generation
     const HF_API_KEY = process.env.HUGGINGFACE_API_KEY || process.env.VITE_HUGGINGFACE_API_KEY;
-    // Try multiple models - fallback list if one doesn't work
-    // Using models that are known to work with Inference API
-    // Start with simpler models first
-    const PRIMARY_MODEL = process.env.HUGGINGFACE_MODEL_ID || 'gpt2';
+    // Use Llama 3 8B Instruct - much better for instruction following and question generation
+    const PRIMARY_MODEL = process.env.HUGGINGFACE_MODEL_ID || 'meta-llama/Meta-Llama-3-8B-Instruct';
     const FALLBACK_MODELS = [
-      'gpt2',
-      'distilgpt2',
-      'google/flan-t5-base',
-      'google/flan-t5-small',
-      'facebook/opt-1.3b',
+      'meta-llama/Meta-Llama-3-8B-Instruct',
+      'mistralai/Mistral-7B-Instruct-v0.2',
+      'google/flan-t5-xxl',
     ];
     const TAVILY_API_KEY = process.env.TAVILY_API_KEY;
 
@@ -105,14 +101,20 @@ export default async function handler(req, res) {
     }
 
     // Step 2: Generate comprehensive notes using HuggingFace
-    const prompt = `You are an expert educational tutor. Create comprehensive study notes using ONLY the information from the web search results below.
+    // Determine if this is GCSE/grade 9 level (age 13-14)
+    const isGrade9Level = qualification === 'GCSE' || qualification?.toLowerCase().includes('gcse') || 
+                          qualification?.toLowerCase().includes('grade 9') || 
+                          qualification?.toLowerCase().includes('year 9');
+    
+    const prompt = `You are an expert educational tutor specializing in ${qualification} level ${subject}. Create comprehensive study notes and practice questions using ONLY the information from the web search results below.
 
 ${webSearchResults ? `WEB SEARCH RESULTS (USE THIS INFORMATION):\n${webSearchResults}\n\n` : 'WARNING: No web search results available. Use your knowledge but note that information may not be current.\n\n'}CRITICAL INSTRUCTIONS:
 1. Base your notes PRIMARILY on the web search results above
-2. Use accurate information from official sources
+2. Use accurate information from official sources and exam board specifications
 3. Include specific details, examples, and facts from the search results
 4. Make sure definitions and explanations match what's in the official specifications
 5. Create practice questions that test understanding of the actual content
+${isGrade9Level ? '6. IMPORTANT: All content must be appropriate for Grade 9/GCSE level (age 13-14). Use clear, straightforward language. Questions should test core concepts without being overly complex.' : ''}
 
 Create comprehensive study notes for:
 
@@ -120,6 +122,7 @@ Topic: ${topic}
 Qualification: ${qualification}
 Subject: ${subject}
 Exam Board: ${examBoard}
+${isGrade9Level ? 'Target Level: Grade 9 / GCSE (age 13-14)' : ''}
 
 Please provide the response as a valid JSON object with this EXACT structure (respond ONLY with valid JSON, no markdown, no extra text):
 {
@@ -156,9 +159,13 @@ Please provide the response as a valid JSON object with this EXACT structure (re
 Requirements:
 - Include at least 3-5 main points with detailed explanations
 - Include at least 5 key terms with clear definitions
-- Include at least 4 practice questions with multiple choice options
+- Include at least 6-8 practice questions with multiple choice options
+${isGrade9Level ? '- Questions MUST be appropriate for Grade 9/GCSE level: clear, straightforward, testing core concepts, using age-appropriate language (age 13-14)' : ''}
+${isGrade9Level ? '- Each question should test ONE key concept clearly - avoid overly complex or multi-part questions' : ''}
+${isGrade9Level ? '- Use simple, direct language in questions - avoid unnecessary jargon or complex phrasing' : ''}
 - Make the content accurate, clear, and suitable for exam preparation
 - Base content on official specifications and syllabus
+- Questions should test actual understanding of the topic content, not generic knowledge
 
 Respond ONLY with the JSON object, no other text.`;
 
@@ -173,23 +180,45 @@ Respond ONLY with the JSON object, no other text.`;
         console.log(`Trying model: ${MODEL_ID}`);
         const hfApiUrl = `https://api-inference.huggingface.co/models/${MODEL_ID}`;
         
+        // For Llama 3 Instruct and other chat models, use chat format
+        const isChatModel = MODEL_ID.includes('llama') || MODEL_ID.includes('instruct') || MODEL_ID.includes('chat');
+        
+        const requestBody = isChatModel ? {
+          inputs: [
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          parameters: {
+            max_new_tokens: 4000,
+            temperature: 0.7,
+            top_p: 0.9,
+            return_full_text: false,
+            do_sample: true,
+          },
+          options: {
+            wait_for_model: true,
+          },
+        } : {
+          inputs: prompt,
+          parameters: {
+            max_new_tokens: 3000,
+            temperature: 0.7,
+            return_full_text: false,
+          },
+          options: {
+            wait_for_model: true,
+          },
+        };
+        
         const hfResponse = await fetch(hfApiUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${HF_API_KEY}`,
           },
-          body: JSON.stringify({
-            inputs: prompt,
-            parameters: {
-              max_new_tokens: 3000,
-              temperature: 0.7,
-              return_full_text: false,
-            },
-            options: {
-              wait_for_model: true,
-            },
-          }),
+          body: JSON.stringify(requestBody),
         });
 
         if (!hfResponse.ok) {
@@ -291,13 +320,27 @@ Respond ONLY with the JSON object, no other text.`;
     }
     
     // Handle HuggingFace response format (array of objects with generated_text)
+    // For chat models, response might be in different format
     let content = '';
     if (Array.isArray(hfData) && hfData.length > 0) {
-      content = hfData[0]?.generated_text || hfData[0]?.summary || '';
+      // Check for chat response format first
+      if (hfData[0]?.generated_text) {
+        content = hfData[0].generated_text;
+      } else if (hfData[0]?.message?.content) {
+        content = hfData[0].message.content;
+      } else if (typeof hfData[0] === 'string') {
+        content = hfData[0];
+      } else {
+        content = hfData[0]?.summary || JSON.stringify(hfData[0]);
+      }
     } else if (hfData.generated_text) {
       content = hfData.generated_text;
+    } else if (hfData.message?.content) {
+      content = hfData.message.content;
     } else if (typeof hfData === 'string') {
       content = hfData;
+    } else if (hfData.choices && hfData.choices[0]?.message?.content) {
+      content = hfData.choices[0].message.content;
     }
 
     if (!content || content.trim().length === 0) {
