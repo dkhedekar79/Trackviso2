@@ -6,6 +6,7 @@ import { BookOpen, ChevronDown, Zap, CheckCircle, AlertCircle, Lightbulb, Brain,
 import KnowledgeSetupModal from '../components/KnowledgeSetupModal';
 import { generateNotesFromHuggingFace } from '../utils/huggingfaceApi';
 import { getTopicsForSubject } from '../data/masteryTopics';
+import PremiumSubscription from '../components/PremiumSubscription';
 
 
 
@@ -22,6 +23,14 @@ export default function Knowledge() {
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [quizLoading, setQuizLoading] = useState(false);
   const [quizError, setQuizError] = useState(null);
+  const [showKnowledgeSetupModal, setShowKnowledgeSetupModal] = useState(false);
+  const [isPremiumUser, setIsPremiumUser] = useState(false); // Placeholder for premium status
+
+  useEffect(() => {
+    if (selectedSubject && selectedTopics.length > 0) {
+      setActiveSection('notes');
+    }
+  }, [selectedSubject, selectedTopics]);
   const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
   const [quizSelectedAnswer, setQuizSelectedAnswer] = useState(null);
   const [quizAnswered, setQuizAnswered] = useState(false);
@@ -457,10 +466,15 @@ export default function Knowledge() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {/* Flashcard Mode */}
                     <motion.div
-                      className="bg-gradient-to-br from-cyan-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-8 border border-cyan-700/30 hover:border-cyan-600/50 transition-all cursor-pointer group"
+                      className="bg-gradient-to-br from-cyan-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-8 border border-cyan-700/30 hover:border-cyan-600/50 transition-all cursor-pointer group relative"
                       whileHover={{ y: -5, scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
+                      {!isPremiumUser && (
+                        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center rounded-2xl z-10">
+                          <p className="text-white text-xl font-bold">Premium Feature</p>
+                        </div>
+                      )}
                       <div className="flex items-start gap-4 mb-4">
                         <div className="p-3 bg-cyan-600/30 rounded-lg group-hover:bg-cyan-600/50 transition">
                           <Layers className="w-6 h-6 text-cyan-400" />
@@ -477,6 +491,7 @@ export default function Knowledge() {
                         className="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-cyan-500/50 transition-all"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
+                        disabled={!isPremiumUser}
                       >
                         Start Flashcards
                       </motion.button>
@@ -487,10 +502,15 @@ export default function Knowledge() {
 
                     {/* Quick Quiz Mode */}
                     <motion.div
-                      className="bg-gradient-to-br from-amber-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-8 border border-amber-700/30 hover:border-amber-600/50 transition-all cursor-pointer group"
+                      className="bg-gradient-to-br from-amber-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-8 border border-amber-700/30 hover:border-amber-600/50 transition-all cursor-pointer group relative"
                       whileHover={{ y: -5, scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
+                      {!isPremiumUser && (
+                        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center rounded-2xl z-10">
+                          <p className="text-white text-xl font-bold">Premium Feature</p>
+                        </div>
+                      )}
                       <div className="flex items-start gap-4 mb-4">
                         <div className="p-3 bg-amber-600/30 rounded-lg group-hover:bg-amber-600/50 transition">
                           <BarChart3 className="w-6 h-6 text-amber-400" />
@@ -505,9 +525,10 @@ export default function Knowledge() {
                       </p>
                       <motion.button
                         onClick={startQuickQuiz}
-                        className="w-full py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-amber-500/50 transition-all"
+                        className="w-full py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg hover:hover:shadow-amber-500/50 transition-all"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
+                        disabled={!isPremiumUser}
                       >
                         Start Quiz
                       </motion.button>
@@ -518,10 +539,15 @@ export default function Knowledge() {
 
                     {/* Mock Exam Mode */}
                     <motion.div
-                      className="bg-gradient-to-br from-pink-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-8 border border-pink-700/30 hover:border-pink-600/50 transition-all cursor-pointer group"
+                      className="bg-gradient-to-br from-pink-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-8 border border-pink-700/30 hover:border-pink-600/50 transition-all cursor-pointer group relative"
                       whileHover={{ y: -5, scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
+                      {!isPremiumUser && (
+                        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center rounded-2xl z-10">
+                        <p className="text-white text-xl font-bold">Premium Feature</p>
+                        </div>
+                      )}
                       <div className="flex items-start gap-4 mb-4">
                         <div className="p-3 bg-pink-600/30 rounded-lg group-hover:bg-pink-600/50 transition">
                           <ClipboardList className="w-6 h-6 text-pink-400" />
@@ -535,9 +561,10 @@ export default function Knowledge() {
                         Experience realistic exam conditions. Complete full-length practice papers with timed questions to build exam confidence.
                       </p>
                       <motion.button
-                        className="w-full py-3 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-pink-500/50 transition-all"
+                        className="w-full py-3 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-lg font-semibold hover:shadow-lg hover:hover:shadow-pink-500/50 transition-all"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
+                        disabled={!isPremiumUser}
                       >
                         Start Mock Exam
                       </motion.button>
