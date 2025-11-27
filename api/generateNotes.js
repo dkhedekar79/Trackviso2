@@ -106,17 +106,15 @@ export default async function handler(req, res) {
                           qualification?.toLowerCase().includes('grade 9') || 
                           qualification?.toLowerCase().includes('year 9');
     
-    const prompt = `You are an expert educational tutor specializing in ${qualification} level ${subject}. Create comprehensive study notes and practice questions using ONLY the information from the web search results below.
+    const prompt = `You are an expert educational tutor specializing in ${qualification} level ${subject}. Create multiple practice questions using ONLY the information from the web search results below.
 
 ${webSearchResults ? `WEB SEARCH RESULTS (USE THIS INFORMATION):\n${webSearchResults}\n\n` : 'WARNING: No web search results available. Use your knowledge but note that information may not be current.\n\n'}CRITICAL INSTRUCTIONS:
-1. Base your notes PRIMARILY on the web search results above
+1. Base your questions PRIMARILY on the web search results above
 2. Use accurate information from official sources and exam board specifications
-3. Include specific details, examples, and facts from the search results
-4. Make sure definitions and explanations match what's in the official specifications
-5. Create practice questions that test understanding of the actual content
-${isGrade9Level ? '6. IMPORTANT: All content must be appropriate for Grade 9/GCSE level (age 13-14). Use clear, straightforward language. Questions should test core concepts without being overly complex.' : ''}
+3. Create practice questions that test understanding of the actual content
+${isGrade9Level ? '4. IMPORTANT: All content must be appropriate for Grade 9/GCSE level (age 13-14). Use clear, straightforward language. Questions should test core concepts without being overly complex.' : ''}
 
-Create comprehensive study notes for:
+Create practice questions for:
 
 Topic: ${topic}
 Qualification: ${qualification}
@@ -126,26 +124,6 @@ ${isGrade9Level ? 'Target Level: Grade 9 / GCSE (age 13-14)' : ''}
 
 Please provide the response as a valid JSON object with this EXACT structure (respond ONLY with valid JSON, no markdown, no extra text):
 {
-  "title": "Topic title",
-  "summary": "Brief 2-3 sentence overview of the topic",
-  "mainPoints": [
-    {
-      "heading": "First key concept",
-      "content": "Detailed explanation of this concept",
-      "examples": ["Example 1", "Example 2"]
-    },
-    {
-      "heading": "Second key concept",
-      "content": "Detailed explanation",
-      "examples": ["Example 1", "Example 2"]
-    }
-  ],
-  "keyTerms": [
-    {
-      "term": "Important term",
-      "definition": "Clear definition"
-    }
-  ],
   "practiceQuestions": [
     {
       "question": "Question text",
@@ -157,8 +135,6 @@ Please provide the response as a valid JSON object with this EXACT structure (re
 }
 
 Requirements:
-- Include at least 3-5 main points with detailed explanations
-- Include at least 5 key terms with clear definitions
 - Include at least 6-8 practice questions with multiple choice options
 ${isGrade9Level ? '- Questions MUST be appropriate for Grade 9/GCSE level: clear, straightforward, testing core concepts, using age-appropriate language (age 13-14)' : ''}
 ${isGrade9Level ? '- Each question should test ONE key concept clearly - avoid overly complex or multi-part questions' : ''}
@@ -284,24 +260,6 @@ Respond ONLY with the JSON object, no other text.`;
       
       // Generate example notes structure
       const fallbackNotes = {
-        title: topic,
-        summary: `This topic covers important concepts in ${subject} at ${qualification} level. Study the key terms and practice questions below to master this topic.`,
-        mainPoints: [
-          {
-            heading: 'Key Concepts',
-            content: `This topic introduces fundamental concepts that are essential for understanding ${subject} at this level.`,
-            examples: ['Example 1', 'Example 2']
-          },
-          {
-            heading: 'Important Applications',
-            content: `These concepts are applied in various contexts within ${subject}. Understanding these applications will help you in exams.`,
-            examples: ['Application 1', 'Application 2']
-          }
-        ],
-        keyTerms: [
-          { term: 'Term 1', definition: 'Definition of term 1' },
-          { term: 'Term 2', definition: 'Definition of term 2' },
-        ],
         practiceQuestions: [
           {
             question: `What is a key concept in ${topic}?`,
@@ -313,9 +271,9 @@ Respond ONLY with the JSON object, no other text.`;
       };
       
       return res.status(200).json({ 
-        notes: fallbackNotes,
+        questions: fallbackNotes.practiceQuestions,
         fallback: true,
-        message: 'Note: Using example notes structure. HuggingFace API is currently unavailable. Please check your API key or try again later.'
+        message: 'Note: Using example questions structure. HuggingFace API is currently unavailable. Please check your API key or try again later.'
       });
     }
     
@@ -348,37 +306,35 @@ Respond ONLY with the JSON object, no other text.`;
     }
 
     // Parse the JSON response - HuggingFace may include the prompt, so extract JSON
-    let notes;
+    let questions;
     try {
       // Try to extract JSON object from the response (HuggingFace may include prompt)
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        notes = JSON.parse(jsonMatch[0]);
+        questions = JSON.parse(jsonMatch[0]);
       } else {
         // Try direct parse if no match found
-        notes = JSON.parse(content);
+        questions = JSON.parse(content);
       }
     } catch (parseError) {
       console.error('JSON parse error:', parseError);
       console.error('Content received:', content.substring(0, 500));
-      throw new Error('Could not parse notes from response. The model response may be invalid.');
+      throw new Error('Could not parse questions from response. The model response may be invalid.');
     }
 
     // Validate required fields
-    if (!notes.title || !notes.summary) {
-      throw new Error('Invalid notes structure received');
+    if (!questions.practiceQuestions) {
+      throw new Error('Invalid questions structure received');
     }
 
     // Ensure arrays exist
-    notes.mainPoints = notes.mainPoints || [];
-    notes.keyTerms = notes.keyTerms || [];
-    notes.practiceQuestions = notes.practiceQuestions || [];
+    questions.practiceQuestions = questions.practiceQuestions || [];
 
-    return res.status(200).json({ notes });
+    return res.status(200).json({ questions: questions.practiceQuestions });
   } catch (error) {
     console.error('Error generating notes:', error);
     return res.status(500).json({ 
-      error: error.message || 'Failed to generate notes',
+      error: error.message || 'Failed to generate questions',
       details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
