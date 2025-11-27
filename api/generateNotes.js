@@ -305,6 +305,7 @@ Respond ONLY with the JSON object, no other text.`;
       throw new Error('No response from HuggingFace API. The model may still be loading. Please try again in a moment.');
     }
 
+    console.log('Raw content from HuggingFace API:', content.substring(0, 1000)); // Log first 1000 chars
     // Parse the JSON response - HuggingFace may include the prompt, so extract JSON
     let questions;
     try {
