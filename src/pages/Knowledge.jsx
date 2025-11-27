@@ -92,10 +92,9 @@ export default function Knowledge() {
         userSetup.examBoard
       );
 
-      setNotes(generatedNotes);
-      setPracticeQuestions(generatedNotes.practiceQuestions || []);
+      setPracticeQuestions(generatedNotes);
     } catch (error) {
-      console.error('Error generating notes:', error);
+      console.error('Error generating questions:', error);
       setNotes({
         title: topic,
         summary: error.message || 'Unable to generate notes at the moment. Please try again.',
@@ -186,7 +185,7 @@ export default function Knowledge() {
             userSetup.examBoard
           );
 
-          const topicQuestions = (generatedNotes.practiceQuestions || []).filter(
+          const questions = (generatedNotes || []).filter(
             (q) => 
               q && 
               q.question && 
@@ -229,7 +228,7 @@ export default function Knowledge() {
             userSetup.examBoard
           );
 
-          const questions = (generatedNotes.practiceQuestions || []).filter(
+          const questions = (generatedNotes || []).filter(
             (q) => 
               q && 
               q.question && 

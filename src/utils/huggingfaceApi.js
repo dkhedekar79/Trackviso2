@@ -65,24 +65,16 @@ export async function generateNotesFromHuggingFace(topic, qualification, subject
 
     const result = await response.json();
     
-    if (!result || !result.notes) {
-      throw new Error('Invalid response from API: notes object not found');
+    if (!result || !result.practiceQuestions || !Array.isArray(result.practiceQuestions)) {
+      throw new Error('Invalid response from API: practiceQuestions array not found');
     }
 
-    // Validate notes structure
-    const notes = result.notes;
-    if (!notes.title || !notes.summary) {
-      throw new Error('Invalid notes structure received from API');
-    }
+    // The API now directly returns practiceQuestions
+    const practiceQuestions = result.practiceQuestions;
 
-    // Ensure arrays exist with defaults
-    notes.mainPoints = notes.mainPoints || [];
-    notes.keyTerms = notes.keyTerms || [];
-    notes.practiceQuestions = notes.practiceQuestions || [];
-
-    return notes;
+    return practiceQuestions;
   } catch (error) {
-    console.error('Error generating notes:', error);
+    console.error('Error generating questions:', error);
     // Re-throw with a more user-friendly message
     if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
       throw new Error('Unable to connect to the server. Please check your internet connection and try again.');
