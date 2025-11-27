@@ -197,7 +197,7 @@ export default function Knowledge() {
           );
 
           // Only add questions that are actually about the topic (not generic)
-          const validQuestions = topicQuestions.filter(q => {
+          const validQuestions = questions.filter(q => {
             const questionText = q.question.toLowerCase();
             const topicLower = topicName.toLowerCase();
             // Check if question mentions the topic or seems topic-specific

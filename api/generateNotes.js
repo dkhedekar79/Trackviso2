@@ -271,7 +271,7 @@ Respond ONLY with the JSON object, no other text.`;
       };
       
       return res.status(200).json({ 
-        questions: fallbackNotes.practiceQuestions,
+        practiceQuestions: fallbackNotes.practiceQuestions,
         fallback: true,
         message: 'Note: Using example questions structure. HuggingFace API is currently unavailable. Please check your API key or try again later.'
       });
@@ -330,9 +330,9 @@ Respond ONLY with the JSON object, no other text.`;
     // Ensure arrays exist
     questions.practiceQuestions = questions.practiceQuestions || [];
 
-    return res.status(200).json({ questions: questions.practiceQuestions });
+    return res.status(200).json({ practiceQuestions: questions.practiceQuestions });
   } catch (error) {
-    console.error('Error generating notes:', error);
+    console.error('Error generating questions:', error);
     return res.status(500).json({ 
       error: error.message || 'Failed to generate questions',
       details: process.env.NODE_ENV === 'development' ? error.stack : undefined
