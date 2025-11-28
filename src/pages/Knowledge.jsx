@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
-import { BookOpen, ChevronDown, Zap, CheckCircle, AlertCircle, Lightbulb, Brain, Settings, Layers, BarChart3, ClipboardList } from 'lucide-react';
+import { BookOpen, ChevronDown, Zap, CheckCircle, AlertCircle, Lightbulb, Brain, Settings, Layers, BarChart3, ClipboardList, Crown } from 'lucide-react';
 import KnowledgeSetupModal from '../components/KnowledgeSetupModal';
 import { generateNotesFromHuggingFace } from '../utils/huggingfaceApi';
 import { getTopicsForSubject } from '../data/masteryTopics';
@@ -20,6 +20,7 @@ export default function Knowledge() {
   const [practiceQuestions, setPracticeQuestions] = useState(null);
   const [loading, setLoading] = useState(false);
   const [subjects, setSubjects] = useState([]);
+  const [selectedSubject, setSelectedSubject] = useState(null);
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [quizLoading, setQuizLoading] = useState(false);
   const [quizError, setQuizError] = useState(null);
@@ -75,6 +76,7 @@ export default function Knowledge() {
     localStorage.setItem('knowledgeSetup', JSON.stringify(setup));
     setShowSetupModal(false);
     setSelectedTopics([]);
+    setSelectedSubject(setup.subject); // Set selectedSubject from setup
   };
 
   const handleTopicToggle = (topicId) => {
@@ -471,8 +473,12 @@ export default function Knowledge() {
                       whileTap={{ scale: 0.98 }}
                     >
                       {!isPremiumUser && (
-                        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center rounded-2xl z-10">
-                          <p className="text-white text-xl font-bold">Premium Feature</p>
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/80 to-indigo-900/80 backdrop-blur-sm flex flex-col items-center justify-center rounded-2xl z-10 p-4">
+                          <Crown className="w-10 h-10 text-yellow-400 mb-2 animate-pulse" />
+                          <p className="text-white text-2xl font-bold text-center bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent drop-shadow-lg">
+                            Premium Feature
+                          </p>
+                          <p className="text-purple-200 text-sm mt-2 text-center">Unlock with Premium Subscription below</p>
                         </div>
                       )}
                       <div className="flex items-start gap-4 mb-4">
@@ -507,8 +513,12 @@ export default function Knowledge() {
                       whileTap={{ scale: 0.98 }}
                     >
                       {!isPremiumUser && (
-                        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center rounded-2xl z-10">
-                          <p className="text-white text-xl font-bold">Premium Feature</p>
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/80 to-indigo-900/80 backdrop-blur-sm flex flex-col items-center justify-center rounded-2xl z-10 p-4">
+                          <Crown className="w-10 h-10 text-yellow-400 mb-2 animate-pulse" />
+                          <p className="text-white text-2xl font-bold text-center bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent drop-shadow-lg">
+                            Premium Feature
+                          </p>
+                          <p className="text-purple-200 text-sm mt-2 text-center">Unlock with Premium Subscription below</p>
                         </div>
                       )}
                       <div className="flex items-start gap-4 mb-4">
@@ -544,8 +554,12 @@ export default function Knowledge() {
                       whileTap={{ scale: 0.98 }}
                     >
                       {!isPremiumUser && (
-                        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center rounded-2xl z-10">
-                        <p className="text-white text-xl font-bold">Premium Feature</p>
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/80 to-indigo-900/80 backdrop-blur-sm flex flex-col items-center justify-center rounded-2xl z-10 p-4">
+                          <Crown className="w-10 h-10 text-yellow-400 mb-2 animate-pulse" />
+                          <p className="text-white text-2xl font-bold text-center bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent drop-shadow-lg">
+                            Premium Feature
+                          </p>
+                          <p className="text-purple-200 text-sm mt-2 text-center">Unlock with Premium Subscription below</p>
                         </div>
                       )}
                       <div className="flex items-start gap-4 mb-4">
@@ -576,6 +590,11 @@ export default function Knowledge() {
                 </motion.div>
               )}
 
+              {!isPremiumUser && (
+                <div className="mt-12">
+                  <PremiumSubscription />
+                </div>
+              )}
 
               {/* Practice Section */}
               {activeSection === 'practice' && (

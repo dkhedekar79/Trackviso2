@@ -22,6 +22,7 @@ import Signup from './pages/Signup';
 import OnboardingModal from "./components/OnboardingModal";
 import Footer from './components/Footer';
 import { ThemeProvider } from './context/ThemeContext';
+import { DashboardProvider } from './context/DashboardContext';
 import './styles/index.css';
 
 
@@ -43,6 +44,7 @@ function App() {
       <GamificationProvider>
         <TimerProvider>
           <ThemeProvider>
+            <DashboardProvider>
             <Router>
               <RouteCleanup />
             <Routes>
@@ -192,6 +194,7 @@ function App() {
               } />
             </Routes>
             </Router>
+            </DashboardProvider>
           </ThemeProvider>
         </TimerProvider>
       </GamificationProvider>
