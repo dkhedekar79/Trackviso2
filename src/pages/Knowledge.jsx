@@ -596,69 +596,7 @@ export default function Knowledge() {
                 </div>
               )}
 
-              {/* Practice Section */}
-              {activeSection === 'practice' && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  {loading ? (
-                    <motion.div
-                      className="bg-gradient-to-br from-blue-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-12 border border-blue-700/30 flex flex-col items-center justify-center"
-                      animate={{ scale: [0.95, 1.05, 0.95] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    >
-                      <Zap className="w-12 h-12 text-blue-400 mb-4" />
-                      <p className="text-white text-lg font-semibold">Generating practice questions...</p>
-                    </motion.div>
-                  ) : practiceQuestions && practiceQuestions.length > 0 ? (
-                    <motion.div
-                      className="space-y-6"
-                      variants={containerVariants}
-                      initial="hidden"
-                      animate="visible"
-                    >
-                      <motion.div
-                        className="bg-gradient-to-br from-blue-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-8 border border-blue-700/30"
-                        variants={itemVariants}
-                      >
-                        <h2 className="text-3xl font-bold text-white mb-2">Practice Questions</h2>
-                        <p className="text-blue-200/80">Test your knowledge with these practice questions for {selectedTopic}</p>
-                      </motion.div>
-
-                      {practiceQuestions.map((question, index) => (
-                        <PracticeQuestion
-                          key={index}
-                          question={question}
-                          questionNumber={index + 1}
-                          variants={itemVariants}
-                        />
-                      ))}
-                    </motion.div>
-                  ) : selectedTopic ? (
-                    <motion.div
-                      className="bg-gradient-to-br from-blue-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-12 border border-blue-700/30 text-center"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                    >
-                      <AlertCircle className="w-12 h-12 text-blue-400 mx-auto mb-4" />
-                      <p className="text-white text-lg font-semibold">No practice questions available</p>
-                      <p className="text-blue-200/80 text-sm mt-2">Please generate notes first to see practice questions</p>
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      className="bg-gradient-to-br from-blue-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-12 border border-blue-700/30 text-center"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                    >
-                      <Brain className="w-12 h-12 text-blue-400 mx-auto mb-4" />
-                      <p className="text-white text-lg font-semibold">No practice content yet</p>
-                      <p className="text-blue-200/80 text-sm mt-2">Select a topic and view notes to access practice questions</p>
-                    </motion.div>
-                  )}
-                </motion.div>
-              )}
+              
 
               {/* Quick Quiz Section */}
               {activeSection === 'quiz' && (
