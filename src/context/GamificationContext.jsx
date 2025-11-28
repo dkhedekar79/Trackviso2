@@ -1450,6 +1450,7 @@ export const GamificationProvider = ({ children }) => {
         ...prev,
         dailyQuests: updatedDailyQuests,
         weeklyQuests: updatedWeeklyQuests,
+        completedQuestsToday: updatedDailyQuests.filter((q) => q.completed).length,
       };
     });
   };

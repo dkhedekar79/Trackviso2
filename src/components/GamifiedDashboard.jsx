@@ -515,6 +515,8 @@ const OverviewTab = ({ userStats, xpProgress, achievements, setActiveTab }) => {
     };
   };
 
+  const { userStats, achievements } = useGamification();
+
   const weeklyStats = getWeeklyStats();
 
   const stats = [

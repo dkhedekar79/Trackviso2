@@ -12,7 +12,7 @@ import Study from './pages/Study';
 import Tasks from './pages/Tasks';
 import Schedule from './pages/Schedule';
 import Insights from './pages/Insights';
-import Knowledge from './pages/Knowledge';
+
 import Resources from './pages/Resources';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
@@ -103,20 +103,7 @@ function App() {
                 </ProtectedRoute>
               } />
 
-              <Route path="/mastery" element={
-                <ProtectedRoute>
-                  <div className="flex h-screen bg-[var(--app-bg)]">
-                    <Sidebar />
-                    <div className="flex-1 flex flex-col">
-                      <Navbar />
-                      <main className="flex-1 overflow-auto">
-                        <Knowledge />
-                        <Footer withSidebar />
-                      </main>
-                    </div>
-                  </div>
-                </ProtectedRoute>
-              } />
+              
 
               <Route path="/tasks" element={
                 <ProtectedRoute>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Target, Star, Clock, BookOpen, Flame, Trophy, Gift, 
@@ -252,7 +252,16 @@ const QuestProgressTracker = ({ quest, onComplete }) => {
   const progress = Math.min(quest.progress || 0, quest.target || 1);
   const percentage = (progress / (quest.target || 1)) * 100;
   const isCompleted = quest.completed || false;
-  
+
+  // Trigger completion animation when quest transitions to completed
+  const prevCompletedRef = useRef(isCompleted);
+  useEffect(() => {
+    if (!prevCompletedRef.current && isCompleted) {
+      onComplete && onComplete(quest.id);
+    }
+    prevCompletedRef.current = isCompleted;
+  }, [isCompleted, onComplete, quest?.id]);
+
   const difficultyColors = {
     easy: 'from-green-400 to-green-600',
     medium: 'from-blue-400 to-blue-600',
@@ -444,7 +453,8 @@ const QuestSystem = () => {
     userStats, 
     updateQuestProgress, 
     addReward,
-    generateDailyQuests 
+    generateDailyQuests,
+    generateWeeklyQuests 
   } = useGamification();
   
   const [activeCategory, setActiveCategory] = useState('daily');
@@ -478,19 +488,11 @@ const QuestSystem = () => {
   
   // Generate new quests for a category
   const generateNewQuests = (category) => {
-    const categoryInfo = QUEST_CATEGORIES[category];
-    const templates = Object.values(QUEST_TEMPLATES).filter(t => t.category === category);
-    
-    // Select random templates
-    const selectedTemplates = templates
-      .sort(() => Math.random() - 0.5)
-      .slice(0, categoryInfo.maxQuests);
-    
-    const newQuests = selectedTemplates.map(template => generateQuest(template, category));
-    
-    // Update user stats
-    // This would normally be handled by the context
-    console.log(`Generated ${newQuests.length} new ${category} quests:`, newQuests);
+    if (category === 'daily') {
+      generateDailyQuests();
+    } else if (category === 'weekly') {
+      generateWeeklyQuests();
+    }
   };
   
   // Get quests for active category

@@ -24,8 +24,13 @@ import {
   Lightbulb,
   TrendingUp,
   Shield,
-  Sparkles
+  Sparkles,
+  Flame,
+  Gem
 } from "lucide-react";
+import ImageCarousel from '../components/ImageCarousel';
+import { ChevronDown } from "lucide-react";
+import Skillpulse from '../components/Skillpulse';
 
 const Landing = () => {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
@@ -198,23 +203,15 @@ const Landing = () => {
           </motion.p>
 
           <motion.div
-            className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto"
+            className="flex justify-center items-center"
             variants={itemVariants}
           >
             <Link
               to="/signup"
-              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105 flex items-center justify-center group"
+              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:shadow-xl hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
             >
-              It's 100% Free
-              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              Get Started Free <ArrowRight className="w-5 h-5" />
             </Link>
-            <button
-              onClick={() => scrollToSection('demo')}
-              className="border-2 border-purple-500/50 text-purple-300 px-8 py-4 rounded-xl font-semibold text-lg hover:border-purple-400 hover:bg-purple-500/10 transition-all duration-300 flex items-center justify-center backdrop-blur-sm"
-            >
-              <Play className="mr-2 w-5 h-5" />
-              Watch Demo
-            </button>
           </motion.div>
 
           {/* Hero Visual */}
@@ -480,105 +477,61 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Introducing Skillpulse Section */}
+      <section id="introducing-skillpulse" className="py-32 px-4 bg-gradient-to-b from-slate-900 via-slate-900 to-purple-900/50 relative overflow-hidden">
+      <div className="absolute -top-40 left-0 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="max-w-7xl mx-auto relative z-10">
+      <motion.div
+      className="text-center mb-16"
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7 }}
+      viewport={{ once: true }}
+      >
+      <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-white">
+      Introducing
+      <span className="ml-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Skillpulse</span>
+      </h2>
+      <p className="text-xl text-purple-200/80 max-w-3xl mx-auto">
+      A gamified progression system that turns consistent studying into rewards.
+      </p>
+      </motion.div>
+      
+      
+      <div className="max-w-6xl mx-auto">
+      <Skillpulse />
+      </div>
+     
+      </div>
+      </section>
+
       {/* Demo Section */}
       <section id="demo" className="py-32 px-4 bg-gradient-to-b from-slate-900 via-slate-900 to-purple-900/50 relative overflow-hidden">
         <div className="absolute -top-40 right-0 w-96 h-96 bg-pink-600/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="max-w-7xl mx-auto relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -50, perspective: "1000px", rotateY: 20 }}
-              whileInView={{ opacity: 1, x: 0, rotateY: 0 }}
-              transition={{ duration: 0.7 }}
-              viewport={{ once: true }}
-            >
-              <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-white">
-                See Trackviso in{" "}
-                <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                  Action
-                </span>
-              </h2>
-              <p className="text-xl text-purple-200/80 mb-8">
-                Watch how students are transforming their academic journey with intelligent tracking and insights.
-              </p>
-              <div className="space-y-4">
-                <motion.div
-                  className="flex items-center space-x-3"
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 }}
-                  viewport={{ once: true }}
-                >
-                  <CheckCircle className="w-6 h-6 text-purple-400 flex-shrink-0" />
-                  <span className="text-lg text-white">Real-time progress tracking</span>
-                </motion.div>
-                <motion.div
-                  className="flex items-center space-x-3"
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 }}
-                  viewport={{ once: true }}
-                >
-                  <CheckCircle className="w-6 h-6 text-pink-400 flex-shrink-0" />
-                  <span className="text-lg text-white">Personalized study insights</span>
-                </motion.div>
-                <motion.div
-                  className="flex items-center space-x-3"
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 }}
-                  viewport={{ once: true }}
-                >
-                  <CheckCircle className="w-6 h-6 text-purple-400 flex-shrink-0" />
-                  <span className="text-lg text-white">Goal achievement system</span>
-                </motion.div>
-              </div>
-            </motion.div>
+          <motion.div
+            className="text-center mb-20"
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-white">
+              See Trackviso in{" "}
+              <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                Action
+              </span>
+            </h2>
+            <p className="text-xl text-purple-200/80 max-w-3xl mx-auto">
+              See how Trackviso helps students achieve their academic goals.
+            </p>
+          </motion.div>
 
-            <motion.div
-              className="relative"
-              initial={{ opacity: 0, scale: 0.9, perspective: "1000px", rotateY: -20 }}
-              whileInView={{ opacity: 1, scale: 1, rotateY: 0 }}
-              transition={{ duration: 0.7 }}
-              viewport={{ once: true }}
-            >
-              <div
-                className="relative bg-gradient-to-br from-purple-600/60 to-pink-600/60 border border-purple-500/30 rounded-3xl overflow-hidden group cursor-pointer aspect-video flex items-center justify-center backdrop-blur-sm hover:border-purple-500/60 transition-all"
-                onClick={() => setIsVideoPlaying(!isVideoPlaying)}
-              >
-                {!isVideoPlaying ? (
-                  <div className="text-center">
-                    <motion.div
-                      className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-white/20 transition-all"
-                      whileHover={{ scale: 1.2 }}
-                    >
-                      <Play className="w-10 h-10 text-white ml-1" />
-                    </motion.div>
-                    <p className="text-white text-xl font-semibold">Watch 2-minute demo</p>
-                  </div>
-                ) : (
-                  <div className="text-white text-center">
-                      <video
-      src="https://res.cloudinary.com/do6sjcdau/video/upload/v1763497430/1118_i9nwr8.mov"              // ← place your MP4 file in /public
-      className="w-full h-full object-cover rounded-3xl"
-      controls
-      autoPlay
-    ></video>
-                    <button
-                      className="mt-4 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-all backdrop-blur-sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsVideoPlaying(false);
-                      }}
-                    >
-                      Close
-                    </button>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </div>
+          <ImageCarousel />
         </div>
       </section>
+
+      
 
       {/* Pricing Section */}
       <section id="pricing" className="py-32 px-4 bg-gradient-to-b from-slate-900 via-slate-900 to-purple-900/50 relative overflow-hidden">
@@ -732,6 +685,69 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* FAQ Section */}
+      <section id="faq" className="py-32 px-4 bg-gradient-to-b from-purple-900/50 via-slate-900 to-slate-900 relative overflow-hidden">
+        <div className="absolute top-0 left-1/3 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-pink-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div className="max-w-7xl mx-auto relative z-10">
+          <motion.div
+            className="text-center mb-20"
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-white">
+              Frequently Asked{" "}
+              <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                Questions
+              </span>
+            </h2>
+            <p className="text-xl text-purple-200/80 max-w-3xl mx-auto">
+              Still have doubts?
+            </p>
+          </motion.div>
+
+          <div className="max-w-3xl mx-auto space-y-6">
+              {faqs.map((item, index) => (
+                <motion.div
+                  key={index}
+                  className="bg-purple-900/30 border border-purple-700/30 p-6 rounded-2xl hover:border-purple-600/50 transition-all duration-300 backdrop-blur-sm"
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.05 }}
+                  viewport={{ once: true }}
+                >
+                  <button
+                    className="w-full flex items-start justify-between text-left"
+                    onClick={(e) => {
+                      const answer = e.currentTarget.nextElementSibling;
+                      if (!answer) return;
+                      // simple collapsible toggle
+                      if (answer.style.maxHeight && answer.style.maxHeight !== "0px") {
+                        answer.style.maxHeight = "0px";
+                        answer.style.opacity = "0";
+                      } else {
+                        answer.style.maxHeight = answer.scrollHeight + "px";
+                        answer.style.opacity = "1";
+                      }
+                    }}
+                  >
+                    <div>
+                      <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">{item.q}</h3>
+                    </div>
+                    <ChevronDown className="w-5 h-5 text-purple-300 mt-1 flex-shrink-0" />
+                  </button>
+                  <div className="mt-2 text-purple-200/80 leading-relaxed overflow-hidden transition-all duration-300" style={{ maxHeight: "0px", opacity: 0 }}>
+                    {item.a}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+        </div>
+      </section>
+
       {/* Final CTA */}
       <section className="py-32 px-4 bg-gradient-to-r from-purple-900 via-slate-900 to-purple-900 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
@@ -787,3 +803,26 @@ const Landing = () => {
 };
 
 export default Landing;
+
+const faqs = [
+  {
+    q: "What actually is trackviso?",
+    a: "Trackviso is a gamified academic tracker that helps you stay organized by letting you log study sessions and gain insights to improve performance."
+  },
+  {
+    q: "Is Trackviso free?",
+    a: "Yes. Trackviso is 100% free to use. You can start for free and keep using all the core features without paywalls."
+  },
+  {
+    q: "How does gamification help me study?",
+    a: "You earn XP and complete quests as well as unlocking achievements by logging tasks and studying consistently. This creates positive reinforcement and keeps you motivated."
+  },
+  {
+    q: "How does the Skillpulse system work?",
+    a: "A very complex and engineered system where the more you study, the longer your streak, and a mix of a few random rewards can get you to level 100 in either flying time, or it will take more work. Unlock mystery boxes, streak multipliers, and random bonuses after sessions. "
+  },
+  {
+    q: "How do I get started?",
+    a: "Create a free account, add your subjects, and start logging study sessions."
+  }
+];
