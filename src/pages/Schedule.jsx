@@ -18,7 +18,12 @@ export default function Schedule() {
   const [availableSubjects, setAvailableSubjects] = useState([]);
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
-  const [recurrence, setRecurrence] = useState('None'); // New state for recurrence
+  const [recurrence, setRecurrence] = useState('None');
+  const [blockName, setBlockName] = useState('');
+  const [blockDescription, setBlockDescription] = useState('');
+  const [blockSubject, setBlockSubject] = useState('');
+  const [blockEventName, setBlockEventName] = useState('');
+  const [editingBlock, setEditingBlock] = useState(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("tasks");
@@ -72,11 +77,20 @@ export default function Schedule() {
   const handleHourClick = (day, category) => {
     setSelectedTimeSlot({ day, category });
     setIsModalOpen(true);
+    setEditingBlock(null); // Ensure we are adding, not editing
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedTimeSlot(null);
+    setStartTime('');
+    setEndTime('');
+    setRecurrence('None');
+    setBlockName('');
+    setBlockDescription('');
+    setBlockSubject('');
+    setBlockEventName('');
+    setEditingBlock(null);
   };
 
   const handleAddBlock = () => {
@@ -96,9 +110,14 @@ export default function Schedule() {
         day: selectedTimeSlot.day.toISOString().split('T')[0], // Store date as YYYY-MM-DD
         category: category,
         type: selectedBlockType,
-        name: `${selectedBlockType} Block`, // Default name, can be expanded later
-        color: selectedBlockType === 'Study' ? 'green' : selectedBlockType === 'Break' ? 'grey' : 'red', // Updated colors
-        recurrence: recurrence, // Add recurrence to the block
+        name: blockName || `${selectedBlockType} Block`, // Use blockName, fallback to default
+        description: blockDescription,
+        subject: selectedBlockType === 'Study' ? blockSubject : undefined,
+        eventName: selectedBlockType === 'Event' ? blockEventName : undefined,
+        color: selectedBlockType === 'Study' ? 'green' : selectedBlockType === 'Break' ? 'grey' : 'red',
+        recurrence: recurrence,
+        startTime: startTime,
+        endTime: endTime,
       };
 
       let blocksToAdd = [];
@@ -111,7 +130,7 @@ export default function Schedule() {
           newDay.setDate(selectedTimeSlot.day.getDate() + i);
           blocksToAdd.push({
             ...baseBlock,
-            id: Date.now() + i, // Unique ID for each recurring block
+            id: Date.now() + i,
             day: newDay.toISOString().split('T')[0],
           });
         }
@@ -121,7 +140,7 @@ export default function Schedule() {
           newDay.setDate(selectedTimeSlot.day.getDate() + (i * 7));
           blocksToAdd.push({
             ...baseBlock,
-            id: Date.now() + i, // Unique ID for each recurring block
+            id: Date.now() + i,
             day: newDay.toISOString().split('T')[0],
           });
         }
@@ -132,8 +151,44 @@ export default function Schedule() {
     }
     setStartTime('');
     setEndTime('');
-    setRecurrence('None'); // Reset recurrence after adding block
+    setRecurrence('None');
     handleCloseModal();
+  };
+
+  const handleEditBlock = (block) => {
+    setEditingBlock(block);
+    setSelectedBlockType(block.type);
+    setBlockName(block.name);
+    setBlockDescription(block.description || '');
+    setBlockSubject(block.subject || '');
+    setBlockEventName(block.eventName || '');
+    setStartTime(block.startTime);
+    setEndTime(block.endTime);
+    setRecurrence(block.recurrence || 'None');
+    setIsModalOpen(true);
+  };
+
+  const handleUpdateBlock = () => {
+    if (editingBlock) {
+      setScheduledBlocks((prevBlocks) =>
+        prevBlocks.map((block) =>
+          block.id === editingBlock.id
+            ? {
+                ...block,
+                name: blockName || `${selectedBlockType} Block`,
+                description: blockDescription,
+                subject: selectedBlockType === 'Study' ? blockSubject : undefined,
+                eventName: selectedBlockType === 'Event' ? blockEventName : undefined,
+                startTime: startTime,
+                endTime: endTime,
+                recurrence: recurrence,
+                type: selectedBlockType,
+              }
+            : block
+        )
+      );
+      handleCloseModal();
+    }
   };
 
   const containerVariants = {
@@ -217,12 +272,13 @@ export default function Schedule() {
                       {blocksForThisSlot.map((block) => (
                         <motion.div
                           key={block.id}
-                          className={`relative flex flex-col items-center justify-center h-full w-full rounded-lg cursor-pointer transition-colors p-1 text-sm mb-1
-                            ${block.type === 'Study' ? 'bg-green-600 border border-green-500' : block.type === 'Break' ? 'bg-gray-500 border border-gray-400' : 'bg-red-600 border border-red-500'}`}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
+                          className={`relative flex flex-col items-center justify-center h-full w-full rounded-lg cursor-pointer transition-colors p-2 text-sm mb-1 shadow-md
+                            ${block.type === 'Study' ? 'bg-green-700 border border-green-600' : block.type === 'Break' ? 'bg-gray-700 border border-gray-600' : 'bg-red-700 border border-red-600'}`}
+                          whileHover={{ scale: 1.03, boxShadow: "0px 5px 15px rgba(0,0,0,0.3)" }}
+                          whileTap={{ scale: 0.97 }}
+                          onClick={() => handleEditBlock(block)}
                         >
-                          <span className="text-white font-semibold text-base">{block.name}</span>
+                          <span className="text-white font-semibold text-lg">{block.name}</span>
                           <span className="text-white text-xs">{categoryName}</span>
                         </motion.div>
                       ))}
@@ -300,6 +356,19 @@ export default function Schedule() {
             </div>
 
             <div className="space-y-4">
+              {/* Block Name Input */}
+              <div className="mb-4">
+                <label htmlFor="blockName" className="block text-gray-300 text-sm font-bold mb-2">Block Name</label>
+                <input
+                  type="text"
+                  id="blockName"
+                  className="block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white leading-tight focus:outline-none focus:bg-gray-600"
+                  placeholder="Enter block name"
+                  value={blockName}
+                  onChange={(e) => setBlockName(e.target.value)}
+                />
+              </div>
+
               {/* Subject Selection (only for Study) */}
               {selectedBlockType === 'Study' && (
                 <div className="mb-4">
@@ -307,6 +376,8 @@ export default function Schedule() {
                   <select
                     id="subject"
                     className="block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white leading-tight focus:outline-none focus:bg-gray-600"
+                    value={blockSubject}
+                    onChange={(e) => setBlockSubject(e.target.value)}
                   >
                     {availableSubjects.map((subject) => (
                       <option key={subject.id} value={subject.name}>
@@ -326,6 +397,8 @@ export default function Schedule() {
                     id="eventName"
                     className="block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white leading-tight focus:outline-none focus:bg-gray-600"
                     placeholder="Enter event name"
+                    value={blockEventName}
+                    onChange={(e) => setBlockEventName(e.target.value)}
                   />
                 </div>
               )}
@@ -338,6 +411,8 @@ export default function Schedule() {
                   rows="3"
                   className="block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white leading-tight focus:outline-none focus:bg-gray-600"
                   placeholder="Add a description for your block..."
+                  value={blockDescription}
+                  onChange={(e) => setBlockDescription(e.target.value)}
                 ></textarea>
               </div>
 
@@ -392,11 +467,11 @@ export default function Schedule() {
               </motion.button>
               <motion.button
                 className="py-2 px-4 bg-purple-600 hover:bg-purple-700 rounded-md text-lg font-semibold transition-colors"
-                onClick={() => handleAddBlock(selectedBlockType)}
+                onClick={editingBlock ? handleUpdateBlock : handleAddBlock}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                Save Block
+                {editingBlock ? 'Update Block' : 'Save Block'}
               </motion.button>
             </div>
           </motion.div>

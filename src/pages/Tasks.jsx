@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import { Pencil, Trash2 } from "lucide-react";
 import { useGamification } from "../context/GamificationContext";
+import { motion } from "framer-motion";
 
 const priorities = [
   { label: "Low", color: "border-blue-500" },
@@ -161,24 +162,45 @@ export default function Tasks() {
     setTasks(tasks.filter(t => t.id !== id));
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1 },
+  };
+
   return (
-    <div className="min-h-screen mt-20 flex" style={{ backgroundImage: "linear-gradient(135deg, var(--study-from), var(--study-via), var(--study-to))" }}>
+    <div className="min-h-screen mt-20 flex bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
       <Sidebar />
       <div className="flex-1 ml-16 transition-all duration-300 ease-in-out [body>div>aside:hover_+_div&]:ml-64">
-        <div className="p-8">
-          <div className="p-6 space-y-6">
+        <motion.div
+          className="p-8"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.div className="p-6 space-y-6" variants={itemVariants}>
             <div className="flex items-center justify-between mb-4">
-              <h1 className="text-2xl font-bold text-white">Your Tasks</h1>
+              <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent mb-4">Your Tasks</h1>
               <div className="flex gap-2">
-                <button
+                <motion.button
                   className="rounded-2xl bg-[#6C5DD3] text-white px-4 py-2 font-semibold shadow hover:bg-[#7A6AD9] transition"
                   onClick={() => setShowModal(true)}
+                  variants={itemVariants}
                 >
                   + Add Task
-                </button>
+                </motion.button>
               </div>
             </div>
-            <div className="flex items-center gap-4 mb-4">
+            <motion.div className="flex items-center gap-4 mb-4" variants={itemVariants}>
               <label className="text-white font-semibold">Sort by:</label>
               <select
                 className="rounded bg-[#23234a] text-white px-3 py-1 border border-[#6C5DD3]"
@@ -189,8 +211,8 @@ export default function Tasks() {
                 <option value="difficulty">Hardest</option>
                 <option value="schedule">Earliest Due</option>
               </select>
-            </div>
-            <div className="flex flex-wrap gap-4 mb-4">
+            </motion.div>
+            <motion.div className="flex flex-wrap gap-4 mb-4" variants={itemVariants}>
               <div className="bg-[#23234a] rounded-xl px-4 py-2 text-white text-sm font-semibold shadow">
                 To Do: <span className="text-[#FEC260] font-bold">{toDoCount}</span>
               </div>
@@ -200,12 +222,17 @@ export default function Tasks() {
               <div className="bg-[#23234a] rounded-xl px-4 py-2 text-white text-sm font-semibold shadow">
                 Scheduled Today: <span className="text-[#6C5DD3] font-bold">{scheduledTodayCount}</span>
               </div>
-            </div>
+            </motion.div>
 
             {/* Modal */}
             {showModal && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-                <div className="bg-[#23234a] p-6 rounded-2xl shadow-xl w-full max-w-md space-y-4">
+                <motion.div
+                  className="bg-[#23234a] p-6 rounded-2xl shadow-xl w-full max-w-md space-y-4"
+                  initial={{ y: -50, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -50, opacity: 0 }}
+                >
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-lg font-bold text-white">Add Task</span>
                     <button className="text-white text-xl" onClick={() => { setShowModal(false); setFormError(""); }}>&times;</button>
@@ -262,12 +289,12 @@ export default function Tasks() {
                   >
                     Save Task
                   </button>
-                </div>
+                </motion.div>
               </div>
             )}
 
             {/* Tabs */}
-            <div className="mb-4">
+            <motion.div className="mb-4" variants={itemVariants}>
               <div className="grid grid-cols-2 w-1/2 mx-auto bg-[#23234a] rounded-xl overflow-hidden">
                 <button
                   className={`py-2 font-semibold transition ${tab === "todo" ? "bg-[#6C5DD3] text-white" : "text-white/70"}`}
@@ -282,13 +309,13 @@ export default function Tasks() {
                   Done
                 </button>
               </div>
-            </div>
+            </motion.div>
 
             {/* Tasks List */}
             {tab === "todo" && (
-              <div className="space-y-4">
+              <motion.div className="space-y-4" variants={containerVariants}>
                 {getSortedTasks(tasks.filter((t) => !t.done)).map((task) => (
-                  <div key={task.id} className={`flex items-center justify-between p-4 rounded-xl bg-[#23234a] border-l-8 ${priorityColor(task.priority)} transition-transform duration-200 hover:scale-105 ${popTaskId === task.id ? 'animate-pop' : ''}`}>
+                  <motion.div key={task.id} className={`flex items-center justify-between p-4 rounded-xl bg-[#23234a] border-l-8 ${priorityColor(task.priority)} transition-transform duration-200 hover:scale-105 ${popTaskId === task.id ? 'animate-pop' : ''}`} variants={itemVariants}>
                     <div className="flex-1">
                       <h2 className="font-semibold text-lg text-white">{task.name}</h2>
                       <p className="text-sm text-gray-400">{task.subject}{task.time ? ` | ${task.time} min` : ""}</p>
@@ -319,17 +346,17 @@ export default function Tasks() {
                       onChange={() => toggleDone(task.id)}
                       className="w-5 h-5 accent-[#6C5DD3]"
                     />
-                  </div>
+                  </motion.div>
                 ))}
                 {tasks.filter((t) => !t.done).length === 0 && (
-                  <div className="text-center text-gray-400">No tasks to do!</div>
+                  <motion.div className="text-center text-gray-400" variants={itemVariants}>No tasks to do!</motion.div>
                 )}
-              </div>
+              </motion.div>
             )}
             {tab === "done" && (
-              <div className="space-y-4">
+              <motion.div className="space-y-4" variants={containerVariants}>
                 {getSortedTasks(tasks.filter((t) => t.done)).map((task) => (
-                  <div key={task.id} className={`flex items-center justify-between p-4 rounded-xl bg-[#23234a] border-l-8 ${priorityColor(task.priority)} opacity-60 transition-transform duration-200 hover:scale-105`}>
+                  <motion.div key={task.id} className={`flex items-center justify-between p-4 rounded-xl bg-[#23234a] border-l-8 ${priorityColor(task.priority)} opacity-60 transition-transform duration-200 hover:scale-105`} variants={itemVariants}>
                     <div className="flex-1">
                       <h2 className="line-through font-medium text-white">{task.name}</h2>
                       <p className="text-sm text-gray-400">{task.subject}{task.time ? ` | ${task.time} min` : ""}</p>
@@ -360,15 +387,15 @@ export default function Tasks() {
                       onChange={() => toggleDone(task.id)}
                       className="w-5 h-5 accent-[#6C5DD3]"
                     />
-                  </div>
+                  </motion.div>
                 ))}
                 {tasks.filter((t) => t.done).length === 0 && (
-                  <div className="text-center text-gray-400">No completed tasks yet!</div>
+                  <motion.div className="text-center text-gray-400" variants={itemVariants}>No completed tasks yet!</motion.div>
                 )}
-              </div>
+              </motion.div>
             )}
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
     </div>
   );
