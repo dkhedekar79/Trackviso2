@@ -1,159 +1,407 @@
 import React, { useEffect, useState } from "react";
-import Sidebar from "../components/Sidebar";
+import { motion } from "framer-motion";
+import { FaChevronLeft, FaChevronRight, FaSun, FaCloudSun, FaMoon } from 'react-icons/fa';
 
 export default function Schedule() {
   const [tasks, setTasks] = useState([]);
+  const [currentWeekStart, setCurrentWeekStart] = useState(() => {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // Adjust for Monday start
+    return new Date(today.setDate(diff));
+  });
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
+  const [scheduledBlocks, setScheduledBlocks] = useState([]); // New state for scheduled blocks
+  const [selectedBlockType, setSelectedBlockType] = useState('Study'); // New state for selected block type in modal
+  const [availableSubjects, setAvailableSubjects] = useState([]);
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [recurrence, setRecurrence] = useState('None'); // New state for recurrence
 
   useEffect(() => {
     const saved = localStorage.getItem("tasks");
     if (saved) setTasks(JSON.parse(saved));
+
+    const savedSubjects = localStorage.getItem("subjects");
+    if (savedSubjects) {
+      setAvailableSubjects(JSON.parse(savedSubjects));
+    }
   }, []);
 
-  const today = new Date();
-  const todayStr = today.toISOString().slice(0, 10);
-  const todaysTasks = tasks.filter((t) => t.scheduledDate === todayStr);
+  const handlePrevWeek = () => {
+    setCurrentWeekStart((prev) => {
+      const newDate = new Date(prev);
+      newDate.setDate(prev.getDate() - 7);
+      return newDate;
+    });
+  };
 
-  // Calendar state
-  const [calendarMonth, setCalendarMonth] = useState(today.getMonth());
-  const [calendarYear, setCalendarYear] = useState(today.getFullYear());
-  const firstDay = new Date(calendarYear, calendarMonth, 1);
-  const lastDay = new Date(calendarYear, calendarMonth + 1, 0);
-  const daysInMonth = lastDay.getDate();
-  const startDay = firstDay.getDay();
-  const calendarDays = [];
-  for (let i = 0; i < startDay; i++) calendarDays.push(null);
-  for (let d = 1; d <= daysInMonth; d++) calendarDays.push(d);
-  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  const yearRange = Array.from({length: 11}, (_, i) => today.getFullYear() - 5 + i);
+  const handleNextWeek = () => {
+    setCurrentWeekStart((prev) => {
+      const newDate = new Date(prev);
+      newDate.setDate(prev.getDate() + 7);
+      return newDate;
+    });
+  };
 
-  // Handle month navigation
-  const handlePrevMonth = () => {
-    if (calendarMonth === 0) {
-      setCalendarMonth(11);
-      setCalendarYear(calendarYear - 1);
-    } else {
-      setCalendarMonth(calendarMonth - 1);
+  const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const hoursOfDay = Array.from({ length: 24 }, (_, i) => i); // 0-23 for hours
+
+  const getDayName = (date) => {
+    return date.toLocaleDateString('en-US', { weekday: 'short' });
+  };
+
+  const getMonthDay = (date) => {
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
+  const getWeekDays = (startOfWeek) => {
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(startOfWeek);
+      date.setDate(startOfWeek.getDate() + i);
+      days.push(date);
     }
+    return days;
   };
-  const handleNextMonth = () => {
-    if (calendarMonth === 11) {
-      setCalendarMonth(0);
-      setCalendarYear(calendarYear + 1);
-    } else {
-      setCalendarMonth(calendarMonth + 1);
+
+  const weekDays = getWeekDays(currentWeekStart);
+
+  const handleHourClick = (day, category) => {
+    setSelectedTimeSlot({ day, category });
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedTimeSlot(null);
+  };
+
+  const handleAddBlock = () => {
+    if (selectedTimeSlot && startTime && endTime) {
+      const [hours, minutes] = startTime.split(':').map(Number);
+      let category = '';
+      if (hours >= 0 && hours < 12) {
+        category = 'Morning';
+      } else if (hours >= 12 && hours < 17) {
+        category = 'Afternoon';
+      } else {
+        category = 'Evening';
+      }
+
+      const baseBlock = {
+        id: Date.now(), // Unique ID for the block
+        day: selectedTimeSlot.day.toISOString().split('T')[0], // Store date as YYYY-MM-DD
+        category: category,
+        type: selectedBlockType,
+        name: `${selectedBlockType} Block`, // Default name, can be expanded later
+        color: selectedBlockType === 'Study' ? 'green' : selectedBlockType === 'Break' ? 'grey' : 'red', // Updated colors
+        recurrence: recurrence, // Add recurrence to the block
+      };
+
+      let blocksToAdd = [];
+
+      if (recurrence === 'None') {
+        blocksToAdd.push(baseBlock);
+      } else if (recurrence === 'Daily') {
+        for (let i = 0; i < 30; i++) {
+          const newDay = new Date(selectedTimeSlot.day);
+          newDay.setDate(selectedTimeSlot.day.getDate() + i);
+          blocksToAdd.push({
+            ...baseBlock,
+            id: Date.now() + i, // Unique ID for each recurring block
+            day: newDay.toISOString().split('T')[0],
+          });
+        }
+      } else if (recurrence === 'Weekly') {
+        for (let i = 0; i < 4; i++) {
+          const newDay = new Date(selectedTimeSlot.day);
+          newDay.setDate(selectedTimeSlot.day.getDate() + (i * 7));
+          blocksToAdd.push({
+            ...baseBlock,
+            id: Date.now() + i, // Unique ID for each recurring block
+            day: newDay.toISOString().split('T')[0],
+          });
+        }
+      }
+
+      setScheduledBlocks((prevBlocks) => [...prevBlocks, ...blocksToAdd]);
+      console.log(`Adding ${blocksToAdd.length} ${selectedBlockType} block(s) for ${selectedTimeSlot.day.toDateString()} in ${category} section with ${recurrence} recurrence`);
     }
+    setStartTime('');
+    setEndTime('');
+    setRecurrence('None'); // Reset recurrence after adding block
+    handleCloseModal();
   };
 
-  // For drag-and-drop scheduling
-  const [dragTaskId, setDragTaskId] = useState(null);
-  const unscheduledTasks = tasks.filter((t) => !t.scheduledDate);
-
-  // Handle drop on calendar day
-  const handleDayDrop = (dateStr) => {
-    if (!dragTaskId) return;
-    const updated = tasks.map((t) =>
-      t.id === dragTaskId ? { ...t, scheduledDate: dateStr } : t
-    );
-    setTasks(updated);
-    setDragTaskId(null);
-    localStorage.setItem("tasks", JSON.stringify(updated));
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, staggerChildren: 0.1 } },
   };
 
-  // Helper to get color for priority
-  const priorityDot = (priority) => {
-    if (priority === "High") return "bg-red-500";
-    if (priority === "Medium") return "bg-yellow-400";
-    if (priority === "Low") return "bg-blue-500";
-    return "bg-gray-400";
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
   };
 
   return (
-    <div className="min-h-screen mt-20 flex" style={{ backgroundImage: "linear-gradient(135deg, var(--study-from), var(--study-via), var(--study-to))" }}>
-      <Sidebar />
-      <div className="flex-1 ml-16 transition-all duration-300 ease-in-out [body>div>aside:hover_+_div&]:ml-64">
-        <div className="p-8">
-          <div className="mb-8">
-            <div className="bg-[var(--sidebar-bg)] rounded-xl p-6 shadow-md border-2 border-white">
-              <h2 className="text-lg font-bold text-white mb-2">Today's Scheduled Tasks</h2>
-              {todaysTasks.length === 0 ? (
-                <div className="text-gray-400">No tasks scheduled for today.</div>
-              ) : (
-                <ul className="space-y-2">
-                  {todaysTasks.map((task) => (
-                    <li key={task.id} className="text-white flex flex-col md:flex-row md:items-center md:gap-4">
-                      <span className="font-semibold">{task.name}</span>
-                      <span className="text-sm text-gray-400">{task.subject}{task.time ? ` | ${task.time} min` : ""}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </div>
-          <div className="flex gap-6">
-            {/* Minimalistic Calendar */}
-            <div className="bg-[var(--sidebar-bg)] rounded-xl p-3 shadow-md mb-6 w-2/3 h-[calc(100vh-5rem-4rem)] flex flex-col flex-1 border-2 border-white">
-              <div className="flex items-center gap-2 mb-2 justify-center">
-                <button onClick={handlePrevMonth} className="text-white px-1 py-0.5 rounded hover:bg-[#35357a] transition text-base">&#8592;</button>
-                <span className="text-base font-bold text-white select-none">{monthNames[calendarMonth]} {calendarYear}</span>
-                <button onClick={handleNextMonth} className="text-white px-1 py-0.5 rounded hover:bg-[#35357a] transition text-base">&#8594;</button>
-              </div>
-              <div className="grid grid-cols-7 gap-1 text-center text-white/80 h-full w-full items-stretch">
-                {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((d) => (
-                  <div key={d} className="font-semibold text-[10px] pb-0.5">{d}</div>
-                ))}
-                {calendarDays.map((d, i) => {
-                  const dateStr = d ? `${calendarYear}-${String(calendarMonth+1).padStart(2, "0")}-${String(d).padStart(2, "0")}` : null;
-                  const dayTasks = d ? tasks.filter(t => t.scheduledDate === dateStr) : [];
-                  return (
-                    <div
-                      key={i}
-                      className={`w-full h-full min-h-[2.2rem] flex flex-col items-center justify-start rounded text-xs pt-1 transition-transform duration-200
-                        ${calendarYear === today.getFullYear() && calendarMonth === today.getMonth() && d === today.getDate() ? "bg-[#6C5DD3] text-white font-bold" : d ? "hover:bg-[#35357a] hover:scale-110 transition" : ""}
-                        ${d ? "cursor-pointer" : ""}`}
-                      onDragOver={e => d && e.preventDefault()}
-                      onDrop={d ? () => handleDayDrop(dateStr) : undefined}
-                    >
-                      <div>{d || ""}</div>
-                      <div className="flex flex-col gap-0.5 mt-0.5 w-full items-start">
-                        {dayTasks.map(task => (
-                          <div key={task.id} className="flex items-center gap-0.5 w-full truncate">
-                            <span className={`inline-block w-2 h-2 rounded-full ${priorityDot(task.priority)} border border-white flex-shrink-0`}></span>
-                            <span className="text-[10px] text-white truncate font-semibold max-w-[4.5rem]">{task.name}</span>
-                            <span className="text-[10px] text-gray-400 truncate max-w-[4.5rem]">{task.subject}{task.time ? ` | ${task.time} min` : ""}</span>
-                          </div>
-                        ))}
-                      </div>
+    <motion.div
+      className="bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 min-h-screen mt-20 pl-[100px] pr-6 py-6"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent mb-4" variants={itemVariants}>
+      Study Schedule
+      </motion.h1>
+      <motion.p className="text-white" variants={itemVariants}>
+      Plan your week, one block at a time.
+      </motion.p>
+
+      <motion.div className="flex justify-center items-center mb-8 space-x-2" variants={itemVariants}>
+        <motion.button
+          onClick={handlePrevWeek}
+          className="p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          <FaChevronLeft />
+        </motion.button>
+        <motion.span className="text-lg font-semibold">
+          {currentWeekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} -{' '}
+          {weekDays[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+          {' '}{currentWeekStart.getFullYear()}
+        </motion.span>
+        <motion.button
+          onClick={handleNextWeek}
+          className="p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          <FaChevronRight />
+        </motion.button>
+      </motion.div>
+
+      <motion.div className="grid grid-cols-7 gap-4 mb-8" variants={containerVariants}>
+        {weekDays.map((day, index) => (
+          <motion.div key={index} className="text-center" variants={itemVariants}>
+            <div className="font-bold text-xl text-blue-200">{getDayName(day)}</div>
+            <div className="text-sm text-gray-400">{getMonthDay(day)}</div>
+          </motion.div>
+        ))}
+      </motion.div>
+
+      {/* Time Categories */}
+      {['Morning (12 am-12 pm)', 'Afternoon (12 pm-5 pm)', 'Evening (5 pm-12 am)'].map((category, catIndex) => (
+        <motion.div key={catIndex} className="mb-8" variants={itemVariants}>
+          <h2 className="text-xl font-semibold mb-4 text-purple-300 flex items-center">
+            {category.includes('Morning') && <FaSun className="mr-2 text-yellow-400" />}
+            {category.includes('Afternoon') && <FaCloudSun className="mr-2 text-blue-400" />}
+            {category.includes('Evening') && <FaMoon className="mr-2 text-purple-400" />}
+            {category}
+          </h2>
+          <div className="grid grid-cols-7 gap-4">
+            {weekDays.map((day, dayIndex) => {
+              const categoryName = category.split(' ')[0]; // Extract "Morning", "Afternoon", "Evening"
+              const blocksForThisSlot = scheduledBlocks.filter(
+                (b) =>
+                  b.day === day.toISOString().split('T')[0] && b.category === categoryName
+              );
+
+              return (
+                <div key={dayIndex} className="border border-gray-700 rounded-lg p-1 h-28 flex items-center justify-center">
+                  {blocksForThisSlot.length > 0 ? (
+                    <div className="flex flex-col h-full w-full overflow-y-auto">
+                      {blocksForThisSlot.map((block) => (
+                        <motion.div
+                          key={block.id}
+                          className={`relative flex flex-col items-center justify-center h-full w-full rounded-lg cursor-pointer transition-colors p-1 text-sm mb-1
+                            ${block.type === 'Study' ? 'bg-green-600 border border-green-500' : block.type === 'Break' ? 'bg-gray-500 border border-gray-400' : 'bg-red-600 border border-red-500'}`}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <span className="text-white font-semibold text-base">{block.name}</span>
+                          <span className="text-white text-xs">{categoryName}</span>
+                        </motion.div>
+                      ))}
                     </div>
-                  );
-                })}
+                  ) : (
+                    <motion.div
+                      className="relative flex flex-col items-center justify-center h-full w-full border border-dashed border-gray-600 rounded-lg cursor-pointer hover:bg-gray-800 transition-colors group p-1"
+                      onClick={() => handleHourClick(day, categoryName)}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <span className="text-gray-500 group-hover:text-white text-xs">
+                        {categoryName}
+                      </span>
+                      <span className="text-gray-500 text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                        Add Block
+                      </span>
+                      <span className="absolute text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity text-2xl">
+                        +
+                      </span>
+                    </motion.div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
+      ))}
+
+      {isModalOpen && (
+        <motion.div
+          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <motion.div
+            className="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full mx-auto mt-10"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+          >
+            <h3 className="text-3xl font-bold mb-2 text-center text-purple-400">Add Study Block</h3>
+            <p className="text-gray-400 text-center mb-6">Create a new study session for your weekly schedule.</p>
+
+            {/* Selection Pane for Study, Break, Event */}
+            <div className="flex justify-center space-x-4 mb-6">
+              <motion.button
+                className="py-2 px-4 rounded-md text-lg font-semibold transition-colors"
+                style={{ backgroundColor: selectedBlockType === 'Study' ? '#8B5CF6' : '#4B5563' }}
+                onClick={() => setSelectedBlockType('Study')}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Study
+              </motion.button>
+              <motion.button
+                className="py-2 px-4 rounded-md text-lg font-semibold transition-colors"
+                style={{ backgroundColor: selectedBlockType === 'Break' ? '#F59E0B' : '#4B5563' }}
+                onClick={() => setSelectedBlockType('Break')}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Break
+              </motion.button>
+              <motion.button
+                className="py-2 px-4 rounded-md text-lg font-semibold transition-colors"
+                style={{ backgroundColor: selectedBlockType === 'Event' ? '#3B82F6' : '#4B5563' }}
+                onClick={() => setSelectedBlockType('Event')}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Event
+              </motion.button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Subject Selection (only for Study) */}
+              {selectedBlockType === 'Study' && (
+                <div className="mb-4">
+                  <label htmlFor="subject" className="block text-gray-300 text-sm font-bold mb-2">Subject</label>
+                  <select
+                    id="subject"
+                    className="block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white leading-tight focus:outline-none focus:bg-gray-600"
+                  >
+                    {availableSubjects.map((subject) => (
+                      <option key={subject.id} value={subject.name}>
+                        {subject.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Event Name Input (only for Event) */}
+              {selectedBlockType === 'Event' && (
+                <div className="mb-4">
+                  <label htmlFor="eventName" className="block text-gray-300 text-sm font-bold mb-2">Event Name</label>
+                  <input
+                    type="text"
+                    id="eventName"
+                    className="block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white leading-tight focus:outline-none focus:bg-gray-600"
+                    placeholder="Enter event name"
+                  />
+                </div>
+              )}
+
+              {/* Description */}
+              <div className="mb-4">
+                <label htmlFor="description" className="block text-gray-300 text-sm font-bold mb-2">Description</label>
+                <textarea
+                  id="description"
+                  rows="3"
+                  className="block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white leading-tight focus:outline-none focus:bg-gray-600"
+                  placeholder="Add a description for your block..."
+                ></textarea>
+              </div>
+
+              {/* Start Time and End Time */}
+              <div className="flex space-x-4">
+                <div className="w-1/2">
+                  <label htmlFor="startTime" className="block text-gray-300 text-sm font-bold mb-2">Start Time</label>
+                  <input
+                    type="time"
+                    id="startTime"
+                    className="block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white leading-tight focus:outline-none focus:bg-gray-600"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                  />
+                </div>
+                <div className="w-1/2">
+                  <label htmlFor="endTime" className="block text-gray-300 text-sm font-bold mb-2">End Time</label>
+                  <input
+                    type="time"
+                    id="endTime"
+                    className="block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white leading-tight focus:outline-none focus:bg-gray-600"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Recurrence Dropdown */}
+              <div>
+                <label htmlFor="recurrence" className="block text-gray-300 text-sm font-bold mb-2">Recurrence</label>
+                <select
+                  id="recurrence"
+                  className="block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white leading-tight focus:outline-none focus:bg-gray-600"
+                  value={recurrence}
+                  onChange={(e) => setRecurrence(e.target.value)}
+                >
+                  <option>None</option>
+                  <option>Daily</option>
+                  <option>Weekly</option>
+                </select>
               </div>
             </div>
-            {/* Schedule Tasks Card */}
-            <div className="bg-[var(--sidebar-bg)] rounded-xl p-4 shadow-md mb-6 w-1/3 h-[calc(100vh-5rem-4rem)] flex flex-col border-2 border-white">
-              <h2 className="text-lg font-bold text-white mb-4">Schedule Tasks</h2>
-              {unscheduledTasks.length === 0 ? (
-                <div className="text-gray-400">No unscheduled tasks.</div>
-              ) : (
-                <ul className="space-y-2 flex-1 overflow-y-auto">
-                  {unscheduledTasks.map(task => (
-                    <li
-                      key={task.id}
-                      className="bg-[#1a1a2e] rounded px-3 py-2 text-white flex items-center justify-between cursor-grab hover:bg-[#35357a] transition"
-                      draggable
-                      onDragStart={() => setDragTaskId(task.id)}
-                      onDragEnd={() => setDragTaskId(null)}
-                    >
-                      <span className="font-semibold">{task.name}</span>
-                      <span className="text-xs text-gray-400 ml-2">{task.subject}{task.time ? ` | ${task.time} min` : ""}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <div className="text-xs text-gray-400 mt-2">Drag a task onto a calendar day to schedule it.</div>
+
+            <div className="flex justify-end space-x-4 mt-6">
+              <motion.button
+                className="py-2 px-4 bg-gray-600 hover:bg-gray-700 rounded-md text-lg font-semibold transition-colors"
+                onClick={handleCloseModal}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Cancel
+              </motion.button>
+              <motion.button
+                className="py-2 px-4 bg-purple-600 hover:bg-purple-700 rounded-md text-lg font-semibold transition-colors"
+                onClick={() => handleAddBlock(selectedBlockType)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Save Block
+              </motion.button>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </motion.div>
   );
-} 
+};

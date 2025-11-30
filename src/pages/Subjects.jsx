@@ -21,22 +21,16 @@ import { useTimer } from '../context/TimerContext';
 import { useGamification } from '../context/GamificationContext';
 
 // Fixed list of GCSE subjects with predefined colors and icons
-const GCSE_SUBJECTS = [
-  { name: 'Mathematics', color: '#6C5DD3', icon: Calculator },
-  { name: 'Biology', color: '#4ECDC4', icon: Dna },
-  { name: 'Chemistry', color: '#FF6B6B', icon: FlaskConical },
-  { name: 'Physics', color: '#95E1D3', icon: Atom },
-  { name: 'Economics', color: '#FFB347', icon: TrendingUp },
-  { name: 'Geography', color: '#AA96DA', icon: Globe },
-  { name: 'History', color: '#F38181', icon: Scroll },
-];
+
 
 const Subjects = () => {
   const [subjects, setSubjects] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingSubject, setEditingSubject] = useState(null);
-  const [selectedSubjects, setSelectedSubjects] = useState([]);
+  const [newSubjectName, setNewSubjectName] = useState('');
+  const [newSubjectColor, setNewSubjectColor] = useState('#6C5DD3'); // Default color
+  const [newSubjectGoal, setNewSubjectGoal] = useState(0);
   const [goalHours, setGoalHours] = useState({});
   const navigate = useNavigate();
   const { setTimerSubject } = useTimer();
@@ -47,11 +41,7 @@ const Subjects = () => {
     setSubjects(savedSubjects);
   }, []);
 
-  // Get available subjects (not yet selected)
-  const getAvailableSubjects = () => {
-    const selectedNames = subjects.map(s => s.name);
-    return GCSE_SUBJECTS.filter(subject => !selectedNames.includes(subject.name));
-  };
+
 
   const handleStartTimer = (subjectName) => {
     setTimerSubject(subjectName);
@@ -59,24 +49,23 @@ const Subjects = () => {
   };
 
   const handleAddSubjects = () => {
-    if (selectedSubjects.length > 0) {
-      const newSubjects = selectedSubjects.map(subjectName => {
-        const subjectData = GCSE_SUBJECTS.find(s => s.name === subjectName);
-        return {
-          id: Date.now() + Math.random(),
-          name: subjectName,
-          color: subjectData.color,
-          goalHours: goalHours[subjectName] || 0
-        };
-      });
+    if (newSubjectName.trim() !== '') {
+      const newSubject = {
+        id: Date.now() + Math.random(),
+        name: newSubjectName.trim(),
+        color: newSubjectColor,
+        goalHours: parseFloat(newSubjectGoal) || 0,
+        icon: BookOpen, // Default icon for custom subjects
+      };
       
-      const updatedSubjects = [...subjects, ...newSubjects];
+      const updatedSubjects = [...subjects, newSubject];
       setSubjects(updatedSubjects);
       localStorage.setItem('subjects', JSON.stringify(updatedSubjects));
       
       // Reset state
-      setSelectedSubjects([]);
-      setGoalHours({});
+      setNewSubjectName('');
+      setNewSubjectColor('#6C5DD3');
+      setNewSubjectGoal(0);
       setShowAddModal(false);
     }
   };
@@ -99,20 +88,9 @@ const Subjects = () => {
     localStorage.setItem('subjects', JSON.stringify(updatedSubjects));
   };
 
-  const toggleSubjectSelection = (subjectName) => {
-    setSelectedSubjects(prev => 
-      prev.includes(subjectName)
-        ? prev.filter(name => name !== subjectName)
-        : [...prev, subjectName]
-    );
-  };
 
-  const handleGoalHoursChange = (subjectName, hours) => {
-    setGoalHours(prev => ({
-      ...prev,
-      [subjectName]: parseFloat(hours) || 0
-    }));
-  };
+
+
 
   const getSubjectStudyTime = (subjectName) => {
     const studySessions = JSON.parse(localStorage.getItem('studySessions') || '[]');
@@ -147,7 +125,7 @@ const Subjects = () => {
     return { icon: '🌱', name: 'New', color: 'text-gray-500' };
   };
 
-  const availableSubjects = getAvailableSubjects();
+  const availableSubjects = true;
 
   return (
     <div className="bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 min-h-screen mt-20 pl-[100px] pr-6 py-6">
@@ -163,17 +141,20 @@ const Subjects = () => {
             <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent mb-4">Subjects</h1>
             <p className="text-white">Manage your study subjects and track progress</p>
           </div>
-          {availableSubjects.length > 0 && (
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-              onClick={() => setShowAddModal(true)}
+              onClick={() => {
+              setNewSubjectName('');
+              setNewSubjectColor('#6C5DD3');
+              setNewSubjectGoal(0);
+              setShowAddModal(true);
+            }}
             className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105"
           >
             <Plus className="w-5 h-5" />
             <span>Add Subject</span>
           </motion.button>
-          )}
         </motion.div>  
       </div>
 
@@ -185,8 +166,7 @@ const Subjects = () => {
           const level = getSubjectLevel(studyTime);
           const progress = getSubjectProgress(studyTime, subject.goalHours);
           const badge = getSubjectBadge(studyTime);
-          const subjectData = GCSE_SUBJECTS.find(s => s.name === subject.name);
-          const SubjectIcon = subjectData?.icon || BookOpen;
+          const SubjectIcon = subject.icon || BookOpen;
 
           return (
             <motion.div
@@ -333,113 +313,73 @@ const Subjects = () => {
               </div>
 
               <p className="text-gray-300 mb-6">
-                Select the subjects you'd like to add. You can set weekly goals for each one.
+                Create your own custom subject by providing a name, color, and an optional weekly goal.
               </p>
 
-              {availableSubjects.length === 0 ? (
-                <div className="text-center py-12">
-                  <Check className="w-16 h-16 text-green-400 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-white mb-2">All subjects added!</h3>
-                  <p className="text-gray-300">You've already added all available GCSE subjects.</p>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Subject Name</label>
+                  <input
+                    type="text"
+                    value={newSubjectName}
+                    onChange={(e) => setNewSubjectName(e.target.value)}
+                    className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="e.g., Advanced Astrophysics"
+                  />
                 </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6 max-h-96 overflow-y-auto pr-2">
-                    {availableSubjects.map((subject) => {
-                      const Icon = subject.icon;
-                      return (
-                        <motion.div
-                          key={subject.name}
-                          whileHover={{ scale: 1.05, y: -2 }}
-                          whileTap={{ scale: 0.95 }}
-                          className={`relative p-4 rounded-xl border-2 transition-all cursor-pointer flex flex-col items-center justify-center min-h-[120px] ${
-                            selectedSubjects.includes(subject.name)
-                              ? 'bg-purple-600/30 border-purple-400 shadow-lg shadow-purple-500/20'
-                              : 'bg-white/5 border-white/10 hover:border-white/30 hover:bg-white/10'
-                          }`}
-                          onClick={() => toggleSubjectSelection(subject.name)}
-                        >
-                          {/* Checkbox indicator */}
-                          <div className="absolute top-2 right-2">
-                            <div
-                              className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-all ${
-                                selectedSubjects.includes(subject.name)
-                                  ? 'bg-purple-500 border-purple-400'
-                                  : 'border-gray-400 bg-white/10'
-                              }`}
-                            >
-                              {selectedSubjects.includes(subject.name) && (
-                                <Check className="w-4 h-4 text-white" />
-                              )}
-                            </div>
-                          </div>
 
-                          {/* Icon */}
-                          <div
-                            className="w-12 h-12 rounded-xl flex items-center justify-center mb-3"
-                            style={{ backgroundColor: subject.color }}
-                          >
-                            <Icon className="w-6 h-6 text-white" />
-                          </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Subject Color</label>
+                  <input
+                    type="color"
+                    value={newSubjectColor}
+                    onChange={(e) => setNewSubjectColor(e.target.value)}
+                    className="w-full h-10 rounded-lg border-none overflow-hidden cursor-pointer"
+                  />
+                </div>
 
-                          {/* Subject Name */}
-                          <span className="text-white font-semibold text-sm text-center">
-                            {subject.name}
-                          </span>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Weekly Goal (hours)</label>
+                  <input
+                    type="number"
+                    value={newSubjectGoal}
+                    onChange={(e) => setNewSubjectGoal(e.target.value)}
+                    className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="0"
+                    min="0"
+                    step="0.5"
+                  />
+                </div>
+              </div>
 
-                          {/* Goal input for selected subjects */}
-                          {selectedSubjects.includes(subject.name) && (
-                            <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: 'auto' }}
-                              className="mt-3 w-full"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                <input
-                                type="number"
-                                value={goalHours[subject.name] || ''}
-                                onChange={(e) => handleGoalHoursChange(subject.name, e.target.value)}
-                                className="w-full px-2 py-1 bg-white/10 border border-white/20 rounded-lg text-white text-xs placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                                placeholder="Goal (hrs)"
-                                min="0"
-                                step="0.5"
-                              />
-                            </motion.div>
-                          )}
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-
-                  <div className="flex space-x-3 mt-6">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => {
-                        setShowAddModal(false);
-                        setSelectedSubjects([]);
-                        setGoalHours({});
-                      }}
-                      className="flex-1 px-4 py-3 border border-white/20 text-white rounded-xl font-semibold hover:bg-white/10 transition-colors"
-                    >
-                      Cancel
-                    </motion.button>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={handleAddSubjects}
-                      disabled={selectedSubjects.length === 0}
-                      className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-colors ${
-                        selectedSubjects.length > 0
-                          ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-lg hover:shadow-purple-500/50'
-                          : 'bg-white/10 text-gray-500 cursor-not-allowed'
-                      }`}
-                    >
-                      Add {selectedSubjects.length > 0 ? `${selectedSubjects.length} ` : ''}Subject{selectedSubjects.length !== 1 ? 's' : ''}
-                    </motion.button>
-                  </div>
-                </>
-              )}
+              <div className="flex space-x-3 mt-6">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setNewSubjectName('');
+                    setNewSubjectColor('#6C5DD3');
+                    setNewSubjectGoal(0);
+                  }}
+                  className="flex-1 px-4 py-3 border border-white/20 text-white rounded-xl font-semibold hover:bg-white/10 transition-colors"
+                >
+                  Cancel
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleAddSubjects}
+                  disabled={newSubjectName.trim() === ''}
+                  className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-colors ${
+                    newSubjectName.trim() !== ''
+                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-lg hover:shadow-purple-500/50'
+                      : 'bg-white/10 text-gray-500 cursor-not-allowed'
+                  }`}
+                >
+                  Add Subject
+                </motion.button>
+              </div>
             </motion.div>
           </motion.div>
         )}
