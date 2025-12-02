@@ -151,6 +151,21 @@ function App() {
                 </ProtectedRoute>
               } />
 
+              <Route path="/mastery" element={
+                <ProtectedRoute>
+                  <div className="flex h-screen bg-[var(--app-bg)]">
+                    <Sidebar />
+                    <div className="flex-1 flex flex-col">
+                      <Navbar />
+                      <main className="flex-1 overflow-auto">
+                        <Mastery />
+                        <Footer withSidebar />
+                      </main>
+                    </div>
+                  </div>
+                </ProtectedRoute>
+              } />
+
               <Route path="/privacy" element={
                 <ProtectedRoute>
                   <div className="flex h-screen bg-[var(--app-bg)]">
