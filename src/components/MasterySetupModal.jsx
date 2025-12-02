@@ -264,17 +264,27 @@ export default function MasterySetupModal({ subjects, onComplete, onClose }) {
           </motion.div>
         </AnimatePresence>
 
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 p-4 bg-red-900/50 border border-red-700/50 rounded-lg"
+          >
+            <p className="text-red-200">{error}</p>
+          </motion.div>
+        )}
+
         <div className="flex gap-3 justify-between">
           <motion.button
             onClick={handlePrevious}
-            disabled={step === 1}
+            disabled={step === 1 || isLoading}
             className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition ${
-              step === 1
+              step === 1 || isLoading
                 ? 'bg-purple-800/20 text-purple-400/50 cursor-not-allowed'
                 : 'bg-purple-800/50 text-white hover:bg-purple-700/50'
             }`}
-            whileHover={step > 1 ? { scale: 1.05 } : {}}
-            whileTap={step > 1 ? { scale: 0.95 } : {}}
+            whileHover={step > 1 && !isLoading ? { scale: 1.05 } : {}}
+            whileTap={step > 1 && !isLoading ? { scale: 0.95 } : {}}
           >
             <ChevronLeft className="w-4 h-4" />
             Back
