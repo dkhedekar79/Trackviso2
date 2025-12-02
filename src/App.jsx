@@ -12,6 +12,7 @@ import Study from './pages/Study';
 import Tasks from './pages/Tasks';
 import Schedule from './pages/Schedule';
 import Insights from './pages/Insights';
+import Mastery from './pages/Mastery';
 
 import Resources from './pages/Resources';
 import Privacy from './pages/Privacy';
