@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronUp, Check, Plus, Edit2, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Check, Edit2, X } from 'lucide-react';
 import MasterySetupModal from '../components/MasterySetupModal';
-import { getTopicsForSubject } from '../data/masteryTopics';
 
 const Mastery = () => {
   const [masterySetup, setMasterySetup] = useState(null);
