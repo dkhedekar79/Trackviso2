@@ -296,23 +296,25 @@ export default function MasterySetupModal({ subjects, onComplete, onClose }) {
                 onClick={handleNext}
                 disabled={
                   (step === 1 && !isStep1Complete) ||
-                  (step === 2 && !isStep2Complete)
+                  (step === 2 && !isStep2Complete) ||
+                  isLoading
                 }
                 className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition ${
                   (step === 1 && !isStep1Complete) ||
-                  (step === 2 && !isStep2Complete)
+                  (step === 2 && !isStep2Complete) ||
+                  isLoading
                     ? 'bg-gradient-to-r from-purple-800/30 to-pink-800/30 text-purple-400/50 cursor-not-allowed'
                     : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-lg hover:shadow-purple-500/50'
                 }`}
                 whileHover={
-                  (step === 1 && isStep1Complete) ||
-                  (step === 2 && isStep2Complete)
+                  ((step === 1 && isStep1Complete) ||
+                  (step === 2 && isStep2Complete)) && !isLoading
                     ? { scale: 1.05 }
                     : {}
                 }
                 whileTap={
-                  (step === 1 && isStep1Complete) ||
-                  (step === 2 && isStep2Complete)
+                  ((step === 1 && isStep1Complete) ||
+                  (step === 2 && isStep2Complete)) && !isLoading
                     ? { scale: 0.95 }
                     : {}
                 }
@@ -323,16 +325,23 @@ export default function MasterySetupModal({ subjects, onComplete, onClose }) {
             ) : (
               <motion.button
                 onClick={handleComplete}
-                disabled={!isAllComplete}
+                disabled={!isAllComplete || isLoading}
                 className={`flex items-center gap-2 px-8 py-3 rounded-lg font-semibold transition ${
-                  isAllComplete
+                  isAllComplete && !isLoading
                     ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:shadow-lg hover:shadow-green-500/50'
                     : 'bg-gradient-to-r from-green-800/30 to-emerald-800/30 text-green-400/50 cursor-not-allowed'
                 }`}
-                whileHover={isAllComplete ? { scale: 1.05 } : {}}
-                whileTap={isAllComplete ? { scale: 0.95 } : {}}
+                whileHover={isAllComplete && !isLoading ? { scale: 1.05 } : {}}
+                whileTap={isAllComplete && !isLoading ? { scale: 0.95 } : {}}
               >
-                Complete Setup
+                {isLoading ? (
+                  <>
+                    <Loader className="w-4 h-4 animate-spin" />
+                    Generating Topics...
+                  </>
+                ) : (
+                  'Complete Setup'
+                )}
               </motion.button>
             )}
           </div>
