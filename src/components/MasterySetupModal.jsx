@@ -47,17 +47,24 @@ export default function MasterySetupModal({ subjects, onComplete, onClose }) {
     }
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     const qualName = typeof qualification === 'string' ? qualification : qualification?.name;
     if (qualName && subject && examBoard) {
-      const topics = getTopicsForSubject(qualName, examBoard, subject);
-      onComplete({
-        qualification: qualName,
-        subject,
-        examBoard,
-        topics,
-        setupDate: new Date().toISOString()
-      });
+      setIsLoading(true);
+      setError('');
+      try {
+        const topics = await generateTopics(qualName, examBoard, subject);
+        onComplete({
+          qualification: qualName,
+          subject,
+          examBoard,
+          topics,
+          setupDate: new Date().toISOString()
+        });
+      } catch (err) {
+        setError(err.message || 'Failed to generate topics. Please try again.');
+        setIsLoading(false);
+      }
     }
   };
 
