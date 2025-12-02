@@ -88,16 +88,14 @@ const Mastery = () => {
 
   if (!masterySetup) {
     return (
-      <div className="bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 min-h-screen mt-20 pl-[100px] pr-6 py-6">
-        <AnimatePresence>
-          {showSetupModal && (
-            <MasterySetupModal
-              subjects={subjects}
-              onComplete={handleSetupComplete}
-              onClose={() => {}}
-            />
-          )}
-        </AnimatePresence>
+      <div className="bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 min-h-screen mt-20 pl-[100px] pr-6 py-6 flex items-center justify-center">
+        {showSetupModal && (
+          <MasterySetupModal
+            subjects={subjects}
+            onComplete={handleSetupComplete}
+            onClose={() => {}}
+          />
+        )}
       </div>
     );
   }
