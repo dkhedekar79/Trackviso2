@@ -186,143 +186,149 @@ const Mastery = () => {
           </div>
         </motion.div>
 
-        <div className="space-y-4">
+        <div>
           {masterySetup.topics && masterySetup.topics.length > 0 ? (
             <>
-              {masterySetup.topics.map((topic, index) => {
-                const isSelected = topicProgress[topic.id]?.selected || false;
-                const isCompleted = topicProgress[topic.id]?.completed || false;
-                const completionPercent = topicProgress[topic.id]?.completionPercent || 0;
-                const notes = topicProgress[topic.id]?.notes || '';
-                const isExpanded = expandedTopics[topic.id] || false;
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                {masterySetup.topics.map((topic, index) => {
+                  const isSelected = topicProgress[topic.id]?.selected || false;
+                  const isCompleted = topicProgress[topic.id]?.completed || false;
+                  const completionPercent = topicProgress[topic.id]?.completionPercent || 0;
+                  const notes = topicProgress[topic.id]?.notes || '';
+                  const isExpanded = expandedTopics[topic.id] || false;
 
-                return (
-                  <motion.div
-                    key={topic.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: index * 0.05 }}
-                    className="group"
-                  >
-                    <div
-                      className={`bg-gradient-to-br rounded-2xl border transition-all cursor-pointer ${
-                        isSelected
-                          ? 'from-blue-900/40 to-slate-900/40 border-blue-700/30'
-                          : 'from-purple-900/40 to-slate-900/40 border-purple-700/30 hover:border-purple-600/50'
-                      }`}
+                  return (
+                    <motion.div
+                      key={topic.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: index * 0.05 }}
+                      className="group h-full"
                     >
                       <div
-                        onClick={() => toggleExpandTopic(topic.id)}
-                        className="p-6 flex items-start gap-4 cursor-pointer"
+                        className={`bg-gradient-to-br rounded-xl border-2 transition-all cursor-pointer h-full flex flex-col ${
+                          isSelected
+                            ? 'from-blue-900/50 to-slate-900/50 border-blue-600/60 shadow-lg shadow-blue-500/20'
+                            : 'from-purple-900/40 to-slate-900/40 border-purple-700/40 hover:border-purple-600/60 hover:shadow-lg hover:shadow-purple-500/10'
+                        }`}
                       >
-                        <motion.button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleTopicSelection(topic.id);
-                          }}
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.95 }}
-                          className={`flex-shrink-0 w-6 h-6 rounded border-2 flex items-center justify-center transition ${
-                            isSelected
-                              ? 'bg-blue-600 border-blue-500'
-                              : 'border-purple-500 hover:border-purple-400'
-                          }`}
-                        >
-                          {isSelected && <Check className="w-4 h-4 text-white" />}
-                        </motion.button>
+                        <div className="p-5 flex flex-col gap-3">
+                          {/* Header with checkbox and expand button */}
+                          <div className="flex items-start gap-2">
+                            <motion.button
+                              onClick={() => toggleTopicSelection(topic.id)}
+                              whileHover={{ scale: 1.15 }}
+                              whileTap={{ scale: 0.9 }}
+                              className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition ${
+                                isSelected
+                                  ? 'bg-blue-600 border-blue-400'
+                                  : 'border-purple-500 hover:border-purple-400 bg-transparent'
+                              }`}
+                            >
+                              {isSelected && <Check className="w-3 h-3 text-white" />}
+                            </motion.button>
 
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-lg font-semibold text-white mb-2">
+                            <motion.button
+                              onClick={() => toggleExpandTopic(topic.id)}
+                              className="ml-auto flex-shrink-0 text-purple-300 hover:text-white transition"
+                            >
+                              {isExpanded ? (
+                                <ChevronUp className="w-4 h-4" />
+                              ) : (
+                                <ChevronDown className="w-4 h-4" />
+                              )}
+                            </motion.button>
+                          </div>
+
+                          {/* Topic title */}
+                          <h3 className="text-sm font-bold text-white line-clamp-2 flex-1 leading-tight">
                             {topic.name}
                           </h3>
-                          <div className="flex items-center gap-3">
-                            <div className="flex-1">
-                              <div className="flex justify-between items-center mb-1">
-                                <span className="text-xs text-purple-200/60">Completion</span>
-                                <span className="text-sm font-semibold text-purple-300">{completionPercent}%</span>
-                              </div>
-                              <div className="w-full bg-white/10 rounded-full h-2">
-                                <motion.div
-                                  initial={{ width: 0 }}
-                                  animate={{ width: `${completionPercent}%` }}
-                                  transition={{ duration: 0.5, ease: 'easeOut' }}
-                                  className="bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full"
-                                />
-                              </div>
+
+                          {/* Completion percentage and bar */}
+                          <div className="space-y-1">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-purple-200/60">Completion</span>
+                              <span className={`text-xs font-bold ${completionPercent > 0 ? 'text-green-400' : 'text-purple-300'}`}>
+                                {completionPercent}%
+                              </span>
+                            </div>
+                            <div className="w-full bg-white/10 rounded-full h-1.5">
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${completionPercent}%` }}
+                                transition={{ duration: 0.5, ease: 'easeOut' }}
+                                className="bg-gradient-to-r from-green-500 to-emerald-500 h-1.5 rounded-full"
+                              />
                             </div>
                           </div>
+
+                          {/* Status badge */}
+                          {isCompleted && (
+                            <div className="flex items-center gap-1 text-xs text-green-300 bg-green-900/30 rounded-full px-2 py-1 w-fit">
+                              <Check className="w-3 h-3" />
+                              Mastered
+                            </div>
+                          )}
                         </div>
 
-                        <motion.button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleExpandTopic(topic.id);
-                          }}
-                          className="flex-shrink-0 text-purple-300 hover:text-white transition opacity-0 group-hover:opacity-100"
-                        >
-                          {isExpanded ? (
-                            <ChevronUp className="w-5 h-5" />
-                          ) : (
-                            <ChevronDown className="w-5 h-5" />
+                        {/* Expandable section */}
+                        <AnimatePresence>
+                          {isExpanded && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.3 }}
+                              className="border-t border-white/10"
+                            >
+                              <div className="p-4 space-y-3">
+                                <div>
+                                  <label className="block text-xs font-medium text-purple-200 mb-1">
+                                    Study Notes
+                                  </label>
+                                  <textarea
+                                    value={notes}
+                                    onChange={(e) => updateTopicNotes(topic.id, e.target.value)}
+                                    placeholder="Add notes..."
+                                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-xs placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                                    rows="2"
+                                  />
+                                </div>
+
+                                <div className="flex gap-2 pt-1">
+                                  {!isCompleted && (
+                                    <motion.button
+                                      onClick={() => toggleTopicCompletion(topic.id)}
+                                      whileHover={{ scale: 1.05 }}
+                                      whileTap={{ scale: 0.95 }}
+                                      className="flex-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium text-xs transition"
+                                    >
+                                      <Check className="w-3 h-3 inline mr-1" />
+                                      Complete
+                                    </motion.button>
+                                  )}
+                                  {isCompleted && (
+                                    <motion.button
+                                      onClick={() => toggleTopicCompletion(topic.id)}
+                                      whileHover={{ scale: 1.05 }}
+                                      whileTap={{ scale: 0.95 }}
+                                      className="flex-1 px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded-lg font-medium text-xs transition"
+                                    >
+                                      <X className="w-3 h-3 inline mr-1" />
+                                      Undo
+                                    </motion.button>
+                                  )}
+                                </div>
+                              </div>
+                            </motion.div>
                           )}
-                        </motion.button>
+                        </AnimatePresence>
                       </div>
-
-                      <AnimatePresence>
-                        {isExpanded && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.3 }}
-                            className="border-t border-white/10"
-                          >
-                            <div className="p-6 space-y-4">
-                              <div>
-                                <label className="block text-sm font-medium text-purple-200 mb-2">
-                                  Study Notes
-                                </label>
-                                <textarea
-                                  value={notes}
-                                  onChange={(e) => updateTopicNotes(topic.id, e.target.value)}
-                                  placeholder="Add your study notes, key points, or reminders..."
-                                  className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-                                  rows="3"
-                                />
-                              </div>
-
-                              <div className="flex gap-2 pt-2">
-                                {!isCompleted && (
-                                  <motion.button
-                                    onClick={() => toggleTopicCompletion(topic.id)}
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition"
-                                  >
-                                    <Check className="w-4 h-4 inline mr-2" />
-                                    Mark as Complete
-                                  </motion.button>
-                                )}
-                                {isCompleted && (
-                                  <motion.button
-                                    onClick={() => toggleTopicCompletion(topic.id)}
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    className="flex-1 px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg font-medium transition"
-                                  >
-                                    <X className="w-4 h-4 inline mr-2" />
-                                    Mark as Incomplete
-                                  </motion.button>
-                                )}
-                              </div>
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </motion.div>
-                );
-              })}
+                    </motion.div>
+                  );
+                })}
+              </div>
 
               {Object.values(topicProgress).some(tp => tp.selected) && (
                 <motion.div
