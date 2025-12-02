@@ -33,15 +33,27 @@ const Mastery = () => {
     setMasterySetup(setup);
     localStorage.setItem('masterySetup', JSON.stringify(setup));
     setShowSetupModal(false);
-    
+
     const emptyProgress = {};
     if (setup.topics) {
       setup.topics.forEach(topic => {
-        emptyProgress[topic.id] = { completed: false, notes: '' };
+        emptyProgress[topic.id] = { completed: false, selected: false, notes: '', completionPercent: 0 };
       });
     }
     setTopicProgress(emptyProgress);
     localStorage.setItem('masteryProgress', JSON.stringify(emptyProgress));
+  };
+
+  const toggleTopicSelection = (topicId) => {
+    const updated = {
+      ...topicProgress,
+      [topicId]: {
+        ...topicProgress[topicId],
+        selected: !topicProgress[topicId]?.selected
+      }
+    };
+    setTopicProgress(updated);
+    localStorage.setItem('masteryProgress', JSON.stringify(updated));
   };
 
   const toggleTopicCompletion = (topicId) => {
@@ -49,7 +61,8 @@ const Mastery = () => {
       ...topicProgress,
       [topicId]: {
         ...topicProgress[topicId],
-        completed: !topicProgress[topicId]?.completed
+        completed: !topicProgress[topicId]?.completed,
+        completionPercent: !topicProgress[topicId]?.completed ? 100 : 0
       }
     };
     setTopicProgress(updated);
