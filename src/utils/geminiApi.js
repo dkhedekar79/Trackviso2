@@ -1,13 +1,15 @@
-
 import { GoogleGenAI } from "@google/genai";
 
-const API_KEY = import.meta.env.VITE_GOOGLE_AI_API_KEY;
-const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent';
-
 export async function generateTopics(qualification, examBoard, subject) {
-  if (!API_KEY) {
+  const apiKey = import.meta.env.VITE_GOOGLE_AI_API_KEY;
+  
+  if (!apiKey) {
     throw new Error('Google AI API key is not configured');
   }
+
+  const ai = new GoogleGenAI({
+    apiKey: apiKey,
+  });
 
   const prompt = `You are an educational curriculum expert. Generate a comprehensive list of main topics for ${subject} at ${qualification} level with ${examBoard} exam board.
 
@@ -23,53 +25,32 @@ Example format:
 
 Generate topics for ${subject}:`;
 
-  const requestBody = {
-    contents: [
-      {
-        parts: [
-          {
-            text: prompt,
-          },
-        ],
-      },
-    ],
-    generationConfig: {
-      temperature: 0.7,
-      topK: 40,
-      topP: 0.95,
-      maxOutputTokens: 1024,
-    },
-  };
-
   try {
-    const response = await fetch(`${API_URL}?key=${API_KEY}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
     });
 
-    let data;
-    try {
-      data = await response.json();
-    } catch (parseError) {
-      throw new Error('Failed to parse API response. Please try again.');
-    }
+    console.log('API Response:', response);
 
-    if (!response.ok) {
-      const errorMessage = data?.error?.message || `API Error: ${response.statusText}`;
-      throw new Error(errorMessage);
+    let content = null;
+    
+    // Handle different possible response structures
+    if (response?.text && typeof response.text === 'string') {
+      content = response.text;
+    } else if (response?.candidates?.[0]?.content?.parts?.[0]?.text) {
+      content = response.candidates[0].content.parts[0].text;
     }
-
-    const content = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!content) {
-      throw new Error('No topics generated. Please try again.');
+      console.error('Response structure:', JSON.stringify(response, null, 2));
+      throw new Error('No content in API response. Please try again.');
     }
 
+    // Extract JSON array from response
     const jsonMatch = content.match(/\[[\s\S]*\]/);
     if (!jsonMatch) {
+      console.error('Could not find JSON in response:', content);
       throw new Error('Could not parse response format');
     }
 
@@ -77,6 +58,7 @@ Generate topics for ${subject}:`;
     try {
       topics = JSON.parse(jsonMatch[0]);
     } catch (parseError) {
+      console.error('JSON parse error:', parseError, 'Content:', jsonMatch[0]);
       throw new Error('Could not parse topics from response');
     }
 
