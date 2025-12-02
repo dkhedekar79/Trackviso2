@@ -1,5 +1,5 @@
 const API_KEY = import.meta.env.VITE_GOOGLE_AI_API_KEY;
-const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+const API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent';
 
 export async function generateTopics(qualification, examBoard, subject) {
   if (!API_KEY) {
