@@ -189,129 +189,193 @@ const Mastery = () => {
 
         <div className="space-y-4">
           {masterySetup.topics && masterySetup.topics.length > 0 ? (
-            masterySetup.topics.map((topic, index) => {
-              const isCompleted = topicProgress[topic.id]?.completed || false;
-              const notes = topicProgress[topic.id]?.notes || '';
-              const isExpanded = expandedTopics[topic.id] || false;
+            <>
+              {masterySetup.topics.map((topic, index) => {
+                const isSelected = topicProgress[topic.id]?.selected || false;
+                const isCompleted = topicProgress[topic.id]?.completed || false;
+                const completionPercent = topicProgress[topic.id]?.completionPercent || 0;
+                const notes = topicProgress[topic.id]?.notes || '';
+                const isExpanded = expandedTopics[topic.id] || false;
 
-              return (
-                <motion.div
-                  key={topic.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: index * 0.05 }}
-                  className="group"
-                >
-                  <div
-                    className={`bg-gradient-to-br rounded-2xl border transition-all cursor-pointer ${
-                      isCompleted
-                        ? 'from-green-900/40 to-slate-900/40 border-green-700/30'
-                        : 'from-purple-900/40 to-slate-900/40 border-purple-700/30 hover:border-purple-600/50'
-                    }`}
+                return (
+                  <motion.div
+                    key={topic.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: index * 0.05 }}
+                    className="group"
                   >
                     <div
-                      onClick={() => toggleExpandTopic(topic.id)}
-                      className="p-6 flex items-start gap-4 cursor-pointer"
+                      className={`bg-gradient-to-br rounded-2xl border transition-all cursor-pointer ${
+                        isSelected
+                          ? 'from-blue-900/40 to-slate-900/40 border-blue-700/30'
+                          : 'from-purple-900/40 to-slate-900/40 border-purple-700/30 hover:border-purple-600/50'
+                      }`}
                     >
-                      <motion.button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleTopicCompletion(topic.id);
-                        }}
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.95 }}
-                        className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition ${
-                          isCompleted
-                            ? 'bg-green-600 border-green-500'
-                            : 'border-purple-500 hover:border-purple-400'
-                        }`}
+                      <div
+                        onClick={() => toggleExpandTopic(topic.id)}
+                        className="p-6 flex items-start gap-4 cursor-pointer"
                       >
-                        {isCompleted && <Check className="w-4 h-4 text-white" />}
-                      </motion.button>
-
-                      <div className="flex-1 min-w-0">
-                        <h3
-                          className={`text-lg font-semibold transition ${
-                            isCompleted ? 'text-green-400 line-through' : 'text-white'
+                        <motion.button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleTopicSelection(topic.id);
+                          }}
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.95 }}
+                          className={`flex-shrink-0 w-6 h-6 rounded border-2 flex items-center justify-center transition ${
+                            isSelected
+                              ? 'bg-blue-600 border-blue-500'
+                              : 'border-purple-500 hover:border-purple-400'
                           }`}
                         >
-                          {topic.name}
-                        </h3>
-                        {notes && (
-                          <p className="text-purple-200/60 text-sm mt-1 truncate">{notes}</p>
-                        )}
-                      </div>
+                          {isSelected && <Check className="w-4 h-4 text-white" />}
+                        </motion.button>
 
-                      <motion.button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleExpandTopic(topic.id);
-                        }}
-                        className="flex-shrink-0 text-purple-300 hover:text-white transition opacity-0 group-hover:opacity-100"
-                      >
-                        {isExpanded ? (
-                          <ChevronUp className="w-5 h-5" />
-                        ) : (
-                          <ChevronDown className="w-5 h-5" />
-                        )}
-                      </motion.button>
-                    </div>
-
-                    <AnimatePresence>
-                      {isExpanded && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.3 }}
-                          className="border-t border-white/10"
-                        >
-                          <div className="p-6 space-y-4">
-                            <div>
-                              <label className="block text-sm font-medium text-purple-200 mb-2">
-                                Study Notes
-                              </label>
-                              <textarea
-                                value={notes}
-                                onChange={(e) => updateTopicNotes(topic.id, e.target.value)}
-                                placeholder="Add your study notes, key points, or reminders..."
-                                className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-                                rows="3"
-                              />
-                            </div>
-
-                            <div className="flex gap-2 pt-2">
-                              {!isCompleted && (
-                                <motion.button
-                                  onClick={() => toggleTopicCompletion(topic.id)}
-                                  whileHover={{ scale: 1.05 }}
-                                  whileTap={{ scale: 0.95 }}
-                                  className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition"
-                                >
-                                  <Check className="w-4 h-4 inline mr-2" />
-                                  Mark as Complete
-                                </motion.button>
-                              )}
-                              {isCompleted && (
-                                <motion.button
-                                  onClick={() => toggleTopicCompletion(topic.id)}
-                                  whileHover={{ scale: 1.05 }}
-                                  whileTap={{ scale: 0.95 }}
-                                  className="flex-1 px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg font-medium transition"
-                                >
-                                  <X className="w-4 h-4 inline mr-2" />
-                                  Mark as Incomplete
-                                </motion.button>
-                              )}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-lg font-semibold text-white mb-2">
+                            {topic.name}
+                          </h3>
+                          <div className="flex items-center gap-3">
+                            <div className="flex-1">
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="text-xs text-purple-200/60">Completion</span>
+                                <span className="text-sm font-semibold text-purple-300">{completionPercent}%</span>
+                              </div>
+                              <div className="w-full bg-white/10 rounded-full h-2">
+                                <motion.div
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${completionPercent}%` }}
+                                  transition={{ duration: 0.5, ease: 'easeOut' }}
+                                  className="bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full"
+                                />
+                              </div>
                             </div>
                           </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                        </div>
+
+                        <motion.button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleExpandTopic(topic.id);
+                          }}
+                          className="flex-shrink-0 text-purple-300 hover:text-white transition opacity-0 group-hover:opacity-100"
+                        >
+                          {isExpanded ? (
+                            <ChevronUp className="w-5 h-5" />
+                          ) : (
+                            <ChevronDown className="w-5 h-5" />
+                          )}
+                        </motion.button>
+                      </div>
+
+                      <AnimatePresence>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="border-t border-white/10"
+                          >
+                            <div className="p-6 space-y-4">
+                              <div>
+                                <label className="block text-sm font-medium text-purple-200 mb-2">
+                                  Study Notes
+                                </label>
+                                <textarea
+                                  value={notes}
+                                  onChange={(e) => updateTopicNotes(topic.id, e.target.value)}
+                                  placeholder="Add your study notes, key points, or reminders..."
+                                  className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                                  rows="3"
+                                />
+                              </div>
+
+                              <div className="flex gap-2 pt-2">
+                                {!isCompleted && (
+                                  <motion.button
+                                    onClick={() => toggleTopicCompletion(topic.id)}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition"
+                                  >
+                                    <Check className="w-4 h-4 inline mr-2" />
+                                    Mark as Complete
+                                  </motion.button>
+                                )}
+                                {isCompleted && (
+                                  <motion.button
+                                    onClick={() => toggleTopicCompletion(topic.id)}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className="flex-1 px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg font-medium transition"
+                                  >
+                                    <X className="w-4 h-4 inline mr-2" />
+                                    Mark as Incomplete
+                                  </motion.button>
+                                )}
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </motion.div>
+                );
+              })}
+
+              {Object.values(topicProgress).some(tp => tp.selected) && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="mt-8 p-8 bg-gradient-to-br from-cyan-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl border border-cyan-700/30"
+                >
+                  <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent mb-4">
+                    Smart Revise
+                  </h2>
+                  <p className="text-purple-200/80 mb-6">
+                    AI-powered personalized revision for your selected topics
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <motion.button
+                      whileHover={{ scale: 1.02, y: -2 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="p-4 bg-cyan-600/50 hover:bg-cyan-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                    >
+                      <span>📚</span>
+                      Generate Study Guide
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.02, y: -2 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="p-4 bg-cyan-600/50 hover:bg-cyan-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                    >
+                      <span>❓</span>
+                      Practice Questions
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.02, y: -2 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="p-4 bg-cyan-600/50 hover:bg-cyan-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                    >
+                      <span>🎯</span>
+                      Concept Flashcards
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.02, y: -2 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="p-4 bg-cyan-600/50 hover:bg-cyan-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                    >
+                      <span>🧠</span>
+                      Explain Concepts
+                    </motion.button>
                   </div>
                 </motion.div>
-              );
-            })
+              )}
+            </>
           ) : (
             <div className="text-center py-12">
               <p className="text-purple-300 mb-4">No topics available for this configuration</p>
