@@ -136,7 +136,7 @@ const Mastery = () => {
               <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent mb-2">
                 Mastery Path
               </h1>
-              <p className="text-white/80">Track your mastery of topics in {masterySetup.subject}</p>
+              <p className="text-white/80">Your journey to academic excellence, led by an in-depth science-based AI tutor.</p>
             </div>
             <motion.button
               onClick={handleChangeSetup}
@@ -341,7 +341,7 @@ const Mastery = () => {
                     Smart Revise
                   </h2>
                   <p className="text-purple-200/80 mb-6">
-                    Choose a revision mode for your selected topics
+                    The scientifically leading methods of revision, guided to you.
                   </p>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
