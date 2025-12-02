@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, ChevronLeft, CheckCircle, X } from 'lucide-react';
-import { getTopicsForSubject } from '../data/masteryTopics';
+import { ChevronRight, ChevronLeft, CheckCircle, X, Loader } from 'lucide-react';
+import { generateTopics } from '../utils/geminiApi';
 
 const qualifications = [
   { name: 'GCSE', available: true },
