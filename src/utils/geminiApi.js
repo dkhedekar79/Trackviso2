@@ -45,12 +45,12 @@ Generate topics for ${subject}:`;
       }),
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(`API Error: ${error.error?.message || response.statusText}`);
+      throw new Error(`API Error: ${data.error?.message || response.statusText}`);
     }
 
-    const data = await response.json();
     const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!content) {
