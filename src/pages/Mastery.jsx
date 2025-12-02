@@ -329,47 +329,56 @@ const Mastery = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5 }}
-                  className="mt-8 p-8 bg-gradient-to-br from-cyan-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl border border-cyan-700/30"
+                  className="mt-8"
                 >
-                  <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent mb-4">
+                  <h2 className="text-3xl font-bold text-white mb-2">
                     Smart Revise
                   </h2>
                   <p className="text-purple-200/80 mb-6">
-                    AI-powered personalized revision for your selected topics
+                    Choose a revision mode for your selected topics
                   </p>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <motion.button
-                      whileHover={{ scale: 1.02, y: -2 }}
+                      whileHover={{ scale: 1.05, y: -4 }}
                       whileTap={{ scale: 0.98 }}
-                      className="p-4 bg-cyan-600/50 hover:bg-cyan-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                      className="group p-6 bg-gradient-to-br from-amber-900/40 to-orange-900/40 backdrop-blur-md rounded-2xl border-2 border-amber-700/30 hover:border-amber-600/50 transition-all cursor-pointer"
                     >
-                      <span>📚</span>
-                      Generate Study Guide
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="text-3xl">⚡</span>
+                        <h3 className="text-2xl font-bold text-amber-300">Blurt Mode</h3>
+                      </div>
+                      <p className="text-amber-100/70 text-sm leading-relaxed">
+                        Test your instant recall with quick-fire questions. Write down what you remember before seeing the answer. Perfect for rapid memory check.
+                      </p>
                     </motion.button>
+
                     <motion.button
-                      whileHover={{ scale: 1.02, y: -2 }}
+                      whileHover={{ scale: 1.05, y: -4 }}
                       whileTap={{ scale: 0.98 }}
-                      className="p-4 bg-cyan-600/50 hover:bg-cyan-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                      className="group p-6 bg-gradient-to-br from-purple-900/40 to-violet-900/40 backdrop-blur-md rounded-2xl border-2 border-purple-700/30 hover:border-purple-600/50 transition-all cursor-pointer"
                     >
-                      <span>❓</span>
-                      Practice Questions
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="text-3xl">🔄</span>
+                        <h3 className="text-2xl font-bold text-purple-300">Spaced Retrieval</h3>
+                      </div>
+                      <p className="text-purple-100/70 text-sm leading-relaxed">
+                        Scientifically-optimized spacing intervals for maximum retention. Review concepts at the right time to strengthen long-term memory.
+                      </p>
                     </motion.button>
+
                     <motion.button
-                      whileHover={{ scale: 1.02, y: -2 }}
+                      whileHover={{ scale: 1.05, y: -4 }}
                       whileTap={{ scale: 0.98 }}
-                      className="p-4 bg-cyan-600/50 hover:bg-cyan-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                      className="group p-6 bg-gradient-to-br from-red-900/40 to-rose-900/40 backdrop-blur-md rounded-2xl border-2 border-red-700/30 hover:border-red-600/50 transition-all cursor-pointer"
                     >
-                      <span>🎯</span>
-                      Concept Flashcards
-                    </motion.button>
-                    <motion.button
-                      whileHover={{ scale: 1.02, y: -2 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="p-4 bg-cyan-600/50 hover:bg-cyan-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
-                    >
-                      <span>🧠</span>
-                      Explain Concepts
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="text-3xl">📋</span>
+                        <h3 className="text-2xl font-bold text-red-300">Mock Exams</h3>
+                      </div>
+                      <p className="text-red-100/70 text-sm leading-relaxed">
+                        Full exam-style simulation under timed conditions. Experience real exam pressure and identify weak areas before the actual exam.
+                      </p>
                     </motion.button>
                   </div>
                 </motion.div>
