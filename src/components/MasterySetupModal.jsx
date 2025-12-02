@@ -28,6 +28,8 @@ export default function MasterySetupModal({ subjects, onComplete, onClose }) {
   const [qualification, setQualification] = useState('');
   const [subject, setSubject] = useState('');
   const [examBoard, setExamBoard] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const subjectNames = subjects.map(s => s.name);
   const availableExamBoards = qualification ? (examBoards[qualification] || []) : [];
