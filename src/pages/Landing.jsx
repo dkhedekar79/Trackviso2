@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import MagneticParticles from "../components/MagneticParticles";
 import {
@@ -36,6 +36,59 @@ const Landing = () => {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+
+  const rotatingTexts = [
+    {
+      title: (
+        <>
+          Make every{" "}
+          <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent">
+            Study Session
+          </span>{" "}
+          Count.
+        </>
+      ),
+      subtitle:
+        "Your revision dashboard: study tracker, analytics, calendar, and XP system in one.",
+    },
+    {
+      title: (
+        <>
+          Feel{" "}
+          <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent">
+            Addicted
+          </span>{" "}
+          to studying.
+        </>
+      ),
+      subtitle:
+        "Gamified progress, streaks, and rewards make learning irresistible.",
+    },
+    {
+      title: (
+        <>
+          Scientific based study techniques meets the power of{" "}
+          <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent">
+            AI
+          </span>
+        </>
+      ),
+      subtitle:
+        "Personalized insights, the three best study modes, and smart recommendations for optimal learning.",
+    },
+  ];
+
+  const [currentTextIndex, setCurrentTextIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTextIndex(
+        (prevIndex) => (prevIndex + 1) % rotatingTexts.length
+      );
+    }, 5000); // Change text every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [rotatingTexts.length]);
 
   // Redirect authenticated users to dashboard
   useEffect(() => {
@@ -183,24 +236,34 @@ const Landing = () => {
             </div>
           </motion.div>
 
-          <motion.h1
-            className="text-5xl lg:text-7xl font-bold leading-tight mb-8 text-white"
-            variants={itemVariants}
-            style={{ perspective: "1000px" }}
-          >
-            Make every{" "}
-            <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent">
-              Study Session
-            </span>{" "}
-            Count.
-          </motion.h1>
+          <AnimatePresence mode="wait">
+            <motion.h1
+              key={currentTextIndex}
+              className="text-5xl lg:text-7xl font-bold leading-tight mb-8 text-white"
+              variants={itemVariants}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+              style={{ perspective: "1000px" }}
+            >
+              {rotatingTexts[currentTextIndex].title}
+            </motion.h1>
+          </AnimatePresence>
 
-          <motion.p
-            className="text-xl lg:text-2xl text-purple-200/80 mb-12 max-w-4xl mx-auto"
-            variants={itemVariants}
-          >
-            Your revision dashboard: study tracker, analytics, calendar, and XP system in one.
-          </motion.p>
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={currentTextIndex + "p"}
+              className="text-xl lg:text-2xl text-purple-200/80 mb-12 max-w-4xl mx-auto"
+              variants={itemVariants}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              {rotatingTexts[currentTextIndex].subtitle}
+            </motion.p>
+          </AnimatePresence>
 
           <motion.div
             className="flex justify-center items-center"
