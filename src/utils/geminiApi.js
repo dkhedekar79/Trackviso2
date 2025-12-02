@@ -1,5 +1,5 @@
 const API_KEY = import.meta.env.VITE_GOOGLE_AI_API_KEY;
-const API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent';
+const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent';
 
 export async function generateTopics(qualification, examBoard, subject) {
   if (!API_KEY) {
@@ -20,56 +20,73 @@ Example format:
 
 Generate topics for ${subject}:`;
 
+  const requestBody = {
+    contents: [
+      {
+        parts: [
+          {
+            text: prompt,
+          },
+        ],
+      },
+    ],
+    generationConfig: {
+      temperature: 0.7,
+      topK: 40,
+      topP: 0.95,
+      maxOutputTokens: 1024,
+    },
+  };
+
   try {
     const response = await fetch(`${API_URL}?key=${API_KEY}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: prompt,
-              },
-            ],
-          },
-        ],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 1024,
-        },
-      }),
+      body: JSON.stringify(requestBody),
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(`API Error: ${data.error?.message || response.statusText}`);
+    let data;
+    try {
+      data = await response.json();
+    } catch (parseError) {
+      throw new Error('Failed to parse API response. Please try again.');
     }
 
-    const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!response.ok) {
+      const errorMessage = data?.error?.message || `API Error: ${response.statusText}`;
+      throw new Error(errorMessage);
+    }
+
+    const content = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!content) {
-      throw new Error('No content in API response');
+      throw new Error('No topics generated. Please try again.');
     }
 
     const jsonMatch = content.match(/\[[\s\S]*\]/);
     if (!jsonMatch) {
-      throw new Error('Could not parse JSON from response');
+      throw new Error('Could not parse response format');
     }
 
-    const topics = JSON.parse(jsonMatch[0]);
+    let topics;
+    try {
+      topics = JSON.parse(jsonMatch[0]);
+    } catch (parseError) {
+      throw new Error('Could not parse topics from response');
+    }
 
     if (!Array.isArray(topics)) {
-      throw new Error('Topics is not an array');
+      throw new Error('Invalid topics format');
+    }
+
+    if (topics.length === 0) {
+      throw new Error('No topics were generated');
     }
 
     return topics.map(topic => ({
-      id: topic.id || topic.name?.toLowerCase().replace(/\s+/g, '-'),
+      id: topic.id || topic.name?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
       name: topic.name,
     }));
   } catch (error) {
