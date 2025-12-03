@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp, Check, Edit2, X } from 'lucide-react';
 import MasterySetupModal from '../components/MasterySetupModal';
+import BlurtModeSection from '../components/BlurtModeSection';
 
 const Mastery = () => {
   const [masterySetup, setMasterySetup] = useState(null);
@@ -11,6 +12,8 @@ const Mastery = () => {
   const [expandedTopics, setExpandedTopics] = useState({});
   const [selectedRevisionMethod, setSelectedRevisionMethod] = useState(null);
   const [selectedTopicForBlurt, setSelectedTopicForBlurt] = useState(null);
+  const [isBlurtModeActive, setIsBlurtModeActive] = useState(false);
+  const [blurtData, setBlurtData] = useState(null);
 
   useEffect(() => {
     const savedSubjects = JSON.parse(localStorage.getItem('subjects') || '[]');
@@ -350,6 +353,7 @@ const Mastery = () => {
                     <motion.button
                       whileHover={{ scale: 1.05, y: -4 }}
                       whileTap={{ scale: 0.98 }}
+                      onClick={() => setIsBlurtModeActive(true)}
                       className="group p-6 bg-gradient-to-br from-amber-900/40 to-orange-900/40 backdrop-blur-md rounded-2xl border-2 border-amber-700/30 hover:border-amber-600/50 transition-all cursor-pointer"
                     >
                       <div className="flex items-center gap-3 mb-3">
@@ -404,6 +408,18 @@ const Mastery = () => {
                 Update Setup
               </motion.button>
             </div>
+          )}
+
+          {isBlurtModeActive && (
+            <BlurtModeSection
+              selectedTopics={Object.keys(topicProgress).filter(topicId => topicProgress[topicId]?.selected)}
+              masterySetup={masterySetup}
+              onContinue={(blurtData) => {
+                setBlurtData(blurtData);
+                setIsBlurtModeActive(false);
+                // Here you can add logic for the next step in the blurt mode quiz
+              }}
+            />
           )}
         </div>
       </div>

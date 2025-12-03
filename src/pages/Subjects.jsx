@@ -73,12 +73,13 @@ const Subjects = () => {
         color: newSubjectColor,
         goalHours: parseFloat(newSubjectGoal) || 0,
         iconName: 'BookOpen', // Store icon name as string
+        icon: ICON_COMPONENTS['BookOpen'] || BookOpen, // Map the icon component
       };
-      
+
       const updatedSubjects = [...subjects, newSubject];
       setSubjects(updatedSubjects);
-      localStorage.setItem('subjects', JSON.stringify(updatedSubjects));
-      
+      localStorage.setItem('subjects', JSON.stringify(updatedSubjects.map(({ icon, ...rest }) => rest))); // Save only serializable data
+
       // Reset state
       setNewSubjectName('');
       setNewSubjectColor('#6C5DD3');
@@ -90,10 +91,12 @@ const Subjects = () => {
   const handleEditSubject = () => {
     if (editingSubject) {
       const updatedSubjects = subjects.map(subject =>
-        subject.id === editingSubject.id ? { ...editingSubject, iconName: subject.iconName } : subject
+        subject.id === editingSubject.id
+          ? { ...editingSubject, iconName: subject.iconName, icon: subject.icon }
+          : subject
       );
       setSubjects(updatedSubjects);
-      localStorage.setItem('subjects', JSON.stringify(updatedSubjects));
+      localStorage.setItem('subjects', JSON.stringify(updatedSubjects.map(({ icon, ...rest }) => rest))); // Save only serializable data
       setEditingSubject(null);
       setShowEditModal(false);
     }
@@ -102,7 +105,7 @@ const Subjects = () => {
   const handleDeleteSubject = (subjectId) => {
     const updatedSubjects = subjects.filter(subject => subject.id !== subjectId);
     setSubjects(updatedSubjects);
-    localStorage.setItem('subjects', JSON.stringify(updatedSubjects));
+    localStorage.setItem('subjects', JSON.stringify(updatedSubjects.map(({ icon, ...rest }) => rest))); // Save only serializable data
   };
 
 
