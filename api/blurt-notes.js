@@ -25,74 +25,71 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing required parameters: qualification, subject, examBoard' });
     }
 
+    const GOOGLE_API_KEY = process.env.VITE_GOOGLE_AI_API_KEY || process.env.GOOGLE_AI_API_KEY;
     const TAVILY_API_KEY = process.env.TAVILY_API_KEY;
-    const HF_API_KEY = process.env.HUGGINGFACE_API_KEY || process.env.VITE_HUGGINGFACE_API_KEY;
-    const MODEL_ID = process.env.HUGGINGFACE_MODEL_ID || 'meta-llama/Meta-Llama-3-8B-Instruct';
 
-    if (!TAVILY_API_KEY) {
-      return res.status(500).json({ error: 'Web search API key not configured' });
-    }
-
-    if (!HF_API_KEY) {
-      return res.status(500).json({ error: 'HuggingFace API key not configured' });
+    if (!GOOGLE_API_KEY) {
+      return res.status(500).json({ error: 'Google AI API key not configured' });
     }
 
     // Step 1: Fetch grade 9 notes from web search for all topics
     let allWebResults = '';
 
     try {
-      for (const topic of topics) {
-        const searchQueries = [
-          `"${examBoard}" "${qualification}" "${subject}" "${topic}" grade 9 notes`,
-          `${examBoard} ${qualification} ${subject} ${topic} grade 9 study guide`,
-          `${subject} "${topic}" GCSE grade 9 revision notes`,
-          `${topic} grade 9 ${subject} ${examBoard} key concepts`,
-        ];
+      if (TAVILY_API_KEY) {
+        for (const topic of topics) {
+          const searchQueries = [
+            `"${examBoard}" "${qualification}" "${subject}" "${topic}" grade 9 notes`,
+            `${examBoard} ${qualification} ${subject} ${topic} grade 9 study guide`,
+            `${subject} "${topic}" GCSE grade 9 revision notes`,
+            `${topic} grade 9 ${subject} ${examBoard} key concepts`,
+          ];
 
-        let topicResults = [];
+          let topicResults = [];
 
-        for (const searchQuery of searchQueries) {
-          try {
-            const tavilyResponse = await fetch('https://api.tavily.com/search', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                api_key: TAVILY_API_KEY,
-                query: searchQuery,
-                search_depth: 'advanced',
-                max_results: 5,
-                include_answer: true,
-              }),
-            });
+          for (const searchQuery of searchQueries) {
+            try {
+              const tavilyResponse = await fetch('https://api.tavily.com/search', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  api_key: TAVILY_API_KEY,
+                  query: searchQuery,
+                  search_depth: 'advanced',
+                  max_results: 5,
+                  include_answer: true,
+                }),
+              });
 
-            if (tavilyResponse.ok) {
-              const tavilyData = await tavilyResponse.json();
+              if (tavilyResponse.ok) {
+                const tavilyData = await tavilyResponse.json();
 
-              // Use Tavily's AI summary if available
-              if (tavilyData.answer) {
-                topicResults.push(`\n=== AI Summary for "${topic}" ===\n${tavilyData.answer}`);
+                // Use Tavily's AI summary if available
+                if (tavilyData.answer) {
+                  topicResults.push(`\n=== AI Summary for "${topic}" ===\n${tavilyData.answer}`);
+                }
+
+                // Collect search results
+                if (tavilyData.results && tavilyData.results.length > 0) {
+                  const results = tavilyData.results.map(result =>
+                    `Source: ${result.title}\nURL: ${result.url}\n${result.content.substring(0, 500)}`
+                  );
+                  topicResults.push(...results);
+                }
               }
-
-              // Collect search results
-              if (tavilyData.results && tavilyData.results.length > 0) {
-                const results = tavilyData.results.map(result =>
-                  `Source: ${result.title}\nURL: ${result.url}\n${result.content.substring(0, 500)}`
-                );
-                topicResults.push(...results);
-              }
+            } catch (searchError) {
+              console.error('Search error for query:', searchQuery, searchError.message);
+              // Continue with next search
             }
-          } catch (searchError) {
-            console.error('Search error for query:', searchQuery, searchError.message);
-            // Continue with next search
           }
-        }
 
-        // Add topic results to all results
-        if (topicResults.length > 0) {
-          allWebResults += `\n\n### TOPIC: ${topic} ###\n`;
-          allWebResults += topicResults.filter((v, i, a) => a.indexOf(v) === i).join('\n---\n');
+          // Add topic results to all results
+          if (topicResults.length > 0) {
+            allWebResults += `\n\n### TOPIC: ${topic} ###\n`;
+            allWebResults += topicResults.filter((v, i, a) => a.indexOf(v) === i).join('\n---\n');
+          }
         }
       }
     } catch (searchError) {
@@ -101,7 +98,7 @@ export default async function handler(req, res) {
       allWebResults = '';
     }
 
-    // Step 2: Generate comprehensive notes using AI
+    // Step 2: Generate comprehensive notes using Google Gemini API
     const topicsText = topics.join(', ');
 
     const prompt = `You are an expert educational tutor specializing in grade 9 / GCSE level ${subject}. Create comprehensive study notes for students at this level.
@@ -126,76 +123,116 @@ Please provide comprehensive but concise notes in this format:
 
 Use clear, simple language suitable for 13-14 year old students. Organize the information logically with headings and bullet points. Focus on the essential content needed to understand these topics at GCSE level.`;
 
-    const hfApiUrl = `https://api-inference.huggingface.co/models/${MODEL_ID}`;
+    const googleApiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
-    const requestBody = {
-      inputs: [
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-      parameters: {
-        max_new_tokens: 2000,
-        temperature: 0.7,
-        top_p: 0.9,
-        return_full_text: false,
-        do_sample: true,
-      },
-      options: {
-        wait_for_model: true,
-      },
-    };
-
-    const hfResponse = await fetch(hfApiUrl, {
+    const googleResponse = await fetch(googleApiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${HF_API_KEY}`,
       },
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: prompt,
+              },
+            ],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2048,
+        },
+        safetySettings: [
+          {
+            category: 'HARM_CATEGORY_HARASSMENT',
+            threshold: 'BLOCK_NONE',
+          },
+          {
+            category: 'HARM_CATEGORY_HATE_SPEECH',
+            threshold: 'BLOCK_NONE',
+          },
+          {
+            category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+            threshold: 'BLOCK_NONE',
+          },
+          {
+            category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+            threshold: 'BLOCK_NONE',
+          },
+        ],
+      }),
     });
 
-    if (!hfResponse.ok) {
-      const errorText = await hfResponse.text();
-      console.error('HuggingFace API error:', errorText);
+    const urlWithKey = `${googleApiUrl}?key=${GOOGLE_API_KEY}`;
+    const googleResponseWithKey = await fetch(urlWithKey, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: prompt,
+              },
+            ],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2048,
+        },
+        safetySettings: [
+          {
+            category: 'HARM_CATEGORY_HARASSMENT',
+            threshold: 'BLOCK_NONE',
+          },
+          {
+            category: 'HARM_CATEGORY_HATE_SPEECH',
+            threshold: 'BLOCK_NONE',
+          },
+          {
+            category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+            threshold: 'BLOCK_NONE',
+          },
+          {
+            category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+            threshold: 'BLOCK_NONE',
+          },
+        ],
+      }),
+    });
 
-      if (hfResponse.status === 401 || hfResponse.status === 403) {
-        return res.status(500).json({ error: 'Authentication failed. Please check HuggingFace API key.' });
+    if (!googleResponseWithKey.ok) {
+      const errorText = await googleResponseWithKey.text();
+      console.error('Google Gemini API error:', errorText);
+
+      if (googleResponseWithKey.status === 401 || googleResponseWithKey.status === 403) {
+        return res.status(500).json({ error: 'Authentication failed. Please check Google API key.' });
       }
 
-      // Return example notes if model is loading
-      if (hfResponse.status === 503) {
-        const exampleNotes = generateExampleNotes(topics, qualification, subject, examBoard);
-        return res.status(200).json({
-          notes: exampleNotes,
-          knowledgeMap: exampleNotes,
-          fallback: true,
-        });
-      }
-
-      return res.status(500).json({ error: 'Failed to generate notes from AI model' });
+      const exampleNotes = generateExampleNotes(topics, qualification, subject, examBoard);
+      return res.status(200).json({
+        notes: exampleNotes,
+        knowledgeMap: exampleNotes,
+        fallback: true,
+      });
     }
 
-    const hfData = await hfResponse.json();
+    const googleData = await googleResponseWithKey.json();
 
     let content = '';
-    if (Array.isArray(hfData) && hfData.length > 0) {
-      if (hfData[0]?.generated_text) {
-        content = hfData[0].generated_text;
-      } else if (hfData[0]?.message?.content) {
-        content = hfData[0].message.content;
-      } else if (typeof hfData[0] === 'string') {
-        content = hfData[0];
-      } else {
-        content = JSON.stringify(hfData[0]);
-      }
-    } else if (hfData.generated_text) {
-      content = hfData.generated_text;
-    } else if (hfData.message?.content) {
-      content = hfData.message.content;
-    } else if (typeof hfData === 'string') {
-      content = hfData;
+    if (googleData?.candidates?.[0]?.content?.parts?.[0]?.text) {
+      content = googleData.candidates[0].content.parts[0].text;
+    } else if (googleData?.text) {
+      content = googleData.text;
     }
 
     if (!content || content.trim().length === 0) {
@@ -207,12 +244,9 @@ Use clear, simple language suitable for 13-14 year old students. Organize the in
       });
     }
 
-    // Clean up the content (remove prompt echoing if present)
-    const notes = content.includes('Create study notes') ? content.split('Create study notes')[1] : content;
-
     return res.status(200).json({
-      notes: notes.trim(),
-      knowledgeMap: notes.trim(),
+      notes: content.trim(),
+      knowledgeMap: content.trim(),
     });
   } catch (error) {
     console.error('Error generating blurt notes:', error);
