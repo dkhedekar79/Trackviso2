@@ -36,6 +36,7 @@ const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue }) => {
 
       setNotes(data.notes || '');
       setKnowledgeMap(data.knowledgeMap || null);
+      setShowNotes(false); // Reset to blurred state
       setStage('display');
     } catch (err) {
       setError(err.message || 'Failed to generate knowledge map. Please try again.');
