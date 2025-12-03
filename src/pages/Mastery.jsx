@@ -12,6 +12,8 @@ const Mastery = () => {
   const [expandedTopics, setExpandedTopics] = useState({});
   const [selectedRevisionMethod, setSelectedRevisionMethod] = useState(null);
   const [selectedTopicForBlurt, setSelectedTopicForBlurt] = useState(null);
+  const [isBlurtModeActive, setIsBlurtModeActive] = useState(false);
+  const [blurtData, setBlurtData] = useState(null);
 
   useEffect(() => {
     const savedSubjects = JSON.parse(localStorage.getItem('subjects') || '[]');
