@@ -511,7 +511,7 @@ const Landing = () => {
               </div>
               <h3 className="text-2xl font-bold mb-4">Blurt mode</h3>
               <p className="text-purple-100/80 text-lg mb-6">
-                An advanced AI system maximising active recall, with detailed analysis as the end of every session. AI generate grade 9 knowledge maps, or manually input your own notes, then see how well you can do at remembering them!
+                An advanced active-recall engine designed to maximise memory performance. Upload an image of your notes, paste your own content or generate a Grade-9-level knowledge map using AI. Then “blurt” everything you can remember in one go. The system evaluates your response line by line, identifying missing points, incorrect assumptions and areas of weak recall. Every session ends with a detailed breakdown, showing what you remembered, what you missed and how to improve next time.
               </p>
             </motion.div>
 
@@ -529,7 +529,7 @@ const Landing = () => {
               </div>
               <h3 className="text-2xl font-bold mb-4">Spaced retrieval</h3>
               <p className="text-pink-100/80 text-lg mb-6">
-                The most efficient study method meets the efficiency of AI. Quizzes, flashcards and more. Detailed analytics.
+                A fully adaptive spaced-repetition system powered by precision AI scheduling. Create flashcards, take targeted quizzes or let the platform auto-generate questions from your notes or specifications. Each review is timed according to your memory strength, ensuring you study material exactly when you’re most likely to forget it. After each session, you receive a comprehensive performance report that tracks retention trends, highlights vulnerable knowledge areas and recommends what to revise next.
               </p>
             </motion.div>
 
@@ -547,7 +547,7 @@ const Landing = () => {
               </div>
               <h3 className="text-2xl font-bold mb-4">Mock Exam</h3>
               <p className="text-purple-100/80 text-lg mb-6">
-               Realistic exam practice for the best real life practice.
+               A realistic exam-simulation environment built for high-stakes preparation. Generate full papers aligned to your exam board, practice under timed conditions and receive structured, examiner-style marking. The system analyses your answers for accuracy, technique and depth, while also pinpointing content gaps and recurring weaknesses. Each completed paper ends with a detailed examiner-style report, giving you clear targets to raise your grade and strengthen real-exam readiness.
               </p>
             </motion.div>
           </div>
