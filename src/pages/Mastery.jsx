@@ -9,6 +9,8 @@ const Mastery = () => {
   const [subjects, setSubjects] = useState([]);
   const [topicProgress, setTopicProgress] = useState({});
   const [expandedTopics, setExpandedTopics] = useState({});
+  const [selectedRevisionMethod, setSelectedRevisionMethod] = useState(null);
+  const [selectedTopicForBlurt, setSelectedTopicForBlurt] = useState(null);
 
   useEffect(() => {
     const savedSubjects = JSON.parse(localStorage.getItem('subjects') || '[]');

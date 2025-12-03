@@ -20,6 +20,19 @@ import { useNavigate } from 'react-router-dom';
 import { useTimer } from '../context/TimerContext';
 import { useGamification } from '../context/GamificationContext';
 
+// Map icon names to actual Lucide React components
+const ICON_COMPONENTS = {
+  BookOpen: BookOpen,
+  Calculator: Calculator,
+  Dna: Dna,
+  FlaskConical: FlaskConical,
+  Atom: Atom,
+  Scroll: Scroll,
+  Globe: Globe,
+  TrendingUp: TrendingUp,
+  // Add other icons as needed
+};
+
 // Fixed list of GCSE subjects with predefined colors and icons
 
 
@@ -38,7 +51,11 @@ const Subjects = () => {
 
   useEffect(() => {
     const savedSubjects = JSON.parse(localStorage.getItem('subjects') || '[]');
-    setSubjects(savedSubjects);
+    const subjectsWithIcons = savedSubjects.map(subject => ({
+      ...subject,
+      icon: ICON_COMPONENTS[subject.iconName] || BookOpen, // Use mapped component or default
+    }));
+    setSubjects(subjectsWithIcons);
   }, []);
 
 
@@ -55,7 +72,7 @@ const Subjects = () => {
         name: newSubjectName.trim(),
         color: newSubjectColor,
         goalHours: parseFloat(newSubjectGoal) || 0,
-        icon: BookOpen, // Default icon for custom subjects
+        iconName: 'BookOpen', // Store icon name as string
       };
       
       const updatedSubjects = [...subjects, newSubject];
@@ -73,7 +90,7 @@ const Subjects = () => {
   const handleEditSubject = () => {
     if (editingSubject) {
       const updatedSubjects = subjects.map(subject =>
-        subject.id === editingSubject.id ? editingSubject : subject
+        subject.id === editingSubject.id ? { ...editingSubject, iconName: subject.iconName } : subject
       );
       setSubjects(updatedSubjects);
       localStorage.setItem('subjects', JSON.stringify(updatedSubjects));
@@ -166,7 +183,7 @@ const Subjects = () => {
           const level = getSubjectLevel(studyTime);
           const progress = getSubjectProgress(studyTime, subject.goalHours);
           const badge = getSubjectBadge(studyTime);
-          const SubjectIcon = subject.icon || BookOpen;
+          const SubjectIcon = subject.icon; // Already mapped in useEffect
 
           return (
             <motion.div
@@ -195,7 +212,7 @@ const Subjects = () => {
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                       onClick={() => {
-                        setEditingSubject(subject);
+                        setEditingSubject({ ...subject, iconName: subject.iconName });
                       setShowEditModal(true);
                       }}
                     className="p-2 rounded-lg text-white opacity-70 hover:opacity-100 transition-opacity"
