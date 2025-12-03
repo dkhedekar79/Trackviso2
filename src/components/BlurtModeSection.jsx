@@ -26,25 +26,13 @@ const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue }) => {
         throw new Error('No topics selected for knowledge map generation');
       }
 
-      const response = await fetch('/api/blurt-notes', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          topics: selectedTopicNames,
-          qualification: masterySetup.qualification,
-          subject: masterySetup.subject,
-          examBoard: masterySetup.examBoard,
-        }),
-      });
+      const data = await generateBlurtNotes(
+        selectedTopicNames,
+        masterySetup.qualification,
+        masterySetup.subject,
+        masterySetup.examBoard
+      );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate knowledge map');
-      }
-
-      const data = await response.json();
       setNotes(data.notes || '');
       setKnowledgeMap(data.knowledgeMap || null);
       setStage('display');
