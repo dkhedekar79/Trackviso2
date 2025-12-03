@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Loader, AlertCircle } from 'lucide-react';
+import { ArrowRight, Loader, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { generateBlurtNotes } from '../utils/blurtNotesApi';
 
 const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue }) => {
@@ -10,6 +10,7 @@ const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [knowledgeMap, setKnowledgeMap] = useState(null);
+  const [showNotes, setShowNotes] = useState(false);
 
   const handleAIGenerate = async () => {
     setLoading(true);
