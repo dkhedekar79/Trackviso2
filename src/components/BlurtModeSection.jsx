@@ -52,6 +52,7 @@ const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue }) => {
     }
     setNotes(manualInput);
     setKnowledgeMap(manualInput); // Use manual input as knowledge map reference
+    setShowNotes(false); // Reset to blurred state
     setStage('display');
     setError(null);
   };
