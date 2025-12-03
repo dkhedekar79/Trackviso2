@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Loader, AlertCircle } from 'lucide-react';
+import { generateBlurtNotes } from '../utils/blurtNotesApi';
 
 const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue }) => {
   const [stage, setStage] = useState('choice'); // 'choice' | 'loading' | 'display'
