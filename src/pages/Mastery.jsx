@@ -409,6 +409,18 @@ const Mastery = () => {
               </motion.button>
             </div>
           )}
+
+          {isBlurtModeActive && (
+            <BlurtModeSection
+              selectedTopics={Object.keys(topicProgress).filter(topicId => topicProgress[topicId]?.selected)}
+              masterySetup={masterySetup}
+              onContinue={(blurtData) => {
+                setBlurtData(blurtData);
+                setIsBlurtModeActive(false);
+                // Here you can add logic for the next step in the blurt mode quiz
+              }}
+            />
+          )}
         </div>
       </div>
     </div>
