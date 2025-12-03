@@ -105,7 +105,7 @@ const Subjects = () => {
   const handleDeleteSubject = (subjectId) => {
     const updatedSubjects = subjects.filter(subject => subject.id !== subjectId);
     setSubjects(updatedSubjects);
-    localStorage.setItem('subjects', JSON.stringify(updatedSubjects));
+    localStorage.setItem('subjects', JSON.stringify(updatedSubjects.map(({ icon, ...rest }) => rest))); // Save only serializable data
   };
 
 
