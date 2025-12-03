@@ -353,6 +353,7 @@ const Mastery = () => {
                     <motion.button
                       whileHover={{ scale: 1.05, y: -4 }}
                       whileTap={{ scale: 0.98 }}
+                      onClick={() => setIsBlurtModeActive(true)}
                       className="group p-6 bg-gradient-to-br from-amber-900/40 to-orange-900/40 backdrop-blur-md rounded-2xl border-2 border-amber-700/30 hover:border-amber-600/50 transition-all cursor-pointer"
                     >
                       <div className="flex items-center gap-3 mb-3">
