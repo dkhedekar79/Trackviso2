@@ -473,6 +473,136 @@ const Landing = () => {
         </div>
       </section>
 
+      <section id="features" className="py-32 px-4 bg-gradient-to-b from-slate-900 via-slate-900 to-purple-900/50 relative overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div className="max-w-7xl mx-auto relative z-10">
+          <motion.div
+            className="text-center mb-20"
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-white">
+              A powerful new{" "}
+              <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                AI revision system
+              </span>
+            </h2>
+            <p className="text-xl text-purple-200/80 max-w-3xl mx-auto">
+              Science-proven best methods to make every study session count.
+            </p>
+          </motion.div>
+
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Smart Analytics */}
+            <motion.div
+              className="bg-gradient-to-br from-purple-600/40 to-purple-700/40 border border-purple-500/30 rounded-3xl p-8 text-white backdrop-blur-md hover:border-purple-500/60 transition-all group cursor-pointer"
+              initial={{ opacity: 0, y: 50, rotateY: 20 }}
+              whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
+              transition={{ duration: 0.7 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -10, scale: 1.02 }}
+            >
+              <div className="transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 mb-6">
+                <Target className="w-12 h-12 text-purple-300" />
+              </div>
+              <h3 className="text-2xl font-bold mb-4">Blurt mode</h3>
+              <p className="text-purple-100/80 text-lg mb-6">
+                An advanced AI system maximising active recall, with detailed analysis as the end of every session. AI generate grade 9 knowledge maps, or manually input your own notes, then see how well you can do at remembering them!
+              </p>
+            </motion.div>
+
+            {/* Goal Tracking */}
+            <motion.div
+              className="bg-gradient-to-br from-pink-600/40 to-purple-600/40 border border-pink-500/30 rounded-3xl p-8 text-white backdrop-blur-md hover:border-pink-500/60 transition-all group cursor-pointer"
+              initial={{ opacity: 0, y: 50, rotateY: -20 }}
+              whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
+              transition={{ duration: 0.7, delay: 0.1 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -10, scale: 1.02 }}
+            >
+              <div className="transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 mb-6">
+                <Target className="w-12 h-12 text-pink-300" />
+              </div>
+              <h3 className="text-2xl font-bold mb-4">Gamified experience</h3>
+              <p className="text-pink-100/80 text-lg mb-6">
+                Become addicted to studying with streaks, xp, levels, achievements, quests, and more!
+              </p>
+              <div className="bg-pink-500/20 rounded-xl p-4 border border-pink-500/20">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-pink-200">Level 3 - 234 XP needed</span>
+                  <span className="text-sm font-semibold text-pink-300">87%</span>
+                </div>
+                <div className="w-full bg-pink-500/30 rounded-full h-2">
+                  <motion.div
+                    className="bg-gradient-to-r from-pink-400 to-purple-400 h-2 rounded-full"
+                    style={{ width: '87%' }}
+                    animate={{ opacity: [0.8, 1, 0.8] }}
+                    transition={{ duration: 2, repeat: Infinity, delay: 0.3 }}
+                  ></motion.div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* AI Insights */}
+            <motion.div
+              className="bg-gradient-to-br from-purple-600/40 to-pink-600/40 border border-purple-500/30 rounded-3xl p-8 text-white backdrop-blur-md hover:border-purple-500/60 transition-all group cursor-pointer"
+              initial={{ opacity: 0, y: 50, rotateY: 20 }}
+              whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -10, scale: 1.02 }}
+            >
+              <div className="transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 mb-6">
+                <Brain className="w-12 h-12 text-purple-300" />
+              </div>
+              <h3 className="text-2xl font-bold mb-4">Get the best Insights</h3>
+              <p className="text-purple-100/80 text-lg mb-6">
+                Get personalized recommendations and insights to optimize your study schedule and improve performance.
+              </p>
+              <div className="bg-purple-500/20 rounded-xl p-4 border border-purple-500/20">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Lightbulb className="w-4 h-4 text-yellow-300" />
+                  <span className="text-sm font-medium text-purple-200">Smart Tip</span>
+                </div>
+                <p className="text-sm text-purple-100/80">
+                  Study math between 2-4 PM for 23% better retention
+                </p>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Feature Grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mt-20">
+            {[
+              { icon: Clock, title: "Time Tracking", desc: "Log your study sessions" },
+              { icon: Award, title: "Achievement System", desc: "Gamified progress rewards" },
+              { icon: Shield, title: "Privacy First", desc: "Your data stays secure" },
+              { icon: Smartphone, title: "Cross-Platform", desc: "Works on all devices" }
+            ].map((feature, index) => (
+              <motion.div
+                key={index}
+                className="bg-purple-900/30 border border-purple-700/30 rounded-2xl p-6 hover:bg-purple-800/40 hover:border-purple-600/50 transition-all duration-300 backdrop-blur-sm group"
+                initial={{ opacity: 0, y: 30, rotateX: 45 }}
+                whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                whileHover={{ y: -5 }}
+              >
+                <div className="text-purple-400 mb-4 transform group-hover:scale-125 group-hover:rotate-12 transition-all duration-300">
+                  <feature.icon className="w-8 h-8" />
+                </div>
+                <h4 className="text-lg font-semibold mb-2 text-white">{feature.title}</h4>
+                <p className="text-purple-200/70 text-sm">{feature.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* How It Works Section */}
       <section id="how-it-works" className="py-32 px-4 bg-gradient-to-b from-purple-900/50 via-slate-900 to-slate-900 relative overflow-hidden">
         <div className="absolute top-0 left-1/3 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
