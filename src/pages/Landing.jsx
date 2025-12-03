@@ -477,81 +477,50 @@ const Landing = () => {
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-600/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div className="max-w-7xl mx-auto relative z-10">
-          <motion.div
-            className="text-center mb-20"
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-white">
-              A powerful new{" "}
-              <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                AI revision system
-              </span>
-            </h2>
-            <p className="text-xl text-purple-200/80 max-w-3xl mx-auto">
-              Science-proven best methods to make every study session count.
-            </p>
-          </motion.div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <motion.button
+                      whileHover={{ scale: 1.05, y: -4 }}
+                      whileTap={{ scale: 0.98 }}
+                      
+                      className="group p-6 bg-gradient-to-br from-amber-900/40 to-orange-900/40 backdrop-blur-md rounded-2xl border-2 border-amber-700/30 hover:border-amber-600/50 transition-all cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="text-3xl">⚡</span>
+                        <h3 className="text-2xl font-bold text-amber-300">Blurt Mode</h3>
+                      </div>
+                      <p className="text-amber-100/70 text-sm leading-relaxed">
+                        Test your instant recall with quick-fire questions. Write down what you remember before seeing the answer. Perfect for rapid memory check.
+                      </p>
+                    </motion.button>
 
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Smart Analytics */}
-            <motion.div
-              className="bg-gradient-to-br from-purple-600/40 to-purple-700/40 border border-purple-500/30 rounded-3xl p-8 text-white backdrop-blur-md hover:border-purple-500/60 transition-all group cursor-pointer"
-              initial={{ opacity: 0, y: 50, rotateY: 20 }}
-              whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
-              transition={{ duration: 0.7 }}
-              viewport={{ once: true }}
-              whileHover={{ y: -10, scale: 1.02 }}
-            >
-              <div className="transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 mb-6">
-                <Target className="w-12 h-12 text-purple-300" />
-              </div>
-              <h3 className="text-2xl font-bold mb-4">Blurt mode</h3>
-              <p className="text-purple-100/80 text-lg mb-6">
-                An advanced active-recall engine designed to maximise memory performance. Upload an image of your notes, paste your own content or generate a Grade-9-level knowledge map using AI. Then “blurt” everything you can remember in one go. The system evaluates your response line by line, identifying missing points, incorrect assumptions and areas of weak recall. Every session ends with a detailed breakdown, showing what you remembered, what you missed and how to improve next time.
-              </p>
-            </motion.div>
+                    <motion.button
+                      whileHover={{ scale: 1.05, y: -4 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="group p-6 bg-gradient-to-br from-purple-900/40 to-violet-900/40 backdrop-blur-md rounded-2xl border-2 border-purple-700/30 hover:border-purple-600/50 transition-all cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="text-3xl">🔄</span>
+                        <h3 className="text-2xl font-bold text-purple-300">Spaced Retrieval</h3>
+                      </div>
+                      <p className="text-purple-100/70 text-sm leading-relaxed">
+                        Scientifically-optimized spacing intervals for maximum retention. Review concepts at the right time to strengthen long-term memory.
+                      </p>
+                    </motion.button>
 
-            {/* Goal Tracking */}
-            <motion.div
-              className="bg-gradient-to-br from-pink-600/40 to-purple-600/40 border border-pink-500/30 rounded-3xl p-8 text-white backdrop-blur-md hover:border-pink-500/60 transition-all group cursor-pointer"
-              initial={{ opacity: 0, y: 50, rotateY: -20 }}
-              whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
-              transition={{ duration: 0.7, delay: 0.1 }}
-              viewport={{ once: true }}
-              whileHover={{ y: -10, scale: 1.02 }}
-            >
-              <div className="transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 mb-6">
-                <Brain className="w-12 h-12 text-pink-300" />
-              </div>
-              <h3 className="text-2xl font-bold mb-4">Spaced retrieval</h3>
-              <p className="text-pink-100/80 text-lg mb-6">
-                A fully adaptive spaced-repetition system powered by precision AI scheduling. Create flashcards, take targeted quizzes or let the platform auto-generate questions from your notes or specifications. Each review is timed according to your memory strength, ensuring you study material exactly when you’re most likely to forget it. After each session, you receive a comprehensive performance report that tracks retention trends, highlights vulnerable knowledge areas and recommends what to revise next.
-              </p>
-            </motion.div>
-
-            {/* AI Insights */}
-            <motion.div
-              className="bg-gradient-to-br from-purple-600/40 to-pink-600/40 border border-purple-500/30 rounded-3xl p-8 text-white backdrop-blur-md hover:border-purple-500/60 transition-all group cursor-pointer"
-              initial={{ opacity: 0, y: 50, rotateY: 20 }}
-              whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
-              viewport={{ once: true }}
-              whileHover={{ y: -10, scale: 1.02 }}
-            >
-              <div className="transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 mb-6">
-                <BarChart3 className="w-12 h-12 text-purple-300" />
-              </div>
-              <h3 className="text-2xl font-bold mb-4">Mock Exam</h3>
-              <p className="text-purple-100/80 text-lg mb-6">
-               A realistic exam-simulation environment built for high-stakes preparation. Generate full papers aligned to your exam board, practice under timed conditions and receive structured, examiner-style marking. The system analyses your answers for accuracy, technique and depth, while also pinpointing content gaps and recurring weaknesses. Each completed paper ends with a detailed examiner-style report, giving you clear targets to raise your grade and strengthen real-exam readiness.
-              </p>
-            </motion.div>
-          </div>
-
+                    <motion.button
+                      whileHover={{ scale: 1.05, y: -4 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="group p-6 bg-gradient-to-br from-red-900/40 to-rose-900/40 backdrop-blur-md rounded-2xl border-2 border-red-700/30 hover:border-red-600/50 transition-all cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="text-3xl">📋</span>
+                        <h3 className="text-2xl font-bold text-red-300">Mock Exams</h3>
+                      </div>
+                      <p className="text-red-100/70 text-sm leading-relaxed">
+                        Full exam-style simulation under timed conditions. Experience real exam pressure and identify weak areas before the actual exam.
+                      </p>
+                    </motion.button>
+                  </div>
           {/* Feature Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mt-20">
             {[
