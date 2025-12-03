@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp, Check, Edit2, X } from 'lucide-react';
 import MasterySetupModal from '../components/MasterySetupModal';
+import BlurtModeSection from '../components/BlurtModeSection';
 
 const Mastery = () => {
   const [masterySetup, setMasterySetup] = useState(null);
