@@ -158,6 +158,7 @@ const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue }) => {
                 onClick={() => {
                   setStage('choice');
                   setError(null);
+                  setShowNotes(false);
                 }}
                 className="text-amber-300 hover:text-amber-200 transition text-sm mb-2"
               >
