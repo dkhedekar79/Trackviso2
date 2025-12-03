@@ -73,12 +73,13 @@ const Subjects = () => {
         color: newSubjectColor,
         goalHours: parseFloat(newSubjectGoal) || 0,
         iconName: 'BookOpen', // Store icon name as string
+        icon: ICON_COMPONENTS['BookOpen'] || BookOpen, // Map the icon component
       };
-      
+
       const updatedSubjects = [...subjects, newSubject];
       setSubjects(updatedSubjects);
-      localStorage.setItem('subjects', JSON.stringify(updatedSubjects));
-      
+      localStorage.setItem('subjects', JSON.stringify(updatedSubjects.map(({ icon, ...rest }) => rest))); // Save only serializable data
+
       // Reset state
       setNewSubjectName('');
       setNewSubjectColor('#6C5DD3');
