@@ -236,26 +236,61 @@ const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue }) => {
               className="space-y-4"
             >
               <div>
-                <h3 className="text-lg font-bold text-amber-300 mb-3">Knowledge Map Created</h3>
-                <div className="relative bg-white/5 rounded-lg p-6 border border-white/10 backdrop-blur-sm">
-                  {/* Blurred notes display */}
-                  <div className="blur-sm select-none pointer-events-none">
-                    <p className="text-white/70 text-sm whitespace-pre-wrap break-words">
-                      {notes.substring(0, 300)}...
-                    </p>
-                  </div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-bold text-amber-300">Knowledge Map Created</h3>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setShowNotes(!showNotes)}
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-lg transition-all"
+                  >
+                    {showNotes ? (
+                      <>
+                        <EyeOff className="w-4 h-4" />
+                        Hide Notes
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="w-4 h-4" />
+                        View Notes
+                      </>
+                    )}
+                  </motion.button>
+                </div>
 
-                  {/* Overlay */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 rounded-lg backdrop-blur-sm">
-                    <div className="text-center">
-                      <div className="text-4xl mb-3">🔒</div>
-                      <p className="text-white font-medium mb-2">Notes Locked</p>
-                      <p className="text-white/70 text-sm max-w-sm">
-                        Your knowledge map has been created. Proceed to the next section to begin the blurt test.
+                <div className="relative bg-white/5 rounded-lg border border-white/10 backdrop-blur-sm overflow-hidden">
+                  {showNotes ? (
+                    <div className="p-6 max-h-96 overflow-y-auto">
+                      <p className="text-white/90 text-sm whitespace-pre-wrap break-words leading-relaxed">
+                        {notes}
                       </p>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="relative p-6 min-h-64">
+                      {/* Blurred notes preview */}
+                      <div className="blur-sm select-none pointer-events-none">
+                        <p className="text-white/70 text-sm whitespace-pre-wrap break-words">
+                          {notes.substring(0, 300)}...
+                        </p>
+                      </div>
+
+                      {/* Lock overlay */}
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 rounded-lg backdrop-blur-sm">
+                        <div className="text-center">
+                          <div className="text-4xl mb-3">🔒</div>
+                          <p className="text-white font-medium mb-2">Notes Locked</p>
+                          <p className="text-white/70 text-sm max-w-sm">
+                            Click "View Notes" button to preview before starting the blurt test
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
+
+                <p className="text-white/60 text-xs mt-2">
+                  💡 Tip: Press F12 and go to Console to see the full API response
+                </p>
               </div>
 
               <div className="space-y-3">
