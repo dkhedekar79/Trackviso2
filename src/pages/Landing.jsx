@@ -525,26 +525,12 @@ const Landing = () => {
               whileHover={{ y: -10, scale: 1.02 }}
             >
               <div className="transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 mb-6">
-                <Target className="w-12 h-12 text-pink-300" />
+                <Brain className="w-12 h-12 text-pink-300" />
               </div>
-              <h3 className="text-2xl font-bold mb-4">Gamified experience</h3>
+              <h3 className="text-2xl font-bold mb-4">Spaced retrieval</h3>
               <p className="text-pink-100/80 text-lg mb-6">
-                Become addicted to studying with streaks, xp, levels, achievements, quests, and more!
+                The most efficient study method meets the efficiency of AI. Quizzes, flashcards and more. Detailed analytics.
               </p>
-              <div className="bg-pink-500/20 rounded-xl p-4 border border-pink-500/20">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-pink-200">Level 3 - 234 XP needed</span>
-                  <span className="text-sm font-semibold text-pink-300">87%</span>
-                </div>
-                <div className="w-full bg-pink-500/30 rounded-full h-2">
-                  <motion.div
-                    className="bg-gradient-to-r from-pink-400 to-purple-400 h-2 rounded-full"
-                    style={{ width: '87%' }}
-                    animate={{ opacity: [0.8, 1, 0.8] }}
-                    transition={{ duration: 2, repeat: Infinity, delay: 0.3 }}
-                  ></motion.div>
-                </div>
-              </div>
             </motion.div>
 
             {/* AI Insights */}
@@ -557,31 +543,22 @@ const Landing = () => {
               whileHover={{ y: -10, scale: 1.02 }}
             >
               <div className="transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 mb-6">
-                <Brain className="w-12 h-12 text-purple-300" />
+                <BarChart3 className="w-12 h-12 text-purple-300" />
               </div>
-              <h3 className="text-2xl font-bold mb-4">Get the best Insights</h3>
+              <h3 className="text-2xl font-bold mb-4">Mock Exam</h3>
               <p className="text-purple-100/80 text-lg mb-6">
-                Get personalized recommendations and insights to optimize your study schedule and improve performance.
+               Realistic exam practice for the best real life practice.
               </p>
-              <div className="bg-purple-500/20 rounded-xl p-4 border border-purple-500/20">
-                <div className="flex items-center space-x-2 mb-2">
-                  <Lightbulb className="w-4 h-4 text-yellow-300" />
-                  <span className="text-sm font-medium text-purple-200">Smart Tip</span>
-                </div>
-                <p className="text-sm text-purple-100/80">
-                  Study math between 2-4 PM for 23% better retention
-                </p>
-              </div>
             </motion.div>
           </div>
 
           {/* Feature Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mt-20">
             {[
-              { icon: Clock, title: "Time Tracking", desc: "Log your study sessions" },
-              { icon: Award, title: "Achievement System", desc: "Gamified progress rewards" },
+              { icon: Clock, title: "Saved data", desc: "See all your progress" },
+              { icon: Award, title: "Analytics", desc: "Keep track wiht insights" },
               { icon: Shield, title: "Privacy First", desc: "Your data stays secure" },
-              { icon: Smartphone, title: "Cross-Platform", desc: "Works on all devices" }
+              { icon: Smartphone, title: "Cross platform", desc: "Works on all devices" }
             ].map((feature, index) => (
               <motion.div
                 key={index}
