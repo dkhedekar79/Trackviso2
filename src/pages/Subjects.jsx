@@ -91,10 +91,12 @@ const Subjects = () => {
   const handleEditSubject = () => {
     if (editingSubject) {
       const updatedSubjects = subjects.map(subject =>
-        subject.id === editingSubject.id ? { ...editingSubject, iconName: subject.iconName } : subject
+        subject.id === editingSubject.id
+          ? { ...editingSubject, iconName: subject.iconName, icon: subject.icon }
+          : subject
       );
       setSubjects(updatedSubjects);
-      localStorage.setItem('subjects', JSON.stringify(updatedSubjects));
+      localStorage.setItem('subjects', JSON.stringify(updatedSubjects.map(({ icon, ...rest }) => rest))); // Save only serializable data
       setEditingSubject(null);
       setShowEditModal(false);
     }
