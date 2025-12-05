@@ -502,7 +502,7 @@ const Landing = () => {
             </p>
           </motion.div>
 
-          <div className="grid lg:grid-cols-3 gap-12">
+          <div className="grid lg:grid-cols-4 gap-9">
             {[
               {
                 step: "01",
