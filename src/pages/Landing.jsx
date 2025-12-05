@@ -524,7 +524,15 @@ const Landing = () => {
                 desc: "Get personalized insights and recommendations to maximize your academic performance.",
                 icon: TrendingUp,
                 color: "purple"
+              },
+              {
+                step: "04",
+                title: "Master everything",
+                desc: "The best AI powered revision with key progression steps",
+                icon: Brain,
+                color: "purple"
               }
+      
             ].map((item, index) => (
               <motion.div
                 key={index}
