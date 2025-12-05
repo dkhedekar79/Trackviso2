@@ -26,7 +26,10 @@ import {
   Shield,
   Sparkles,
   Flame,
-  Gem
+  Gem,
+  FileText,
+  RefreshCw,
+  Eye
 } from "lucide-react";
 import ImageCarousel from '../components/ImageCarousel';
 import { ChevronDown } from "lucide-react";
@@ -473,112 +476,7 @@ const Landing = () => {
         </div>
       </section>
 
-      <section id="features" className="py-32 px-4 bg-gradient-to-b from-slate-900 via-slate-900 to-purple-900/50 relative overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-600/10 rounded-full blur-3xl pointer-events-none"></div>
-
-        <div className="max-w-7xl mx-auto relative z-10">
-          <motion.div
-            className="text-center mb-20"
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-white">
-              A powerful new{" "}
-              <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                AI revision system
-              </span>
-            </h2>
-            <p className="text-xl text-purple-200/80 max-w-3xl mx-auto">
-              Science-proven best methods to make every study session count.
-            </p>
-          </motion.div>
-
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Smart Analytics */}
-            <motion.div
-              className="bg-gradient-to-br from-purple-600/40 to-purple-700/40 border border-purple-500/30 rounded-3xl p-8 text-white backdrop-blur-md hover:border-purple-500/60 transition-all group cursor-pointer"
-              initial={{ opacity: 0, y: 50, rotateY: 20 }}
-              whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
-              transition={{ duration: 0.7 }}
-              viewport={{ once: true }}
-              whileHover={{ y: -10, scale: 1.02 }}
-            >
-              <div className="transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 mb-6">
-                <Target className="w-12 h-12 text-purple-300" />
-              </div>
-              <h3 className="text-2xl font-bold mb-4">Blurt mode</h3>
-              <p className="text-purple-100/80 text-lg mb-6">
-                An advanced active-recall engine designed to maximise memory performance. Upload an image of your notes, paste your own content or generate a Grade-9-level knowledge map using AI. Then “blurt” everything you can remember in one go. The system evaluates your response line by line, identifying missing points, incorrect assumptions and areas of weak recall. Every session ends with a detailed breakdown, showing what you remembered, what you missed and how to improve next time.
-              </p>
-            </motion.div>
-
-            {/* Goal Tracking */}
-            <motion.div
-              className="bg-gradient-to-br from-pink-600/40 to-purple-600/40 border border-pink-500/30 rounded-3xl p-8 text-white backdrop-blur-md hover:border-pink-500/60 transition-all group cursor-pointer"
-              initial={{ opacity: 0, y: 50, rotateY: -20 }}
-              whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
-              transition={{ duration: 0.7, delay: 0.1 }}
-              viewport={{ once: true }}
-              whileHover={{ y: -10, scale: 1.02 }}
-            >
-              <div className="transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 mb-6">
-                <Brain className="w-12 h-12 text-pink-300" />
-              </div>
-              <h3 className="text-2xl font-bold mb-4">Spaced retrieval</h3>
-              <p className="text-pink-100/80 text-lg mb-6">
-                A fully adaptive spaced-repetition system powered by precision AI scheduling. Create flashcards, take targeted quizzes or let the platform auto-generate questions from your notes or specifications. Each review is timed according to your memory strength, ensuring you study material exactly when you’re most likely to forget it. After each session, you receive a comprehensive performance report that tracks retention trends, highlights vulnerable knowledge areas and recommends what to revise next.
-              </p>
-            </motion.div>
-
-            {/* AI Insights */}
-            <motion.div
-              className="bg-gradient-to-br from-purple-600/40 to-pink-600/40 border border-purple-500/30 rounded-3xl p-8 text-white backdrop-blur-md hover:border-purple-500/60 transition-all group cursor-pointer"
-              initial={{ opacity: 0, y: 50, rotateY: 20 }}
-              whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
-              viewport={{ once: true }}
-              whileHover={{ y: -10, scale: 1.02 }}
-            >
-              <div className="transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 mb-6">
-                <BarChart3 className="w-12 h-12 text-purple-300" />
-              </div>
-              <h3 className="text-2xl font-bold mb-4">Mock Exam</h3>
-              <p className="text-purple-100/80 text-lg mb-6">
-               A realistic exam-simulation environment built for high-stakes preparation. Generate full papers aligned to your exam board, practice under timed conditions and receive structured, examiner-style marking. The system analyses your answers for accuracy, technique and depth, while also pinpointing content gaps and recurring weaknesses. Each completed paper ends with a detailed examiner-style report, giving you clear targets to raise your grade and strengthen real-exam readiness.
-              </p>
-            </motion.div>
-          </div>
-
-          {/* Feature Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mt-20">
-            {[
-              { icon: Clock, title: "Saved data", desc: "See all your progress" },
-              { icon: Award, title: "Analytics", desc: "Keep track wiht insights" },
-              { icon: Shield, title: "Privacy First", desc: "Your data stays secure" },
-              { icon: Smartphone, title: "Cross platform", desc: "Works on all devices" }
-            ].map((feature, index) => (
-              <motion.div
-                key={index}
-                className="bg-purple-900/30 border border-purple-700/30 rounded-2xl p-6 hover:bg-purple-800/40 hover:border-purple-600/50 transition-all duration-300 backdrop-blur-sm group"
-                initial={{ opacity: 0, y: 30, rotateX: 45 }}
-                whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                whileHover={{ y: -5 }}
-              >
-                <div className="text-purple-400 mb-4 transform group-hover:scale-125 group-hover:rotate-12 transition-all duration-300">
-                  <feature.icon className="w-8 h-8" />
-                </div>
-                <h4 className="text-lg font-semibold mb-2 text-white">{feature.title}</h4>
-                <p className="text-purple-200/70 text-sm">{feature.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <StudyModesSection />
 
       {/* How It Works Section */}
       <section id="how-it-works" className="py-32 px-4 bg-gradient-to-b from-purple-900/50 via-slate-900 to-slate-900 relative overflow-hidden">
@@ -964,6 +862,279 @@ const Landing = () => {
 
       
     </div>
+  );
+};
+
+// Study Modes Section Component
+const StudyModesSection = () => {
+  const [activeMode, setActiveMode] = useState(0); // 0: Blurt, 1: Spaced Retrieval, 2: Mock Exam
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const modes = [
+    {
+      name: "Blurt Mode",
+      icon: Zap,
+      description: "An advanced active-recall engine designed to maximise memory performance. Upload an image of your notes, paste your own content or generate a Grade-9-level knowledge map using AI. Then \"blurt\" everything you can remember in one go. The system evaluates your response line by line, identifying missing points, incorrect assumptions and areas of weak recall. Every session ends with a detailed breakdown, showing what you remembered, what you missed and how to improve next time.",
+      features: [
+        "AI-powered knowledge maps: Generate comprehensive study notes from your topics or input your own content",
+        "Active recall testing: Write everything you remember in one go—no structure needed, just pure recall",
+        "Intelligent analysis: Get detailed feedback comparing your response to the knowledge map with missed points and strengths",
+        "Progress tracking: Your scores are saved and displayed in your topic grid, tracking improvement over time"
+      ],
+      color: "amber",
+      isAvailable: true
+    },
+    {
+      name: "Spaced Retrieval",
+      icon: RefreshCw,
+      description: "A fully adaptive spaced-repetition system powered by precision AI scheduling. Create flashcards, take targeted quizzes or let the platform auto-generate questions from your notes or specifications. Each review is timed according to your memory strength, ensuring you study material exactly when you're most likely to forget it.",
+      features: [
+        "Adaptive scheduling: AI determines optimal review intervals based on your memory strength",
+        "Smart flashcards: Create custom cards or let AI generate them from your notes",
+        "Performance tracking: Comprehensive reports track retention trends and highlight weak areas",
+        "Personalized timing: Study material exactly when you're most likely to forget it"
+      ],
+      color: "purple",
+      isAvailable: false
+    },
+    {
+      name: "Mock Exam",
+      icon: FileText,
+      description: "A realistic exam-simulation environment built for high-stakes preparation. Generate full papers aligned to your exam board, practice under timed conditions and receive structured, examiner-style marking. The system analyses your answers for accuracy, technique and depth, while also pinpointing content gaps and recurring weaknesses.",
+      features: [
+        "Exam board alignment: Generate papers aligned to your specific exam board",
+        "Timed conditions: Practice under realistic exam time constraints",
+        "Examiner-style marking: Receive detailed feedback on accuracy, technique and depth",
+        "Performance analysis: Identify content gaps and recurring weaknesses"
+      ],
+      color: "red",
+      isAvailable: false
+    }
+  ];
+
+
+  const currentMode = modes[activeMode];
+  const ModeIcon = currentMode.icon;
+
+  // Image carousel for Blurt Mode
+  const blurtImages = [
+    {
+      src: "https://res.cloudinary.com/do6sjcdau/image/upload/v1764970523/Screenshot_2025-12-05_at_21.33.40_onxpvx.png",
+      alt: "Topics list"
+    },
+    {
+      src: "https://res.cloudinary.com/do6sjcdau/image/upload/v1764970514/Screenshot_2025-12-05_at_21.32.18_akkccu.png",
+      alt: "Input modal"
+    },
+    {
+      src: "https://res.cloudinary.com/do6sjcdau/image/upload/v1764970504/Screenshot_2025-12-05_at_21.31.49_k6uhpw.png",
+      alt: "Knowledge map"
+    }
+  ];
+
+  // Auto-rotate images every 5 seconds
+  useEffect(() => {
+    if (!currentMode.isAvailable) return;
+    
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % blurtImages.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [currentMode.isAvailable, blurtImages.length]);
+
+  return (
+    <section 
+      id="study-modes" 
+      className="py-32 px-4 bg-gradient-to-b from-slate-900 via-slate-900 to-purple-900/50 relative overflow-hidden min-h-screen flex items-center"
+    >
+      <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div className="max-w-7xl mx-auto relative z-10 w-full">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          {/* Left Side - Description */}
+          <motion.div
+            key={activeMode}
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 50 }}
+            transition={{ duration: 0.5 }}
+            className="space-y-6"
+          >
+            {/* Mode Toggle */}
+            <div className="flex gap-3 mb-8">
+              {modes.map((mode, index) => {
+                const Icon = mode.icon;
+                return (
+                  <motion.button
+                    key={index}
+                    onClick={() => {
+                      setActiveMode(index);
+                      setCurrentImageIndex(0); // Reset carousel when switching modes
+                    }}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                      activeMode === index
+                        ? mode.color === 'amber'
+                          ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg'
+                          : mode.color === 'purple'
+                          ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                          : 'bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-lg'
+                        : 'bg-white/10 text-white/70 hover:bg-white/20'
+                    }`}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span className="text-sm">{mode.name}</span>
+                  </motion.button>
+                );
+              })}
+            </div>
+
+            {/* Icon and Title */}
+            <div className="flex items-center gap-4 mb-4">
+              <div className={`w-16 h-16 rounded-xl border flex items-center justify-center backdrop-blur-sm ${
+                currentMode.color === 'amber'
+                  ? 'bg-gradient-to-br from-amber-600/40 to-orange-600/40 border-amber-500/30'
+                  : currentMode.color === 'purple'
+                  ? 'bg-gradient-to-br from-purple-600/40 to-pink-600/40 border-purple-500/30'
+                  : 'bg-gradient-to-br from-red-600/40 to-rose-600/40 border-red-500/30'
+              }`}>
+                <ModeIcon className={`w-8 h-8 ${
+                  currentMode.color === 'amber'
+                    ? 'text-amber-300'
+                    : currentMode.color === 'purple'
+                    ? 'text-purple-300'
+                    : 'text-red-300'
+                }`} />
+              </div>
+              <h2 className="text-4xl lg:text-5xl font-bold text-white">
+                {currentMode.name}
+              </h2>
+            </div>
+
+            {/* Description */}
+            <p className="text-lg text-purple-200/80 leading-relaxed">
+              {currentMode.description}
+            </p>
+
+            {/* Features List */}
+            <div className="space-y-3 mt-6">
+              {currentMode.features.map((feature, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="flex items-start gap-3"
+                >
+                  <CheckCircle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
+                    currentMode.color === 'amber'
+                      ? 'text-amber-400'
+                      : currentMode.color === 'purple'
+                      ? 'text-purple-400'
+                      : 'text-red-400'
+                  }`} />
+                  <span className="text-purple-100/80 text-sm">{feature}</span>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Work in Progress Badge */}
+            {!currentMode.isAvailable && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
+                    currentMode.color === 'amber'
+                      ? 'bg-amber-900/30 border border-amber-700/50 text-amber-300'
+                      : currentMode.color === 'purple'
+                      ? 'bg-purple-900/30 border border-purple-700/50 text-purple-300'
+                      : 'bg-red-900/30 border border-red-700/50 text-red-300'
+                  }`}
+              >
+                <Clock className="w-4 h-4" />
+                Work in Progress
+              </motion.div>
+            )}
+          </motion.div>
+
+          {/* Right Side - Image Carousel */}
+          <motion.div
+            key={`mockup-${activeMode}`}
+            initial={{ opacity: 0, x: 50, scale: 0.95 }}
+            animate={{ opacity: 1, x: 0, scale: 1.5 }}
+            exit={{ opacity: 0, x: -50, scale: 0.95 }}
+            transition={{ duration: 0.5 }}
+            className="w-full relative"
+          >
+            {currentMode.isAvailable ? (
+              <div className="relative w-full max-w-md mx-auto">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentImageIndex}
+                    initial={{ opacity: 0, x: 50 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -50 }}
+                    transition={{ duration: 0.5 }}
+                    className="relative"
+                  >
+                    <div className="bg-gradient-to-br from-purple-900/60 to-slate-900/60 backdrop-blur-md rounded-2xl border-2 border-purple-700/50 shadow-2xl shadow-purple-500/40 overflow-hidden inline-block w-full">
+                      <img 
+                        src={blurtImages[currentImageIndex].src} 
+                        alt={blurtImages[currentImageIndex].alt}
+                        className="w-full h-auto block"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextElementSibling.style.display = 'flex';
+                        }}
+                      />
+                      <div className="hidden bg-white/5 p-4 min-h-[200px] flex items-center justify-center">
+                        <p className="text-white/60 text-sm">{blurtImages[currentImageIndex].alt}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+
+                {/* Carousel Indicators */}
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
+                  {blurtImages.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentImageIndex(index)}
+                      className={`h-2 rounded-full transition-all ${
+                        index === currentImageIndex
+                          ? 'w-8 bg-purple-400'
+                          : 'w-2 bg-white/40 hover:bg-white/60'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center py-12">
+                <div className="bg-white/5 rounded-lg p-8 border border-white/10 text-center max-w-md">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-white/10 rounded-full flex items-center justify-center">
+                    <Clock className={`w-8 h-8 ${
+                      currentMode.color === 'amber'
+                        ? 'text-amber-400'
+                        : currentMode.color === 'purple'
+                        ? 'text-purple-400'
+                        : 'text-red-400'
+                    }`} />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2">Coming Soon</h3>
+                  <p className="text-purple-200/70 text-sm">
+                    {currentMode.name} is currently under development. Check back soon!
+                  </p>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        </div>
+      </div>
+    </section>
   );
 };
 

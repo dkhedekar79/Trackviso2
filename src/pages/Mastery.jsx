@@ -1,8 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronUp, Check, Edit2, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Check, Edit2, X, AlertTriangle } from 'lucide-react';
 import MasterySetupModal from '../components/MasterySetupModal';
 import BlurtModeSection from '../components/BlurtModeSection';
+import { applyMemoryDeterioration, getDeteriorationInfo } from '../utils/memoryDeterioration';
+
+// Helper function to calculate completion score from individual scores
+const calculateCompletionScore = (topicProgress, applyDeterioration = true) => {
+  if (!topicProgress) return 0;
+  const scores = [];
+  if (topicProgress.blurtScore !== undefined) scores.push(topicProgress.blurtScore);
+  if (topicProgress.spacedRetrievalScore !== undefined) scores.push(topicProgress.spacedRetrievalScore);
+  if (topicProgress.mockExamScore !== undefined) scores.push(topicProgress.mockExamScore);
+  
+  if (scores.length === 0) return 0;
+  
+  const baseScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+  
+  // Apply memory deterioration if enabled
+  if (applyDeterioration && topicProgress.lastPracticeDate) {
+    return applyMemoryDeterioration(baseScore, topicProgress.lastPracticeDate);
+  }
+  
+  return baseScore;
+};
 
 const Mastery = () => {
   const [masterySetup, setMasterySetup] = useState(null);
@@ -15,6 +36,11 @@ const Mastery = () => {
   const [isBlurtModeActive, setIsBlurtModeActive] = useState(false);
   const [blurtData, setBlurtData] = useState(null);
 
+  // Helper function to get storage key for a subject
+  const getStorageKey = (subject) => {
+    return `masteryData_${subject}`;
+  };
+
   useEffect(() => {
     const savedSubjects = JSON.parse(localStorage.getItem('subjects') || '[]');
     setSubjects(savedSubjects);
@@ -24,9 +50,24 @@ const Mastery = () => {
       const setup = JSON.parse(savedSetup);
       setMasterySetup(setup);
       
-      const savedProgress = localStorage.getItem('masteryProgress');
+      // Load progress for this subject
+      const storageKey = getStorageKey(setup.subject);
+      const savedProgress = localStorage.getItem(storageKey);
       if (savedProgress) {
-        setTopicProgress(JSON.parse(savedProgress));
+        const progress = JSON.parse(savedProgress);
+        setTopicProgress(progress);
+        
+        // Recalculate completion scores for all topics (with deterioration)
+        const updatedProgress = { ...progress };
+        Object.keys(updatedProgress).forEach(topicId => {
+          const completionScore = calculateCompletionScore(updatedProgress[topicId], true);
+          updatedProgress[topicId] = {
+            ...updatedProgress[topicId],
+            completionPercent: completionScore,
+          };
+        });
+        setTopicProgress(updatedProgress);
+        localStorage.setItem(storageKey, JSON.stringify(updatedProgress));
       }
     } else {
       setShowSetupModal(true);
@@ -38,14 +79,39 @@ const Mastery = () => {
     localStorage.setItem('masterySetup', JSON.stringify(setup));
     setShowSetupModal(false);
 
-    const emptyProgress = {};
+    // Load existing progress for this subject if it exists
+    const storageKey = getStorageKey(setup.subject);
+    const existingProgress = localStorage.getItem(storageKey);
+    let progress = {};
+    
+    if (existingProgress) {
+      // Merge existing progress with new topics
+      const existing = JSON.parse(existingProgress);
+      progress = { ...existing };
+    }
+    
+    // Initialize new topics if they don't exist
     if (setup.topics) {
       setup.topics.forEach(topic => {
-        emptyProgress[topic.id] = { completed: false, selected: false, notes: '', completionPercent: 0 };
+        if (!progress[topic.id]) {
+          progress[topic.id] = { 
+            completed: false, 
+            selected: false, 
+            notes: '', 
+            completionPercent: 0,
+            blurtScore: undefined,
+            spacedRetrievalScore: undefined,
+            mockExamScore: undefined,
+          };
+        } else {
+          // Recalculate completion score for existing topics (with deterioration)
+          progress[topic.id].completionPercent = calculateCompletionScore(progress[topic.id], true);
+        }
       });
     }
-    setTopicProgress(emptyProgress);
-    localStorage.setItem('masteryProgress', JSON.stringify(emptyProgress));
+    
+    setTopicProgress(progress);
+    localStorage.setItem(storageKey, JSON.stringify(progress));
   };
 
   const toggleTopicSelection = (topicId) => {
@@ -57,7 +123,8 @@ const Mastery = () => {
       }
     };
     setTopicProgress(updated);
-    localStorage.setItem('masteryProgress', JSON.stringify(updated));
+    const storageKey = getStorageKey(masterySetup.subject);
+    localStorage.setItem(storageKey, JSON.stringify(updated));
   };
 
   const toggleTopicCompletion = (topicId) => {
@@ -66,11 +133,14 @@ const Mastery = () => {
       [topicId]: {
         ...topicProgress[topicId],
         completed: !topicProgress[topicId]?.completed,
-        completionPercent: !topicProgress[topicId]?.completed ? 100 : 0
+        completionPercent: !topicProgress[topicId]?.completed 
+          ? calculateCompletionScore(topicProgress[topicId]) || 100 
+          : calculateCompletionScore(topicProgress[topicId])
       }
     };
     setTopicProgress(updated);
-    localStorage.setItem('masteryProgress', JSON.stringify(updated));
+    const storageKey = getStorageKey(masterySetup.subject);
+    localStorage.setItem(storageKey, JSON.stringify(updated));
   };
 
   const toggleExpandTopic = (topicId) => {
@@ -89,11 +159,27 @@ const Mastery = () => {
       }
     };
     setTopicProgress(updated);
-    localStorage.setItem('masteryProgress', JSON.stringify(updated));
+    const storageKey = getStorageKey(masterySetup.subject);
+    localStorage.setItem(storageKey, JSON.stringify(updated));
   };
 
   const handleChangeSetup = () => {
     setShowSetupModal(true);
+  };
+
+  // Calculate overall progress as average of all topic completion scores (with deterioration applied)
+  const calculateOverallProgress = () => {
+    if (!masterySetup?.topics || masterySetup.topics.length === 0) return 0;
+    
+    const completionScores = masterySetup.topics.map(topic => {
+      const progress = topicProgress[topic.id];
+      if (!progress) return 0;
+      // Use the already-calculated completionPercent which includes deterioration
+      return progress.completionPercent || 0;
+    });
+    
+    const sum = completionScores.reduce((acc, score) => acc + score, 0);
+    return sum / masterySetup.topics.length;
   };
 
   const completedCount = masterySetup?.topics?.filter(
@@ -101,7 +187,7 @@ const Mastery = () => {
   ).length || 0;
 
   const totalCount = masterySetup?.topics?.length || 0;
-  const progressPercent = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+  const progressPercent = calculateOverallProgress();
 
   if (!masterySetup) {
     return (
@@ -174,6 +260,22 @@ const Mastery = () => {
               </div>
             </div>
 
+            {/* Memory Deterioration Info */}
+            <div className="bg-blue-900/30 rounded-lg p-4 border border-blue-700/30 mb-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="text-sm font-semibold text-blue-300 mb-1">Memory Deterioration System</h4>
+                  <p className="text-xs text-blue-200/80 leading-relaxed">
+                    Your topic scores naturally decrease over time if not practiced regularly. This encourages consistent review and follows scientific research on memory retention. Practice topics regularly to maintain your scores!
+                  </p>
+                  <p className="text-xs text-blue-200/60 mt-2">
+                    <strong>Decay rates:</strong> ~20% after 1 day, ~40% after 3 days, ~60% after 7 days
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div>
               <div className="flex justify-between items-center mb-2">
                 <span className="text-white/80 text-sm">Overall Progress</span>
@@ -200,7 +302,10 @@ const Mastery = () => {
                   const isCompleted = topicProgress[topic.id]?.completed || false;
                   const completionPercent = topicProgress[topic.id]?.completionPercent || 0;
                   const notes = topicProgress[topic.id]?.notes || '';
+                  const blurtScore = topicProgress[topic.id]?.blurtScore;
+                  const lastPracticeDate = topicProgress[topic.id]?.lastPracticeDate;
                   const isExpanded = expandedTopics[topic.id] || false;
+                  const deteriorationInfo = getDeteriorationInfo(lastPracticeDate);
 
                   return (
                     <motion.div
@@ -268,6 +373,28 @@ const Mastery = () => {
                             </div>
                           </div>
 
+                          {/* Memory Deterioration Warning */}
+                          {lastPracticeDate && deteriorationInfo.daysSince > 0 && deteriorationInfo.lossPercent > 0 && (
+                            <div className={`flex items-center gap-1 text-xs rounded-full px-2 py-1 w-fit ${
+                              deteriorationInfo.daysSince <= 3
+                                ? 'text-yellow-300 bg-yellow-900/30'
+                                : deteriorationInfo.daysSince <= 7
+                                ? 'text-orange-300 bg-orange-900/30'
+                                : 'text-red-300 bg-red-900/30'
+                            }`}>
+                              <AlertTriangle className="w-3 h-3" />
+                              {deteriorationInfo.lossPercent}% decay
+                            </div>
+                          )}
+
+                          {/* Blurt Score Badge */}
+                          {blurtScore !== undefined && (
+                            <div className="flex items-center gap-1 text-xs text-amber-300 bg-amber-900/30 rounded-full px-2 py-1 w-fit">
+                              <span className="text-amber-400">⚡</span>
+                              Blurt: {Math.round(blurtScore)}%
+                            </div>
+                          )}
+
                           {/* Status badge */}
                           {isCompleted && (
                             <div className="flex items-center gap-1 text-xs text-green-300 bg-green-900/30 rounded-full px-2 py-1 w-fit">
@@ -288,6 +415,65 @@ const Mastery = () => {
                               className="border-t border-white/10"
                             >
                               <div className="p-4 space-y-3">
+                                {/* Memory Deterioration Info */}
+                                {lastPracticeDate && (
+                                  <div className={`rounded-lg p-3 border ${
+                                    deteriorationInfo.daysSince <= 1
+                                      ? 'bg-green-900/20 border-green-700/30'
+                                      : deteriorationInfo.daysSince <= 3
+                                      ? 'bg-yellow-900/20 border-yellow-700/30'
+                                      : deteriorationInfo.daysSince <= 7
+                                      ? 'bg-orange-900/20 border-orange-700/30'
+                                      : 'bg-red-900/20 border-red-700/30'
+                                  }`}>
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <AlertTriangle className={`w-4 h-4 ${
+                                        deteriorationInfo.daysSince <= 1
+                                          ? 'text-green-400'
+                                          : deteriorationInfo.daysSince <= 3
+                                          ? 'text-yellow-400'
+                                          : deteriorationInfo.daysSince <= 7
+                                          ? 'text-orange-400'
+                                          : 'text-red-400'
+                                      }`} />
+                                      <span className="text-xs font-semibold text-white">Memory Deterioration</span>
+                                    </div>
+                                    <p className="text-xs text-white/80 mb-1">{deteriorationInfo.message}</p>
+                                    <div className="flex items-center justify-between mt-2">
+                                      <span className="text-xs text-white/60">Retention:</span>
+                                      <span className={`text-xs font-bold ${
+                                        deteriorationInfo.retention >= 80
+                                          ? 'text-green-400'
+                                          : deteriorationInfo.retention >= 60
+                                          ? 'text-yellow-400'
+                                          : deteriorationInfo.retention >= 40
+                                          ? 'text-orange-400'
+                                          : 'text-red-400'
+                                      }`}>
+                                        {deteriorationInfo.retention}%
+                                      </span>
+                                    </div>
+                                    <p className="text-xs text-white/60 mt-1">
+                                      Your score has decreased by {deteriorationInfo.lossPercent}% due to time since last practice.
+                                    </p>
+                                  </div>
+                                )}
+
+                                {/* Blurt Score Display */}
+                                {blurtScore !== undefined && (
+                                  <div className="bg-amber-900/20 rounded-lg p-3 border border-amber-700/30">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <span className="text-xs font-semibold text-amber-300">Blurt Test Score</span>
+                                      <span className="text-sm font-bold text-amber-300">{Math.round(blurtScore)}%</span>
+                                    </div>
+                                    {topicProgress[topic.id]?.blurtAnalysis?.feedback && (
+                                      <p className="text-xs text-amber-100/80 line-clamp-2">
+                                        {topicProgress[topic.id].blurtAnalysis.feedback}
+                                      </p>
+                                    )}
+                                  </div>
+                                )}
+
                                 <div>
                                   <label className="block text-xs font-medium text-purple-200 mb-1">
                                     Study Notes
@@ -416,8 +602,33 @@ const Mastery = () => {
               masterySetup={masterySetup}
               onContinue={(blurtData) => {
                 setBlurtData(blurtData);
+                
+                // If finishing (has percentage), update topic scores
+                if (blurtData.percentage !== undefined) {
+                  const selectedTopicIds = Object.keys(topicProgress).filter(
+                    topicId => topicProgress[topicId]?.selected
+                  );
+                  
+                  const updated = { ...topicProgress };
+                  const now = new Date().toISOString();
+                  selectedTopicIds.forEach(topicId => {
+                    const topicData = {
+                      ...updated[topicId],
+                      blurtScore: blurtData.percentage,
+                      blurtAnalysis: blurtData.analysis,
+                      lastPracticeDate: now, // Update last practice date
+                    };
+                    // Recalculate completion score (without deterioration since just practiced)
+                    topicData.completionPercent = calculateCompletionScore(topicData, false);
+                    updated[topicId] = topicData;
+                  });
+                  
+                  setTopicProgress(updated);
+                  const storageKey = getStorageKey(masterySetup.subject);
+                  localStorage.setItem(storageKey, JSON.stringify(updated));
+                }
+                
                 setIsBlurtModeActive(false);
-                // Here you can add logic for the next step in the blurt mode quiz
               }}
             />
           )}

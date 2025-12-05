@@ -15,6 +15,7 @@
     "@vitejs/plugin-react": "^4.6.0",
     "firebase": "^11.10.0",
     "framer-motion": "^12.23.6",
+    "git": "^0.1.5",
     "jsonrepair": "^3.13.0",
     "lucide-react": "^0.525.0",
     "react": "^18.0.0",

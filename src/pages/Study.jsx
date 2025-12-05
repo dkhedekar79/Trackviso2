@@ -387,7 +387,7 @@ const Study = () => {
                 Ready to Study?
               </h1>
               <p className="text-xl text-purple-200/80">
-                Choose a subject to begin your study session
+                Log your study time here!
               </p>
             </motion.div>
 

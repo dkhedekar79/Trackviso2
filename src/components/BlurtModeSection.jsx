@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Loader, AlertCircle, Eye, EyeOff } from 'lucide-react';
-import { generateBlurtNotes } from '../utils/blurtNotesApi';
+import { ArrowRight, Loader, AlertCircle, Eye, EyeOff, Send, RotateCcw, CheckCircle } from 'lucide-react';
+import { generateBlurtNotes, analyzeBlurtResponse } from '../utils/blurtNotesApi';
 
 const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue }) => {
-  const [stage, setStage] = useState('choice'); // 'choice' | 'loading' | 'display'
+  const [stage, setStage] = useState('choice'); // 'choice' | 'loading' | 'display' | 'blurt' | 'analyzing' | 'results'
   const [notes, setNotes] = useState('');
   const [manualInput, setManualInput] = useState('');
+  const [blurtInput, setBlurtInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [knowledgeMap, setKnowledgeMap] = useState(null);
   const [showNotes, setShowNotes] = useState(false);
+  const [analysisResults, setAnalysisResults] = useState(null);
 
   const handleAIGenerate = async () => {
     setLoading(true);
@@ -59,9 +61,59 @@ const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue }) => {
   };
 
   const handleContinue = () => {
+    // Change to blurt input stage instead of immediately calling onContinue
+    setStage('blurt');
+  };
+
+  const handleSubmitBlurt = async () => {
+    if (blurtInput.trim().length === 0) {
+      setError('Please enter your blurt response before submitting');
+      return;
+    }
+    
+    setLoading(true);
+    setError(null);
+    setStage('analyzing');
+
+    try {
+      // Get the names of selected topics
+      const selectedTopicNames = selectedTopics
+        .map(topicId => masterySetup.topics.find(t => t.id === topicId)?.name)
+        .filter(Boolean);
+
+      const analysis = await analyzeBlurtResponse(
+        blurtInput,
+        knowledgeMap,
+        selectedTopicNames,
+        masterySetup.qualification,
+        masterySetup.subject,
+        masterySetup.examBoard
+      );
+
+      setAnalysisResults(analysis);
+      setStage('results');
+    } catch (err) {
+      setError(err.message || 'Failed to analyze your response. Please try again.');
+      setStage('blurt');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRestart = () => {
+    setBlurtInput('');
+    setAnalysisResults(null);
+    setError(null);
+    setStage('blurt');
+  };
+
+  const handleFinish = () => {
     onContinue({
       notes,
       knowledgeMap,
+      blurtResponse: blurtInput,
+      analysis: analysisResults,
+      percentage: analysisResults?.percentage || 0,
     });
   };
 
@@ -314,6 +366,214 @@ const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue }) => {
                 Continue to Blurt Test
                 <ArrowRight className="w-4 h-4" />
               </motion.button>
+            </motion.div>
+          )}
+
+          {stage === 'blurt' && (
+            <motion.div
+              key="blurt"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-6"
+            >
+              <div>
+                <h3 className="text-2xl font-bold text-amber-300 mb-2">Blurt Test</h3>
+                <p className="text-amber-100/80 text-sm mb-4">
+                  Write everything you can remember about the selected topics. Don't worry about structure or perfection - just blurt out everything that comes to mind!
+                </p>
+              </div>
+
+              {error && (
+                <div className="flex items-start gap-3 p-4 bg-red-900/30 border border-red-700/50 rounded-lg">
+                  <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                  <p className="text-red-200 text-sm">{error}</p>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-amber-200 mb-3">
+                  Your Blurt Response
+                </label>
+                <textarea
+                  value={blurtInput}
+                  onChange={(e) => {
+                    setBlurtInput(e.target.value);
+                    setError(null);
+                  }}
+                  placeholder="Start typing everything you remember... Write freely without worrying about structure. Include key concepts, definitions, examples, formulas, or any related information that comes to mind."
+                  className="w-full px-6 py-4 bg-white/10 border-2 border-white/20 rounded-xl text-white placeholder-gray-400 focus:ring-2 focus:ring-amber-500 focus:border-amber-500/50 resize-none text-base leading-relaxed min-h-[400px]"
+                  rows="20"
+                  autoFocus
+                />
+                <p className="text-white/50 text-xs mt-2">
+                  {blurtInput.length} characters
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    setStage('display');
+                    setBlurtInput('');
+                    setError(null);
+                  }}
+                  className="px-6 py-3 border border-white/20 text-white rounded-lg font-medium hover:bg-white/10 transition"
+                >
+                  Back
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleSubmitBlurt}
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-amber-500/50 transition"
+                >
+                  Submit Blurt Response
+                  <Send className="w-4 h-4" />
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+
+          {stage === 'analyzing' && (
+            <motion.div
+              key="analyzing"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="flex flex-col items-center justify-center py-12"
+            >
+              <Loader className="w-12 h-12 text-amber-400 animate-spin mb-4" />
+              <p className="text-amber-100/80 text-center text-lg font-semibold mb-2">
+                Analyzing your response...
+              </p>
+              <p className="text-amber-100/60 text-sm text-center">
+                Comparing your blurt response with the knowledge map and identifying key points
+              </p>
+            </motion.div>
+          )}
+
+          {stage === 'results' && analysisResults && (
+            <motion.div
+              key="results"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-6"
+            >
+              <div>
+                <h3 className="text-2xl font-bold text-amber-300 mb-2">Blurt Test Results</h3>
+                <p className="text-amber-100/80 text-sm">
+                  Here's how you performed on the blurt test
+                </p>
+              </div>
+
+              {/* Percentage Score */}
+              <div className="bg-gradient-to-br from-amber-800/40 to-orange-800/40 rounded-xl p-6 border-2 border-amber-600/30">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-lg font-bold text-amber-200">Overall Knowledge Score</h4>
+                  <div className="text-4xl font-bold text-amber-300">
+                    {Math.round(analysisResults.percentage)}%
+                  </div>
+                </div>
+                <div className="w-full bg-white/10 rounded-full h-4 overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${analysisResults.percentage}%` }}
+                    transition={{ duration: 1, ease: 'easeOut' }}
+                    className={`h-4 rounded-full ${
+                      analysisResults.percentage >= 80
+                        ? 'bg-gradient-to-r from-green-500 to-emerald-500'
+                        : analysisResults.percentage >= 60
+                        ? 'bg-gradient-to-r from-yellow-500 to-amber-500'
+                        : 'bg-gradient-to-r from-orange-500 to-red-500'
+                    }`}
+                  />
+                </div>
+              </div>
+
+              {/* Feedback */}
+              <div className="bg-white/5 rounded-lg p-5 border border-white/10">
+                <h4 className="text-lg font-bold text-amber-200 mb-3">Feedback</h4>
+                <p className="text-white/90 text-sm leading-relaxed whitespace-pre-wrap">
+                  {analysisResults.feedback}
+                </p>
+              </div>
+
+              {/* Strengths */}
+              {analysisResults.strengths && analysisResults.strengths.length > 0 && (
+                <div className="bg-green-900/20 rounded-lg p-5 border border-green-700/30">
+                  <h4 className="text-lg font-bold text-green-300 mb-3 flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5" />
+                    Strengths
+                  </h4>
+                  <ul className="space-y-2">
+                    {analysisResults.strengths.map((strength, index) => (
+                      <li key={index} className="text-green-100/90 text-sm flex items-start gap-2">
+                        <span className="text-green-400 mt-1">✓</span>
+                        <span>{strength}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Missed Points */}
+              {analysisResults.missedPoints && analysisResults.missedPoints.length > 0 && (
+                <div className="bg-red-900/20 rounded-lg p-5 border border-red-700/30">
+                  <h4 className="text-lg font-bold text-red-300 mb-3">Key Points You Missed</h4>
+                  <ul className="space-y-2">
+                    {analysisResults.missedPoints.map((point, index) => (
+                      <li key={index} className="text-red-100/90 text-sm flex items-start gap-2">
+                        <span className="text-red-400 mt-1">•</span>
+                        <span>{point}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Areas for Improvement */}
+              {analysisResults.areasForImprovement && analysisResults.areasForImprovement.length > 0 && (
+                <div className="bg-blue-900/20 rounded-lg p-5 border border-blue-700/30">
+                  <h4 className="text-lg font-bold text-blue-300 mb-3">Areas for Improvement</h4>
+                  <ul className="space-y-2">
+                    {analysisResults.areasForImprovement.map((area, index) => (
+                      <li key={index} className="text-blue-100/90 text-sm flex items-start gap-2">
+                        <span className="text-blue-400 mt-1">→</span>
+                        <span>{area}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleRestart}
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3 border-2 border-amber-600/50 text-amber-300 rounded-lg font-semibold hover:bg-amber-600/20 transition"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Restart Test
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleFinish}
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-amber-500/50 transition"
+                >
+                  <CheckCircle className="w-4 h-4" />
+                  Finish & Complete
+                </motion.button>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

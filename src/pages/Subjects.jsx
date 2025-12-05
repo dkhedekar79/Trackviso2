@@ -14,7 +14,9 @@ import {
   Atom,
   Scroll,
   Globe,
-  TrendingUp
+  TrendingUp,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTimer } from '../context/TimerContext';
@@ -36,6 +38,28 @@ const ICON_COMPONENTS = {
 // Fixed list of GCSE subjects with predefined colors and icons
 
 
+import { applyMemoryDeterioration } from '../utils/memoryDeterioration';
+
+// Helper function to calculate completion score from individual scores
+const calculateCompletionScore = (topicProgress) => {
+  if (!topicProgress) return 0;
+  const scores = [];
+  if (topicProgress.blurtScore !== undefined) scores.push(topicProgress.blurtScore);
+  if (topicProgress.spacedRetrievalScore !== undefined) scores.push(topicProgress.spacedRetrievalScore);
+  if (topicProgress.mockExamScore !== undefined) scores.push(topicProgress.mockExamScore);
+  
+  if (scores.length === 0) return 0;
+  
+  const baseScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+  
+  // Apply memory deterioration
+  if (topicProgress.lastPracticeDate) {
+    return applyMemoryDeterioration(baseScore, topicProgress.lastPracticeDate);
+  }
+  
+  return baseScore;
+};
+
 const Subjects = () => {
   const [subjects, setSubjects] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -45,6 +69,7 @@ const Subjects = () => {
   const [newSubjectColor, setNewSubjectColor] = useState('#6C5DD3'); // Default color
   const [newSubjectGoal, setNewSubjectGoal] = useState(0);
   const [goalHours, setGoalHours] = useState({});
+  const [expandedSubjects, setExpandedSubjects] = useState({});
   const navigate = useNavigate();
   const { setTimerSubject } = useTimer();
   const { userStats } = useGamification();
@@ -145,6 +170,47 @@ const Subjects = () => {
     return { icon: '🌱', name: 'New', color: 'text-gray-500' };
   };
 
+  // Get mastery data for a subject
+  const getSubjectMasteryData = (subjectName) => {
+    const storageKey = `masteryData_${subjectName}`;
+    const savedProgress = localStorage.getItem(storageKey);
+    if (!savedProgress) return null;
+    
+    const progress = JSON.parse(savedProgress);
+    const masterySetup = JSON.parse(localStorage.getItem('masterySetup') || 'null');
+    
+    if (!masterySetup || masterySetup.subject !== subjectName) return null;
+    
+    return {
+      setup: masterySetup,
+      progress: progress,
+    };
+  };
+
+  // Calculate overall completion score for a subject
+  const getSubjectCompletionScore = (subjectName) => {
+    const masteryData = getSubjectMasteryData(subjectName);
+    if (!masteryData || !masteryData.setup?.topics) return null;
+    
+    const topics = masteryData.setup.topics;
+    if (topics.length === 0) return null;
+    
+    const completionScores = topics.map(topic => {
+      const topicProgress = masteryData.progress[topic.id];
+      return topicProgress ? calculateCompletionScore(topicProgress) : 0;
+    });
+    
+    const sum = completionScores.reduce((acc, score) => acc + score, 0);
+    return sum / topics.length;
+  };
+
+  const toggleSubjectExpand = (subjectId) => {
+    setExpandedSubjects(prev => ({
+      ...prev,
+      [subjectId]: !prev[subjectId]
+    }));
+  };
+
   const availableSubjects = true;
 
   return (
@@ -187,6 +253,9 @@ const Subjects = () => {
           const progress = getSubjectProgress(studyTime, subject.goalHours);
           const badge = getSubjectBadge(studyTime);
           const SubjectIcon = subject.icon; // Already mapped in useEffect
+          const isExpanded = expandedSubjects[subject.id] || false;
+          const masteryData = getSubjectMasteryData(subject.name);
+          const overallCompletionScore = getSubjectCompletionScore(subject.name);
 
           return (
             <motion.div
@@ -211,6 +280,20 @@ const Subjects = () => {
                     </div>
                   </div>
                   <div className="flex space-x-2">
+                    {masteryData && (
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => toggleSubjectExpand(subject.id)}
+                        className="p-2 rounded-lg text-white opacity-70 hover:opacity-100 transition-opacity"
+                      >
+                        {isExpanded ? (
+                          <ChevronUp className="w-4 h-4" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4" />
+                        )}
+                      </motion.button>
+                    )}
                     <motion.button
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
@@ -232,6 +315,62 @@ const Subjects = () => {
                     </motion.button>
                   </div>
                 </div>
+
+                {/* Completion Score - shown when collapsed and mastery data exists */}
+                {!isExpanded && masteryData && (
+                  <div className="mb-4 bg-purple-800/30 rounded-lg p-3 border border-purple-700/30">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-semibold text-purple-200">Overall Completion</span>
+                      <span className="text-lg font-bold text-purple-300">
+                        {overallCompletionScore !== null ? Math.round(overallCompletionScore) : 0}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-white/10 rounded-full h-2">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${overallCompletionScore || 0}%` }}
+                        transition={{ duration: 1, ease: "easeOut" }}
+                        className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Expanded Topic Scores */}
+                <AnimatePresence>
+                  {isExpanded && masteryData && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="mb-4 space-y-2 border-t border-white/10 pt-4"
+                    >
+                      <h4 className="text-sm font-semibold text-purple-200 mb-3">Topic Completion Scores</h4>
+                      {masteryData.setup.topics.map((topic) => {
+                        const topicProgress = masteryData.progress[topic.id];
+                        const topicScore = topicProgress ? calculateCompletionScore(topicProgress) : 0;
+                        
+                        return (
+                          <div key={topic.id} className="bg-white/5 rounded-lg p-3 border border-white/10">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-xs text-white/80 font-medium">{topic.name}</span>
+                              <span className="text-sm font-bold text-purple-300">{Math.round(topicScore)}%</span>
+                            </div>
+                            <div className="w-full bg-white/10 rounded-full h-1.5">
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${topicScore}%` }}
+                                transition={{ duration: 0.5, ease: "easeOut" }}
+                                className="bg-gradient-to-r from-purple-500 to-pink-500 h-1.5 rounded-full"
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 {/* Study Stats */}
                 <div className="space-y-3 mb-4">
