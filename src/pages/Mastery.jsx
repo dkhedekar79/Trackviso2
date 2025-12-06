@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronUp, Check, Edit2, X, AlertTriangle } from 'lucide-react';
+import { ChevronDown, ChevronUp, Check, Edit2, AlertTriangle } from 'lucide-react';
 import MasterySetupModal from '../components/MasterySetupModal';
 import BlurtModeSection from '../components/BlurtModeSection';
 import { applyMemoryDeterioration, getDeteriorationInfo } from '../utils/memoryDeterioration';
@@ -181,58 +181,11 @@ const Mastery = () => {
     }
   };
 
-  const toggleTopicCompletion = async (topicId) => {
-    const updated = {
-      ...topicProgress,
-      [topicId]: {
-        ...topicProgress[topicId],
-        completed: !topicProgress[topicId]?.completed,
-        completionPercent: !topicProgress[topicId]?.completed
-          ? calculateCompletionScore(topicProgress[topicId]) || 100
-          : calculateCompletionScore(topicProgress[topicId])
-      }
-    };
-    setTopicProgress(updated);
-    const storageKey = getStorageKey(masterySetup.subject);
-    localStorage.setItem(storageKey, JSON.stringify(updated));
-
-    // Sync to Supabase
-    try {
-      if (user) {
-        await updateTopicProgress(masterySetup.subject, updated);
-      }
-    } catch (error) {
-      console.error('Error syncing to Supabase:', error);
-    }
-  };
-
   const toggleExpandTopic = (topicId) => {
     setExpandedTopics(prev => ({
       ...prev,
       [topicId]: !prev[topicId]
     }));
-  };
-
-  const updateTopicNotes = async (topicId, notes) => {
-    const updated = {
-      ...topicProgress,
-      [topicId]: {
-        ...topicProgress[topicId],
-        notes
-      }
-    };
-    setTopicProgress(updated);
-    const storageKey = getStorageKey(masterySetup.subject);
-    localStorage.setItem(storageKey, JSON.stringify(updated));
-
-    // Sync to Supabase
-    try {
-      if (user) {
-        await updateTopicProgress(masterySetup.subject, updated);
-      }
-    } catch (error) {
-      console.error('Error syncing to Supabase:', error);
-    }
   };
 
   const handleChangeSetup = () => {
@@ -373,7 +326,6 @@ const Mastery = () => {
                   const isSelected = topicProgress[topic.id]?.selected || false;
                   const isCompleted = topicProgress[topic.id]?.completed || false;
                   const completionPercent = topicProgress[topic.id]?.completionPercent || 0;
-                  const notes = topicProgress[topic.id]?.notes || '';
                   const blurtScore = topicProgress[topic.id]?.blurtScore;
                   const lastPracticeDate = topicProgress[topic.id]?.lastPracticeDate;
                   const isExpanded = expandedTopics[topic.id] || false;
@@ -388,6 +340,7 @@ const Mastery = () => {
                       className="group h-full"
                     >
                       <div
+                        onClick={() => toggleTopicSelection(topic.id)}
                         className={`bg-gradient-to-br rounded-xl border-2 transition-all cursor-pointer h-full flex flex-col ${
                           isSelected
                             ? 'from-blue-900/50 to-slate-900/50 border-blue-600/60 shadow-lg shadow-blue-500/20'
@@ -397,21 +350,21 @@ const Mastery = () => {
                         <div className="p-5 flex flex-col gap-3">
                           {/* Header with checkbox and expand button */}
                           <div className="flex items-start gap-2">
-                            <motion.button
-                              onClick={() => toggleTopicSelection(topic.id)}
-                              whileHover={{ scale: 1.15 }}
-                              whileTap={{ scale: 0.9 }}
+                            <div
                               className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition ${
                                 isSelected
                                   ? 'bg-blue-600 border-blue-400'
-                                  : 'border-purple-500 hover:border-purple-400 bg-transparent'
+                                  : 'border-purple-500 bg-transparent'
                               }`}
                             >
                               {isSelected && <Check className="w-3 h-3 text-white" />}
-                            </motion.button>
+                            </div>
 
                             <motion.button
-                              onClick={() => toggleExpandTopic(topic.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleExpandTopic(topic.id);
+                              }}
                               className="ml-auto flex-shrink-0 text-purple-300 hover:text-white transition"
                             >
                               {isExpanded ? (
@@ -545,44 +498,6 @@ const Mastery = () => {
                                     )}
                                   </div>
                                 )}
-
-                                <div>
-                                  <label className="block text-xs font-medium text-purple-200 mb-1">
-                                    Study Notes
-                                  </label>
-                                  <textarea
-                                    value={notes}
-                                    onChange={(e) => updateTopicNotes(topic.id, e.target.value)}
-                                    placeholder="Add notes..."
-                                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-xs placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-                                    rows="2"
-                                  />
-                                </div>
-
-                                <div className="flex gap-2 pt-1">
-                                  {!isCompleted && (
-                                    <motion.button
-                                      onClick={() => toggleTopicCompletion(topic.id)}
-                                      whileHover={{ scale: 1.05 }}
-                                      whileTap={{ scale: 0.95 }}
-                                      className="flex-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium text-xs transition"
-                                    >
-                                      <Check className="w-3 h-3 inline mr-1" />
-                                      Complete
-                                    </motion.button>
-                                  )}
-                                  {isCompleted && (
-                                    <motion.button
-                                      onClick={() => toggleTopicCompletion(topic.id)}
-                                      whileHover={{ scale: 1.05 }}
-                                      whileTap={{ scale: 0.95 }}
-                                      className="flex-1 px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded-lg font-medium text-xs transition"
-                                    >
-                                      <X className="w-3 h-3 inline mr-1" />
-                                      Undo
-                                    </motion.button>
-                                  )}
-                                </div>
                               </div>
                             </motion.div>
                           )}

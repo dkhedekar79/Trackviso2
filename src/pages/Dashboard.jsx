@@ -1,5 +1,5 @@
 // src/pages/Dashboard.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -7,7 +7,8 @@ import Sidebar from "../components/Sidebar";
 import OnboardingModal from "../components/OnboardingModal";
 import Skillpulse from "../components/Skillpulse";
 import { FlameIcon } from "lucide-react";
-import { fetchStudySessions, fetchUserSubjects, fetchUserTasks } from "../utils/supabaseDb";
+import { fetchStudySessions, fetchUserSubjects, fetchUserTasks, fetchTopicProgress } from "../utils/supabaseDb";
+import { applyMemoryDeterioration } from "../utils/memoryDeterioration";
 
 function getStartOfWeek(date) {
   const d = new Date(date);
@@ -149,6 +150,8 @@ export default function Dashboard() {
   });
   const [streak, setStreak] = useState(0);
   const [completedTasksThisWeek, setCompletedTasksThisWeek] = useState(0);
+  const [examReadiness, setExamReadiness] = useState(0);
+  const [subjectLeaderboard, setSubjectLeaderboard] = useState([]);
 
   const today = new Date();
   const dateString = today.toLocaleDateString("en-US", {
@@ -156,6 +159,21 @@ export default function Dashboard() {
     day: "numeric",
     year: "numeric",
   });
+
+  // Helper function to normalize subject data format (Supabase uses snake_case, app uses camelCase)
+  // This is a pure function, so it doesn't need to be in dependency arrays
+  const normalizeSubject = (subject) => {
+    // If already in camelCase format (from localStorage), return as is
+    if (subject.goalHours !== undefined) {
+      return subject;
+    }
+    // Convert from Supabase format (snake_case) to app format (camelCase)
+    return {
+      ...subject,
+      goalHours: subject.goal_hours || 0,
+      iconName: subject.icon_name || 'BookOpen',
+    };
+  };
 
   // Load subjects, study sessions, and tasks from Supabase (with localStorage fallback)
   useEffect(() => {
@@ -170,7 +188,11 @@ export default function Dashboard() {
           ]);
 
           if (supabaseSubjects && supabaseSubjects.length > 0) {
-            setSubjects(supabaseSubjects);
+            // Normalize subjects from Supabase format to app format
+            const normalizedSubjects = supabaseSubjects.map(normalizeSubject);
+            setSubjects(normalizedSubjects);
+            // Also sync to localStorage for offline support
+            localStorage.setItem("subjects", JSON.stringify(normalizedSubjects));
           } else {
             const savedSubjects = localStorage.getItem("subjects");
             if (savedSubjects) {
@@ -341,6 +363,122 @@ export default function Dashboard() {
     };
   };
 
+  // Helper function to calculate completion score from mastery topic progress
+  const calculateCompletionScore = (topicProgress, applyDeterioration = true) => {
+    if (!topicProgress) return 0;
+    const scores = [];
+    if (topicProgress.blurtScore !== undefined) scores.push(topicProgress.blurtScore);
+    if (topicProgress.spacedRetrievalScore !== undefined) scores.push(topicProgress.spacedRetrievalScore);
+    if (topicProgress.mockExamScore !== undefined) scores.push(topicProgress.mockExamScore);
+    
+    if (scores.length === 0) return 0;
+    
+    const baseScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+    
+    // Apply memory deterioration if enabled
+    if (applyDeterioration && topicProgress.lastPracticeDate) {
+      return applyMemoryDeterioration(baseScore, topicProgress.lastPracticeDate);
+    }
+    
+    return baseScore;
+  };
+
+  // Calculate subject mastery progress (combines study time progress and mastery progress)
+  const calculateSubjectProgress = useCallback(async (subject) => {
+    // Normalize subject to ensure consistent format
+    const normalizedSubject = normalizeSubject(subject);
+    
+    // Get study time progress
+    const subjectSessions = studySessions.filter(s => s.subjectName === normalizedSubject.name || s.subject_name === normalizedSubject.name);
+    const studyTimeMinutes = subjectSessions.reduce((sum, s) => sum + (s.durationMinutes || 0), 0);
+    const goalMinutes = (normalizedSubject.goalHours || 0) * 60;
+    const studyTimeProgress = goalMinutes > 0 ? Math.min(100, (studyTimeMinutes / goalMinutes) * 100) : 0;
+
+    // Get mastery progress if available
+    let masteryProgress = 0;
+    try {
+      const masterySetup = JSON.parse(localStorage.getItem('masterySetup') || 'null');
+      if (masterySetup && masterySetup.subject === normalizedSubject.name) {
+        let topicProgressData = null;
+        
+        // Try to load from Supabase first
+        if (user) {
+          try {
+            topicProgressData = await fetchTopicProgress(normalizedSubject.name);
+          } catch (error) {
+            console.error('Error loading topic progress from Supabase:', error);
+          }
+        }
+        
+        // Fallback to localStorage
+        if (!topicProgressData) {
+          const storageKey = `masteryData_${normalizedSubject.name}`;
+          const savedProgress = localStorage.getItem(storageKey);
+          if (savedProgress) {
+            topicProgressData = JSON.parse(savedProgress);
+          }
+        }
+
+        if (topicProgressData && masterySetup.topics && masterySetup.topics.length > 0) {
+          const completionScores = masterySetup.topics.map(topic => {
+            const topicProgress = topicProgressData[topic.id];
+            return topicProgress ? calculateCompletionScore(topicProgress, true) : 0;
+          });
+          masteryProgress = completionScores.reduce((acc, score) => acc + score, 0) / completionScores.length;
+        }
+      }
+    } catch (error) {
+      console.error('Error calculating mastery progress:', error);
+    }
+
+    // Combine both progress metrics (weighted average: 40% study time, 60% mastery)
+    // If no mastery data, use only study time progress
+    if (masteryProgress === 0) {
+      return studyTimeProgress;
+    }
+    return (studyTimeProgress * 0.4) + (masteryProgress * 0.6);
+  }, [studySessions, user]);
+
+  // Calculate overall exam readiness and subject leaderboard
+  useEffect(() => {
+    const calculateExamReadiness = async () => {
+      if (subjects.length === 0) {
+        setExamReadiness(0);
+        setSubjectLeaderboard([]);
+        return;
+      }
+
+      const subjectProgresses = await Promise.all(
+        subjects.map(async (subject) => {
+          const progress = await calculateSubjectProgress(subject);
+          return {
+            ...subject,
+            progress: progress
+          };
+        })
+      );
+
+      // Sort by progress for leaderboard
+      const sorted = [...subjectProgresses].sort((a, b) => b.progress - a.progress);
+      setSubjectLeaderboard(sorted);
+
+      // Calculate overall exam readiness as average
+      const overallProgress = subjectProgresses.reduce((sum, s) => sum + s.progress, 0) / subjectProgresses.length;
+      setExamReadiness(Math.round(overallProgress));
+    };
+
+    calculateExamReadiness();
+  }, [subjects, studySessions, user, calculateSubjectProgress]);
+
+  // Get color for circular progress based on percentage
+  const getProgressColor = (percentage) => {
+    if (percentage >= 80) return '#10b981'; // green-500
+    if (percentage >= 60) return '#3b82f6'; // blue-500
+    if (percentage >= 40) return '#f59e0b'; // amber-500
+    if (percentage >= 20) return '#f97316'; // orange-500
+    return '#ef4444'; // red-500
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 flex">
       <OnboardingModal userId={user?.id} />
@@ -358,7 +496,7 @@ export default function Dashboard() {
             </div>
         </div>
 
-        {/* Summary & Streak */}
+        {/* Summary & Exam Readiness */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-6 px-6 py-8 bg-#F8F9FC">
           <Card title="This Week's Study">
             <span className="text-3xl font-bold text-white">{studyStats.hoursThisWeek.toFixed(1)} <small className="text-base font-normal text-gray-300">hrs</small></span>
@@ -374,33 +512,84 @@ export default function Dashboard() {
               <p className="text-[#FEC260] mt-2">Keep going!</p>
             )}
           </Card>
-         
 
-    
-          <Card title="Streak" icon={null}>
-            <div className="flex flex-col">
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <FlameIcon className={`w-7 h-7 ${streak > 0 ? 'text-orange-400' : 'text-gray-400'}`} />
-                  <span className="text-3xl font-bold text-orange-400">{streak} <small className="text-base font-normal text-gray-300">days in a row</small></span>
+          {/* Exam Readiness Card - Combined Streak and Tasks */}
+          <motion.div
+            variants={itemVariants}
+            className="md:col-span-2 rounded-2xl p-6 border backdrop-blur-md shadow-xl transition-all bg-gradient-to-br from-purple-900/40 to-slate-900/40 border-purple-700/30"
+            whileHover={{ y: -5, scale: 1.02 }}
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <h2 className="text-lg font-semibold text-white">Your mastery progress</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Left: Circular Progress */}
+              <div className="flex flex-col items-center justify-center">
+                <div className="relative w-32 h-32">
+                  <svg className="transform -rotate-90 w-32 h-32" viewBox="0 0 128 128">
+                    <circle
+                      cx="64"
+                      cy="64"
+                      r="56"
+                      stroke="rgba(255, 255, 255, 0.1)"
+                      strokeWidth="12"
+                      fill="none"
+                    />
+                    <motion.circle
+                      cx="64"
+                      cy="64"
+                      r="56"
+                      stroke={getProgressColor(examReadiness)}
+                      strokeWidth="12"
+                      fill="none"
+                      strokeLinecap="round"
+                      initial={{ pathLength: 0 }}
+                      animate={{ pathLength: examReadiness / 100 }}
+                      transition={{ duration: 1, ease: "easeOut" }}
+                      strokeDasharray={`${2 * Math.PI * 56}`}
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-3xl font-bold text-white">{examReadiness}%</span>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-300 mt-4 text-center">Overall progress</p>
+              </div>
+
+              {/* Right: Subject Leaderboard */}
+              <div className="flex flex-col">
+                <h3 className="text-sm font-semibold text-white mb-3">Subject Mastery</h3>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {subjectLeaderboard.length > 0 ? (
+                    subjectLeaderboard.map((subject, index) => (
+                      <div key={subject.id || index} className="flex items-center gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-600/30 flex items-center justify-center text-xs font-semibold text-white">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-sm font-medium text-white truncate">{subject.name}</span>
+                            <span className="text-xs font-semibold text-gray-300 ml-2">{Math.round(subject.progress)}%</span>
+                          </div>
+                          <div className="w-full bg-white/10 rounded-full h-1.5">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${subject.progress}%` }}
+                              transition={{ duration: 0.8, delay: index * 0.1 }}
+                              className="h-1.5 rounded-full"
+                              style={{ backgroundColor: getProgressColor(subject.progress) }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-400 text-center py-4">No subjects yet. Add subjects to track your progress!</p>
+                  )}
                 </div>
               </div>
-              <div className="flex-1" />
-              <p className="text-sm text-gray-300 mt-4">{getStreakMessage(streak)}</p>
             </div>
-          </Card>
-          <Card title="Tasks completed this week!" icon={null}>
-            <div className="mb-6">
-              <span className="block text-4xl font-extrabold text-white mb-2">{completedTasksThisWeek}</span>
-            </div>
-            <p className="text-sm text-gray-300 mb-4">{getCompletedTasksMessage(completedTasksThisWeek)}</p>
-            <button
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#6C5DD3] text-white font-semibold shadow hover:bg-[#7A6AD9] transition"
-              onClick={() => navigate('/tasks')}
-            >
-              <span className="text-xl">🧠</span> Go to Tasks
-            </button>
-          </Card>
+          </motion.div>
         </section>
         
         {/* Skillpulse */}
