@@ -259,7 +259,7 @@ export const useSupabaseSubjects = () => {
 
 // Hook to sync tasks
 export const useSupabaseTasks = () => {
-  const [tasks, setTasks] = null;
+  const [tasks, setTasks] = useState(null);
 
   const loadTasks = useCallback(async () => {
     try {
