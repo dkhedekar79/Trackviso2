@@ -52,7 +52,7 @@ const Landing = () => {
         </>
       ),
       subtitle:
-        "Your revision dashboard: study tracker, analytics, calendar, and XP system in one.",
+        "Your revision dashboard: study tracker, analytics, AI study tutor, and XP system in one.",
     },
     {
       title: (
