@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { useSupabaseUserStats } from "../hooks/useSupabaseSync";
+import { supabase } from "../supabaseClient";
 
 const GamificationContext = createContext();
 
