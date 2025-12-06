@@ -1,60 +1,89 @@
 import { supabase } from '../supabaseClient';
 
 export const initializeDatabase = async () => {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return;
-
-  const userId = session.user.id;
-
   try {
-    // Check if user_stats table exists and create if needed
-    const { data: userStatsData, error: userStatsError } = await supabase
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      console.warn('No session available for database initialization');
+      return;
+    }
+
+    const userId = session.user.id;
+
+    // Check if user_stats record exists
+    const { data: userStatsData, error: selectError } = await supabase
       .from('user_stats')
       .select('id')
       .eq('user_id', userId)
       .single();
 
-    if (userStatsError && userStatsError.code === 'PGRST116') {
-      // Record doesn't exist, create default stats
-      await supabase.from('user_stats').insert([{
-        user_id: userId,
-        xp: 0,
-        level: 1,
-        prestige_level: 0,
-        total_sessions: 0,
-        total_study_time: 0,
-        current_streak: 0,
-        longest_streak: 0,
-        last_study_date: null,
-        streak_savers: 3,
-        badges: [],
-        achievements: [],
-        unlocked_titles: [],
-        current_title: 'Rookie Scholar',
-        weekly_xp: 0,
-        weekly_rank: 0,
-        friends: [],
-        challenges: [],
-        is_premium: false,
-        xp_multiplier: 1.0,
-        premium_skins: [],
-        current_skin: 'default',
-        subject_mastery: {},
-        weekly_goal: 0,
-        weekly_progress: 0,
-        total_xp_earned: 0,
-        last_reward_time: null,
-        reward_streak: 0,
-        lucky_streak: 0,
-        jackpot_count: 0,
-        gems: 0,
-        xp_events: [],
-      }]);
-    }
+    // If no record found, create one
+    if (selectError && selectError.code === 'PGRST116') {
+      const { data: insertData, error: insertError } = await supabase
+        .from('user_stats')
+        .insert([{
+          user_id: userId,
+          xp: 0,
+          level: 1,
+          prestige_level: 0,
+          total_sessions: 0,
+          total_study_time: 0,
+          current_streak: 0,
+          longest_streak: 0,
+          last_study_date: null,
+          streak_savers: 3,
+          badges: [],
+          achievements: [],
+          unlocked_titles: [],
+          current_title: 'Rookie Scholar',
+          weekly_xp: 0,
+          weekly_rank: 0,
+          friends: [],
+          challenges: [],
+          is_premium: false,
+          xp_multiplier: 1.0,
+          premium_skins: [],
+          current_skin: 'default',
+          subject_mastery: {},
+          weekly_goal: 0,
+          weekly_progress: 0,
+          total_xp_earned: 0,
+          last_reward_time: null,
+          reward_streak: 0,
+          lucky_streak: 0,
+          jackpot_count: 0,
+          gems: 0,
+          xp_events: [],
+        }])
+        .select()
+        .single();
 
-    console.log('✅ Database initialized for user:', userId);
+      if (insertError) {
+        console.error('Error creating user_stats record:', {
+          message: insertError.message,
+          code: insertError.code,
+          details: insertError.details,
+          hint: insertError.hint,
+          status: insertError.status,
+        });
+        return;
+      }
+
+      console.log('✅ User stats record created for user:', userId);
+    } else if (selectError) {
+      console.error('Error checking user_stats:', {
+        message: selectError.message,
+        code: selectError.code,
+      });
+      return;
+    } else {
+      console.log('✅ User stats already exists for user:', userId);
+    }
   } catch (error) {
-    console.error('Error initializing database:', error);
+    console.error('Exception initializing database:', {
+      message: error.message,
+      stack: error.stack,
+    });
   }
 };
 
