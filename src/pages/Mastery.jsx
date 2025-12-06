@@ -213,7 +213,7 @@ const Mastery = () => {
     }));
   };
 
-  const updateTopicNotes = (topicId, notes) => {
+  const updateTopicNotes = async (topicId, notes) => {
     const updated = {
       ...topicProgress,
       [topicId]: {
@@ -224,6 +224,15 @@ const Mastery = () => {
     setTopicProgress(updated);
     const storageKey = getStorageKey(masterySetup.subject);
     localStorage.setItem(storageKey, JSON.stringify(updated));
+
+    // Sync to Supabase
+    try {
+      if (user) {
+        await updateTopicProgress(masterySetup.subject, updated);
+      }
+    } catch (error) {
+      console.error('Error syncing to Supabase:', error);
+    }
   };
 
   const handleChangeSetup = () => {
