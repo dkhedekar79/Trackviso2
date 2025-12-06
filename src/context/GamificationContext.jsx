@@ -16,6 +16,7 @@ export const useGamification = () => {
 
 export const GamificationProvider = ({ children }) => {
   const [userStats, setUserStats] = useState(() => {
+    // Initialize from localStorage as fallback
     const saved = localStorage.getItem("userStats");
     const defaultStats = {
       // Core progression
