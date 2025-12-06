@@ -1072,7 +1072,7 @@ const StudyModesSection = () => {
           <motion.div
             key={`mockup-${activeMode}`}
             initial={{ opacity: 0, x: 50, scale: 0.95 }}
-            animate={{ opacity: 1, x: 0, scale: 1.5 }}
+            animate={{ opacity: 1, x: 0, scale:1.25 }}
             exit={{ opacity: 0, x: -50, scale: 0.95 }}
             transition={{ duration: 0.5 }}
             className="w-full relative"
