@@ -80,6 +80,8 @@ export const AuthProvider = ({ children }) => {
     setIsPremiumUser(data.user?.user_metadata?.is_premium || false);
     setFreeQuizQuestionsUsed(data.user?.user_metadata?.free_quiz_questions_used || 0);
     setLastQuizResetDate(data.user?.user_metadata?.last_quiz_reset_date || null);
+    // Migrate legacy data on login
+    await migrateLegacyDataToSupabase();
     return data;
   };
 
