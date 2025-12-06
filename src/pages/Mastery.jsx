@@ -4,6 +4,8 @@ import { ChevronDown, ChevronUp, Check, Edit2, X, AlertTriangle } from 'lucide-r
 import MasterySetupModal from '../components/MasterySetupModal';
 import BlurtModeSection from '../components/BlurtModeSection';
 import { applyMemoryDeterioration, getDeteriorationInfo } from '../utils/memoryDeterioration';
+import { fetchTopicProgress, updateTopicProgress } from '../utils/supabaseDb';
+import { useAuth } from '../context/AuthContext';
 
 // Helper function to calculate completion score from individual scores
 const calculateCompletionScore = (topicProgress, applyDeterioration = true) => {
