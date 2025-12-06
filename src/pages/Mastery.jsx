@@ -97,30 +97,43 @@ const Mastery = () => {
     loadMasteryData();
   }, [user]);
 
-  const handleSetupComplete = (setup) => {
+  const handleSetupComplete = async (setup) => {
     setMasterySetup(setup);
     localStorage.setItem('masterySetup', JSON.stringify(setup));
     setShowSetupModal(false);
 
     // Load existing progress for this subject if it exists
     const storageKey = getStorageKey(setup.subject);
-    const existingProgress = localStorage.getItem(storageKey);
     let progress = {};
-    
-    if (existingProgress) {
-      // Merge existing progress with new topics
-      const existing = JSON.parse(existingProgress);
-      progress = { ...existing };
+
+    // Try to load from Supabase first
+    try {
+      if (user) {
+        const supabaseProgress = await fetchTopicProgress(setup.subject);
+        if (supabaseProgress) {
+          progress = supabaseProgress;
+        }
+      }
+    } catch (error) {
+      console.error('Error loading from Supabase:', error);
     }
-    
+
+    // Fallback to localStorage
+    if (Object.keys(progress).length === 0) {
+      const existingProgress = localStorage.getItem(storageKey);
+      if (existingProgress) {
+        progress = JSON.parse(existingProgress);
+      }
+    }
+
     // Initialize new topics if they don't exist
     if (setup.topics) {
       setup.topics.forEach(topic => {
         if (!progress[topic.id]) {
-          progress[topic.id] = { 
-            completed: false, 
-            selected: false, 
-            notes: '', 
+          progress[topic.id] = {
+            completed: false,
+            selected: false,
+            notes: '',
             completionPercent: 0,
             blurtScore: undefined,
             spacedRetrievalScore: undefined,
@@ -132,9 +145,18 @@ const Mastery = () => {
         }
       });
     }
-    
+
     setTopicProgress(progress);
     localStorage.setItem(storageKey, JSON.stringify(progress));
+
+    // Sync to Supabase
+    try {
+      if (user) {
+        await updateTopicProgress(setup.subject, progress);
+      }
+    } catch (error) {
+      console.error('Error syncing to Supabase:', error);
+    }
   };
 
   const toggleTopicSelection = (topicId) => {
