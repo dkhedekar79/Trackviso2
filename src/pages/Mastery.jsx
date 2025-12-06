@@ -28,6 +28,7 @@ const calculateCompletionScore = (topicProgress, applyDeterioration = true) => {
 };
 
 const Mastery = () => {
+  const { user } = useAuth();
   const [masterySetup, setMasterySetup] = useState(null);
   const [showSetupModal, setShowSetupModal] = useState(false);
   const [subjects, setSubjects] = useState([]);
@@ -44,37 +45,57 @@ const Mastery = () => {
   };
 
   useEffect(() => {
-    const savedSubjects = JSON.parse(localStorage.getItem('subjects') || '[]');
-    setSubjects(savedSubjects);
+    const loadMasteryData = async () => {
+      const savedSubjects = JSON.parse(localStorage.getItem('subjects') || '[]');
+      setSubjects(savedSubjects);
 
-    const savedSetup = localStorage.getItem('masterySetup');
-    if (savedSetup) {
-      const setup = JSON.parse(savedSetup);
-      setMasterySetup(setup);
-      
-      // Load progress for this subject
-      const storageKey = getStorageKey(setup.subject);
-      const savedProgress = localStorage.getItem(storageKey);
-      if (savedProgress) {
-        const progress = JSON.parse(savedProgress);
-        setTopicProgress(progress);
-        
-        // Recalculate completion scores for all topics (with deterioration)
-        const updatedProgress = { ...progress };
-        Object.keys(updatedProgress).forEach(topicId => {
-          const completionScore = calculateCompletionScore(updatedProgress[topicId], true);
-          updatedProgress[topicId] = {
-            ...updatedProgress[topicId],
-            completionPercent: completionScore,
-          };
-        });
-        setTopicProgress(updatedProgress);
-        localStorage.setItem(storageKey, JSON.stringify(updatedProgress));
+      const savedSetup = localStorage.getItem('masterySetup');
+      if (savedSetup) {
+        const setup = JSON.parse(savedSetup);
+        setMasterySetup(setup);
+
+        // Load progress from Supabase first, fallback to localStorage
+        let progress = null;
+        try {
+          if (user) {
+            const supabaseProgress = await fetchTopicProgress(setup.subject);
+            if (supabaseProgress) {
+              progress = supabaseProgress;
+            }
+          }
+        } catch (error) {
+          console.error('Error loading from Supabase, falling back to localStorage:', error);
+        }
+
+        if (!progress) {
+          const storageKey = getStorageKey(setup.subject);
+          const savedProgress = localStorage.getItem(storageKey);
+          if (savedProgress) {
+            progress = JSON.parse(savedProgress);
+          }
+        }
+
+        if (progress) {
+          // Recalculate completion scores for all topics (with deterioration)
+          const updatedProgress = { ...progress };
+          Object.keys(updatedProgress).forEach(topicId => {
+            const completionScore = calculateCompletionScore(updatedProgress[topicId], true);
+            updatedProgress[topicId] = {
+              ...updatedProgress[topicId],
+              completionPercent: completionScore,
+            };
+          });
+          setTopicProgress(updatedProgress);
+          const storageKey = getStorageKey(setup.subject);
+          localStorage.setItem(storageKey, JSON.stringify(updatedProgress));
+        }
+      } else {
+        setShowSetupModal(true);
       }
-    } else {
-      setShowSetupModal(true);
-    }
-  }, []);
+    };
+
+    loadMasteryData();
+  }, [user]);
 
   const handleSetupComplete = (setup) => {
     setMasterySetup(setup);
