@@ -294,7 +294,7 @@ export const useSupabaseTasks = () => {
 
 // Hook to sync mastery topic progress
 export const useSupabaseTopicProgress = (subject) => {
-  const [topicProgress, setTopicProgress] = null;
+  const [topicProgress, setTopicProgress] = useState(null);
 
   const loadProgress = useCallback(async () => {
     if (!subject) return;
