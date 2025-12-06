@@ -159,7 +159,7 @@ const Mastery = () => {
     }
   };
 
-  const toggleTopicSelection = (topicId) => {
+  const toggleTopicSelection = async (topicId) => {
     const updated = {
       ...topicProgress,
       [topicId]: {
@@ -170,22 +170,40 @@ const Mastery = () => {
     setTopicProgress(updated);
     const storageKey = getStorageKey(masterySetup.subject);
     localStorage.setItem(storageKey, JSON.stringify(updated));
+
+    // Sync to Supabase
+    try {
+      if (user) {
+        await updateTopicProgress(masterySetup.subject, updated);
+      }
+    } catch (error) {
+      console.error('Error syncing to Supabase:', error);
+    }
   };
 
-  const toggleTopicCompletion = (topicId) => {
+  const toggleTopicCompletion = async (topicId) => {
     const updated = {
       ...topicProgress,
       [topicId]: {
         ...topicProgress[topicId],
         completed: !topicProgress[topicId]?.completed,
-        completionPercent: !topicProgress[topicId]?.completed 
-          ? calculateCompletionScore(topicProgress[topicId]) || 100 
+        completionPercent: !topicProgress[topicId]?.completed
+          ? calculateCompletionScore(topicProgress[topicId]) || 100
           : calculateCompletionScore(topicProgress[topicId])
       }
     };
     setTopicProgress(updated);
     const storageKey = getStorageKey(masterySetup.subject);
     localStorage.setItem(storageKey, JSON.stringify(updated));
+
+    // Sync to Supabase
+    try {
+      if (user) {
+        await updateTopicProgress(masterySetup.subject, updated);
+      }
+    } catch (error) {
+      console.error('Error syncing to Supabase:', error);
+    }
   };
 
   const toggleExpandTopic = (topicId) => {
