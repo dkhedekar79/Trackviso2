@@ -224,7 +224,7 @@ export const useSupabaseStudySessions = () => {
 
 // Hook to sync subjects
 export const useSupabaseSubjects = () => {
-  const [subjects, setSubjects] = null;
+  const [subjects, setSubjects] = useState(null);
 
   const loadSubjects = useCallback(async () => {
     try {
