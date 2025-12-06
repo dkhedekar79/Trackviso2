@@ -138,13 +138,8 @@ export const useSupabaseUserStats = (userStats, setUserStats) => {
           completedQuestsToday: stats.completed_quests_today || 0,
         }));
       }
-    };
 
-    loadStats();
-
-    // Subscribe to real-time updates
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
+      // Subscribe to real-time updates
       const subscription = subscribeToUserStats(session.user.id, (newStats) => {
         if (newStats) {
           setUserStats((prev) => ({
@@ -190,8 +185,10 @@ export const useSupabaseUserStats = (userStats, setUserStats) => {
       return () => {
         subscription.unsubscribe();
       };
-    }
-  }, []);
+    };
+
+    loadStats();
+  }, [setUserStats]);
 };
 
 // Hook to sync study sessions
