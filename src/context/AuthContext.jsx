@@ -34,6 +34,11 @@ export const AuthProvider = ({ children }) => {
           await resetFreeQuizQuestions();
         }
 
+        // Migrate legacy data on first login
+        if (session?.user) {
+          await migrateLegacyDataToSupabase();
+        }
+
       } catch (error) {
         console.error('Error in getInitialSession:', error);
         setUser(null);
