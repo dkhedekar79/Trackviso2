@@ -534,7 +534,7 @@ const Mastery = () => {
                         <h3 className="text-2xl font-bold text-amber-300">Blurt Mode</h3>
                       </div>
                       <p className="text-amber-100/70 text-sm leading-relaxed">
-                        Test your instant recall with quick-fire questions. Write down what you remember before seeing the answer. Perfect for rapid memory check.
+                        Test your active recall with blurt mode. Write down what you remember before seeing the answer. Perfect for a full knowledge check.
                       </p>
                     </motion.button>
 
@@ -544,11 +544,11 @@ const Mastery = () => {
                       className="group p-6 bg-gradient-to-br from-purple-900/40 to-violet-900/40 backdrop-blur-md rounded-2xl border-2 border-purple-700/30 hover:border-purple-600/50 transition-all cursor-pointer"
                     >
                       <div className="flex items-center gap-3 mb-3">
-                        <span className="text-3xl">🔄</span>
-                        <h3 className="text-2xl font-bold text-purple-300">Spaced Retrieval</h3>
+                        <span className="text-3xl">🧠</span>
+                        <h3 className="text-2xl font-bold text-purple-300">Active Recall</h3>
                       </div>
                       <p className="text-purple-100/70 text-sm leading-relaxed">
-                        Scientifically-optimized spacing intervals for maximum retention. Review concepts at the right time to strengthen long-term memory.
+                        Science's best proven revision method. Get a mix of multiple choice questions, open ended questions and flashcards, all guided by AI.
                       </p>
                     </motion.button>
 
