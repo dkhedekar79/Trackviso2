@@ -79,22 +79,41 @@ export const fetchUserStats = async () => {
 
 // Update user stats in Supabase
 export const updateUserStats = async (updates) => {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return null;
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      console.error('No active session when updating user stats');
+      return null;
+    }
 
-  const { data, error } = await supabase
-    .from('user_stats')
-    .update(updates)
-    .eq('user_id', session.user.id)
-    .select()
-    .single();
+    const { data, error } = await supabase
+      .from('user_stats')
+      .update(updates)
+      .eq('user_id', session.user.id)
+      .select()
+      .single();
 
-  if (error) {
-    console.error('Error updating user stats:', error);
+    if (error) {
+      console.error('Error updating user stats:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        status: error.status,
+        fullError: error
+      });
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Exception updating user stats:', {
+      message: error.message,
+      stack: error.stack,
+      fullError: error
+    });
     return null;
   }
-
-  return data;
 };
 
 // Add a study session
