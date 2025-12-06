@@ -672,15 +672,15 @@ const Mastery = () => {
             <BlurtModeSection
               selectedTopics={Object.keys(topicProgress).filter(topicId => topicProgress[topicId]?.selected)}
               masterySetup={masterySetup}
-              onContinue={(blurtData) => {
+              onContinue={async (blurtData) => {
                 setBlurtData(blurtData);
-                
+
                 // If finishing (has percentage), update topic scores
                 if (blurtData.percentage !== undefined) {
                   const selectedTopicIds = Object.keys(topicProgress).filter(
                     topicId => topicProgress[topicId]?.selected
                   );
-                  
+
                   const updated = { ...topicProgress };
                   const now = new Date().toISOString();
                   selectedTopicIds.forEach(topicId => {
@@ -694,12 +694,21 @@ const Mastery = () => {
                     topicData.completionPercent = calculateCompletionScore(topicData, false);
                     updated[topicId] = topicData;
                   });
-                  
+
                   setTopicProgress(updated);
                   const storageKey = getStorageKey(masterySetup.subject);
                   localStorage.setItem(storageKey, JSON.stringify(updated));
+
+                  // Sync to Supabase
+                  try {
+                    if (user) {
+                      await updateTopicProgress(masterySetup.subject, updated);
+                    }
+                  } catch (error) {
+                    console.error('Error syncing to Supabase:', error);
+                  }
                 }
-                
+
                 setIsBlurtModeActive(false);
               }}
             />
