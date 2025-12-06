@@ -7,6 +7,7 @@ import Sidebar from "../components/Sidebar";
 import OnboardingModal from "../components/OnboardingModal";
 import Skillpulse from "../components/Skillpulse";
 import { FlameIcon } from "lucide-react";
+import { fetchStudySessions, fetchUserSubjects, fetchUserTasks } from "../utils/supabaseDb";
 
 function getStartOfWeek(date) {
   const d = new Date(date);
