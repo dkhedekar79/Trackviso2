@@ -7,6 +7,7 @@ import Sidebar from "../components/Sidebar";
 import OnboardingModal from "../components/OnboardingModal";
 import Skillpulse from "../components/Skillpulse";
 import { FlameIcon } from "lucide-react";
+import { fetchStudySessions, fetchUserSubjects, fetchUserTasks } from "../utils/supabaseDb";
 
 function getStartOfWeek(date) {
   const d = new Date(date);
@@ -156,24 +157,68 @@ export default function Dashboard() {
     year: "numeric",
   });
 
-  // Load subjects, study sessions, and tasks from localStorage
+  // Load subjects, study sessions, and tasks from Supabase (with localStorage fallback)
   useEffect(() => {
-    const savedSubjects = localStorage.getItem("subjects");
-    const savedSessions = localStorage.getItem("studySessions");
-    const savedTasks = localStorage.getItem("tasks");
-    
-    if (savedSubjects) {
-      setSubjects(JSON.parse(savedSubjects));
-    }
-    
-    if (savedSessions) {
-      setStudySessions(JSON.parse(savedSessions));
-    }
-    
-    if (savedTasks) {
-      setTasks(JSON.parse(savedTasks));
-    }
-  }, []);
+    const loadData = async () => {
+      // Try to load from Supabase first
+      if (user) {
+        try {
+          const [supabaseSubjects, supabaseSessions, supabaseTasks] = await Promise.all([
+            fetchUserSubjects(),
+            fetchStudySessions(),
+            fetchUserTasks(),
+          ]);
+
+          if (supabaseSubjects && supabaseSubjects.length > 0) {
+            setSubjects(supabaseSubjects);
+          } else {
+            const savedSubjects = localStorage.getItem("subjects");
+            if (savedSubjects) {
+              setSubjects(JSON.parse(savedSubjects));
+            }
+          }
+
+          if (supabaseSessions && supabaseSessions.length > 0) {
+            setStudySessions(supabaseSessions);
+          } else {
+            const savedSessions = localStorage.getItem("studySessions");
+            if (savedSessions) {
+              setStudySessions(JSON.parse(savedSessions));
+            }
+          }
+
+          if (supabaseTasks && supabaseTasks.length > 0) {
+            setTasks(supabaseTasks);
+          } else {
+            const savedTasks = localStorage.getItem("tasks");
+            if (savedTasks) {
+              setTasks(JSON.parse(savedTasks));
+            }
+          }
+        } catch (error) {
+          console.error('Error loading from Supabase, falling back to localStorage:', error);
+          // Fallback to localStorage
+          const savedSubjects = localStorage.getItem("subjects");
+          const savedSessions = localStorage.getItem("studySessions");
+          const savedTasks = localStorage.getItem("tasks");
+
+          if (savedSubjects) {
+            setSubjects(JSON.parse(savedSubjects));
+          }
+
+          if (savedSessions) {
+            setStudySessions(JSON.parse(savedSessions));
+          }
+
+          if (savedTasks) {
+            setTasks(JSON.parse(savedTasks));
+          }
+        }
+      }
+    };
+
+    loadData();
+  }, [user]);
 
   // Calculate study statistics, streak, and completed tasks
   useEffect(() => {

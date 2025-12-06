@@ -1,6 +1,7 @@
-
 import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
+import { migrateLegacyDataToSupabase } from '../utils/migrateLegacyData';
+import { initializeDatabase } from '../utils/supabaseDb';
 
 const AuthContext = createContext();
 
@@ -32,6 +33,12 @@ export const AuthProvider = ({ children }) => {
 
         if (session?.user && lastReset !== today) {
           await resetFreeQuizQuestions();
+        }
+
+        // Initialize database and migrate legacy data on first login
+        if (session?.user) {
+          await initializeDatabase();
+          await migrateLegacyDataToSupabase();
         }
 
       } catch (error) {
@@ -75,12 +82,17 @@ export const AuthProvider = ({ children }) => {
     setIsPremiumUser(data.user?.user_metadata?.is_premium || false);
     setFreeQuizQuestionsUsed(data.user?.user_metadata?.free_quiz_questions_used || 0);
     setLastQuizResetDate(data.user?.user_metadata?.last_quiz_reset_date || null);
+    // Initialize database and migrate legacy data on login
+    if (data.user) {
+      await initializeDatabase();
+      await migrateLegacyDataToSupabase();
+    }
     return data;
   };
 
   const signup = async (email, password) => {
-    const { error, data } = await supabase.auth.signUp({ 
-      email, 
+    const { error, data } = await supabase.auth.signUp({
+      email,
       password,
       options: {
         data: {
@@ -96,6 +108,10 @@ export const AuthProvider = ({ children }) => {
     setIsPremiumUser(data.user?.user_metadata?.is_premium || false);
     setFreeQuizQuestionsUsed(data.user?.user_metadata?.free_quiz_questions_used || 0);
     setLastQuizResetDate(data.user?.user_metadata?.last_quiz_reset_date || null);
+    // Initialize database for new user
+    if (data.user) {
+      await initializeDatabase();
+    }
     return data;
   };
 

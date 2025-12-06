@@ -4,6 +4,8 @@ import { ChevronDown, ChevronUp, Check, Edit2, X, AlertTriangle } from 'lucide-r
 import MasterySetupModal from '../components/MasterySetupModal';
 import BlurtModeSection from '../components/BlurtModeSection';
 import { applyMemoryDeterioration, getDeteriorationInfo } from '../utils/memoryDeterioration';
+import { fetchTopicProgress, updateTopicProgress } from '../utils/supabaseDb';
+import { useAuth } from '../context/AuthContext';
 
 // Helper function to calculate completion score from individual scores
 const calculateCompletionScore = (topicProgress, applyDeterioration = true) => {
@@ -26,6 +28,7 @@ const calculateCompletionScore = (topicProgress, applyDeterioration = true) => {
 };
 
 const Mastery = () => {
+  const { user } = useAuth();
   const [masterySetup, setMasterySetup] = useState(null);
   const [showSetupModal, setShowSetupModal] = useState(false);
   const [subjects, setSubjects] = useState([]);
@@ -42,62 +45,95 @@ const Mastery = () => {
   };
 
   useEffect(() => {
-    const savedSubjects = JSON.parse(localStorage.getItem('subjects') || '[]');
-    setSubjects(savedSubjects);
+    const loadMasteryData = async () => {
+      const savedSubjects = JSON.parse(localStorage.getItem('subjects') || '[]');
+      setSubjects(savedSubjects);
 
-    const savedSetup = localStorage.getItem('masterySetup');
-    if (savedSetup) {
-      const setup = JSON.parse(savedSetup);
-      setMasterySetup(setup);
-      
-      // Load progress for this subject
-      const storageKey = getStorageKey(setup.subject);
-      const savedProgress = localStorage.getItem(storageKey);
-      if (savedProgress) {
-        const progress = JSON.parse(savedProgress);
-        setTopicProgress(progress);
-        
-        // Recalculate completion scores for all topics (with deterioration)
-        const updatedProgress = { ...progress };
-        Object.keys(updatedProgress).forEach(topicId => {
-          const completionScore = calculateCompletionScore(updatedProgress[topicId], true);
-          updatedProgress[topicId] = {
-            ...updatedProgress[topicId],
-            completionPercent: completionScore,
-          };
-        });
-        setTopicProgress(updatedProgress);
-        localStorage.setItem(storageKey, JSON.stringify(updatedProgress));
+      const savedSetup = localStorage.getItem('masterySetup');
+      if (savedSetup) {
+        const setup = JSON.parse(savedSetup);
+        setMasterySetup(setup);
+
+        // Load progress from Supabase first, fallback to localStorage
+        let progress = null;
+        try {
+          if (user) {
+            const supabaseProgress = await fetchTopicProgress(setup.subject);
+            if (supabaseProgress) {
+              progress = supabaseProgress;
+            }
+          }
+        } catch (error) {
+          console.error('Error loading from Supabase, falling back to localStorage:', error);
+        }
+
+        if (!progress) {
+          const storageKey = getStorageKey(setup.subject);
+          const savedProgress = localStorage.getItem(storageKey);
+          if (savedProgress) {
+            progress = JSON.parse(savedProgress);
+          }
+        }
+
+        if (progress) {
+          // Recalculate completion scores for all topics (with deterioration)
+          const updatedProgress = { ...progress };
+          Object.keys(updatedProgress).forEach(topicId => {
+            const completionScore = calculateCompletionScore(updatedProgress[topicId], true);
+            updatedProgress[topicId] = {
+              ...updatedProgress[topicId],
+              completionPercent: completionScore,
+            };
+          });
+          setTopicProgress(updatedProgress);
+          const storageKey = getStorageKey(setup.subject);
+          localStorage.setItem(storageKey, JSON.stringify(updatedProgress));
+        }
+      } else {
+        setShowSetupModal(true);
       }
-    } else {
-      setShowSetupModal(true);
-    }
-  }, []);
+    };
 
-  const handleSetupComplete = (setup) => {
+    loadMasteryData();
+  }, [user]);
+
+  const handleSetupComplete = async (setup) => {
     setMasterySetup(setup);
     localStorage.setItem('masterySetup', JSON.stringify(setup));
     setShowSetupModal(false);
 
     // Load existing progress for this subject if it exists
     const storageKey = getStorageKey(setup.subject);
-    const existingProgress = localStorage.getItem(storageKey);
     let progress = {};
-    
-    if (existingProgress) {
-      // Merge existing progress with new topics
-      const existing = JSON.parse(existingProgress);
-      progress = { ...existing };
+
+    // Try to load from Supabase first
+    try {
+      if (user) {
+        const supabaseProgress = await fetchTopicProgress(setup.subject);
+        if (supabaseProgress) {
+          progress = supabaseProgress;
+        }
+      }
+    } catch (error) {
+      console.error('Error loading from Supabase:', error);
     }
-    
+
+    // Fallback to localStorage
+    if (Object.keys(progress).length === 0) {
+      const existingProgress = localStorage.getItem(storageKey);
+      if (existingProgress) {
+        progress = JSON.parse(existingProgress);
+      }
+    }
+
     // Initialize new topics if they don't exist
     if (setup.topics) {
       setup.topics.forEach(topic => {
         if (!progress[topic.id]) {
-          progress[topic.id] = { 
-            completed: false, 
-            selected: false, 
-            notes: '', 
+          progress[topic.id] = {
+            completed: false,
+            selected: false,
+            notes: '',
             completionPercent: 0,
             blurtScore: undefined,
             spacedRetrievalScore: undefined,
@@ -109,12 +145,21 @@ const Mastery = () => {
         }
       });
     }
-    
+
     setTopicProgress(progress);
     localStorage.setItem(storageKey, JSON.stringify(progress));
+
+    // Sync to Supabase
+    try {
+      if (user) {
+        await updateTopicProgress(setup.subject, progress);
+      }
+    } catch (error) {
+      console.error('Error syncing to Supabase:', error);
+    }
   };
 
-  const toggleTopicSelection = (topicId) => {
+  const toggleTopicSelection = async (topicId) => {
     const updated = {
       ...topicProgress,
       [topicId]: {
@@ -125,22 +170,40 @@ const Mastery = () => {
     setTopicProgress(updated);
     const storageKey = getStorageKey(masterySetup.subject);
     localStorage.setItem(storageKey, JSON.stringify(updated));
+
+    // Sync to Supabase
+    try {
+      if (user) {
+        await updateTopicProgress(masterySetup.subject, updated);
+      }
+    } catch (error) {
+      console.error('Error syncing to Supabase:', error);
+    }
   };
 
-  const toggleTopicCompletion = (topicId) => {
+  const toggleTopicCompletion = async (topicId) => {
     const updated = {
       ...topicProgress,
       [topicId]: {
         ...topicProgress[topicId],
         completed: !topicProgress[topicId]?.completed,
-        completionPercent: !topicProgress[topicId]?.completed 
-          ? calculateCompletionScore(topicProgress[topicId]) || 100 
+        completionPercent: !topicProgress[topicId]?.completed
+          ? calculateCompletionScore(topicProgress[topicId]) || 100
           : calculateCompletionScore(topicProgress[topicId])
       }
     };
     setTopicProgress(updated);
     const storageKey = getStorageKey(masterySetup.subject);
     localStorage.setItem(storageKey, JSON.stringify(updated));
+
+    // Sync to Supabase
+    try {
+      if (user) {
+        await updateTopicProgress(masterySetup.subject, updated);
+      }
+    } catch (error) {
+      console.error('Error syncing to Supabase:', error);
+    }
   };
 
   const toggleExpandTopic = (topicId) => {
@@ -150,7 +213,7 @@ const Mastery = () => {
     }));
   };
 
-  const updateTopicNotes = (topicId, notes) => {
+  const updateTopicNotes = async (topicId, notes) => {
     const updated = {
       ...topicProgress,
       [topicId]: {
@@ -161,6 +224,15 @@ const Mastery = () => {
     setTopicProgress(updated);
     const storageKey = getStorageKey(masterySetup.subject);
     localStorage.setItem(storageKey, JSON.stringify(updated));
+
+    // Sync to Supabase
+    try {
+      if (user) {
+        await updateTopicProgress(masterySetup.subject, updated);
+      }
+    } catch (error) {
+      console.error('Error syncing to Supabase:', error);
+    }
   };
 
   const handleChangeSetup = () => {
@@ -600,15 +672,15 @@ const Mastery = () => {
             <BlurtModeSection
               selectedTopics={Object.keys(topicProgress).filter(topicId => topicProgress[topicId]?.selected)}
               masterySetup={masterySetup}
-              onContinue={(blurtData) => {
+              onContinue={async (blurtData) => {
                 setBlurtData(blurtData);
-                
+
                 // If finishing (has percentage), update topic scores
                 if (blurtData.percentage !== undefined) {
                   const selectedTopicIds = Object.keys(topicProgress).filter(
                     topicId => topicProgress[topicId]?.selected
                   );
-                  
+
                   const updated = { ...topicProgress };
                   const now = new Date().toISOString();
                   selectedTopicIds.forEach(topicId => {
@@ -622,12 +694,21 @@ const Mastery = () => {
                     topicData.completionPercent = calculateCompletionScore(topicData, false);
                     updated[topicId] = topicData;
                   });
-                  
+
                   setTopicProgress(updated);
                   const storageKey = getStorageKey(masterySetup.subject);
                   localStorage.setItem(storageKey, JSON.stringify(updated));
+
+                  // Sync to Supabase
+                  try {
+                    if (user) {
+                      await updateTopicProgress(masterySetup.subject, updated);
+                    }
+                  } catch (error) {
+                    console.error('Error syncing to Supabase:', error);
+                  }
                 }
-                
+
                 setIsBlurtModeActive(false);
               }}
             />

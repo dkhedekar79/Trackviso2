@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { useSupabaseUserStats } from "../hooks/useSupabaseSync";
+import { supabase } from "../supabaseClient";
 
 const GamificationContext = createContext();
 
@@ -14,6 +16,7 @@ export const useGamification = () => {
 
 export const GamificationProvider = ({ children }) => {
   const [userStats, setUserStats] = useState(() => {
+    // Initialize from localStorage as fallback
     const saved = localStorage.getItem("userStats");
     const defaultStats = {
       // Core progression
@@ -96,7 +99,10 @@ export const GamificationProvider = ({ children }) => {
   const [showRewards, setShowRewards] = useState(false);
   const [activeAnimations, setActiveAnimations] = useState([]);
 
-  // Save stats to localStorage whenever they change
+  // Sync with Supabase and handle real-time updates
+  useSupabaseUserStats(userStats, setUserStats);
+
+  // Save stats to localStorage whenever they change (as backup)
   useEffect(() => {
     console.log("💾 Saving userStats to localStorage:", userStats);
     localStorage.setItem("userStats", JSON.stringify(userStats));
