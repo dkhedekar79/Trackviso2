@@ -35,8 +35,9 @@ export const AuthProvider = ({ children }) => {
           await resetFreeQuizQuestions();
         }
 
-        // Migrate legacy data on first login
+        // Initialize database and migrate legacy data on first login
         if (session?.user) {
+          await initializeDatabase();
           await migrateLegacyDataToSupabase();
         }
 
