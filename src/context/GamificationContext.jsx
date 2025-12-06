@@ -99,7 +99,10 @@ export const GamificationProvider = ({ children }) => {
   const [showRewards, setShowRewards] = useState(false);
   const [activeAnimations, setActiveAnimations] = useState([]);
 
-  // Save stats to localStorage whenever they change
+  // Sync with Supabase and handle real-time updates
+  useSupabaseUserStats(userStats, setUserStats);
+
+  // Save stats to localStorage whenever they change (as backup)
   useEffect(() => {
     console.log("💾 Saving userStats to localStorage:", userStats);
     localStorage.setItem("userStats", JSON.stringify(userStats));
