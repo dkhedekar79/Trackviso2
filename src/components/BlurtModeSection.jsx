@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Loader, AlertCircle, Eye, EyeOff, Send, RotateCcw, CheckCircle } from 'lucide-react';
+import { ArrowRight, Loader, AlertCircle, Eye, EyeOff, Send, RotateCcw, CheckCircle, Lock, Crown } from 'lucide-react';
 import { generateBlurtNotes, analyzeBlurtResponse } from '../utils/blurtNotesApi';
+import { useSubscription } from '../context/SubscriptionContext';
+import PremiumUpgradeModal from './PremiumUpgradeModal';
 
 const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue }) => {
+  const { canUseBlurtTest, incrementBlurtTestUsage, subscriptionPlan, getRemainingBlurtTests } = useSubscription();
   const [stage, setStage] = useState('choice'); // 'choice' | 'loading' | 'display' | 'blurt' | 'analyzing' | 'results'
   const [notes, setNotes] = useState('');
   const [manualInput, setManualInput] = useState('');
@@ -13,6 +16,7 @@ const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue }) => {
   const [knowledgeMap, setKnowledgeMap] = useState(null);
   const [showNotes, setShowNotes] = useState(false);
   const [analysisResults, setAnalysisResults] = useState(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const handleAIGenerate = async () => {
     setLoading(true);
@@ -61,6 +65,11 @@ const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue }) => {
   };
 
   const handleContinue = () => {
+    // Check if user can use blurt test
+    if (!canUseBlurtTest()) {
+      setShowUpgradeModal(true);
+      return;
+    }
     // Change to blurt input stage instead of immediately calling onContinue
     setStage('blurt');
   };
@@ -68,6 +77,12 @@ const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue }) => {
   const handleSubmitBlurt = async () => {
     if (blurtInput.trim().length === 0) {
       setError('Please enter your blurt response before submitting');
+      return;
+    }
+
+    // Check usage limit before submitting
+    if (!canUseBlurtTest()) {
+      setShowUpgradeModal(true);
       return;
     }
     
@@ -91,6 +106,10 @@ const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue }) => {
       );
 
       setAnalysisResults(analysis);
+      
+      // Increment usage after successful submission
+      await incrementBlurtTestUsage();
+      
       setStage('results');
     } catch (err) {
       setError(err.message || 'Failed to analyze your response. Please try again.');
@@ -118,17 +137,44 @@ const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue }) => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="mt-8"
-    >
-      <div className="bg-gradient-to-br from-amber-900/40 to-orange-900/40 backdrop-blur-md rounded-2xl border-2 border-amber-700/30 p-8">
-        <div className="flex items-center gap-3 mb-6">
-          <span className="text-4xl">⚡</span>
-          <h2 className="text-3xl font-bold text-amber-300">Blurt Mode</h2>
-        </div>
+    <>
+      <PremiumUpgradeModal 
+        isOpen={showUpgradeModal} 
+        onClose={() => setShowUpgradeModal(false)}
+        feature="blurt_test"
+      />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="mt-8"
+      >
+        <div className="bg-gradient-to-br from-amber-900/40 to-orange-900/40 backdrop-blur-md rounded-2xl border-2 border-amber-700/30 p-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <span className="text-4xl">⚡</span>
+              <h2 className="text-3xl font-bold text-amber-300">Blurt Mode</h2>
+            </div>
+            {subscriptionPlan === 'scholar' && (
+              <motion.div
+                initial={{ scale: 0.9 }}
+                animate={{ scale: [0.9, 1.05, 1] }}
+                transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg border border-purple-400/50"
+              >
+                <Lock className="w-4 h-4 text-white" />
+                <span className="text-white text-sm font-semibold">
+                  {getRemainingBlurtTests()} / 1 Free
+                </span>
+              </motion.div>
+            )}
+            {subscriptionPlan === 'professor' && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg">
+                <Crown className="w-4 h-4 text-white" />
+                <span className="text-white text-sm font-semibold">Unlimited</span>
+              </div>
+            )}
+          </div>
 
         <AnimatePresence mode="wait">
           {stage === 'choice' && (
@@ -357,11 +403,35 @@ const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue }) => {
                 </p>
               </div>
 
+              {subscriptionPlan === 'scholar' && getRemainingBlurtTests() === 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-4 p-4 bg-gradient-to-r from-purple-900/40 to-pink-900/40 rounded-xl border-2 border-purple-500/50"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-white font-semibold mb-1">Daily limit reached</p>
+                      <p className="text-white/70 text-sm">Upgrade to Professor Plan for unlimited Blurt Tests</p>
+                    </div>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setShowUpgradeModal(true)}
+                      className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold text-sm"
+                    >
+                      Upgrade
+                    </motion.button>
+                  </div>
+                </motion.div>
+              )}
+
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleContinue}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-amber-500/50 transition mt-6"
+                disabled={subscriptionPlan === 'scholar' && getRemainingBlurtTests() === 0}
+                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-amber-500/50 transition mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Continue to Blurt Test
                 <ArrowRight className="w-4 h-4" />
@@ -579,6 +649,7 @@ const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue }) => {
         </AnimatePresence>
       </div>
     </motion.div>
+    </>
   );
 };
 

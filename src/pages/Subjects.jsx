@@ -21,6 +21,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useTimer } from '../context/TimerContext';
 import { useGamification } from '../context/GamificationContext';
+import { useAuth } from '../context/AuthContext';
+import { fetchUserSubjects, upsertUserSubject, deleteUserSubject } from '../utils/supabaseDb';
 
 // Map icon names to actual Lucide React components
 const ICON_COMPONENTS = {
@@ -73,15 +75,74 @@ const Subjects = () => {
   const navigate = useNavigate();
   const { setTimerSubject } = useTimer();
   const { userStats } = useGamification();
+  const { user } = useAuth();
 
+  // Helper function to convert Supabase format (snake_case) to app format (camelCase)
+  const convertFromSupabase = (supabaseSubject) => {
+    return {
+      id: supabaseSubject.id,
+      name: supabaseSubject.name,
+      color: supabaseSubject.color || '#6C5DD3',
+      goalHours: supabaseSubject.goal_hours || 0,
+      iconName: supabaseSubject.icon_name || 'BookOpen',
+      icon: ICON_COMPONENTS[supabaseSubject.icon_name || 'BookOpen'] || BookOpen,
+    };
+  };
+
+  // Helper function to convert app format (camelCase) to Supabase format (snake_case)
+  const convertToSupabase = (subject) => {
+    return {
+      id: subject.id,
+      name: subject.name,
+      color: subject.color,
+      goal_hours: subject.goalHours || 0,
+      icon_name: subject.iconName || 'BookOpen',
+    };
+  };
+
+  // Load subjects from Supabase (with localStorage fallback)
   useEffect(() => {
-    const savedSubjects = JSON.parse(localStorage.getItem('subjects') || '[]');
-    const subjectsWithIcons = savedSubjects.map(subject => ({
-      ...subject,
-      icon: ICON_COMPONENTS[subject.iconName] || BookOpen, // Use mapped component or default
-    }));
-    setSubjects(subjectsWithIcons);
-  }, []);
+    const loadSubjects = async () => {
+      if (user) {
+        try {
+          const supabaseSubjects = await fetchUserSubjects();
+          if (supabaseSubjects && supabaseSubjects.length > 0) {
+            const convertedSubjects = supabaseSubjects.map(convertFromSupabase);
+            setSubjects(convertedSubjects);
+            // Also sync to localStorage for offline support
+            localStorage.setItem('subjects', JSON.stringify(convertedSubjects.map(({ icon, ...rest }) => rest)));
+          } else {
+            // Fallback to localStorage
+            const savedSubjects = JSON.parse(localStorage.getItem('subjects') || '[]');
+            const subjectsWithIcons = savedSubjects.map(subject => ({
+              ...subject,
+              icon: ICON_COMPONENTS[subject.iconName] || BookOpen,
+            }));
+            setSubjects(subjectsWithIcons);
+          }
+        } catch (error) {
+          console.error('Error loading subjects from Supabase, falling back to localStorage:', error);
+          // Fallback to localStorage
+          const savedSubjects = JSON.parse(localStorage.getItem('subjects') || '[]');
+          const subjectsWithIcons = savedSubjects.map(subject => ({
+            ...subject,
+            icon: ICON_COMPONENTS[subject.iconName] || BookOpen,
+          }));
+          setSubjects(subjectsWithIcons);
+        }
+      } else {
+        // No user, use localStorage only
+        const savedSubjects = JSON.parse(localStorage.getItem('subjects') || '[]');
+        const subjectsWithIcons = savedSubjects.map(subject => ({
+          ...subject,
+          icon: ICON_COMPONENTS[subject.iconName] || BookOpen,
+        }));
+        setSubjects(subjectsWithIcons);
+      }
+    };
+
+    loadSubjects();
+  }, [user]);
 
 
 
@@ -90,7 +151,7 @@ const Subjects = () => {
     navigate(`/study?subject=${encodeURIComponent(subjectName)}`);
   };
 
-  const handleAddSubjects = () => {
+  const handleAddSubjects = async () => {
     if (newSubjectName.trim() !== '') {
       const newSubject = {
         id: Date.now() + Math.random(),
@@ -103,7 +164,18 @@ const Subjects = () => {
 
       const updatedSubjects = [...subjects, newSubject];
       setSubjects(updatedSubjects);
-      localStorage.setItem('subjects', JSON.stringify(updatedSubjects.map(({ icon, ...rest }) => rest))); // Save only serializable data
+      
+      // Save to localStorage
+      localStorage.setItem('subjects', JSON.stringify(updatedSubjects.map(({ icon, ...rest }) => rest)));
+
+      // Sync to Supabase
+      if (user) {
+        try {
+          await upsertUserSubject(convertToSupabase(newSubject));
+        } catch (error) {
+          console.error('Error syncing subject to Supabase:', error);
+        }
+      }
 
       // Reset state
       setNewSubjectName('');
@@ -113,7 +185,7 @@ const Subjects = () => {
     }
   };
 
-  const handleEditSubject = () => {
+  const handleEditSubject = async () => {
     if (editingSubject) {
       const updatedSubjects = subjects.map(subject =>
         subject.id === editingSubject.id
@@ -121,16 +193,42 @@ const Subjects = () => {
           : subject
       );
       setSubjects(updatedSubjects);
-      localStorage.setItem('subjects', JSON.stringify(updatedSubjects.map(({ icon, ...rest }) => rest))); // Save only serializable data
+      
+      // Save to localStorage
+      localStorage.setItem('subjects', JSON.stringify(updatedSubjects.map(({ icon, ...rest }) => rest)));
+
+      // Sync to Supabase
+      if (user) {
+        try {
+          const editedSubject = updatedSubjects.find(s => s.id === editingSubject.id);
+          if (editedSubject) {
+            await upsertUserSubject(convertToSupabase(editedSubject));
+          }
+        } catch (error) {
+          console.error('Error syncing edited subject to Supabase:', error);
+        }
+      }
+
       setEditingSubject(null);
       setShowEditModal(false);
     }
   };
 
-  const handleDeleteSubject = (subjectId) => {
+  const handleDeleteSubject = async (subjectId) => {
     const updatedSubjects = subjects.filter(subject => subject.id !== subjectId);
     setSubjects(updatedSubjects);
-    localStorage.setItem('subjects', JSON.stringify(updatedSubjects.map(({ icon, ...rest }) => rest))); // Save only serializable data
+    
+    // Save to localStorage
+    localStorage.setItem('subjects', JSON.stringify(updatedSubjects.map(({ icon, ...rest }) => rest)));
+
+    // Sync to Supabase
+    if (user) {
+      try {
+        await deleteUserSubject(subjectId);
+      } catch (error) {
+        console.error('Error deleting subject from Supabase:', error);
+      }
+    }
   };
 
 

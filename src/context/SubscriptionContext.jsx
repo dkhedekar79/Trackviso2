@@ -1,0 +1,235 @@
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { useAuth } from './AuthContext';
+import { supabase } from '../supabaseClient';
+
+const SubscriptionContext = createContext();
+
+export const useSubscription = () => useContext(SubscriptionContext);
+
+export const SubscriptionProvider = ({ children }) => {
+  const { user } = useAuth();
+  const [subscriptionPlan, setSubscriptionPlan] = useState('scholar'); // 'scholar' (free) or 'professor' (premium)
+  const [usage, setUsage] = useState({
+    mockExamsUsed: 0,
+    blurtTestsUsed: 0,
+    lastResetDate: null
+  });
+  const [loading, setLoading] = useState(true);
+
+  const resetDailyUsage = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        data: {
+          mock_exams_used: 0,
+          blurt_tests_used: 0,
+          usage_reset_date: new Date().toISOString()
+        }
+      });
+      
+      if (error) throw error;
+      
+      setUsage({
+        mockExamsUsed: 0,
+        blurtTestsUsed: 0,
+        lastResetDate: new Date().toISOString()
+      });
+      
+      return data.user;
+    } catch (error) {
+      console.error('Error resetting daily usage:', error);
+      throw error;
+    }
+  }, []);
+
+  // Load subscription data
+  useEffect(() => {
+    const loadSubscriptionData = async () => {
+      if (!user) {
+        setSubscriptionPlan('scholar');
+        setUsage({ mockExamsUsed: 0, blurtTestsUsed: 0, lastResetDate: null });
+        setLoading(false);
+        return;
+      }
+
+      try {
+        // Get user metadata
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        
+        if (currentUser) {
+          const isPremium = currentUser.user_metadata?.subscription_plan === 'professor' || 
+                           currentUser.user_metadata?.is_premium === true;
+          setSubscriptionPlan(isPremium ? 'professor' : 'scholar');
+          
+          // Get usage data
+          const mockExamsUsed = currentUser.user_metadata?.mock_exams_used || 0;
+          const blurtTestsUsed = currentUser.user_metadata?.blurt_tests_used || 0;
+          const lastResetDate = currentUser.user_metadata?.usage_reset_date || null;
+          
+          setUsage({
+            mockExamsUsed,
+            blurtTestsUsed,
+            lastResetDate
+          });
+
+          // Check if we need to reset daily usage
+          if (lastResetDate) {
+            const lastReset = new Date(lastResetDate);
+            const now = new Date();
+            const lastResetDay = lastReset.toDateString();
+            const today = now.toDateString();
+            
+            // Reset if it's a new day
+            if (lastResetDay !== today) {
+              await resetDailyUsage();
+            }
+          } else {
+            // First time, set reset date
+            await resetDailyUsage();
+          }
+        }
+      } catch (error) {
+        console.error('Error loading subscription data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSubscriptionData();
+
+    // Set up periodic check for daily reset (check every hour)
+    const checkInterval = setInterval(async () => {
+      if (user) {
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        if (currentUser?.user_metadata?.usage_reset_date) {
+          const lastReset = new Date(currentUser.user_metadata.usage_reset_date);
+          const now = new Date();
+          const lastResetDay = lastReset.toDateString();
+          const today = now.toDateString();
+          
+          if (lastResetDay !== today) {
+            await resetDailyUsage();
+          }
+        }
+      }
+    }, 60 * 60 * 1000); // Check every hour
+
+    return () => clearInterval(checkInterval);
+  }, [user, resetDailyUsage]);
+
+  const incrementMockExamUsage = async () => {
+    if (subscriptionPlan === 'professor') return true; // Unlimited for premium
+    
+    const newCount = usage.mockExamsUsed + 1;
+    
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        data: { mock_exams_used: newCount }
+      });
+      
+      if (error) throw error;
+      
+      setUsage(prev => ({ ...prev, mockExamsUsed: newCount }));
+      return true;
+    } catch (error) {
+      console.error('Error incrementing mock exam usage:', error);
+      return false;
+    }
+  };
+
+  const incrementBlurtTestUsage = async () => {
+    if (subscriptionPlan === 'professor') return true; // Unlimited for premium
+    
+    const newCount = usage.blurtTestsUsed + 1;
+    
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        data: { blurt_tests_used: newCount }
+      });
+      
+      if (error) throw error;
+      
+      setUsage(prev => ({ ...prev, blurtTestsUsed: newCount }));
+      return true;
+    } catch (error) {
+      console.error('Error incrementing blurt test usage:', error);
+      return false;
+    }
+  };
+
+  const canUseMockExam = () => {
+    if (subscriptionPlan === 'professor') return true;
+    return usage.mockExamsUsed < 1;
+  };
+
+  const canUseBlurtTest = () => {
+    if (subscriptionPlan === 'professor') return true;
+    return usage.blurtTestsUsed < 1;
+  };
+
+  const updateSubscriptionPlan = async (plan) => {
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        data: { 
+          subscription_plan: plan,
+          is_premium: plan === 'professor'
+        }
+      });
+      
+      if (error) throw error;
+      
+      setSubscriptionPlan(plan);
+      return data.user;
+    } catch (error) {
+      console.error('Error updating subscription plan:', error);
+      throw error;
+    }
+  };
+
+  const getRemainingMockExams = () => {
+    if (subscriptionPlan === 'professor') return Infinity;
+    return Math.max(0, 1 - usage.mockExamsUsed);
+  };
+
+  const getRemainingBlurtTests = () => {
+    if (subscriptionPlan === 'professor') return Infinity;
+    return Math.max(0, 1 - usage.blurtTestsUsed);
+  };
+
+  const getHoursUntilReset = () => {
+    if (!usage.lastResetDate) return 24;
+    const lastReset = new Date(usage.lastResetDate);
+    const now = new Date();
+    const lastResetDay = lastReset.toDateString();
+    const today = now.toDateString();
+    
+    if (lastResetDay !== today) return 0; // Already reset
+    
+    // Calculate hours until midnight
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    const hoursUntilMidnight = (tomorrow - now) / (1000 * 60 * 60);
+    return Math.ceil(hoursUntilMidnight);
+  };
+
+  return (
+    <SubscriptionContext.Provider
+      value={{
+        subscriptionPlan,
+        usage,
+        loading,
+        canUseMockExam,
+        canUseBlurtTest,
+        incrementMockExamUsage,
+        incrementBlurtTestUsage,
+        updateSubscriptionPlan,
+        getRemainingMockExams,
+        getRemainingBlurtTests,
+        getHoursUntilReset,
+        resetDailyUsage
+      }}
+    >
+      {children}
+    </SubscriptionContext.Provider>
+  );
+};

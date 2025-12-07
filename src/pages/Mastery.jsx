@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronUp, Check, Edit2, X, AlertTriangle } from 'lucide-react';
+import { ChevronDown, ChevronUp, Check, Edit2, AlertTriangle, Crown, Lock } from 'lucide-react';
 import MasterySetupModal from '../components/MasterySetupModal';
 import BlurtModeSection from '../components/BlurtModeSection';
+import ActiveRecallModeSection from '../components/ActiveRecallModeSection';
+import MockExamModeSection from '../components/MockExamModeSection';
 import { applyMemoryDeterioration, getDeteriorationInfo } from '../utils/memoryDeterioration';
 import { fetchTopicProgress, updateTopicProgress } from '../utils/supabaseDb';
 import { useAuth } from '../context/AuthContext';
+import { useSubscription } from '../context/SubscriptionContext';
+import PremiumUpgradeModal from '../components/PremiumUpgradeModal';
 
 // Helper function to calculate completion score from individual scores
 const calculateCompletionScore = (topicProgress, applyDeterioration = true) => {
@@ -29,6 +33,7 @@ const calculateCompletionScore = (topicProgress, applyDeterioration = true) => {
 
 const Mastery = () => {
   const { user } = useAuth();
+  const { subscriptionPlan, getRemainingMockExams, getRemainingBlurtTests, getHoursUntilReset } = useSubscription();
   const [masterySetup, setMasterySetup] = useState(null);
   const [showSetupModal, setShowSetupModal] = useState(false);
   const [subjects, setSubjects] = useState([]);
@@ -38,6 +43,11 @@ const Mastery = () => {
   const [selectedTopicForBlurt, setSelectedTopicForBlurt] = useState(null);
   const [isBlurtModeActive, setIsBlurtModeActive] = useState(false);
   const [blurtData, setBlurtData] = useState(null);
+  const [isActiveRecallModeActive, setIsActiveRecallModeActive] = useState(false);
+  const [activeRecallData, setActiveRecallData] = useState(null);
+  const [isMockExamModeActive, setIsMockExamModeActive] = useState(false);
+  const [mockExamData, setMockExamData] = useState(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   // Helper function to get storage key for a subject
   const getStorageKey = (subject) => {
@@ -181,58 +191,11 @@ const Mastery = () => {
     }
   };
 
-  const toggleTopicCompletion = async (topicId) => {
-    const updated = {
-      ...topicProgress,
-      [topicId]: {
-        ...topicProgress[topicId],
-        completed: !topicProgress[topicId]?.completed,
-        completionPercent: !topicProgress[topicId]?.completed
-          ? calculateCompletionScore(topicProgress[topicId]) || 100
-          : calculateCompletionScore(topicProgress[topicId])
-      }
-    };
-    setTopicProgress(updated);
-    const storageKey = getStorageKey(masterySetup.subject);
-    localStorage.setItem(storageKey, JSON.stringify(updated));
-
-    // Sync to Supabase
-    try {
-      if (user) {
-        await updateTopicProgress(masterySetup.subject, updated);
-      }
-    } catch (error) {
-      console.error('Error syncing to Supabase:', error);
-    }
-  };
-
   const toggleExpandTopic = (topicId) => {
     setExpandedTopics(prev => ({
       ...prev,
       [topicId]: !prev[topicId]
     }));
-  };
-
-  const updateTopicNotes = async (topicId, notes) => {
-    const updated = {
-      ...topicProgress,
-      [topicId]: {
-        ...topicProgress[topicId],
-        notes
-      }
-    };
-    setTopicProgress(updated);
-    const storageKey = getStorageKey(masterySetup.subject);
-    localStorage.setItem(storageKey, JSON.stringify(updated));
-
-    // Sync to Supabase
-    try {
-      if (user) {
-        await updateTopicProgress(masterySetup.subject, updated);
-      }
-    } catch (error) {
-      console.error('Error syncing to Supabase:', error);
-    }
   };
 
   const handleChangeSetup = () => {
@@ -373,7 +336,6 @@ const Mastery = () => {
                   const isSelected = topicProgress[topic.id]?.selected || false;
                   const isCompleted = topicProgress[topic.id]?.completed || false;
                   const completionPercent = topicProgress[topic.id]?.completionPercent || 0;
-                  const notes = topicProgress[topic.id]?.notes || '';
                   const blurtScore = topicProgress[topic.id]?.blurtScore;
                   const lastPracticeDate = topicProgress[topic.id]?.lastPracticeDate;
                   const isExpanded = expandedTopics[topic.id] || false;
@@ -388,6 +350,7 @@ const Mastery = () => {
                       className="group h-full"
                     >
                       <div
+                        onClick={() => toggleTopicSelection(topic.id)}
                         className={`bg-gradient-to-br rounded-xl border-2 transition-all cursor-pointer h-full flex flex-col ${
                           isSelected
                             ? 'from-blue-900/50 to-slate-900/50 border-blue-600/60 shadow-lg shadow-blue-500/20'
@@ -397,21 +360,21 @@ const Mastery = () => {
                         <div className="p-5 flex flex-col gap-3">
                           {/* Header with checkbox and expand button */}
                           <div className="flex items-start gap-2">
-                            <motion.button
-                              onClick={() => toggleTopicSelection(topic.id)}
-                              whileHover={{ scale: 1.15 }}
-                              whileTap={{ scale: 0.9 }}
+                            <div
                               className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition ${
                                 isSelected
                                   ? 'bg-blue-600 border-blue-400'
-                                  : 'border-purple-500 hover:border-purple-400 bg-transparent'
+                                  : 'border-purple-500 bg-transparent'
                               }`}
                             >
                               {isSelected && <Check className="w-3 h-3 text-white" />}
-                            </motion.button>
+                            </div>
 
                             <motion.button
-                              onClick={() => toggleExpandTopic(topic.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleExpandTopic(topic.id);
+                              }}
                               className="ml-auto flex-shrink-0 text-purple-300 hover:text-white transition"
                             >
                               {isExpanded ? (
@@ -546,43 +509,27 @@ const Mastery = () => {
                                   </div>
                                 )}
 
-                                <div>
-                                  <label className="block text-xs font-medium text-purple-200 mb-1">
-                                    Study Notes
-                                  </label>
-                                  <textarea
-                                    value={notes}
-                                    onChange={(e) => updateTopicNotes(topic.id, e.target.value)}
-                                    placeholder="Add notes..."
-                                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-xs placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-                                    rows="2"
-                                  />
-                                </div>
+                                {/* Mock Exam Score Display */}
+                                {topicProgress[topic.id]?.mockExamScore !== undefined && (
+                                  <div className="bg-red-900/20 rounded-lg p-3 border border-red-700/30">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <span className="text-xs font-semibold text-red-300">Mock Exam Score</span>
+                                      <span className="text-sm font-bold text-red-300">{Math.round(topicProgress[topic.id].mockExamScore)}%</span>
+                                    </div>
+                                  </div>
+                                )}
 
-                                <div className="flex gap-2 pt-1">
-                                  {!isCompleted && (
-                                    <motion.button
-                                      onClick={() => toggleTopicCompletion(topic.id)}
-                                      whileHover={{ scale: 1.05 }}
-                                      whileTap={{ scale: 0.95 }}
-                                      className="flex-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium text-xs transition"
-                                    >
-                                      <Check className="w-3 h-3 inline mr-1" />
-                                      Complete
-                                    </motion.button>
-                                  )}
-                                  {isCompleted && (
-                                    <motion.button
-                                      onClick={() => toggleTopicCompletion(topic.id)}
-                                      whileHover={{ scale: 1.05 }}
-                                      whileTap={{ scale: 0.95 }}
-                                      className="flex-1 px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded-lg font-medium text-xs transition"
-                                    >
-                                      <X className="w-3 h-3 inline mr-1" />
-                                      Undo
-                                    </motion.button>
-                                  )}
-                                </div>
+                                {/* Completion Score Explanation */}
+                                {(blurtScore !== undefined || topicProgress[topic.id]?.mockExamScore !== undefined) && (
+                                  <div className="bg-blue-900/20 rounded-lg p-3 border border-blue-700/30">
+                                    <div className="flex items-start gap-2 mb-2">
+                                      <span className="text-xs font-semibold text-blue-300">Topic Progress</span>
+                                    </div>
+                                    <p className="text-xs text-blue-100/80 leading-relaxed">
+                                      Your completion percentage ({Math.round(completionPercent)}%) is calculated as an average of your Blurt Test and Mock Exam scores. Each practice session helps improve your overall mastery.
+                                    </p>
+                                  </div>
+                                )}
                               </div>
                             </motion.div>
                           )}
@@ -612,43 +559,89 @@ const Mastery = () => {
                       whileHover={{ scale: 1.05, y: -4 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => setIsBlurtModeActive(true)}
-                      className="group p-6 bg-gradient-to-br from-amber-900/40 to-orange-900/40 backdrop-blur-md rounded-2xl border-2 border-amber-700/30 hover:border-amber-600/50 transition-all cursor-pointer"
+                      className="group relative p-6 bg-gradient-to-br from-amber-900/40 to-orange-900/40 backdrop-blur-md rounded-2xl border-2 border-amber-700/30 hover:border-amber-600/50 transition-all cursor-pointer overflow-hidden"
                     >
+                      {subscriptionPlan === 'scholar' && getRemainingBlurtTests() === 0 && (
+                        <div className="absolute top-2 right-2 z-10">
+                          <div className="px-2 py-1 bg-red-600 rounded-lg text-white text-xs font-bold flex items-center gap-1">
+                            <Lock className="w-3 h-3" />
+                            Limit Reached
+                          </div>
+                        </div>
+                      )}
+                      {subscriptionPlan === 'professor' && (
+                        <div className="absolute top-2 right-2 z-10">
+                          <div className="px-2 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg text-white text-xs font-bold flex items-center gap-1">
+                            <Crown className="w-3 h-3" />
+                            Unlimited
+                          </div>
+                        </div>
+                      )}
                       <div className="flex items-center gap-3 mb-3">
                         <span className="text-3xl">⚡</span>
                         <h3 className="text-2xl font-bold text-amber-300">Blurt Mode</h3>
                       </div>
                       <p className="text-amber-100/70 text-sm leading-relaxed">
-                        Test your instant recall with quick-fire questions. Write down what you remember before seeing the answer. Perfect for rapid memory check.
+                        Test your active recall with blurt mode. Write down what you remember before seeing the answer. Perfect for a full knowledge check.
                       </p>
+                      {subscriptionPlan === 'scholar' && (
+                        <div className="mt-3 pt-3 border-t border-amber-700/30">
+                          <p className="text-amber-200/60 text-xs">
+                            {getRemainingBlurtTests()} free test{getRemainingBlurtTests() !== 1 ? 's' : ''} remaining today
+                          </p>
+                        </div>
+                      )}
                     </motion.button>
 
-                    <motion.button
-                      whileHover={{ scale: 1.05, y: -4 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="group p-6 bg-gradient-to-br from-purple-900/40 to-violet-900/40 backdrop-blur-md rounded-2xl border-2 border-purple-700/30 hover:border-purple-600/50 transition-all cursor-pointer"
+                    <motion.div
+                      className="group p-6 bg-gradient-to-br from-blue-900/20 to-indigo-900/20 backdrop-blur-md rounded-2xl border-2 border-blue-700/20 transition-all cursor-not-allowed opacity-50"
                     >
                       <div className="flex items-center gap-3 mb-3">
-                        <span className="text-3xl">🔄</span>
-                        <h3 className="text-2xl font-bold text-purple-300">Spaced Retrieval</h3>
+                        <span className="text-3xl">🧠</span>
+                        <h3 className="text-2xl font-bold text-blue-300/50">Active Recall</h3>
+                        <span className="ml-auto px-2 py-1 bg-yellow-600/30 text-yellow-300 text-xs rounded">Coming Soon</span>
                       </div>
-                      <p className="text-purple-100/70 text-sm leading-relaxed">
-                        Scientifically-optimized spacing intervals for maximum retention. Review concepts at the right time to strengthen long-term memory.
+                      <p className="text-blue-100/40 text-sm leading-relaxed">
+                        Answer 10 mixed questions (multiple choice, open-ended, fill-in-the-gap). Get instant AI feedback and track content coverage.
                       </p>
-                    </motion.button>
+                    </motion.div>
 
                     <motion.button
                       whileHover={{ scale: 1.05, y: -4 }}
                       whileTap={{ scale: 0.98 }}
-                      className="group p-6 bg-gradient-to-br from-red-900/40 to-rose-900/40 backdrop-blur-md rounded-2xl border-2 border-red-700/30 hover:border-red-600/50 transition-all cursor-pointer"
+                      onClick={() => setIsMockExamModeActive(true)}
+                      className="group relative p-6 bg-gradient-to-br from-red-900/40 to-rose-900/40 backdrop-blur-md rounded-2xl border-2 border-red-700/30 hover:border-red-600/50 transition-all cursor-pointer overflow-hidden"
                     >
+                      {subscriptionPlan === 'scholar' && getRemainingMockExams() === 0 && (
+                        <div className="absolute top-2 right-2 z-10">
+                          <div className="px-2 py-1 bg-red-600 rounded-lg text-white text-xs font-bold flex items-center gap-1">
+                            <Lock className="w-3 h-3" />
+                            Limit Reached
+                          </div>
+                        </div>
+                      )}
+                      {subscriptionPlan === 'professor' && (
+                        <div className="absolute top-2 right-2 z-10">
+                          <div className="px-2 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg text-white text-xs font-bold flex items-center gap-1">
+                            <Crown className="w-3 h-3" />
+                            Unlimited
+                          </div>
+                        </div>
+                      )}
                       <div className="flex items-center gap-3 mb-3">
                         <span className="text-3xl">📋</span>
                         <h3 className="text-2xl font-bold text-red-300">Mock Exams</h3>
                       </div>
                       <p className="text-red-100/70 text-sm leading-relaxed">
-                        Full exam-style simulation under timed conditions. Experience real exam pressure and identify weak areas before the actual exam.
+                        Full exam-style simulation with realistic questions. Answer all questions at once and get comprehensive AI feedback.
                       </p>
+                      {subscriptionPlan === 'scholar' && (
+                        <div className="mt-3 pt-3 border-t border-red-700/30">
+                          <p className="text-red-200/60 text-xs">
+                            {getRemainingMockExams()} free exam{getRemainingMockExams() !== 1 ? 's' : ''} remaining today
+                          </p>
+                        </div>
+                      )}
                     </motion.button>
                   </div>
                 </motion.div>
@@ -710,6 +703,109 @@ const Mastery = () => {
                 }
 
                 setIsBlurtModeActive(false);
+              }}
+            />
+          )}
+
+          {isActiveRecallModeActive && (
+            <ActiveRecallModeSection
+              selectedTopics={Object.keys(topicProgress).filter(topicId => topicProgress[topicId]?.selected)}
+              masterySetup={masterySetup}
+              onContinue={async (activeRecallData) => {
+                setActiveRecallData(activeRecallData);
+
+                // If finishing (has percentage), update topic scores
+                if (activeRecallData.percentage !== undefined) {
+                  const selectedTopicIds = Object.keys(topicProgress).filter(
+                    topicId => topicProgress[topicId]?.selected
+                  );
+
+                  const updated = { ...topicProgress };
+                  const now = new Date().toISOString();
+                  selectedTopicIds.forEach(topicId => {
+                    const topicData = {
+                      ...updated[topicId],
+                      activeRecallScore: activeRecallData.percentage,
+                      activeRecallData: {
+                        summary: activeRecallData.summary,
+                        contentCoverage: activeRecallData.contentCoverage,
+                      },
+                      lastPracticeDate: now, // Update last practice date
+                    };
+                    // Recalculate completion score (without deterioration since just practiced)
+                    topicData.completionPercent = calculateCompletionScore(topicData, false);
+                    updated[topicId] = topicData;
+                  });
+
+                  setTopicProgress(updated);
+                  const storageKey = getStorageKey(masterySetup.subject);
+                  localStorage.setItem(storageKey, JSON.stringify(updated));
+
+                  // Sync to Supabase
+                  try {
+                    if (user) {
+                      await updateTopicProgress(masterySetup.subject, updated);
+                    }
+                  } catch (error) {
+                    console.error('Error syncing to Supabase:', error);
+                  }
+                }
+
+                setIsActiveRecallModeActive(false);
+              }}
+            />
+          )}
+
+          {isMockExamModeActive && (
+            <MockExamModeSection
+              selectedTopics={Object.keys(topicProgress).filter(topicId => topicProgress[topicId]?.selected)}
+              masterySetup={masterySetup}
+              onContinue={async (mockExamData) => {
+                try {
+                  setMockExamData(mockExamData);
+
+                  // If finishing (has percentage), update topic scores
+                  if (mockExamData.percentage !== undefined) {
+                    const selectedTopicIds = Object.keys(topicProgress).filter(
+                      topicId => topicProgress[topicId]?.selected
+                    );
+
+                    const updated = { ...topicProgress };
+                    const now = new Date().toISOString();
+                    selectedTopicIds.forEach(topicId => {
+                      const topicData = {
+                        ...updated[topicId],
+                        mockExamScore: mockExamData.percentage,
+                        mockExamData: {
+                          marking: mockExamData.marking,
+                          exam: mockExamData.exam,
+                        },
+                        lastPracticeDate: now, // Update last practice date
+                      };
+                      // Recalculate completion score (without deterioration since just practiced)
+                      topicData.completionPercent = calculateCompletionScore(topicData, false);
+                      updated[topicId] = topicData;
+                    });
+
+                    setTopicProgress(updated);
+                    const storageKey = getStorageKey(masterySetup.subject);
+                    localStorage.setItem(storageKey, JSON.stringify(updated));
+
+                    // Sync to Supabase
+                    try {
+                      if (user) {
+                        await updateTopicProgress(masterySetup.subject, updated);
+                      }
+                    } catch (error) {
+                      console.error('Error syncing to Supabase:', error);
+                    }
+                  }
+                } catch (error) {
+                  console.error('Error processing mock exam results:', error);
+                } finally {
+                  // Always close the modal, even if there's an error
+                  setIsMockExamModeActive(false);
+                }
               }}
             />
           )}

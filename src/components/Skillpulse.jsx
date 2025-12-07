@@ -458,6 +458,8 @@ const Skillpulse = () => {
             <div className="flex items-center gap-4">
               {/* Level Circle */}
               <motion.div
+                key={`level-${userStats.level}`}
+                initial={false}
                 whileHover={{ scale: 1.05, rotate: 5 }}
                 className={`w-16 h-16 rounded-full bg-gradient-to-r ${getLevelColor(userStats.level)} flex items-center justify-center text-white text-2xl font-bold shadow-lg border-2 border-white/20`}
               >
@@ -528,13 +530,14 @@ const Skillpulse = () => {
         </div>
 
         {/* Expandable Content */}
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
           {isExpanded && (
             <motion.div
+              key="expanded-content"
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
               className="overflow-hidden"
             >
               <div className="p-6">

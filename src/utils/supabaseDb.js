@@ -272,6 +272,25 @@ export const fetchUserSubjects = async () => {
   return data || [];
 };
 
+// Delete a user subject
+export const deleteUserSubject = async (subjectId) => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return null;
+
+  const { error } = await supabase
+    .from('user_subjects')
+    .delete()
+    .eq('user_id', session.user.id)
+    .eq('id', subjectId);
+
+  if (error) {
+    console.error('Error deleting subject:', error);
+    return null;
+  }
+
+  return true;
+};
+
 // Fetch all tasks
 export const fetchUserTasks = async () => {
   const { data: { session } } = await supabase.auth.getSession();
