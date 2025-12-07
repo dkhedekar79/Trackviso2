@@ -680,7 +680,12 @@ const Mastery = () => {
 
                   const updated = { ...topicProgress };
                   const now = new Date().toISOString();
+                  let previousScore = null;
+
                   selectedTopicIds.forEach(topicId => {
+                    // Track previous score for improvement bonus
+                    previousScore = updated[topicId]?.blurtScore;
+
                     const topicData = {
                       ...updated[topicId],
                       blurtScore: blurtData.percentage,
@@ -695,6 +700,22 @@ const Mastery = () => {
                   setTopicProgress(updated);
                   const storageKey = getStorageKey(masterySetup.subject);
                   localStorage.setItem(storageKey, JSON.stringify(updated));
+
+                  // Award XP for blurt test completion
+                  awardMasteryXP("blurt_complete", blurtData.percentage, {
+                    previousScore: previousScore,
+                    topicCount: selectedTopicIds.length,
+                  });
+
+                  // Award bonus XP if score improved
+                  if (previousScore !== null && blurtData.percentage > previousScore) {
+                    const improvement = blurtData.percentage - previousScore;
+                    awardMasteryXP("score_improvement", blurtData.percentage, {
+                      currentScore: blurtData.percentage,
+                      previousScore: previousScore,
+                      improvement: improvement,
+                    });
+                  }
 
                   // Sync to Supabase
                   try {
