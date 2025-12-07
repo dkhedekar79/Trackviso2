@@ -246,50 +246,52 @@ export const GamificationProvider = ({ children }) => {
   };
 
   // XP required to REACH a specific level (cumulative)
-  // Balanced so level 100 is achievable with decent effort (roughly 3-4 months of consistent study)
-  // Total XP needed for level 100: ~80,000 XP
+  // Much harder progression: Level 100 requires ~600,000+ XP
+  // A 10-minute session (100 XP) is not enough to level up - need consistent study
+  // This encourages long-term dedication and mastery integration
   const getTotalXPForLevel = (level) => {
     if (level <= 1) return 0;
-    if (level === 2) return 100;
-    
-    let totalXP = 100; // Level 2 requirement
-    
-    // Levels 2-10: Easy progression (100 XP per level)
-    // 2-10 = 9 levels × 100 XP = 900 more XP
+    if (level === 2) return 500;
+
+    let totalXP = 500; // Level 2 requirement
+
+    // Levels 2-10: Moderate progression (500 XP per level)
+    // 2-10 = 9 levels × 500 XP = 4500 more XP
     if (level <= 10) {
-      totalXP += (level - 2) * 100;
+      totalXP += (level - 2) * 500;
       return totalXP;
     }
-    totalXP += 9 * 100; // 900 XP for levels 2-10
-    
-    // Levels 11-25: Moderate progression (200 XP per level)
-    // 11-25 = 15 levels × 200 XP = 3000 more XP
+    totalXP += 9 * 500; // 4500 XP for levels 2-10
+
+    // Levels 11-25: Harder progression (1000 XP per level)
+    // 11-25 = 15 levels × 1000 XP = 15000 more XP
     if (level <= 25) {
-      totalXP += (level - 10) * 200;
+      totalXP += (level - 10) * 1000;
       return totalXP;
     }
-    totalXP += 15 * 200; // 3000 XP for levels 11-25
-    
-    // Levels 26-50: Harder progression (500 XP per level)
-    // 26-50 = 25 levels × 500 XP = 12500 more XP
+    totalXP += 15 * 1000; // 15000 XP for levels 11-25
+
+    // Levels 26-50: Much harder progression (2000 XP per level)
+    // 26-50 = 25 levels × 2000 XP = 50000 more XP
     if (level <= 50) {
-      totalXP += (level - 25) * 500;
+      totalXP += (level - 25) * 2000;
       return totalXP;
     }
-    totalXP += 25 * 500; // 12500 XP for levels 26-50
-    
-    // Levels 51-75: Even harder (1000 XP per level)
-    // 51-75 = 25 levels × 1000 XP = 25000 more XP
+    totalXP += 25 * 2000; // 50000 XP for levels 26-50
+
+    // Levels 51-75: Even harder (4000 XP per level)
+    // 51-75 = 25 levels × 4000 XP = 100000 more XP
     if (level <= 75) {
-      totalXP += (level - 50) * 1000;
+      totalXP += (level - 50) * 4000;
       return totalXP;
     }
-    totalXP += 25 * 1000; // 25000 XP for levels 51-75
-    
-    // Levels 76-100: Very hard (1500 XP per level)
-    // 76-100 = 25 levels × 1500 XP = 37500 more XP
-    totalXP += (level - 75) * 1500;
-    
+    totalXP += 25 * 4000; // 100000 XP for levels 51-75
+
+    // Levels 76-100: Extremely hard (6000 XP per level)
+    // 76-100 = 25 levels × 6000 XP = 150000 more XP
+    // Total to level 100: ~320,000 XP
+    totalXP += (level - 75) * 6000;
+
     return totalXP;
   };
 
