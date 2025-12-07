@@ -9,6 +9,7 @@ import { applyMemoryDeterioration, getDeteriorationInfo } from '../utils/memoryD
 import { fetchTopicProgress, updateTopicProgress } from '../utils/supabaseDb';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
+import { useGamification } from '../context/GamificationContext';
 import PremiumUpgradeModal from '../components/PremiumUpgradeModal';
 
 // Helper function to calculate completion score from individual scores
