@@ -717,6 +717,9 @@ const Mastery = () => {
                     });
                   }
 
+                  // Check for subject mastery milestones
+                  checkSubjectMasteryMilestones(masterySetup.subject, updated);
+
                   // Sync to Supabase
                   try {
                     if (user) {
