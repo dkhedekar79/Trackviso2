@@ -556,12 +556,13 @@ const Mastery = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <motion.button
-                      whileHover={{ scale: 1.05, y: -4 }}
-                      whileTap={{ scale: 0.98 }}
+                      whileHover={subscriptionPlan === 'scholar' && getRemainingBlurtTests() <= 0 ? {} : { scale: 1.05, y: -4 }}
+                      whileTap={subscriptionPlan === 'scholar' && getRemainingBlurtTests() <= 0 ? {} : { scale: 0.98 }}
                       onClick={() => setIsBlurtModeActive(true)}
-                      className="group relative p-6 bg-gradient-to-br from-amber-900/40 to-orange-900/40 backdrop-blur-md rounded-2xl border-2 border-amber-700/30 hover:border-amber-600/50 transition-all cursor-pointer overflow-hidden"
+                      disabled={subscriptionPlan === 'scholar' && getRemainingBlurtTests() <= 0}
+                      className="group relative p-6 bg-gradient-to-br from-amber-900/40 to-orange-900/40 backdrop-blur-md rounded-2xl border-2 border-amber-700/30 hover:border-amber-600/50 transition-all cursor-pointer overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-amber-700/30"
                     >
-                      {subscriptionPlan === 'scholar' && getRemainingBlurtTests() === 0 && (
+                      {subscriptionPlan === 'scholar' && getRemainingBlurtTests() <= 0 && (
                         <div className="absolute top-2 right-2 z-10">
                           <div className="px-2 py-1 bg-red-600 rounded-lg text-white text-xs font-bold flex items-center gap-1">
                             <Lock className="w-3 h-3" />
@@ -607,12 +608,13 @@ const Mastery = () => {
                     </motion.div>
 
                     <motion.button
-                      whileHover={{ scale: 1.05, y: -4 }}
-                      whileTap={{ scale: 0.98 }}
+                      whileHover={subscriptionPlan === 'scholar' && getRemainingMockExams() <= 0 ? {} : { scale: 1.05, y: -4 }}
+                      whileTap={subscriptionPlan === 'scholar' && getRemainingMockExams() <= 0 ? {} : { scale: 0.98 }}
                       onClick={() => setIsMockExamModeActive(true)}
-                      className="group relative p-6 bg-gradient-to-br from-red-900/40 to-rose-900/40 backdrop-blur-md rounded-2xl border-2 border-red-700/30 hover:border-red-600/50 transition-all cursor-pointer overflow-hidden"
+                      disabled={subscriptionPlan === 'scholar' && getRemainingMockExams() <= 0}
+                      className="group relative p-6 bg-gradient-to-br from-red-900/40 to-rose-900/40 backdrop-blur-md rounded-2xl border-2 border-red-700/30 hover:border-red-600/50 transition-all cursor-pointer overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-red-700/30"
                     >
-                      {subscriptionPlan === 'scholar' && getRemainingMockExams() === 0 && (
+                      {subscriptionPlan === 'scholar' && getRemainingMockExams() <= 0 && (
                         <div className="absolute top-2 right-2 z-10">
                           <div className="px-2 py-1 bg-red-600 rounded-lg text-white text-xs font-bold flex items-center gap-1">
                             <Lock className="w-3 h-3" />
