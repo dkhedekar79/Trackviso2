@@ -1724,6 +1724,7 @@ export const GamificationProvider = ({ children }) => {
     getXPForLevel,
     getLevelFromXP,
     awardMasteryXP,
+    checkSubjectMasteryMilestones,
     // Legacy time-based functions (now XP-based internally)
     getTotalStudyTimeForLevel,
     getLevelFromStudyTime,
