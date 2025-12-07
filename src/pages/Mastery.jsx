@@ -797,7 +797,12 @@ const Mastery = () => {
 
                     const updated = { ...topicProgress };
                     const now = new Date().toISOString();
+                    let previousScore = null;
+
                     selectedTopicIds.forEach(topicId => {
+                      // Track previous score for improvement bonus
+                      previousScore = updated[topicId]?.mockExamScore;
+
                       const topicData = {
                         ...updated[topicId],
                         mockExamScore: mockExamData.percentage,
@@ -815,6 +820,22 @@ const Mastery = () => {
                     setTopicProgress(updated);
                     const storageKey = getStorageKey(masterySetup.subject);
                     localStorage.setItem(storageKey, JSON.stringify(updated));
+
+                    // Award XP for mock exam completion
+                    awardMasteryXP("mock_exam_complete", mockExamData.percentage, {
+                      previousScore: previousScore,
+                      topicCount: selectedTopicIds.length,
+                    });
+
+                    // Award bonus XP if score improved
+                    if (previousScore !== null && mockExamData.percentage > previousScore) {
+                      const improvement = mockExamData.percentage - previousScore;
+                      awardMasteryXP("score_improvement", mockExamData.percentage, {
+                        currentScore: mockExamData.percentage,
+                        previousScore: previousScore,
+                        improvement: improvement,
+                      });
+                    }
 
                     // Sync to Supabase
                     try {
