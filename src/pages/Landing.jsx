@@ -630,58 +630,111 @@ const Landing = () => {
               </span>
             </h2>
             <p className="text-xl text-purple-200/80 max-w-3xl mx-auto">
-              Start free, Stay free. No hidden fees, No Paywalls.
+              Choose the plan that works for you. All plans include core tracking features.
             </p>
           </motion.div>
 
-          <motion.div
-            className="bg-gradient-to-br from-purple-600/40 to-pink-600/40 border border-purple-500/30 rounded-3xl shadow-2xl shadow-purple-500/20 text-white relative px-8 sm:px-48 py-12 max-w-3xl mx-auto backdrop-blur-md"
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.7 }}
-            viewport={{ once: true }}
-            whileHover={{ scale: 1.02 }}
-          >
-            <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
-              <motion.div
-                className="bg-gradient-to-r from-yellow-400 to-orange-400 text-slate-900 px-6 py-2 rounded-full text-sm font-bold shadow-lg"
-                animate={{ y: [-5, 5, -5] }}
-                transition={{ duration: 3, repeat: Infinity }}
-              >
-                Most Popular
-              </motion.div>
-            </div>
-            <div className="text-center mb-8">
-              <h3 className="text-3xl font-bold mb-4">The Scholar</h3>
-              <div className="text-5xl font-bold mb-4">$0<span className="text-lg text-purple-200/80">/month</span></div>
-              <p className="text-purple-200/80">It's all free</p>
-            </div>
-            <ul className="space-y-4 mb-10">
-              <li className="flex items-center space-x-3">
-                <CheckCircle className="w-5 h-5 text-purple-300" />
-                <span>Unlimited subjects</span>
-              </li>
-              <li className="flex items-center space-x-3">
-                <CheckCircle className="w-5 h-5 text-pink-300" />
-                <span>Unlimited logging</span>
-              </li>
-              <li className="flex items-center space-x-3">
-                <CheckCircle className="w-5 h-5 text-purple-300" />
-                <span>Full insight access</span>
-              </li>
-              <li className="flex items-center space-x-3">
-                <CheckCircle className="w-5 h-5 text-pink-300" />
-                <span>Full gamification access</span>
-              </li>
-            </ul>
-            <Link
-              to="/signup"
-              className="w-full bg-white text-purple-600 py-3 rounded-xl font-semibold text-center block hover:bg-gray-100 transition-all duration-300 transform hover:scale-105"
+          <div className="grid lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            {/* The Scholar - Free Plan */}
+            <motion.div
+              className="bg-gradient-to-br from-purple-600/40 to-pink-600/40 border border-purple-500/30 rounded-3xl shadow-2xl shadow-purple-500/20 text-white relative px-8 py-12 backdrop-blur-md"
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.7 }}
+              viewport={{ once: true }}
+              whileHover={{ scale: 1.02 }}
             >
-              Start for free
-            </Link>
-          </motion.div>
-          <div className="grid lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
+              <div className="text-center mb-8">
+                <h3 className="text-3xl font-bold mb-4">The Scholar</h3>
+                <div className="text-5xl font-bold mb-4">£0<span className="text-lg text-purple-200/80">/month</span></div>
+                <p className="text-purple-200/80">Perfect for getting started</p>
+              </div>
+              <ul className="space-y-4 mb-10">
+                <li className="flex items-center space-x-3">
+                  <CheckCircle className="w-5 h-5 text-purple-300" />
+                  <span>Unlimited subjects</span>
+                </li>
+                <li className="flex items-center space-x-3">
+                  <CheckCircle className="w-5 h-5 text-pink-300" />
+                  <span>Unlimited logging</span>
+                </li>
+                <li className="flex items-center space-x-3">
+                  <CheckCircle className="w-5 h-5 text-purple-300" />
+                  <span>Full insight access</span>
+                </li>
+                <li className="flex items-center space-x-3">
+                  <CheckCircle className="w-5 h-5 text-pink-300" />
+                  <span>Full gamification access</span>
+                </li>
+                <li className="flex items-center space-x-3">
+                  <Sparkles className="w-5 h-5 text-yellow-300" />
+                  <span>1 AI feature per day</span>
+                </li>
+              </ul>
+              <Link
+                to="/signup"
+                className="w-full bg-white text-purple-600 py-3 rounded-xl font-semibold text-center block hover:bg-gray-100 transition-all duration-300 transform hover:scale-105"
+              >
+                Start for free
+              </Link>
+            </motion.div>
+
+            {/* The Professor - Premium Plan */}
+            <motion.div
+              className="bg-gradient-to-br from-amber-600/40 to-orange-600/40 border border-amber-500/30 rounded-3xl shadow-2xl shadow-amber-500/20 text-white relative px-8 py-12 backdrop-blur-md"
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.7, delay: 0.1 }}
+              viewport={{ once: true }}
+              whileHover={{ scale: 1.02 }}
+            >
+              <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
+                <motion.div
+                  className="bg-gradient-to-r from-yellow-400 to-orange-400 text-slate-900 px-6 py-2 rounded-full text-sm font-bold shadow-lg"
+                  animate={{ y: [-5, 5, -5] }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                >
+                  Most Popular
+                </motion.div>
+              </div>
+              <div className="text-center mb-8">
+                <h3 className="text-3xl font-bold mb-4">The Professor</h3>
+                <div className="text-5xl font-bold mb-4">£4.99<span className="text-lg text-amber-200/80">/month</span></div>
+                <p className="text-amber-200/80">Unlock unlimited AI power</p>
+              </div>
+              <ul className="space-y-4 mb-10">
+                <li className="flex items-center space-x-3">
+                  <CheckCircle className="w-5 h-5 text-amber-300" />
+                  <span>Everything in The Scholar</span>
+                </li>
+                <li className="flex items-center space-x-3">
+                  <Sparkles className="w-5 h-5 text-yellow-300" />
+                  <span>Unlimited AI features</span>
+                </li>
+                <li className="flex items-center space-x-3">
+                  <Brain className="w-5 h-5 text-amber-300" />
+                  <span>Advanced personalized insights</span>
+                </li>
+                <li className="flex items-center space-x-3">
+                  <Zap className="w-5 h-5 text-yellow-300" />
+                  <span>Priority support</span>
+                </li>
+                <li className="flex items-center space-x-3">
+                  <Trophy className="w-5 h-5 text-amber-300" />
+                  <span>Exclusive Professor badge</span>
+                </li>
+                <li className="flex items-center space-x-3">
+                  <TrendingUp className="w-5 h-5 text-yellow-300" />
+                  <span>Advanced analytics dashboard</span>
+                </li>
+              </ul>
+              <Link
+                to="/signup"
+                className="w-full bg-gradient-to-r from-yellow-300 to-orange-300 text-amber-900 py-3 rounded-xl font-semibold text-center block hover:from-yellow-200 hover:to-orange-200 transition-all duration-300 transform hover:scale-105"
+              >
+                Upgrade to Professor
+              </Link>
+            </motion.div>
           </div>
         </div>
       </section>

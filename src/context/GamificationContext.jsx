@@ -246,50 +246,52 @@ export const GamificationProvider = ({ children }) => {
   };
 
   // XP required to REACH a specific level (cumulative)
-  // Balanced so level 100 is achievable with decent effort (roughly 3-4 months of consistent study)
-  // Total XP needed for level 100: ~80,000 XP
+  // Much harder progression: Level 100 requires ~600,000+ XP
+  // A 10-minute session (100 XP) is not enough to level up - need consistent study
+  // This encourages long-term dedication and mastery integration
   const getTotalXPForLevel = (level) => {
     if (level <= 1) return 0;
-    if (level === 2) return 100;
-    
-    let totalXP = 100; // Level 2 requirement
-    
-    // Levels 2-10: Easy progression (100 XP per level)
-    // 2-10 = 9 levels × 100 XP = 900 more XP
+    if (level === 2) return 500;
+
+    let totalXP = 500; // Level 2 requirement
+
+    // Levels 2-10: Moderate progression (500 XP per level)
+    // 2-10 = 9 levels × 500 XP = 4500 more XP
     if (level <= 10) {
-      totalXP += (level - 2) * 100;
+      totalXP += (level - 2) * 500;
       return totalXP;
     }
-    totalXP += 9 * 100; // 900 XP for levels 2-10
-    
-    // Levels 11-25: Moderate progression (200 XP per level)
-    // 11-25 = 15 levels × 200 XP = 3000 more XP
+    totalXP += 9 * 500; // 4500 XP for levels 2-10
+
+    // Levels 11-25: Harder progression (1000 XP per level)
+    // 11-25 = 15 levels × 1000 XP = 15000 more XP
     if (level <= 25) {
-      totalXP += (level - 10) * 200;
+      totalXP += (level - 10) * 1000;
       return totalXP;
     }
-    totalXP += 15 * 200; // 3000 XP for levels 11-25
-    
-    // Levels 26-50: Harder progression (500 XP per level)
-    // 26-50 = 25 levels × 500 XP = 12500 more XP
+    totalXP += 15 * 1000; // 15000 XP for levels 11-25
+
+    // Levels 26-50: Much harder progression (2000 XP per level)
+    // 26-50 = 25 levels × 2000 XP = 50000 more XP
     if (level <= 50) {
-      totalXP += (level - 25) * 500;
+      totalXP += (level - 25) * 2000;
       return totalXP;
     }
-    totalXP += 25 * 500; // 12500 XP for levels 26-50
-    
-    // Levels 51-75: Even harder (1000 XP per level)
-    // 51-75 = 25 levels × 1000 XP = 25000 more XP
+    totalXP += 25 * 2000; // 50000 XP for levels 26-50
+
+    // Levels 51-75: Even harder (4000 XP per level)
+    // 51-75 = 25 levels × 4000 XP = 100000 more XP
     if (level <= 75) {
-      totalXP += (level - 50) * 1000;
+      totalXP += (level - 50) * 4000;
       return totalXP;
     }
-    totalXP += 25 * 1000; // 25000 XP for levels 51-75
-    
-    // Levels 76-100: Very hard (1500 XP per level)
-    // 76-100 = 25 levels × 1500 XP = 37500 more XP
-    totalXP += (level - 75) * 1500;
-    
+    totalXP += 25 * 4000; // 100000 XP for levels 51-75
+
+    // Levels 76-100: Extremely hard (6000 XP per level)
+    // 76-100 = 25 levels × 6000 XP = 150000 more XP
+    // Total to level 100: ~320,000 XP
+    totalXP += (level - 75) * 6000;
+
     return totalXP;
   };
 
@@ -767,6 +769,175 @@ export const GamificationProvider = ({ children }) => {
         tier: newLevel >= 100 ? "legendary" : newLevel >= 50 ? "epic" : "rare",
       });
     }
+  };
+
+  // Check and award XP for subject mastery milestones
+  // Called when topic progress is updated
+  const checkSubjectMasteryMilestones = (subjectName, topicProgressData) => {
+    if (!topicProgressData || !subjectName) return;
+
+    // Calculate overall subject mastery as average of all topics
+    const topicScores = Object.values(topicProgressData)
+      .map(tp => tp.completionPercent || 0)
+      .filter(score => score > 0);
+
+    if (topicScores.length === 0) return;
+
+    const overallMastery = topicScores.reduce((sum, score) => sum + score, 0) / topicScores.length;
+
+    // Award XP for subject mastery milestones
+    const milestones = [
+      { percent: 25, xp: 500, title: "Bronze Subject" },
+      { percent: 50, xp: 1000, title: "Silver Subject" },
+      { percent: 75, xp: 1500, title: "Gold Subject" },
+      { percent: 90, xp: 2000, title: "Diamond Subject" },
+    ];
+
+    // Check if we hit a new milestone
+    setUserStats((prev) => {
+      const subjectKey = `subject_${subjectName}`;
+      const previousMilestone = prev[subjectKey] || 0;
+
+      milestones.forEach((milestone) => {
+        if (overallMastery >= milestone.percent && previousMilestone < milestone.percent) {
+          // New milestone reached!
+          grantXP(milestone.xp, `subject_milestone_${subjectName}`);
+
+          addReward({
+            type: "SUBJECT_MILESTONE",
+            title: `${milestone.title}: ${subjectName}`,
+            description: `Achieved ${milestone.percent}% mastery in ${subjectName}`,
+            tier: milestone.percent >= 75 ? "epic" : "rare",
+            xp: milestone.xp,
+          });
+        }
+      });
+
+      return {
+        ...prev,
+        [subjectKey]: Math.max(previousMilestone, Math.round(overallMastery)),
+      };
+    });
+  };
+
+  // Award XP for mastery activities
+  // Integrated with gamification system to encourage learning
+  const awardMasteryXP = (activity, score, metadata = {}) => {
+    let xpAmount = 0;
+    let bonusMultiplier = 1.0;
+    let title = "";
+    let description = "";
+
+    // Score-based XP calculation (higher scores = more XP)
+    const scoreMultiplier = Math.max(0.5, Math.min(2.0, score / 100));
+
+    switch (activity) {
+      case "blurt_complete": {
+        // Blurt test: 200-500 XP based on score
+        const baseBlurtXP = 200;
+        xpAmount = Math.floor(baseBlurtXP + score * 3);
+        title = `⚡ Blurt Mode Complete!`;
+        description = `+${xpAmount} XP for ${Math.round(score)}% accuracy`;
+
+        // Bonus for high scores (90%+)
+        if (score >= 90) {
+          bonusMultiplier = 1.3;
+          xpAmount = Math.floor(xpAmount * bonusMultiplier);
+          title = `⚡ Perfect Recall!`;
+          description = `+${xpAmount} XP for exceptional ${Math.round(score)}% accuracy`;
+        }
+        break;
+      }
+
+      case "mock_exam_complete": {
+        // Mock exam: 400-1000 XP based on score
+        const baseMockXP = 400;
+        xpAmount = Math.floor(baseMockXP + score * 6);
+        title = `📋 Mock Exam Complete!`;
+        description = `+${xpAmount} XP for ${Math.round(score)}% score`;
+
+        // Bonus for passing (70%+)
+        if (score >= 70) {
+          bonusMultiplier = 1.4;
+          xpAmount = Math.floor(xpAmount * bonusMultiplier);
+          title = `🏆 Exam Passed!`;
+          description = `+${xpAmount} XP for achieving ${Math.round(score)}%`;
+        }
+        break;
+      }
+
+      case "active_recall_complete": {
+        // Active recall: 250-600 XP based on score
+        const baseRecallXP = 250;
+        xpAmount = Math.floor(baseRecallXP + score * 3.5);
+        title = `🧠 Active Recall Complete!`;
+        description = `+${xpAmount} XP for ${Math.round(score)}% coverage`;
+        break;
+      }
+
+      case "topic_completed": {
+        // Topic fully completed (all modes done): 300 XP
+        xpAmount = 300;
+        title = `🎯 Topic Mastered!`;
+        description = `+${xpAmount} XP for completing all revision modes`;
+        break;
+      }
+
+      case "score_improvement": {
+        // Score improved on retake: 150-300 XP
+        const improvement = metadata.currentScore - metadata.previousScore;
+        xpAmount = Math.floor(100 + improvement * 2);
+        title = `📈 Score Improved!`;
+        description = `+${xpAmount} XP for improving ${Math.round(improvement)}%`;
+        break;
+      }
+
+      case "deterioration_recovery": {
+        // Recovered from memory deterioration: 100-200 XP
+        xpAmount = Math.floor(100 + metadata.recoveryPercent * 1.5);
+        title = `💪 Memory Recovery!`;
+        description = `+${xpAmount} XP for overcoming memory decay`;
+        break;
+      }
+
+      case "subject_milestone": {
+        // Subject milestone (e.g., 80%+ mastery): 500-2000 XP
+        const masteryPercent = metadata.masteryPercent || 0;
+        xpAmount = Math.floor(500 + masteryPercent * 15);
+        title = `👑 Subject Milestone!`;
+        description = `+${xpAmount} XP for achieving ${Math.round(masteryPercent)}% subject mastery`;
+        bonusMultiplier = 1.2;
+        xpAmount = Math.floor(xpAmount * bonusMultiplier);
+        break;
+      }
+
+      default:
+        return;
+    }
+
+    // Apply prestige multiplier
+    const prestigeBonus = userStats.prestigeLevel > 0 ? (1.0 + userStats.prestigeLevel * 0.1) : 1.0;
+    const premiumBonus = userStats.isPremium ? (userStats.xpMultiplier || 1.2) : 1.0;
+
+    const finalXP = Math.floor(xpAmount * prestigeBonus * premiumBonus);
+
+    grantXP(finalXP, `mastery_${activity}`);
+
+    addReward({
+      type: "MASTERY_XP",
+      title,
+      description,
+      tier: score >= 80 ? "epic" : score >= 60 ? "rare" : "uncommon",
+      xp: finalXP,
+      animation: "achievement",
+    });
+
+    return {
+      baseXP: xpAmount,
+      finalXP,
+      prestigeMultiplier: prestigeBonus,
+      premiumMultiplier: premiumBonus,
+    };
   };
 
   // Add reward to queue
@@ -1552,6 +1723,8 @@ export const GamificationProvider = ({ children }) => {
     getTotalXPForLevel,
     getXPForLevel,
     getLevelFromXP,
+    awardMasteryXP,
+    checkSubjectMasteryMilestones,
     // Legacy time-based functions (now XP-based internally)
     getTotalStudyTimeForLevel,
     getLevelFromStudyTime,

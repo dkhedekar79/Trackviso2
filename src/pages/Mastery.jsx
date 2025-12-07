@@ -9,6 +9,7 @@ import { applyMemoryDeterioration, getDeteriorationInfo } from '../utils/memoryD
 import { fetchTopicProgress, updateTopicProgress } from '../utils/supabaseDb';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
+import { useGamification } from '../context/GamificationContext';
 import PremiumUpgradeModal from '../components/PremiumUpgradeModal';
 
 // Helper function to calculate completion score from individual scores
@@ -34,6 +35,7 @@ const calculateCompletionScore = (topicProgress, applyDeterioration = true) => {
 const Mastery = () => {
   const { user } = useAuth();
   const { subscriptionPlan, getRemainingMockExams, getRemainingBlurtTests, getHoursUntilReset } = useSubscription();
+  const { awardMasteryXP, checkSubjectMasteryMilestones } = useGamification();
   const [masterySetup, setMasterySetup] = useState(null);
   const [showSetupModal, setShowSetupModal] = useState(false);
   const [subjects, setSubjects] = useState([]);
@@ -678,7 +680,12 @@ const Mastery = () => {
 
                   const updated = { ...topicProgress };
                   const now = new Date().toISOString();
+                  let previousScore = null;
+
                   selectedTopicIds.forEach(topicId => {
+                    // Track previous score for improvement bonus
+                    previousScore = updated[topicId]?.blurtScore;
+
                     const topicData = {
                       ...updated[topicId],
                       blurtScore: blurtData.percentage,
@@ -693,6 +700,25 @@ const Mastery = () => {
                   setTopicProgress(updated);
                   const storageKey = getStorageKey(masterySetup.subject);
                   localStorage.setItem(storageKey, JSON.stringify(updated));
+
+                  // Award XP for blurt test completion
+                  awardMasteryXP("blurt_complete", blurtData.percentage, {
+                    previousScore: previousScore,
+                    topicCount: selectedTopicIds.length,
+                  });
+
+                  // Award bonus XP if score improved
+                  if (previousScore !== null && blurtData.percentage > previousScore) {
+                    const improvement = blurtData.percentage - previousScore;
+                    awardMasteryXP("score_improvement", blurtData.percentage, {
+                      currentScore: blurtData.percentage,
+                      previousScore: previousScore,
+                      improvement: improvement,
+                    });
+                  }
+
+                  // Check for subject mastery milestones
+                  checkSubjectMasteryMilestones(masterySetup.subject, updated);
 
                   // Sync to Supabase
                   try {
@@ -724,7 +750,12 @@ const Mastery = () => {
 
                   const updated = { ...topicProgress };
                   const now = new Date().toISOString();
+                  let previousScore = null;
+
                   selectedTopicIds.forEach(topicId => {
+                    // Track previous score for improvement bonus
+                    previousScore = updated[topicId]?.activeRecallScore;
+
                     const topicData = {
                       ...updated[topicId],
                       activeRecallScore: activeRecallData.percentage,
@@ -742,6 +773,25 @@ const Mastery = () => {
                   setTopicProgress(updated);
                   const storageKey = getStorageKey(masterySetup.subject);
                   localStorage.setItem(storageKey, JSON.stringify(updated));
+
+                  // Award XP for active recall completion
+                  awardMasteryXP("active_recall_complete", activeRecallData.percentage, {
+                    previousScore: previousScore,
+                    topicCount: selectedTopicIds.length,
+                  });
+
+                  // Award bonus XP if score improved
+                  if (previousScore !== null && activeRecallData.percentage > previousScore) {
+                    const improvement = activeRecallData.percentage - previousScore;
+                    awardMasteryXP("score_improvement", activeRecallData.percentage, {
+                      currentScore: activeRecallData.percentage,
+                      previousScore: previousScore,
+                      improvement: improvement,
+                    });
+                  }
+
+                  // Check for subject mastery milestones
+                  checkSubjectMasteryMilestones(masterySetup.subject, updated);
 
                   // Sync to Supabase
                   try {
@@ -774,7 +824,12 @@ const Mastery = () => {
 
                     const updated = { ...topicProgress };
                     const now = new Date().toISOString();
+                    let previousScore = null;
+
                     selectedTopicIds.forEach(topicId => {
+                      // Track previous score for improvement bonus
+                      previousScore = updated[topicId]?.mockExamScore;
+
                       const topicData = {
                         ...updated[topicId],
                         mockExamScore: mockExamData.percentage,
@@ -792,6 +847,25 @@ const Mastery = () => {
                     setTopicProgress(updated);
                     const storageKey = getStorageKey(masterySetup.subject);
                     localStorage.setItem(storageKey, JSON.stringify(updated));
+
+                    // Award XP for mock exam completion
+                    awardMasteryXP("mock_exam_complete", mockExamData.percentage, {
+                      previousScore: previousScore,
+                      topicCount: selectedTopicIds.length,
+                    });
+
+                    // Award bonus XP if score improved
+                    if (previousScore !== null && mockExamData.percentage > previousScore) {
+                      const improvement = mockExamData.percentage - previousScore;
+                      awardMasteryXP("score_improvement", mockExamData.percentage, {
+                        currentScore: mockExamData.percentage,
+                        previousScore: previousScore,
+                        improvement: improvement,
+                      });
+                    }
+
+                    // Check for subject mastery milestones
+                    checkSubjectMasteryMilestones(masterySetup.subject, updated);
 
                     // Sync to Supabase
                     try {
