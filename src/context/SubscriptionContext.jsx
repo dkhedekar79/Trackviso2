@@ -186,12 +186,12 @@ export const SubscriptionProvider = ({ children }) => {
   };
 
   const getRemainingMockExams = () => {
-    if (subscriptionPlan === 'professor') return 'Unlimited';
+    if (subscriptionPlan === 'professor') return Infinity;
     return Math.max(0, 1 - usage.mockExamsUsed);
   };
 
   const getRemainingBlurtTests = () => {
-    if (subscriptionPlan === 'professor') return 'Unlimited';
+    if (subscriptionPlan === 'professor') return Infinity;
     return Math.max(0, 1 - usage.blurtTestsUsed);
   };
 
@@ -233,4 +233,3 @@ export const SubscriptionProvider = ({ children }) => {
     </SubscriptionContext.Provider>
   );
 };
-

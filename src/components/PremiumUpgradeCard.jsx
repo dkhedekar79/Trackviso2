@@ -74,12 +74,12 @@ const PremiumUpgradeCard = ({ onUpgradeClick }) => {
             <div className="bg-white/5 rounded-lg p-3">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-white/70 text-xs">Mock Exams</span>
-                <span className="text-white font-bold text-sm">{getRemainingMockExams()} / 1</span>
+                <span className="text-white font-bold text-sm">{Math.max(0, 1 - getRemainingMockExams())} / 1</span>
               </div>
               <div className="w-full bg-white/10 rounded-full h-1.5">
                 <motion.div
                   initial={{ width: 0 }}
-                  animate={{ width: `${(1 - getRemainingMockExams()) * 100}%` }}
+                  animate={{ width: `${Math.max(0, (1 - getRemainingMockExams()) * 100)}%` }}
                   className="bg-red-500 h-1.5 rounded-full"
                 />
               </div>
@@ -87,12 +87,12 @@ const PremiumUpgradeCard = ({ onUpgradeClick }) => {
             <div className="bg-white/5 rounded-lg p-3">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-white/70 text-xs">Blurt Tests</span>
-                <span className="text-white font-bold text-sm">{getRemainingBlurtTests()} / 1</span>
+                <span className="text-white font-bold text-sm">{Math.max(0, 1 - getRemainingBlurtTests())} / 1</span>
               </div>
               <div className="w-full bg-white/10 rounded-full h-1.5">
                 <motion.div
                   initial={{ width: 0 }}
-                  animate={{ width: `${(1 - getRemainingBlurtTests()) * 100}%` }}
+                  animate={{ width: `${Math.max(0, (1 - getRemainingBlurtTests()) * 100)}%` }}
                   className="bg-amber-500 h-1.5 rounded-full"
                 />
               </div>
@@ -124,4 +124,3 @@ const PremiumUpgradeCard = ({ onUpgradeClick }) => {
 };
 
 export default PremiumUpgradeCard;
-
