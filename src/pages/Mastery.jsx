@@ -11,6 +11,7 @@ import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import { useGamification } from '../context/GamificationContext';
 import PremiumUpgradeModal from '../components/PremiumUpgradeModal';
+import { TodoRead } from '../tools'; // Remove if not needed
 
 // Helper function to calculate completion score from individual scores
 const calculateCompletionScore = (topicProgress, applyDeterioration = true) => {
