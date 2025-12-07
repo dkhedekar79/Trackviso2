@@ -35,7 +35,7 @@ const calculateCompletionScore = (topicProgress, applyDeterioration = true) => {
 const Mastery = () => {
   const { user } = useAuth();
   const { subscriptionPlan, getRemainingMockExams, getRemainingBlurtTests, getHoursUntilReset } = useSubscription();
-  const { awardMasteryXP } = useGamification();
+  const { awardMasteryXP, checkSubjectMasteryMilestones } = useGamification();
   const [masterySetup, setMasterySetup] = useState(null);
   const [showSetupModal, setShowSetupModal] = useState(false);
   const [subjects, setSubjects] = useState([]);
