@@ -771,6 +771,126 @@ export const GamificationProvider = ({ children }) => {
     }
   };
 
+  // Award XP for mastery activities
+  // Integrated with gamification system to encourage learning
+  const awardMasteryXP = (activity, score, metadata = {}) => {
+    let xpAmount = 0;
+    let bonusMultiplier = 1.0;
+    let title = "";
+    let description = "";
+
+    // Score-based XP calculation (higher scores = more XP)
+    const scoreMultiplier = Math.max(0.5, Math.min(2.0, score / 100));
+
+    switch (activity) {
+      case "blurt_complete": {
+        // Blurt test: 200-500 XP based on score
+        const baseBlurtXP = 200;
+        xpAmount = Math.floor(baseBlurtXP + score * 3);
+        title = `⚡ Blurt Mode Complete!`;
+        description = `+${xpAmount} XP for ${Math.round(score)}% accuracy`;
+
+        // Bonus for high scores (90%+)
+        if (score >= 90) {
+          bonusMultiplier = 1.3;
+          xpAmount = Math.floor(xpAmount * bonusMultiplier);
+          title = `⚡ Perfect Recall!`;
+          description = `+${xpAmount} XP for exceptional ${Math.round(score)}% accuracy`;
+        }
+        break;
+      }
+
+      case "mock_exam_complete": {
+        // Mock exam: 400-1000 XP based on score
+        const baseMockXP = 400;
+        xpAmount = Math.floor(baseMockXP + score * 6);
+        title = `📋 Mock Exam Complete!`;
+        description = `+${xpAmount} XP for ${Math.round(score)}% score`;
+
+        // Bonus for passing (70%+)
+        if (score >= 70) {
+          bonusMultiplier = 1.4;
+          xpAmount = Math.floor(xpAmount * bonusMultiplier);
+          title = `🏆 Exam Passed!`;
+          description = `+${xpAmount} XP for achieving ${Math.round(score)}%`;
+        }
+        break;
+      }
+
+      case "active_recall_complete": {
+        // Active recall: 250-600 XP based on score
+        const baseRecallXP = 250;
+        xpAmount = Math.floor(baseRecallXP + score * 3.5);
+        title = `🧠 Active Recall Complete!`;
+        description = `+${xpAmount} XP for ${Math.round(score)}% coverage`;
+        break;
+      }
+
+      case "topic_completed": {
+        // Topic fully completed (all modes done): 300 XP
+        xpAmount = 300;
+        title = `🎯 Topic Mastered!`;
+        description = `+${xpAmount} XP for completing all revision modes`;
+        break;
+      }
+
+      case "score_improvement": {
+        // Score improved on retake: 150-300 XP
+        const improvement = metadata.currentScore - metadata.previousScore;
+        xpAmount = Math.floor(100 + improvement * 2);
+        title = `📈 Score Improved!`;
+        description = `+${xpAmount} XP for improving ${Math.round(improvement)}%`;
+        break;
+      }
+
+      case "deterioration_recovery": {
+        // Recovered from memory deterioration: 100-200 XP
+        xpAmount = Math.floor(100 + metadata.recoveryPercent * 1.5);
+        title = `💪 Memory Recovery!`;
+        description = `+${xpAmount} XP for overcoming memory decay`;
+        break;
+      }
+
+      case "subject_milestone": {
+        // Subject milestone (e.g., 80%+ mastery): 500-2000 XP
+        const masteryPercent = metadata.masteryPercent || 0;
+        xpAmount = Math.floor(500 + masteryPercent * 15);
+        title = `👑 Subject Milestone!`;
+        description = `+${xpAmount} XP for achieving ${Math.round(masteryPercent)}% subject mastery`;
+        bonusMultiplier = 1.2;
+        xpAmount = Math.floor(xpAmount * bonusMultiplier);
+        break;
+      }
+
+      default:
+        return;
+    }
+
+    // Apply prestige multiplier
+    const prestigeBonus = userStats.prestigeLevel > 0 ? (1.0 + userStats.prestigeLevel * 0.1) : 1.0;
+    const premiumBonus = userStats.isPremium ? (userStats.xpMultiplier || 1.2) : 1.0;
+
+    const finalXP = Math.floor(xpAmount * prestigeBonus * premiumBonus);
+
+    grantXP(finalXP, `mastery_${activity}`);
+
+    addReward({
+      type: "MASTERY_XP",
+      title,
+      description,
+      tier: score >= 80 ? "epic" : score >= 60 ? "rare" : "uncommon",
+      xp: finalXP,
+      animation: "achievement",
+    });
+
+    return {
+      baseXP: xpAmount,
+      finalXP,
+      prestigeMultiplier: prestigeBonus,
+      premiumMultiplier: premiumBonus,
+    };
+  };
+
   // Add reward to queue
   const addReward = (reward) => {
     const rewardWithId = {
