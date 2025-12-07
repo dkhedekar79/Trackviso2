@@ -477,8 +477,8 @@ const MockExamModeSection = ({ selectedTopics, masterySetup, onContinue }) => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleContinueToSetup}
-                disabled={subscriptionPlan === 'scholar' && getRemainingMockExams() === 0}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-red-500/50 transition mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={subscriptionPlan === 'scholar' && getRemainingMockExams() <= 0}
+                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-red-500/50 transition mt-6 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
               >
                 Continue to Setup
                 <ArrowRight className="w-4 h-4" />
@@ -862,4 +862,3 @@ const MockExamModeSection = ({ selectedTopics, masterySetup, onContinue }) => {
 };
 
 export default MockExamModeSection;
-
