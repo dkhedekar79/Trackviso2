@@ -771,6 +771,55 @@ export const GamificationProvider = ({ children }) => {
     }
   };
 
+  // Check and award XP for subject mastery milestones
+  // Called when topic progress is updated
+  const checkSubjectMasteryMilestones = (subjectName, topicProgressData) => {
+    if (!topicProgressData || !subjectName) return;
+
+    // Calculate overall subject mastery as average of all topics
+    const topicScores = Object.values(topicProgressData)
+      .map(tp => tp.completionPercent || 0)
+      .filter(score => score > 0);
+
+    if (topicScores.length === 0) return;
+
+    const overallMastery = topicScores.reduce((sum, score) => sum + score, 0) / topicScores.length;
+
+    // Award XP for subject mastery milestones
+    const milestones = [
+      { percent: 25, xp: 500, title: "Bronze Subject" },
+      { percent: 50, xp: 1000, title: "Silver Subject" },
+      { percent: 75, xp: 1500, title: "Gold Subject" },
+      { percent: 90, xp: 2000, title: "Diamond Subject" },
+    ];
+
+    // Check if we hit a new milestone
+    setUserStats((prev) => {
+      const subjectKey = `subject_${subjectName}`;
+      const previousMilestone = prev[subjectKey] || 0;
+
+      milestones.forEach((milestone) => {
+        if (overallMastery >= milestone.percent && previousMilestone < milestone.percent) {
+          // New milestone reached!
+          grantXP(milestone.xp, `subject_milestone_${subjectName}`);
+
+          addReward({
+            type: "SUBJECT_MILESTONE",
+            title: `${milestone.title}: ${subjectName}`,
+            description: `Achieved ${milestone.percent}% mastery in ${subjectName}`,
+            tier: milestone.percent >= 75 ? "epic" : "rare",
+            xp: milestone.xp,
+          });
+        }
+      });
+
+      return {
+        ...prev,
+        [subjectKey]: Math.max(previousMilestone, Math.round(overallMastery)),
+      };
+    });
+  };
+
   // Award XP for mastery activities
   // Integrated with gamification system to encourage learning
   const awardMasteryXP = (activity, score, metadata = {}) => {
