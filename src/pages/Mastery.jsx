@@ -640,7 +640,7 @@ const Mastery = () => {
                       {subscriptionPlan === 'scholar' && (
                         <div className="mt-3 pt-3 border-t border-red-700/30">
                           <p className="text-red-200/60 text-xs">
-                            {getRemainingMockExams()} free exam{getRemainingMockExams() !== 1 ? 's' : ''} remaining today
+                            {Math.max(0, 1 - getRemainingMockExams())}/1 mock exam{Math.max(0, 1 - getRemainingMockExams()) !== 1 ? 's' : ''} done today
                           </p>
                         </div>
                       )}
