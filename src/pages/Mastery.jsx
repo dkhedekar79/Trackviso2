@@ -747,7 +747,12 @@ const Mastery = () => {
 
                   const updated = { ...topicProgress };
                   const now = new Date().toISOString();
+                  let previousScore = null;
+
                   selectedTopicIds.forEach(topicId => {
+                    // Track previous score for improvement bonus
+                    previousScore = updated[topicId]?.activeRecallScore;
+
                     const topicData = {
                       ...updated[topicId],
                       activeRecallScore: activeRecallData.percentage,
@@ -765,6 +770,22 @@ const Mastery = () => {
                   setTopicProgress(updated);
                   const storageKey = getStorageKey(masterySetup.subject);
                   localStorage.setItem(storageKey, JSON.stringify(updated));
+
+                  // Award XP for active recall completion
+                  awardMasteryXP("active_recall_complete", activeRecallData.percentage, {
+                    previousScore: previousScore,
+                    topicCount: selectedTopicIds.length,
+                  });
+
+                  // Award bonus XP if score improved
+                  if (previousScore !== null && activeRecallData.percentage > previousScore) {
+                    const improvement = activeRecallData.percentage - previousScore;
+                    awardMasteryXP("score_improvement", activeRecallData.percentage, {
+                      currentScore: activeRecallData.percentage,
+                      previousScore: previousScore,
+                      improvement: improvement,
+                    });
+                  }
 
                   // Sync to Supabase
                   try {
