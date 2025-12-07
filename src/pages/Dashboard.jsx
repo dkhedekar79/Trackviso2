@@ -9,6 +9,9 @@ import Skillpulse from "../components/Skillpulse";
 import { FlameIcon } from "lucide-react";
 import { fetchStudySessions, fetchUserSubjects, fetchUserTasks, fetchTopicProgress } from "../utils/supabaseDb";
 import { applyMemoryDeterioration } from "../utils/memoryDeterioration";
+import PremiumUpgradeModal from "../components/PremiumUpgradeModal";
+import PremiumUpgradeCard from "../components/PremiumUpgradeCard";
+import { useSubscription } from "../context/SubscriptionContext";
 
 function getStartOfWeek(date) {
   const d = new Date(date);
@@ -152,6 +155,8 @@ export default function Dashboard() {
   const [completedTasksThisWeek, setCompletedTasksThisWeek] = useState(0);
   const [examReadiness, setExamReadiness] = useState(0);
   const [subjectLeaderboard, setSubjectLeaderboard] = useState([]);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const { subscriptionPlan, getRemainingMockExams, getRemainingBlurtTests, getHoursUntilReset } = useSubscription();
 
   const today = new Date();
   const dateString = today.toLocaleDateString("en-US", {
@@ -596,6 +601,18 @@ export default function Dashboard() {
         <section className="px-6 py-8">
           <Skillpulse />
         </section>
+
+        {/* Premium Upgrade Card */}
+        {subscriptionPlan === 'scholar' && (
+          <section className="px-6 py-4">
+            <PremiumUpgradeCard onUpgradeClick={() => setShowUpgradeModal(true)} />
+          </section>
+        )}
+
+        <PremiumUpgradeModal 
+          isOpen={showUpgradeModal} 
+          onClose={() => setShowUpgradeModal(false)}
+        />
         
         {/* Quick Access */}
         <motion.section

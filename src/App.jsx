@@ -20,10 +20,13 @@ import Terms from './pages/Terms';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import Payment from './pages/Payment';
+import PaymentSuccess from './pages/PaymentSuccess';
 import OnboardingModal from "./components/OnboardingModal";
 import Footer from './components/Footer';
 import { ThemeProvider } from './context/ThemeContext';
 import { DashboardProvider } from './context/DashboardContext';
+import { SubscriptionProvider } from './context/SubscriptionContext';
 import './styles/index.css';
 
 
@@ -42,11 +45,12 @@ const RouteCleanup = () => {
 function App() {
   return (
     <AuthProvider>
-      <GamificationProvider>
-        <TimerProvider>
-          <ThemeProvider>
-            <DashboardProvider>
-            <Router>
+      <SubscriptionProvider>
+        <GamificationProvider>
+          <TimerProvider>
+            <ThemeProvider>
+              <DashboardProvider>
+              <Router>
               <RouteCleanup />
             <Routes>
               {/* Public Routes */}
@@ -195,12 +199,34 @@ function App() {
                   </div>
                 </ProtectedRoute>
               } />
+
+              <Route path="/payment" element={
+                <ProtectedRoute>
+                  <div className="flex h-screen bg-[var(--app-bg)]">
+                    <Sidebar />
+                    <div className="flex-1 flex flex-col">
+                      <Navbar />
+                      <main className="flex-1 overflow-auto">
+                        <Payment />
+                        <Footer withSidebar />
+                      </main>
+                    </div>
+                  </div>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/payment/success" element={
+                <ProtectedRoute>
+                  <PaymentSuccess />
+                </ProtectedRoute>
+              } />
             </Routes>
             </Router>
             </DashboardProvider>
           </ThemeProvider>
         </TimerProvider>
       </GamificationProvider>
+      </SubscriptionProvider>
     </AuthProvider>
   );
 }
