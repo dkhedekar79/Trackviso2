@@ -25,15 +25,15 @@ export const SubscriptionProvider = ({ children }) => {
           usage_reset_date: new Date().toISOString()
         }
       });
-      
+
       if (error) throw error;
-      
+
       setUsage({
         mockExamsUsed: 0,
         blurtTestsUsed: 0,
         lastResetDate: new Date().toISOString()
       });
-      
+
       return data.user;
     } catch (error) {
       console.error('Error resetting daily usage:', error);
@@ -54,17 +54,17 @@ export const SubscriptionProvider = ({ children }) => {
       try {
         // Get user metadata
         const { data: { user: currentUser } } = await supabase.auth.getUser();
-        
+
         if (currentUser) {
-          const isPremium = currentUser.user_metadata?.subscription_plan === 'professor' || 
+          const isPremium = currentUser.user_metadata?.subscription_plan === 'professor' ||
                            currentUser.user_metadata?.is_premium === true;
           setSubscriptionPlan(isPremium ? 'professor' : 'scholar');
-          
+
           // Get usage data
           const mockExamsUsed = currentUser.user_metadata?.mock_exams_used || 0;
           const blurtTestsUsed = currentUser.user_metadata?.blurt_tests_used || 0;
           const lastResetDate = currentUser.user_metadata?.usage_reset_date || null;
-          
+
           setUsage({
             mockExamsUsed,
             blurtTestsUsed,
@@ -77,7 +77,7 @@ export const SubscriptionProvider = ({ children }) => {
             const now = new Date();
             const lastResetDay = lastReset.toDateString();
             const today = now.toDateString();
-            
+
             // Reset if it's a new day
             if (lastResetDay !== today) {
               await resetDailyUsage();
@@ -96,24 +96,58 @@ export const SubscriptionProvider = ({ children }) => {
 
     loadSubscriptionData();
 
-    // Set up periodic check for daily reset (check every hour)
+    // Set up periodic check for daily reset (check every minute for faster detection)
     const checkInterval = setInterval(async () => {
       if (user) {
-        const { data: { user: currentUser } } = await supabase.auth.getUser();
-        if (currentUser?.user_metadata?.usage_reset_date) {
-          const lastReset = new Date(currentUser.user_metadata.usage_reset_date);
-          const now = new Date();
-          const lastResetDay = lastReset.toDateString();
-          const today = now.toDateString();
-          
-          if (lastResetDay !== today) {
-            await resetDailyUsage();
+        try {
+          const { data: { user: currentUser } } = await supabase.auth.getUser();
+
+          if (currentUser?.user_metadata?.usage_reset_date) {
+            const lastReset = new Date(currentUser.user_metadata.usage_reset_date);
+            const now = new Date();
+            const lastResetDay = lastReset.toDateString();
+            const today = now.toDateString();
+
+            // Reset if it's a new day
+            if (lastResetDay !== today) {
+              await resetDailyUsage();
+            }
           }
+        } catch (error) {
+          console.error('Error checking if reset is needed:', error);
         }
       }
-    }, 60 * 60 * 1000); // Check every hour
+    }, 60 * 1000); // Check every minute (reduced from 60 minutes)
 
-    return () => clearInterval(checkInterval);
+    // Also check when page becomes visible (user returns to tab)
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === 'visible' && user) {
+        try {
+          const { data: { user: currentUser } } = await supabase.auth.getUser();
+
+          if (currentUser?.user_metadata?.usage_reset_date) {
+            const lastReset = new Date(currentUser.user_metadata.usage_reset_date);
+            const now = new Date();
+            const lastResetDay = lastReset.toDateString();
+            const today = now.toDateString();
+
+            // Reset if it's a new day
+            if (lastResetDay !== today) {
+              await resetDailyUsage();
+            }
+          }
+        } catch (error) {
+          console.error('Error checking if reset is needed:', error);
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(checkInterval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [user, resetDailyUsage]);
 
   const incrementMockExamUsage = async () => {
@@ -197,14 +231,9 @@ export const SubscriptionProvider = ({ children }) => {
 
   const getHoursUntilReset = () => {
     if (!usage.lastResetDate) return 24;
-    const lastReset = new Date(usage.lastResetDate);
+
+    // Calculate hours until next midnight (when reset happens)
     const now = new Date();
-    const lastResetDay = lastReset.toDateString();
-    const today = now.toDateString();
-    
-    if (lastResetDay !== today) return 0; // Already reset
-    
-    // Calculate hours until midnight
     const tomorrow = new Date(now);
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(0, 0, 0, 0);
