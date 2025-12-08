@@ -41,6 +41,29 @@ export const SubscriptionProvider = ({ children }) => {
     }
   }, []);
 
+  // Helper function to check and reset if needed
+  const checkAndResetUsageIfNeeded = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+
+      if (currentUser?.user_metadata?.usage_reset_date) {
+        const lastReset = new Date(currentUser.user_metadata.usage_reset_date);
+        const now = new Date();
+        const lastResetDay = lastReset.toDateString();
+        const today = now.toDateString();
+
+        // Reset if it's a new day
+        if (lastResetDay !== today) {
+          await resetDailyUsage();
+        }
+      }
+    } catch (error) {
+      console.error('Error checking if reset is needed:', error);
+    }
+  }, [user, resetDailyUsage]);
+
   // Load subscription data
   useEffect(() => {
     const loadSubscriptionData = async () => {
@@ -54,17 +77,17 @@ export const SubscriptionProvider = ({ children }) => {
       try {
         // Get user metadata
         const { data: { user: currentUser } } = await supabase.auth.getUser();
-        
+
         if (currentUser) {
-          const isPremium = currentUser.user_metadata?.subscription_plan === 'professor' || 
+          const isPremium = currentUser.user_metadata?.subscription_plan === 'professor' ||
                            currentUser.user_metadata?.is_premium === true;
           setSubscriptionPlan(isPremium ? 'professor' : 'scholar');
-          
+
           // Get usage data
           const mockExamsUsed = currentUser.user_metadata?.mock_exams_used || 0;
           const blurtTestsUsed = currentUser.user_metadata?.blurt_tests_used || 0;
           const lastResetDate = currentUser.user_metadata?.usage_reset_date || null;
-          
+
           setUsage({
             mockExamsUsed,
             blurtTestsUsed,
@@ -77,7 +100,7 @@ export const SubscriptionProvider = ({ children }) => {
             const now = new Date();
             const lastResetDay = lastReset.toDateString();
             const today = now.toDateString();
-            
+
             // Reset if it's a new day
             if (lastResetDay !== today) {
               await resetDailyUsage();
@@ -96,25 +119,25 @@ export const SubscriptionProvider = ({ children }) => {
 
     loadSubscriptionData();
 
-    // Set up periodic check for daily reset (check every hour)
-    const checkInterval = setInterval(async () => {
-      if (user) {
-        const { data: { user: currentUser } } = await supabase.auth.getUser();
-        if (currentUser?.user_metadata?.usage_reset_date) {
-          const lastReset = new Date(currentUser.user_metadata.usage_reset_date);
-          const now = new Date();
-          const lastResetDay = lastReset.toDateString();
-          const today = now.toDateString();
-          
-          if (lastResetDay !== today) {
-            await resetDailyUsage();
-          }
-        }
-      }
-    }, 60 * 60 * 1000); // Check every hour
+    // Set up periodic check for daily reset (check every minute for faster detection)
+    const checkInterval = setInterval(() => {
+      checkAndResetUsageIfNeeded();
+    }, 60 * 1000); // Check every minute (reduced from 60 minutes)
 
-    return () => clearInterval(checkInterval);
-  }, [user, resetDailyUsage]);
+    // Also check when page becomes visible (user returns to tab)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkAndResetUsageIfNeeded();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(checkInterval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [user, resetDailyUsage, checkAndResetUsageIfNeeded]);
 
   const incrementMockExamUsage = async () => {
     if (subscriptionPlan === 'professor') return true; // Unlimited for premium
