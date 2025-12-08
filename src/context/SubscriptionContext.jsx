@@ -235,10 +235,18 @@ export const SubscriptionProvider = ({ children }) => {
     const now = new Date();
     const lastResetDay = lastReset.toDateString();
     const today = now.toDateString();
-    
-    if (lastResetDay !== today) return 0; // Already reset
-    
-    // Calculate hours until midnight
+
+    // If reset happened today, calculate hours until next reset at midnight
+    if (lastResetDay === today) {
+      // Calculate hours until midnight (next reset)
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+      const hoursUntilMidnight = (tomorrow - now) / (1000 * 60 * 60);
+      return Math.ceil(hoursUntilMidnight);
+    }
+
+    // If reset is from a previous day, calculate hours until next reset at midnight
     const tomorrow = new Date(now);
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(0, 0, 0, 0);
