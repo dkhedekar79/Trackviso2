@@ -25,44 +25,21 @@ export const SubscriptionProvider = ({ children }) => {
           usage_reset_date: new Date().toISOString()
         }
       });
-      
+
       if (error) throw error;
-      
+
       setUsage({
         mockExamsUsed: 0,
         blurtTestsUsed: 0,
         lastResetDate: new Date().toISOString()
       });
-      
+
       return data.user;
     } catch (error) {
       console.error('Error resetting daily usage:', error);
       throw error;
     }
   }, []);
-
-  // Helper function to check and reset if needed
-  const checkAndResetUsageIfNeeded = useCallback(async () => {
-    if (!user) return;
-
-    try {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-
-      if (currentUser?.user_metadata?.usage_reset_date) {
-        const lastReset = new Date(currentUser.user_metadata.usage_reset_date);
-        const now = new Date();
-        const lastResetDay = lastReset.toDateString();
-        const today = now.toDateString();
-
-        // Reset if it's a new day
-        if (lastResetDay !== today) {
-          await resetDailyUsage();
-        }
-      }
-    } catch (error) {
-      console.error('Error checking if reset is needed:', error);
-    }
-  }, [user, resetDailyUsage]);
 
   // Load subscription data
   useEffect(() => {
