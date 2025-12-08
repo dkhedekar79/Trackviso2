@@ -97,14 +97,48 @@ export const SubscriptionProvider = ({ children }) => {
     loadSubscriptionData();
 
     // Set up periodic check for daily reset (check every minute for faster detection)
-    const checkInterval = setInterval(() => {
-      checkAndResetUsageIfNeeded();
+    const checkInterval = setInterval(async () => {
+      if (user) {
+        try {
+          const { data: { user: currentUser } } = await supabase.auth.getUser();
+
+          if (currentUser?.user_metadata?.usage_reset_date) {
+            const lastReset = new Date(currentUser.user_metadata.usage_reset_date);
+            const now = new Date();
+            const lastResetDay = lastReset.toDateString();
+            const today = now.toDateString();
+
+            // Reset if it's a new day
+            if (lastResetDay !== today) {
+              await resetDailyUsage();
+            }
+          }
+        } catch (error) {
+          console.error('Error checking if reset is needed:', error);
+        }
+      }
     }, 60 * 1000); // Check every minute (reduced from 60 minutes)
 
     // Also check when page becomes visible (user returns to tab)
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        checkAndResetUsageIfNeeded();
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === 'visible' && user) {
+        try {
+          const { data: { user: currentUser } } = await supabase.auth.getUser();
+
+          if (currentUser?.user_metadata?.usage_reset_date) {
+            const lastReset = new Date(currentUser.user_metadata.usage_reset_date);
+            const now = new Date();
+            const lastResetDay = lastReset.toDateString();
+            const today = now.toDateString();
+
+            // Reset if it's a new day
+            if (lastResetDay !== today) {
+              await resetDailyUsage();
+            }
+          }
+        } catch (error) {
+          console.error('Error checking if reset is needed:', error);
+        }
       }
     };
 
@@ -114,7 +148,7 @@ export const SubscriptionProvider = ({ children }) => {
       clearInterval(checkInterval);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [user, resetDailyUsage, checkAndResetUsageIfNeeded]);
+  }, [user, resetDailyUsage]);
 
   const incrementMockExamUsage = async () => {
     if (subscriptionPlan === 'professor') return true; // Unlimited for premium
