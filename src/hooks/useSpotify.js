@@ -17,20 +17,50 @@ export const useSpotify = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Check for existing token in localStorage
+  // Check for existing token in localStorage on mount
   useEffect(() => {
-    const storedToken = localStorage.getItem('spotify_access_token');
-    const tokenExpiry = localStorage.getItem('spotify_token_expiry');
+    const loadToken = () => {
+      const storedToken = localStorage.getItem('spotify_access_token');
+      const tokenExpiry = localStorage.getItem('spotify_token_expiry');
+      
+      if (storedToken && tokenExpiry && new Date().getTime() < parseInt(tokenExpiry)) {
+        console.log('Loading Spotify token from localStorage');
+        setAccessToken(storedToken);
+      } else {
+        // Clear expired token
+        if (storedToken) {
+          console.log('Spotify token expired, clearing...');
+        }
+        localStorage.removeItem('spotify_access_token');
+        localStorage.removeItem('spotify_token_expiry');
+      }
+    };
+
+    loadToken();
     
-    if (storedToken && tokenExpiry && new Date().getTime() < parseInt(tokenExpiry)) {
-      setAccessToken(storedToken);
-      initializePlayer(storedToken);
-    } else {
-      // Clear expired token
-      localStorage.removeItem('spotify_access_token');
-      localStorage.removeItem('spotify_token_expiry');
-    }
-  }, []);
+    // Also listen for storage events in case token is saved from another tab/window
+    const handleStorageChange = (e) => {
+      if (e.key === 'spotify_access_token' && e.newValue) {
+        console.log('Spotify token updated from storage event');
+        loadToken();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Check periodically in case we're on the same page (storage events don't fire for same tab)
+    const interval = setInterval(() => {
+      const storedToken = localStorage.getItem('spotify_access_token');
+      if (storedToken && !accessToken) {
+        loadToken();
+      }
+    }, 500);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [accessToken]);
 
   // Initialize Spotify Web Playback SDK
   const initializePlayer = useCallback((token) => {
@@ -99,35 +129,24 @@ export const useSpotify = () => {
     }
   }, [accessToken, initializePlayer, player]);
 
-  // Handle OAuth callback
-  useEffect(() => {
-    const hash = window.location.hash
-      .substring(1)
-      .split('&')
-      .reduce((acc, item) => {
-        const parts = item.split('=');
-        acc[parts[0]] = decodeURIComponent(parts[1]);
-        return acc;
-      }, {});
-
-    if (hash.access_token) {
-      const expiresIn = parseInt(hash.expires_in) * 1000; // Convert to milliseconds
-      const expiryTime = new Date().getTime() + expiresIn;
-      
-      setAccessToken(hash.access_token);
-      localStorage.setItem('spotify_access_token', hash.access_token);
-      localStorage.setItem('spotify_token_expiry', expiryTime.toString());
-      
-      // Clean up URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, []);
+  // Note: Token extraction is now handled in SpotifyCallback.jsx
+  // This useEffect is kept for backward compatibility but shouldn't be needed
+  // since the callback page handles it before redirecting
 
   const handleLogin = () => {
     if (!CLIENT_ID) {
       setError('Spotify Client ID not configured. Please add VITE_SPOTIFY_CLIENT_ID to your .env file.');
       return;
     }
+
+    // Log the redirect URI for debugging
+    console.log('Spotify Redirect URI:', REDIRECT_URI);
+    console.log('Make sure this EXACT URL is added in your Spotify Dashboard:');
+    console.log('1. Go to https://developer.spotify.com/dashboard');
+    console.log('2. Click on your app');
+    console.log('3. Click "Edit Settings"');
+    console.log('4. Add this Redirect URI:', REDIRECT_URI);
+    console.log('5. Click "Add" and then "Save"');
 
     const authUrl = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=token&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(SCOPES)}&show_dialog=true`;
     window.location.href = authUrl;

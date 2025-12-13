@@ -5,13 +5,48 @@ const SpotifyCallback = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // The useSpotify hook will handle the token extraction from the hash
-    // Just redirect back to study page after a brief moment
-    const timer = setTimeout(() => {
-      navigate('/study', { replace: true });
-    }, 100);
+    // Extract token from URL hash
+    const hash = window.location.hash
+      .substring(1)
+      .split('&')
+      .reduce((acc, item) => {
+        const parts = item.split('=');
+        acc[parts[0]] = decodeURIComponent(parts[1]);
+        return acc;
+      }, {});
 
-    return () => clearTimeout(timer);
+    if (hash.access_token) {
+      const expiresIn = parseInt(hash.expires_in) * 1000; // Convert to milliseconds
+      const expiryTime = new Date().getTime() + expiresIn;
+      
+      // Save token to localStorage
+      localStorage.setItem('spotify_access_token', hash.access_token);
+      localStorage.setItem('spotify_token_expiry', expiryTime.toString());
+      
+      console.log('Spotify token saved successfully');
+      
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      // Redirect after saving token
+      setTimeout(() => {
+        navigate('/study', { replace: true });
+      }, 500); // Give it a bit more time to ensure localStorage is saved
+    } else {
+      // No token found, check for errors
+      if (hash.error) {
+        console.error('Spotify auth error:', hash.error);
+        if (hash.error_description) {
+          console.error('Error description:', decodeURIComponent(hash.error_description));
+        }
+      } else {
+        console.error('No access token in callback');
+      }
+      // Redirect anyway
+      setTimeout(() => {
+        navigate('/study', { replace: true });
+      }, 1000);
+    }
   }, [navigate]);
 
   return (

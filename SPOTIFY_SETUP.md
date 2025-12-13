@@ -15,10 +15,29 @@ This guide will help you set up Spotify integration for the ambient mode feature
 4. Fill in the app details:
    - **App name**: Trackviso (or your preferred name)
    - **App description**: Study timer with ambient music
-   - **Redirect URI**: `http://localhost:5173/callback` (for development)
-   - **Redirect URI**: `https://yourdomain.com/callback` (for production)
 5. Accept the terms and click "Save"
 6. Note down your **Client ID**
+
+## Step 1.5: Configure Redirect URIs (CRITICAL)
+
+**⚠️ IMPORTANT: The redirect URI must match EXACTLY, including http/https and no trailing slashes!**
+
+1. In your Spotify app settings, click **"Edit Settings"**
+2. Scroll to **"Redirect URIs"**
+3. Add **BOTH** of these URIs (click "Add" for each):
+   - For **local development**: `http://localhost:5173/callback`
+   - For **production**: `https://trackviso.vercel.app/callback` (or your production domain)
+4. **Important**: 
+   - No trailing slashes
+   - Use `http://` for localhost, `https://` for production
+   - The path must be exactly `/callback`
+   - Click "Add" after each URI
+5. Click **"Save"** at the bottom
+
+**Troubleshooting "INVALID_CLIENT: Invalid redirect URI":**
+- Open your browser console (F12) and check what redirect URI is being used
+- Make sure that EXACT URL (including http/https) is in your Spotify Dashboard
+- The redirect URI is case-sensitive and must match character-for-character
 
 ## Step 2: Configure Environment Variables
 
