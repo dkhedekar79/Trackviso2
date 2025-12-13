@@ -22,6 +22,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Payment from './pages/Payment';
 import PaymentSuccess from './pages/PaymentSuccess';
+import SpotifyCallback from './pages/SpotifyCallback';
 import OnboardingModal from "./components/OnboardingModal";
 import Footer from './components/Footer';
 import { ThemeProvider } from './context/ThemeContext';
@@ -220,6 +221,8 @@ function App() {
                   <PaymentSuccess />
                 </ProtectedRoute>
               } />
+
+              <Route path="/callback" element={<SpotifyCallback />} />
             </Routes>
             </Router>
             </DashboardProvider>

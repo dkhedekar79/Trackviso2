@@ -380,6 +380,51 @@ export default function Insights() {
 
   const timeHeatmap = getTimeOfDayHeatmap();
 
+  // Time of Day Heatmap by Day of Week (for new card)
+  const getTimeOfDayByDayHeatmap = () => {
+    // Days of week: Sunday = 0, Monday = 1, ..., Saturday = 6
+    const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    // 3-hour chunks: 0-3, 3-6, 6-9, 9-12, 12-15, 15-18, 18-21, 21-24
+    const timeChunks = [
+      { label: '12am-3am', start: 0, end: 3 },
+      { label: '3am-6am', start: 3, end: 6 },
+      { label: '6am-9am', start: 6, end: 9 },
+      { label: '9am-12pm', start: 9, end: 12 },
+      { label: '12pm-3pm', start: 12, end: 15 },
+      { label: '3pm-6pm', start: 15, end: 18 },
+      { label: '6pm-9pm', start: 18, end: 21 },
+      { label: '9pm-12am', start: 21, end: 24 }
+    ];
+
+    // Initialize heatmap data: [dayIndex][timeChunkIndex] = totalMinutes
+    const heatmapData = Array(7).fill(null).map(() => Array(8).fill(0));
+
+    filteredSessions.forEach(session => {
+      const sessionDate = new Date(session.timestamp);
+      const dayOfWeek = sessionDate.getDay(); // 0 = Sunday, 6 = Saturday
+      const hour = sessionDate.getHours();
+      const durationMinutes = session.durationMinutes || 0;
+
+      // Find which time chunk this hour belongs to
+      const chunkIndex = timeChunks.findIndex(chunk => hour >= chunk.start && hour < chunk.end);
+      if (chunkIndex !== -1) {
+        heatmapData[dayOfWeek][chunkIndex] += durationMinutes;
+      }
+    });
+
+    // Find max value for normalization
+    const maxValue = Math.max(...heatmapData.flat(), 1);
+
+    return {
+      data: heatmapData,
+      daysOfWeek,
+      timeChunks,
+      maxValue
+    };
+  };
+
+  const timeOfDayByDayHeatmap = getTimeOfDayByDayHeatmap();
+
   // Day of Week Breakdown
   const getDayOfWeekBreakdown = () => {
     const breakdown = Array(7).fill(0);
@@ -1159,10 +1204,10 @@ export default function Insights() {
             </motion.div>
           </motion.div>
 
-          {/* Subject Time Distribution with Pie Chart */}
-          <div className="mb-8">
+          {/* Subject Time Distribution with Pie Chart and Time of Day Heatmap */}
+          <div className="mb-8 flex gap-8 flex-wrap lg:flex-nowrap">
           <motion.div
-              className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all w-full lg:w-1/2"
+              className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all flex-1 min-w-[300px]"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -1221,7 +1266,7 @@ export default function Insights() {
                           />
                           {/* Pie slices */}
                           {entries.map(([subject, time], index) => {
-                            const subjectData = subjects.find(s => s.name === subject);
+                const subjectData = subjects.find(s => s.name === subject);
                             const color = subjectData?.color || '#6C5DD3';
                             const angle = angles[index];
                             
@@ -1247,26 +1292,26 @@ export default function Insights() {
                             ].join(' ');
                             
                             currentAngle += angle;
-                            
-                            return (
+
+                return (
                               <motion.path
-                                key={subject}
+                    key={subject}
                                 d={pathData}
                                 fill={color}
                                 initial={{ opacity: 0 }}
                                 whileInView={{ opacity: 1 }}
                                 transition={{ delay: index * 0.1 }}
-                                viewport={{ once: true }}
+                    viewport={{ once: true }}
                                 className="cursor-pointer hover:opacity-80 transition-opacity"
                                 style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}
                               />
-                            );
-                          })}
+                );
+              })}
                         </>
                       );
                     })()}
                   </svg>
-                </div>
+            </div>
                 
                 {/* Legend */}
                 <div className="flex-1 space-y-2 max-h-[200px] overflow-y-auto">
@@ -1295,7 +1340,7 @@ export default function Insights() {
                             <div className="text-white font-medium text-sm truncate">{subject}</div>
                             <div className="text-purple-200/80 text-xs">
                               {Math.round(time / 60)}h {Math.round(time % 60)}m ({percentage.toFixed(1)}%)
-                            </div>
+                        </div>
                     </div>
                   </motion.div>
                 );
@@ -1307,6 +1352,115 @@ export default function Insights() {
                 <PieChart className="w-12 h-12 text-purple-400/50 mx-auto mb-3" />
                 <p className="text-purple-300/80 text-lg">No study data yet!</p>
                 <p className="text-purple-300/60 text-sm">Complete study sessions to see distribution</p>
+              </div>
+            )}
+          </motion.div>
+
+          {/* Time of Day Heatmap Card */}
+          <motion.div
+            className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all flex-1 min-w-[300px]"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            whileHover={{ y: -5 }}
+          >
+            <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
+              <Activity className="w-5 h-5 text-purple-400" />
+              Time of Day Heatmap
+            </h3>
+            
+            {filteredSessions.length > 0 ? (
+              <div className="flex gap-4">
+                {/* Heatmap Grid */}
+                <div className="flex-1">
+                  <div className="grid grid-cols-8 gap-1">
+                    {/* Day headers */}
+                    <div className="col-span-8 grid grid-cols-7 gap-1 mb-1">
+                      {timeOfDayByDayHeatmap.daysOfWeek.map((day, dayIndex) => (
+                        <div key={day} className="text-xs text-purple-300/80 text-center font-medium">
+                          {day}
+                        </div>
+                      ))}
+                      </div>
+                    
+                    {/* Time chunks and heatmap cells */}
+                    {timeOfDayByDayHeatmap.timeChunks.map((chunk, chunkIndex) => (
+                      <React.Fragment key={chunkIndex}>
+                        {/* Time chunk label */}
+                        <div className="text-xs text-purple-300/80 text-right pr-2 flex items-center">
+                          {chunk.label}
+                    </div>
+                        
+                        {/* Heatmap cells for this time chunk */}
+                        {timeOfDayByDayHeatmap.daysOfWeek.map((day, dayIndex) => {
+                          const value = timeOfDayByDayHeatmap.data[dayIndex][chunkIndex];
+                          const intensity = timeOfDayByDayHeatmap.maxValue > 0 
+                            ? value / timeOfDayByDayHeatmap.maxValue 
+                            : 0;
+                          
+                          // Gradient from purple to pink based on intensity
+                          const r = Math.round(139 + (168 - 139) * intensity); // 139 (purple) to 168 (pink)
+                          const g = Math.round(69 + (85 - 69) * intensity);   // 69 to 85
+                          const b = 247; // Purple blue stays constant
+                          const opacity = 0.3 + (0.9 - 0.3) * intensity; // 0.3 to 0.9
+                          
+                          return (
+                        <motion.div
+                              key={`${dayIndex}-${chunkIndex}`}
+                              className="aspect-square rounded-sm border border-purple-700/20 group relative cursor-pointer"
+                              style={{
+                                backgroundColor: `rgba(${r}, ${g}, ${b}, ${opacity})`
+                              }}
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              whileInView={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: (chunkIndex * 7 + dayIndex) * 0.01 }}
+                              viewport={{ once: true }}
+                              whileHover={{ scale: 1.1, zIndex: 10 }}
+                            >
+                              {/* Tooltip */}
+                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-purple-900/95 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                                {day}: {Math.round(value / 60)}h {Math.round(value % 60)}m
+                    </div>
+                  </motion.div>
+                          );
+                        })}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Gradient Legend */}
+                <div className="w-8 flex flex-col items-center gap-2">
+                  <div className="text-xs text-purple-300/80 font-medium mb-1">More</div>
+                  <div className="flex-1 w-full rounded-lg overflow-hidden border border-purple-700/30">
+                    {Array.from({ length: 20 }, (_, i) => {
+                      const intensity = 1 - (i / 19); // 1 to 0
+                      const r = Math.round(139 + (168 - 139) * intensity);
+                      const g = Math.round(69 + (85 - 69) * intensity);
+                      const b = 247;
+                      const opacity = 0.3 + (0.9 - 0.3) * intensity;
+                      
+                      return (
+                        <div
+                          key={i}
+                          className="w-full"
+                          style={{
+                            height: `${100 / 20}%`,
+                            backgroundColor: `rgba(${r}, ${g}, ${b}, ${opacity})`
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+                  <div className="text-xs text-purple-300/80 font-medium mt-1">Less</div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Activity className="w-12 h-12 text-purple-400/50 mx-auto mb-3" />
+                <p className="text-purple-300/80 text-lg">No study data yet!</p>
+                <p className="text-purple-300/60 text-sm">Complete study sessions to see heatmap</p>
               </div>
             )}
           </motion.div>

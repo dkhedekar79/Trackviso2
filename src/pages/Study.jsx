@@ -33,7 +33,11 @@ import {
   Trash2,
   Volume2,
   VolumeX,
+  Image,
+  X as XIcon,
+  Settings,
 } from "lucide-react";
+import SpotifyWidget from "../components/SpotifyWidget";
 
 const Study = () => {
   const location = useLocation();
@@ -50,6 +54,11 @@ const Study = () => {
   const [isDistractionFree, setIsDistractionFree] = useState(false);
   const [isAmbientSoundOn, setIsAmbientSoundOn] = useState(false);
   const [isAmbientMode, setIsAmbientMode] = useState(false);
+  const [ambientImages, setAmbientImages] = useState([]);
+  const [ambientVideos, setAmbientVideos] = useState([]);
+  const [selectedAmbientImage, setSelectedAmbientImage] = useState(null);
+  const [selectedAmbientVideo, setSelectedAmbientVideo] = useState(null);
+  const [showAmbientGallery, setShowAmbientGallery] = useState(false);
   const [subjects, setSubjects] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [studySessions, setStudySessions] = useState([]);
@@ -122,6 +131,67 @@ const Study = () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
   }, [isAmbientMode]);
+
+  // Load ambient images and videos from config file and selected from localStorage
+  useEffect(() => {
+    // Import ambient images and videos from config
+    import('../data/ambientImages.js').then((module) => {
+      const images = module.default || module.ambientImages || [];
+      const videos = module.ambientVideos || [];
+      
+      if (images.length > 0) {
+        setAmbientImages(images);
+        // Set first image as default if none selected
+        const savedSelected = localStorage.getItem('selectedAmbientImage');
+        if (savedSelected && images.find(img => img.id === savedSelected)) {
+          setSelectedAmbientImage(savedSelected);
+        } else if (images.length > 0) {
+          setSelectedAmbientImage(images[0].id);
+        }
+      }
+      
+      if (videos.length > 0) {
+        setAmbientVideos(videos);
+        // Set first video as default if none selected and no image selected
+        const savedSelectedVideo = localStorage.getItem('selectedAmbientVideo');
+        if (savedSelectedVideo && videos.find(vid => vid.id === savedSelectedVideo)) {
+          setSelectedAmbientVideo(savedSelectedVideo);
+        } else if (videos.length > 0 && !selectedAmbientImage) {
+          setSelectedAmbientVideo(videos[0].id);
+        }
+      }
+    }).catch(err => {
+      console.log('No ambient images config file found:', err);
+    });
+  }, []);
+
+  // Save selected image to localStorage
+  useEffect(() => {
+    if (selectedAmbientImage) {
+      localStorage.setItem('selectedAmbientImage', selectedAmbientImage);
+      // Clear video selection when image is selected
+      if (selectedAmbientVideo) {
+        setSelectedAmbientVideo(null);
+        localStorage.removeItem('selectedAmbientVideo');
+      }
+    } else {
+      localStorage.removeItem('selectedAmbientImage');
+    }
+  }, [selectedAmbientImage]);
+
+  // Save selected video to localStorage
+  useEffect(() => {
+    if (selectedAmbientVideo) {
+      localStorage.setItem('selectedAmbientVideo', selectedAmbientVideo);
+      // Clear image selection when video is selected
+      if (selectedAmbientImage) {
+        setSelectedAmbientImage(null);
+        localStorage.removeItem('selectedAmbientImage');
+      }
+    } else {
+      localStorage.removeItem('selectedAmbientVideo');
+    }
+  }, [selectedAmbientVideo]);
 
   // Local timer helpers
   const getTotalDuration = () => {
@@ -671,7 +741,16 @@ const Study = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[100] bg-black flex items-center justify-center"
+              className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden"
+              style={{
+                backgroundImage: selectedAmbientImage && !selectedAmbientVideo
+                  ? `url(${ambientImages.find(img => img.id === selectedAmbientImage)?.data || ambientImages.find(img => img.id === selectedAmbientImage)?.path})`
+                  : 'none',
+                backgroundColor: (selectedAmbientImage || selectedAmbientVideo) ? 'transparent' : '#000000',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+              }}
               onClick={() => {
                 setIsAmbientMode(false);
                 if (document.exitFullscreen) {
@@ -679,24 +758,236 @@ const Study = () => {
                 }
               }}
             >
-              <div className="text-center">
+              {/* Video Background */}
+              {selectedAmbientVideo && (
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="absolute inset-0 w-full h-full object-cover"
+                  style={{ zIndex: 0 }}
+                  src={ambientVideos.find(vid => vid.id === selectedAmbientVideo)?.path}
+                />
+              )}
+              
+              {/* Subtle overlay for better text readability */}
+              <div className="absolute inset-0" />
+              
+              {/* Settings Button in Corner */}
+              <motion.button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowAmbientGallery(true);
+                }}
+                className="absolute top-4 right-4 z-20 p-3 rounded-lg bg-black/30 backdrop-blur-sm border border-white/20 hover:bg-black/50 transition-all"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ delay: 0.2 }}
+                title="Manage Background Images"
+              >
+                <Settings className="w-5 h-5 text-white" />
+              </motion.button>
+              
+              <div className="text-center relative z-10">
                 <motion.div
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.8, opacity: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="text-white"
+                  className="text-white drop-shadow-2xl"
+                  style={{ fontFamily: 'Poppins, sans-serif' }}
                 >
-                  <div className="text-9xl font-mono font-light tracking-wider mb-4">
+                  <div className="text-9xl font-bold tracking-wider mb-4" style={{ fontWeight: 900 }}>
                     {getDisplayTime()}
                   </div>
                   {subject && (
-                    <div className="text-2xl text-white/60 mt-8">
+                    <div className="text-2xl text-white/90 mt-8 drop-shadow-lg font-bold" style={{ fontWeight: 700 }}>
                       {subject}
                     </div>
                   )}
+                  
+                  {/* Spotify Widget */}
+                  <SpotifyWidget />
                 </motion.div>
               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Ambient Mode Gallery Modal */}
+        <AnimatePresence>
+          {showAmbientGallery && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+              onClick={() => setShowAmbientGallery(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-gradient-to-br from-purple-900/95 to-slate-900/95 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                    <Image className="w-6 h-6 text-purple-400" />
+                    Ambient Mode Background Gallery
+                  </h2>
+                  <button
+                    onClick={() => setShowAmbientGallery(false)}
+                    className="p-2 rounded-lg bg-purple-800/40 hover:bg-purple-800/60 text-white transition-colors"
+                  >
+                    <XIcon className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Info Section */}
+                <div className="mb-6 p-4 bg-purple-800/20 border border-purple-700/30 rounded-lg">
+                  <p className="text-purple-300/80 text-sm">
+                    <strong className="text-white">Developer Note:</strong> To add new backgrounds, 
+                    edit the <code className="bg-purple-900/40 px-2 py-1 rounded text-xs">src/data/ambientImages.js</code> file.
+                  </p>
+                </div>
+
+                {/* Static Images Section */}
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <Image className="w-5 h-5 text-purple-400" />
+                    Static Backgrounds
+                  </h3>
+                  {ambientImages.length > 0 ? (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {ambientImages.map((image) => (
+                        <motion.div
+                          key={image.id}
+                          className="relative group aspect-video rounded-lg overflow-hidden border-2 transition-all"
+                          style={{
+                            borderColor: selectedAmbientImage === image.id 
+                              ? 'rgba(168, 85, 247, 1)' 
+                              : 'rgba(139, 92, 246, 0.3)'
+                          }}
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          whileHover={{ scale: 1.05 }}
+                        >
+                          <img
+                            src={image.data || image.path}
+                            alt={image.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              // Fallback if image fails to load
+                              e.target.style.display = 'none';
+                              e.target.parentElement.innerHTML = '<div class="w-full h-full flex items-center justify-center bg-purple-900/40 text-purple-300 text-sm">Image not found</div>';
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                            <button
+                              onClick={() => {
+                                setSelectedAmbientImage(image.id);
+                                setSelectedAmbientVideo(null);
+                              }}
+                              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                selectedAmbientImage === image.id
+                                  ? 'bg-purple-600 text-white'
+                                  : 'bg-white/20 text-white opacity-0 group-hover:opacity-100'
+                              }`}
+                            >
+                              {selectedAmbientImage === image.id ? 'Selected' : 'Select'}
+                            </button>
+                          </div>
+                          {selectedAmbientImage === image.id && (
+                            <div className="absolute top-2 right-2 bg-purple-600 text-white text-xs px-2 py-1 rounded">
+                              Active
+                            </div>
+                          )}
+                        </motion.div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 bg-purple-800/20 rounded-lg border border-purple-700/30">
+                      <Image className="w-12 h-12 text-purple-400/50 mx-auto mb-3" />
+                      <p className="text-purple-300/80">No static images configured</p>
+                      <p className="text-purple-300/60 text-sm mt-1">Add images in ambientImages.js</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Animated Wallpapers Section */}
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-purple-400" />
+                    Animated Wallpapers
+                  </h3>
+                  {ambientVideos.length > 0 ? (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {ambientVideos.map((video) => (
+                        <motion.div
+                          key={video.id}
+                          className="relative group aspect-video rounded-lg overflow-hidden border-2 transition-all"
+                          style={{
+                            borderColor: selectedAmbientVideo === video.id 
+                              ? 'rgba(168, 85, 247, 1)' 
+                              : 'rgba(139, 92, 246, 0.3)'
+                          }}
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          whileHover={{ scale: 1.05 }}
+                        >
+                          <video
+                            src={video.path}
+                            className="w-full h-full object-cover"
+                            muted
+                            loop
+                            playsInline
+                            onMouseEnter={(e) => e.target.play()}
+                            onMouseLeave={(e) => {
+                              e.target.pause();
+                              e.target.currentTime = 0;
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                            <button
+                              onClick={() => {
+                                setSelectedAmbientVideo(video.id);
+                                setSelectedAmbientImage(null);
+                              }}
+                              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                selectedAmbientVideo === video.id
+                                  ? 'bg-purple-600 text-white'
+                                  : 'bg-white/20 text-white opacity-0 group-hover:opacity-100'
+                              }`}
+                            >
+                              {selectedAmbientVideo === video.id ? 'Selected' : 'Select'}
+                            </button>
+                          </div>
+                          {selectedAmbientVideo === video.id && (
+                            <div className="absolute top-2 right-2 bg-purple-600 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                              <Zap className="w-3 h-3" />
+                              Active
+                            </div>
+                          )}
+                          <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                            MP4
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 bg-purple-800/20 rounded-lg border border-purple-700/30">
+                      <Zap className="w-12 h-12 text-purple-400/50 mx-auto mb-3" />
+                      <p className="text-purple-300/80">No animated wallpapers configured</p>
+                      <p className="text-purple-300/60 text-sm mt-1">Add MP4 videos in ambientImages.js</p>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -1208,36 +1499,36 @@ const Study = () => {
                         <Target className="w-4 h-4" />
                         {isFocusMode ? "Exit Focus" : "Focus Mode"}
                       </motion.button>
-                      <motion.button
-                        onClick={() => {
-                          setIsAmbientMode(!isAmbientMode);
-                          if (!isAmbientMode) {
-                            // Request fullscreen
-                            const element = document.documentElement;
-                            if (element.requestFullscreen) {
-                              element.requestFullscreen().catch(err => console.log(err));
+                        <motion.button
+                          onClick={() => {
+                            setIsAmbientMode(!isAmbientMode);
+                            if (!isAmbientMode) {
+                              // Request fullscreen
+                              const element = document.documentElement;
+                              if (element.requestFullscreen) {
+                                element.requestFullscreen().catch(err => console.log(err));
+                              }
+                            } else {
+                              // Exit fullscreen
+                              if (document.exitFullscreen) {
+                                document.exitFullscreen().catch(err => console.log(err));
+                              }
                             }
-                          } else {
-                            // Exit fullscreen
-                            if (document.exitFullscreen) {
-                              document.exitFullscreen().catch(err => console.log(err));
-                            }
-                          }
-                        }}
-                        className={`px-4 py-2 rounded-lg transition flex items-center gap-2 ${
-                          isAmbientMode
-                            ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50"
-                            : "bg-purple-900/40 text-purple-300 hover:bg-purple-900/60 border border-purple-700/40"
-                        }`}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <Clock className="w-4 h-4" />
-                        Ambient Mode
-                      </motion.button>
+                          }}
+                          className={`px-4 py-2 rounded-lg transition flex items-center gap-2 ${
+                            isAmbientMode
+                              ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50"
+                              : "bg-purple-900/40 text-purple-300 hover:bg-purple-900/60 border border-purple-700/40"
+                          }`}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <Clock className="w-4 h-4" />
+                          Ambient Mode
+                        </motion.button>
+                      </div>
                     </div>
-                  </div>
-                </motion.div>
+                  </motion.div>
 
                 {/* Current Task Input */}
                 <motion.div
