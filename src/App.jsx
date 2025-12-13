@@ -15,7 +15,7 @@ import Insights from './pages/Insights';
 import Mastery from './pages/Mastery';
 
 import Resources from './pages/Resources';
-import Privacy from './pages/Privacy';
+import Settings from './pages/Settings';
 import Terms from './pages/Terms';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
@@ -171,14 +171,14 @@ function App() {
                 </ProtectedRoute>
               } />
 
-              <Route path="/privacy" element={
+              <Route path="/settings" element={
                 <ProtectedRoute>
                   <div className="flex h-screen bg-[var(--app-bg)]">
                     <Sidebar />
                     <div className="flex-1 flex flex-col">
                       <Navbar />
                       <main className="flex-1 overflow-auto">
-                        <Privacy />
+                        <Settings />
                         <Footer withSidebar />
                       </main>
                     </div>

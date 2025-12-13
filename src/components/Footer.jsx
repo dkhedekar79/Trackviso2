@@ -32,7 +32,7 @@ const Footer = ({ withSidebar = false }) => {
           <h4 className="font-semibold mb-3 text-[var(--text-on-surface)]">Company</h4>
           <ul className="space-y-2">
             <li><a className="hover:text-[var(--on-primary)]" href="mailto:dskhedekar7@gmail.com">Contact</a></li>
-            <li><Link className="hover:text-[var(--on-primary)]" to="/privacy">Themes</Link></li>
+            <li><Link className="hover:text-[var(--on-primary)]" to="/settings">Settings</Link></li>
             <li><Link className="hover:text-[var(--on-primary)]" to="/terms">Terms</Link></li>
           </ul>
         </div>
@@ -40,7 +40,7 @@ const Footer = ({ withSidebar = false }) => {
       <div className="max-w-7xl mx-auto mt-8 pt-6 border-t flex flex-col sm:flex-row items-center justify-between gap-3" style={{ borderColor: "var(--footer-border)" }}>
         <span className="opacity-60">© {new Date().getFullYear()} Trackviso</span>
         <div className="space-x-4">
-          <Link className="hover:text-[var(--on-primary)]" to="/privacy#contact">Support</Link>
+          <Link className="hover:text-[var(--on-primary)]" to="/settings">Support</Link>
           <a className="hover:text-[var(--on-primary)]" href="mailto:dskhedekar7@gmail.com">Email</a>
         </div>
       </div>

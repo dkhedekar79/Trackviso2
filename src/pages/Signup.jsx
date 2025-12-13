@@ -11,26 +11,52 @@ export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccess(false);
+    
+    // Validate inputs
+    if (!email || !password) {
+      setError("Please fill in all fields.");
+      return;
+    }
+    
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+    
     setLoading(true);
 
     try {
       const { data } = await signup(email, password);
+      console.log('Signup response:', data);
 
-      // Check if email confirmation is required
-      if (data?.user && !data.session) {
-        setError("Please check your email and click the confirmation link to complete signup.");
-      } else if (data?.session) {
-        navigate("/dashboard");
+      // If signup is successful, show success message and redirect to login
+      if (data?.user) {
+        setLoading(false);
+        setSuccess(true);
+        console.log('Success state set to true');
+        // Show success notification for 2 seconds, then redirect
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
+      } else {
+        // Still show success if the signup call didn't error
+        setLoading(false);
+        setSuccess(true);
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
       }
     } catch (err) {
+      console.error('Signup error:', err);
       setError("Failed to sign up. " + err.message);
-    } finally {
       setLoading(false);
     }
   };
@@ -109,9 +135,25 @@ export default function Signup() {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg mb-6 backdrop-blur-sm"
+              exit={{ opacity: 0, y: -10 }}
+              className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg mb-6 backdrop-blur-sm z-50 relative"
             >
               {error}
+            </motion.div>
+          )}
+
+          {success && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-green-500/40 border-2 border-green-400 text-green-100 px-4 py-3 rounded-lg mb-6 backdrop-blur-sm shadow-lg shadow-green-500/30 z-50 relative"
+            >
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-green-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="font-medium text-white">Account created! Please login on the login page.</span>
+              </div>
             </motion.div>
           )}
 
