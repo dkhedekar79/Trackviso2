@@ -1666,19 +1666,7 @@ const Study = () => {
 
                     {/* Focus Mode Toggle */}
                     <div className="flex items-center gap-4">
-                      <motion.button
-                        onClick={() => setIsFocusMode(!isFocusMode)}
-                        className={`px-4 py-2 rounded-lg transition flex items-center gap-2 ${
-                          isFocusMode
-                            ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50"
-                            : "bg-purple-900/40 text-purple-300 hover:bg-purple-900/60 border border-purple-700/40"
-                        }`}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <Target className="w-4 h-4" />
-                        {isFocusMode ? "Exit Focus" : "Focus Mode"}
-                      </motion.button>
+                      
                       <motion.button
                         onClick={() => {
                           setIsAmbientMode(!isAmbientMode);
