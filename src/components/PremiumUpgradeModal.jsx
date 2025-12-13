@@ -14,7 +14,7 @@ const PremiumUpgradeModal = ({ isOpen, onClose, feature = null }) => {
   const features = [
     { icon: Zap, text: 'Unlimited Mock Exams', color: 'text-red-400' },
     { icon: Sparkles, text: 'Unlimited Blurt Tests', color: 'text-amber-400' },
-    { icon: Star, text: 'Priority AI Support', color: 'text-blue-400' },
+    { icon: Star, text: 'Full access to 8K animated wallpapers', color: 'text-blue-400' },
     { icon: Crown, text: 'Exclusive Features', color: 'text-purple-400' },
   ];
 

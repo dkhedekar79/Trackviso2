@@ -107,11 +107,11 @@ const PremiumUpgradeCard = ({ onUpgradeClick }) => {
         <div className="grid grid-cols-3 gap-3">
           <div className="flex items-center gap-2 bg-white/5 rounded-lg p-3 border border-white/10">
             <Zap className="w-5 h-5 text-yellow-400" />
-            <span className="text-white text-sm font-medium">Unlimited</span>
+            <span className="text-white text-sm font-medium">Unlimited access to 8K animated wallpapers</span>
           </div>
           <div className="flex items-center gap-2 bg-white/5 rounded-lg p-3 border border-white/10">
             <Sparkles className="w-5 h-5 text-purple-400" />
-            <span className="text-white text-sm font-medium">Premium</span>
+            <span className="text-white text-sm font-medium">Unlimited AI revision</span>
           </div>
           <div className="flex items-center gap-2 bg-white/5 rounded-lg p-3 border border-white/10">
             <Crown className="w-5 h-5 text-yellow-400" />

@@ -103,6 +103,10 @@ const Payment = () => {
                 <span className="text-white/80">1 Blurt Test per day</span>
               </div>
               <div className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-400" />
+                <span className="text-white/80">1 Animated wallpaper</span>
+              </div>
+              <div className="flex items-center gap-2">
                 <Lock className="w-5 h-5 text-gray-400" />
                 <span className="text-white/50">Limited features</span>
               </div>
@@ -118,7 +122,7 @@ const Payment = () => {
           >
             <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
               <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-1 rounded-full text-sm font-bold">
-                RECOMMENDED
+                Most Popular
               </span>
             </div>
             <h3 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
@@ -136,7 +140,7 @@ const Payment = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-yellow-400" />
-                <span className="text-white font-semibold">Priority AI Support</span>
+                <span className="text-white font-semibold">Unlimited 8K animated wallpapers</span>
               </div>
               <div className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-yellow-400" />

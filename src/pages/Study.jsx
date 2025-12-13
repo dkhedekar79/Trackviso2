@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { useTimer } from "../context/TimerContext";
 import { useGamification } from "../context/GamificationContext";
+import { useSubscription } from "../context/SubscriptionContext";
+import PremiumUpgradeModal from "../components/PremiumUpgradeModal";
 import {
   XPGainAnimation,
   LevelUpCelebration,
@@ -37,7 +39,6 @@ import {
   X as XIcon,
   Settings,
 } from "lucide-react";
-import SpotifyWidget from "../components/SpotifyWidget";
 
 const Study = () => {
   const location = useLocation();
@@ -59,6 +60,7 @@ const Study = () => {
   const [selectedAmbientImage, setSelectedAmbientImage] = useState(null);
   const [selectedAmbientVideo, setSelectedAmbientVideo] = useState(null);
   const [showAmbientGallery, setShowAmbientGallery] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [subjects, setSubjects] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [studySessions, setStudySessions] = useState([]);
@@ -103,6 +105,10 @@ const Study = () => {
     setShowRewards,
   } = useGamification();
 
+  // Subscription context
+  const { subscriptionPlan } = useSubscription();
+  const isPremium = subscriptionPlan === 'professor';
+
   // Sync local input with context value when it changes
   useEffect(() => {
     if (customMinutes) setCustomMinutesInput(String(customMinutes));
@@ -145,19 +151,24 @@ const Study = () => {
         const savedSelected = localStorage.getItem('selectedAmbientImage');
         if (savedSelected && images.find(img => img.id === savedSelected)) {
           setSelectedAmbientImage(savedSelected);
-        } else if (images.length > 0) {
+        } else {
+          // Always default to first image if no saved selection
           setSelectedAmbientImage(images[0].id);
+          localStorage.setItem('selectedAmbientImage', images[0].id);
         }
       }
       
       if (videos.length > 0) {
         setAmbientVideos(videos);
-        // Set first video as default if none selected and no image selected
-        const savedSelectedVideo = localStorage.getItem('selectedAmbientVideo');
-        if (savedSelectedVideo && videos.find(vid => vid.id === savedSelectedVideo)) {
-          setSelectedAmbientVideo(savedSelectedVideo);
-        } else if (videos.length > 0 && !selectedAmbientImage) {
-          setSelectedAmbientVideo(videos[0].id);
+        // Only set video as default if no images exist
+        if (images.length === 0) {
+          const savedSelectedVideo = localStorage.getItem('selectedAmbientVideo');
+          if (savedSelectedVideo && videos.find(vid => vid.id === savedSelectedVideo)) {
+            setSelectedAmbientVideo(savedSelectedVideo);
+          } else {
+            setSelectedAmbientVideo(videos[0].id);
+            localStorage.setItem('selectedAmbientVideo', videos[0].id);
+          }
         }
       }
     }).catch(err => {
@@ -174,9 +185,8 @@ const Study = () => {
         setSelectedAmbientVideo(null);
         localStorage.removeItem('selectedAmbientVideo');
       }
-    } else {
-      localStorage.removeItem('selectedAmbientImage');
     }
+    // Don't remove from localStorage if it becomes null - keep the default
   }, [selectedAmbientImage]);
 
   // Save selected video to localStorage
@@ -192,6 +202,19 @@ const Study = () => {
       localStorage.removeItem('selectedAmbientVideo');
     }
   }, [selectedAmbientVideo]);
+
+  // Clear video selection if user is not premium (but allow first video)
+  useEffect(() => {
+    if (!isPremium && selectedAmbientVideo) {
+      // Check if selected video is the first one (free)
+      const firstVideoId = ambientVideos.length > 0 ? ambientVideos[0].id : null;
+      if (selectedAmbientVideo !== firstVideoId) {
+        // Only clear if it's not the first video
+        setSelectedAmbientVideo(null);
+        localStorage.removeItem('selectedAmbientVideo');
+      }
+    }
+  }, [isPremium, selectedAmbientVideo, ambientVideos]);
 
   // Local timer helpers
   const getTotalDuration = () => {
@@ -745,8 +768,10 @@ const Study = () => {
               style={{
                 backgroundImage: selectedAmbientImage && !selectedAmbientVideo
                   ? `url(${ambientImages.find(img => img.id === selectedAmbientImage)?.data || ambientImages.find(img => img.id === selectedAmbientImage)?.path})`
-                  : 'none',
-                backgroundColor: (selectedAmbientImage || selectedAmbientVideo) ? 'transparent' : '#000000',
+                  : (ambientImages.length > 0 && !selectedAmbientVideo)
+                    ? `url(${ambientImages[0]?.data || ambientImages[0]?.path})`
+                    : 'none',
+                backgroundColor: (selectedAmbientImage || selectedAmbientVideo || ambientImages.length > 0) ? 'transparent' : '#000000',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat'
@@ -758,17 +783,27 @@ const Study = () => {
                 }
               }}
             >
-              {/* Video Background */}
+              {/* Video Background - First video is free, rest require premium */}
               {selectedAmbientVideo && (
-                <video
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  className="absolute inset-0 w-full h-full object-cover"
-                  style={{ zIndex: 0 }}
-                  src={ambientVideos.find(vid => vid.id === selectedAmbientVideo)?.path}
-                />
+                (() => {
+                  const selectedVideo = ambientVideos.find(vid => vid.id === selectedAmbientVideo);
+                  const isFirstVideo = ambientVideos.length > 0 && ambientVideos[0].id === selectedAmbientVideo;
+                  // Allow first video for free, rest require premium
+                  if (selectedVideo && (isFirstVideo || isPremium)) {
+                    return (
+                      <video
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="absolute inset-0 w-full h-full object-cover"
+                        style={{ zIndex: 0 }}
+                        src={selectedVideo.path}
+                      />
+                    );
+                  }
+                  return null;
+                })()
               )}
               
               {/* Subtle overlay for better text readability */}
@@ -809,9 +844,60 @@ const Study = () => {
                       {subject}
                     </div>
                   )}
+                </motion.div>
+                
+                {/* Minimal Control Buttons */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="mt-12 flex items-center justify-center gap-4"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Start/Pause Button */}
+                  {isRunning ? (
+                    <motion.button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        pauseLocalTimer();
+                        stopTimer();
+                      }}
+                      className="p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white transition-all"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
+                      title="Pause"
+                    >
+                      <Pause className="w-5 h-5" />
+                    </motion.button>
+                  ) : (
+                    <motion.button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        startLocalTimer();
+                        startTimer();
+                      }}
+                      className="p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white transition-all"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
+                      title="Start"
+                    >
+                      <Play className="w-5 h-5" />
+                    </motion.button>
+                  )}
                   
-                  {/* Spotify Widget */}
-                  <SpotifyWidget />
+                  {/* End Session Button */}
+                  <motion.button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEndSession();
+                    }}
+                    className="p-3 rounded-full bg-red-500/20 hover:bg-red-500/30 backdrop-blur-sm border border-red-400/30 text-white transition-all"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    title="End Session"
+                  >
+                    <Square className="w-5 h-5" />
+                  </motion.button>
                 </motion.div>
               </div>
             </motion.div>
@@ -851,8 +937,8 @@ const Study = () => {
                 {/* Info Section */}
                 <div className="mb-6 p-4 bg-purple-800/20 border border-purple-700/30 rounded-lg">
                   <p className="text-purple-300/80 text-sm">
-                    <strong className="text-white">Developer Note:</strong> To add new backgrounds, 
-                    edit the <code className="bg-purple-900/40 px-2 py-1 rounded text-xs">src/data/ambientImages.js</code> file.
+                    <strong className="text-white">Note:</strong> Images and videos may not appear instantly. Please wait for a few seconds.
+                    
                   </p>
                 </div>
 
@@ -919,65 +1005,113 @@ const Study = () => {
                   )}
                 </div>
 
-                {/* Animated Wallpapers Section */}
+                {/* Animated Wallpapers Section - Premium Only */}
                 <div>
                   <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                     <Zap className="w-5 h-5 text-purple-400" />
                     Animated Wallpapers
+                    {!isPremium && (
+                      <span className="ml-2 px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded-full border border-yellow-500/30">
+                        Premium
+                      </span>
+                    )}
                   </h3>
+                  
                   {ambientVideos.length > 0 ? (
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {ambientVideos.map((video) => (
-                        <motion.div
-                          key={video.id}
-                          className="relative group aspect-video rounded-lg overflow-hidden border-2 transition-all"
-                          style={{
-                            borderColor: selectedAmbientVideo === video.id 
-                              ? 'rgba(168, 85, 247, 1)' 
-                              : 'rgba(139, 92, 246, 0.3)'
-                          }}
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          whileHover={{ scale: 1.05 }}
-                        >
-                          <video
-                            src={video.path}
-                            className="w-full h-full object-cover"
-                            muted
-                            loop
-                            playsInline
-                            onMouseEnter={(e) => e.target.play()}
-                            onMouseLeave={(e) => {
-                              e.target.pause();
-                              e.target.currentTime = 0;
+                      {ambientVideos.map((video, index) => {
+                        const isFirstVideo = index === 0;
+                        const isPremiumVideo = !isFirstVideo;
+                        const isLocked = isPremiumVideo && !isPremium;
+                        
+                        return (
+                          <motion.div
+                            key={video.id}
+                            className="relative group aspect-video rounded-lg overflow-hidden border-2 transition-all"
+                            style={{
+                              borderColor: selectedAmbientVideo === video.id 
+                                ? 'rgba(168, 85, 247, 1)' 
+                                : 'rgba(139, 92, 246, 0.3)'
                             }}
-                          />
-                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                            <button
-                              onClick={() => {
-                                setSelectedAmbientVideo(video.id);
-                                setSelectedAmbientImage(null);
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            whileHover={{ scale: isLocked ? 1 : 1.05 }}
+                          >
+                            <video
+                              src={video.path}
+                              className="w-full h-full object-cover"
+                              muted
+                              loop
+                              playsInline
+                              onMouseEnter={(e) => e.target.play()}
+                              onMouseLeave={(e) => {
+                                e.target.pause();
+                                e.target.currentTime = 0;
                               }}
-                              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                selectedAmbientVideo === video.id
-                                  ? 'bg-purple-600 text-white'
-                                  : 'bg-white/20 text-white opacity-0 group-hover:opacity-100'
-                              }`}
-                            >
-                              {selectedAmbientVideo === video.id ? 'Selected' : 'Select'}
-                            </button>
-                          </div>
-                          {selectedAmbientVideo === video.id && (
-                            <div className="absolute top-2 right-2 bg-purple-600 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
-                              <Zap className="w-3 h-3" />
-                              Active
+                            />
+                            {isLocked && (
+                              <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-10">
+                                <div className="text-center">
+                                  <Zap className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
+                                  <p className="text-white text-sm font-semibold mb-1">Premium</p>
+                                  <p className="text-white/70 text-xs">Upgrade to unlock</p>
+                                </div>
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                              {!isLocked ? (
+                                <button
+                                  onClick={() => {
+                                    setSelectedAmbientVideo(video.id);
+                                    setSelectedAmbientImage(null);
+                                  }}
+                                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                    selectedAmbientVideo === video.id
+                                      ? 'bg-purple-600 text-white'
+                                      : 'bg-white/20 text-white opacity-0 group-hover:opacity-100'
+                                  }`}
+                                >
+                                  {selectedAmbientVideo === video.id ? 'Selected' : 'Select'}
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => {
+                                    // Pause session and exit ambient mode
+                                    pauseLocalTimer();
+                                    stopTimer();
+                                    setIsAmbientMode(false);
+                                    setShowAmbientGallery(false);
+                                    if (document.exitFullscreen) {
+                                      document.exitFullscreen().catch(err => console.log(err));
+                                    }
+                                    setShowPremiumModal(true);
+                                  }}
+                                  className="px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-purple-600 to-pink-600 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  Upgrade to Unlock
+                                </button>
+                              )}
                             </div>
-                          )}
-                          <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
-                            MP4
-                          </div>
-                        </motion.div>
-                      ))}
+                            {selectedAmbientVideo === video.id && !isLocked && (
+                              <div className="absolute top-2 right-2 bg-purple-600 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                                <Zap className="w-3 h-3" />
+                                Active
+                              </div>
+                            )}
+                            {isLocked && (
+                              <div className="absolute top-2 right-2 bg-yellow-500/80 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                                <Zap className="w-3 h-3" />
+                                Premium
+                              </div>
+                            )}
+                            {!isLocked && (
+                              <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                                MP4
+                              </div>
+                            )}
+                          </motion.div>
+                        );
+                      })}
                     </div>
                   ) : (
                     <div className="text-center py-8 bg-purple-800/20 rounded-lg border border-purple-700/30">
@@ -986,11 +1120,43 @@ const Study = () => {
                       <p className="text-purple-300/60 text-sm mt-1">Add MP4 videos in ambientImages.js</p>
                     </div>
                   )}
+                  
+                  {!isPremium && ambientVideos.length > 1 && (
+                    <div className="mt-6 text-center py-6 bg-gradient-to-br from-purple-900/30 to-slate-900/30 rounded-lg border-2 border-purple-500/30">
+                      <h4 className="text-lg font-bold text-white mb-2">Unlock More Wallpapers</h4>
+                      <p className="text-purple-300/80 mb-4 text-sm max-w-md mx-auto">
+                        Upgrade to Professor Plan to access all animated wallpapers.
+                      </p>
+                      <button
+                        onClick={() => {
+                          // Pause session and exit ambient mode
+                          pauseLocalTimer();
+                          stopTimer();
+                          setIsAmbientMode(false);
+                          setShowAmbientGallery(false);
+                          if (document.exitFullscreen) {
+                            document.exitFullscreen().catch(err => console.log(err));
+                          }
+                          setShowPremiumModal(true);
+                        }}
+                        className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-purple-500/50 transition-all"
+                      >
+                        Upgrade to Premium
+                      </button>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Premium Upgrade Modal */}
+        <PremiumUpgradeModal
+          isOpen={showPremiumModal}
+          onClose={() => setShowPremiumModal(false)}
+          feature="Animated Wallpapers"
+        />
 
         {/* Focus Mode Overlay */}
         {isFocusMode && (
@@ -1146,6 +1312,13 @@ const Study = () => {
                         onClick={() => {
                           startLocalTimer();
                           startTimer();
+                          // Automatically enable ambient mode when starting
+                          setIsAmbientMode(true);
+                          // Request fullscreen
+                          const element = document.documentElement;
+                          if (element.requestFullscreen) {
+                            element.requestFullscreen().catch(err => console.log(err));
+                          }
                         }}
                         disabled={
                           mode !== "stopwatch" && getTotalDuration() === 0
@@ -1441,6 +1614,13 @@ const Study = () => {
                           onClick={() => {
                             startLocalTimer();
                             startTimer();
+                            // Automatically enable ambient mode when starting
+                            setIsAmbientMode(true);
+                            // Request fullscreen
+                            const element = document.documentElement;
+                            if (element.requestFullscreen) {
+                              element.requestFullscreen().catch(err => console.log(err));
+                            }
                           }}
                           disabled={
                             mode !== "stopwatch" && getTotalDuration() === 0
@@ -1499,33 +1679,33 @@ const Study = () => {
                         <Target className="w-4 h-4" />
                         {isFocusMode ? "Exit Focus" : "Focus Mode"}
                       </motion.button>
-                        <motion.button
-                          onClick={() => {
-                            setIsAmbientMode(!isAmbientMode);
-                            if (!isAmbientMode) {
-                              // Request fullscreen
-                              const element = document.documentElement;
-                              if (element.requestFullscreen) {
-                                element.requestFullscreen().catch(err => console.log(err));
-                              }
-                            } else {
-                              // Exit fullscreen
-                              if (document.exitFullscreen) {
-                                document.exitFullscreen().catch(err => console.log(err));
-                              }
+                      <motion.button
+                        onClick={() => {
+                          setIsAmbientMode(!isAmbientMode);
+                          if (!isAmbientMode) {
+                            // Request fullscreen
+                            const element = document.documentElement;
+                            if (element.requestFullscreen) {
+                              element.requestFullscreen().catch(err => console.log(err));
                             }
-                          }}
-                          className={`px-4 py-2 rounded-lg transition flex items-center gap-2 ${
-                            isAmbientMode
-                              ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50"
-                              : "bg-purple-900/40 text-purple-300 hover:bg-purple-900/60 border border-purple-700/40"
-                          }`}
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          <Clock className="w-4 h-4" />
-                          Ambient Mode
-                        </motion.button>
+                          } else {
+                            // Exit fullscreen
+                            if (document.exitFullscreen) {
+                              document.exitFullscreen().catch(err => console.log(err));
+                            }
+                          }
+                        }}
+                        className={`px-4 py-2 rounded-lg transition flex items-center gap-2 ${
+                          isAmbientMode
+                            ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50"
+                            : "bg-purple-900/40 text-purple-300 hover:bg-purple-900/60 border border-purple-700/40"
+                        }`}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <Clock className="w-4 h-4" />
+                        Ambient Mode
+                      </motion.button>
                       </div>
                     </div>
                   </motion.div>
