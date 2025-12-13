@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Crown, FileText, Plus, X, Calendar } from 'lucide-react';
+import { User, Crown, FileText, Plus, X, Calendar, Edit2, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
 
@@ -9,6 +9,8 @@ const Settings = () => {
   const { subscriptionPlan } = useSubscription();
   const [patchNotes, setPatchNotes] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingPatchNote, setEditingPatchNote] = useState(null);
   const [newPatchNote, setNewPatchNote] = useState({ title: '', description: '' });
   const [isAuthorized, setIsAuthorized] = useState(false);
 
@@ -58,6 +60,32 @@ const Settings = () => {
     setPatchNotes(prev => [patchNote, ...prev]);
     setNewPatchNote({ title: '', description: '' });
     setShowCreateModal(false);
+  };
+
+  const handleEditPatchNote = (note) => {
+    setEditingPatchNote({ ...note });
+    setShowEditModal(true);
+  };
+
+  const handleUpdatePatchNote = () => {
+    if (!editingPatchNote.title.trim() || !editingPatchNote.description.trim()) {
+      alert('Please fill in both title and description');
+      return;
+    }
+
+    setPatchNotes(prev => prev.map(note => 
+      note.id === editingPatchNote.id 
+        ? { ...editingPatchNote, title: editingPatchNote.title.trim(), description: editingPatchNote.description.trim() }
+        : note
+    ));
+    setEditingPatchNote(null);
+    setShowEditModal(false);
+  };
+
+  const handleDeletePatchNote = (id) => {
+    if (window.confirm('Are you sure you want to delete this patch note?')) {
+      setPatchNotes(prev => prev.filter(note => note.id !== id));
+    }
   };
 
   const formatDate = (dateString) => {
@@ -201,13 +229,33 @@ const Settings = () => {
                   key={note.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-purple-800/20 border border-purple-700/30 rounded-lg p-5 hover:border-purple-600/50 transition-colors"
+                  className="bg-purple-800/20 border border-purple-700/30 rounded-lg p-5 hover:border-purple-600/50 transition-colors group"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <h3 className="text-xl font-bold text-white">{note.title}</h3>
-                    <div className="flex items-center gap-2 text-purple-300/60 text-sm">
-                      <Calendar className="w-4 h-4" />
-                      {formatDate(note.date)}
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 text-purple-300/60 text-sm">
+                        <Calendar className="w-4 h-4" />
+                        {formatDate(note.date)}
+                      </div>
+                      {isAuthorized && (
+                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => handleEditPatchNote(note)}
+                            className="p-1.5 rounded-lg bg-purple-700/40 hover:bg-purple-700/60 text-purple-300 hover:text-white transition-colors"
+                            title="Edit patch note"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeletePatchNote(note.id)}
+                            className="p-1.5 rounded-lg bg-red-700/40 hover:bg-red-700/60 text-red-300 hover:text-white transition-colors"
+                            title="Delete patch note"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <p className="text-purple-200/80 whitespace-pre-wrap leading-relaxed">
@@ -228,6 +276,86 @@ const Settings = () => {
             </div>
           )}
         </motion.div>
+
+        {/* Edit Patch Note Modal */}
+        <AnimatePresence>
+          {showEditModal && editingPatchNote && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+              onClick={() => {
+                setShowEditModal(false);
+                setEditingPatchNote(null);
+              }}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-gradient-to-br from-purple-900/95 to-slate-900/95 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 max-w-2xl w-full"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                    <Edit2 className="w-6 h-6 text-purple-400" />
+                    Edit Patch Note
+                  </h2>
+                  <button
+                    onClick={() => {
+                      setShowEditModal(false);
+                      setEditingPatchNote(null);
+                    }}
+                    className="p-2 rounded-lg bg-purple-800/40 hover:bg-purple-800/60 text-white transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-white font-medium mb-2">Title</label>
+                    <input
+                      type="text"
+                      value={editingPatchNote.title}
+                      onChange={(e) => setEditingPatchNote(prev => ({ ...prev, title: e.target.value }))}
+                      className="w-full px-4 py-3 rounded-lg bg-purple-900/40 text-white border border-purple-700/50 focus:outline-none focus:border-purple-600/80 transition"
+                      placeholder="e.g., Version 0.20 - New Features"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-white font-medium mb-2">Description</label>
+                    <textarea
+                      value={editingPatchNote.description}
+                      onChange={(e) => setEditingPatchNote(prev => ({ ...prev, description: e.target.value }))}
+                      className="w-full px-4 py-3 rounded-lg bg-purple-900/40 text-white border border-purple-700/50 focus:outline-none focus:border-purple-600/80 transition resize-none"
+                      placeholder="Describe the update, new features, bug fixes, etc."
+                      rows={8}
+                    />
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        setShowEditModal(false);
+                        setEditingPatchNote(null);
+                      }}
+                      className="flex-1 px-4 py-3 rounded-lg bg-purple-800/40 hover:bg-purple-800/60 text-white font-semibold transition"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleUpdatePatchNote}
+                      className="flex-1 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition"
+                    >
+                      Update Patch Note
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Create Patch Note Modal */}
         <AnimatePresence>
