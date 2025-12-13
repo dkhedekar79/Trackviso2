@@ -34,6 +34,7 @@ import {
 import ImageCarousel from '../components/ImageCarousel';
 import { ChevronDown } from "lucide-react";
 import Skillpulse from '../components/Skillpulse';
+import { Analytics } from '@vercel/analytics/next';
 
 const Landing = () => {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
@@ -170,6 +171,7 @@ const Landing = () => {
   };
 
   return (
+    <Analytics />
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
       {/* Navigation */}
       <nav className="fixed top-0 w-full bg-slate-950/80 backdrop-blur-xl z-50 border-b border-purple-900/50">
