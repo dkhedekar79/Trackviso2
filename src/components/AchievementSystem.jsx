@@ -571,19 +571,44 @@ const AchievementModal = ({ achievement, isOpen, onClose }) => {
 
 // Main Achievement System Component
 const AchievementSystem = () => {
-  const { userStats } = useGamification();
+  const { userStats, achievements: contextAchievements, checkAchievements } = useGamification();
   const [selectedCategory, setSelectedCategory] = useState('getting_started');
   const [selectedAchievement, setSelectedAchievement] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [filter, setFilter] = useState('all');
   
-  // Get all achievements with unlock status
+  // Check achievements on mount and when stats change
+  useEffect(() => {
+    if (checkAchievements) {
+      checkAchievements();
+    }
+  }, [userStats.totalSessions, userStats.level, userStats.totalStudyTime, userStats.currentStreak]);
+  
+  // Get all achievements with unlock status - FIXED to use both context and component achievements
   const getAllAchievements = () => {
     const allAchievements = [];
+    
+    // Add achievements from context (simpler system)
+    if (contextAchievements) {
+      Object.values(contextAchievements).forEach(achievement => {
+        const unlocked = (userStats.achievements || []).includes(achievement.id);
+        allAchievements.push({
+          ...achievement,
+          category: 'context',
+          unlocked
+        });
+      });
+    }
+    
+    // Add achievements from component categories
     Object.entries(ACHIEVEMENT_CATEGORIES).forEach(([categoryKey, category]) => {
       category.achievements.forEach(achievement => {
-        const unlocked = userStats.achievements.includes(achievement.id) || 
-                        achievement.condition(userStats);
+        // Check if already added from context
+        if (allAchievements.some(a => a.id === achievement.id)) {
+          return;
+        }
+        
+        const unlocked = (userStats.achievements || []).includes(achievement.id);
         allAchievements.push({
           ...achievement,
           category: categoryKey,
@@ -591,6 +616,7 @@ const AchievementSystem = () => {
         });
       });
     });
+    
     return allAchievements;
   };
   

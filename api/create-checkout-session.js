@@ -45,8 +45,8 @@ export default async function handler(req, res) {
         },
       ],
       mode: 'subscription',
-      success_url: `${process.env.VITE_FRONTEND_URL || process.env.FRONTEND_URL || 'http://localhost:5173'}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.VITE_FRONTEND_URL || process.env.FRONTEND_URL || 'http://localhost:5173'}/payment`,
+      success_url: `${process.env.VITE_FRONTEND_URL || process.env.FRONTEND_URL || 'https://trackviso.vercel.app'}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.VITE_FRONTEND_URL || process.env.FRONTEND_URL || 'https://trackviso.vercel.app'}/payment`,
       client_reference_id: userId,
       metadata: {
         userId: userId,

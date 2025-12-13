@@ -22,7 +22,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTimer } from '../context/TimerContext';
 import { useGamification } from '../context/GamificationContext';
 import { useAuth } from '../context/AuthContext';
-import { fetchUserSubjects, upsertUserSubject, deleteUserSubject } from '../utils/supabaseDb';
+// Supabase syncing removed - using localStorage only
 
 // Map icon names to actual Lucide React components
 const ICON_COMPONENTS = {
@@ -100,49 +100,20 @@ const Subjects = () => {
     };
   };
 
-  // Load subjects from Supabase (with localStorage fallback)
+  // Load subjects from localStorage only (no Supabase)
   useEffect(() => {
-    const loadSubjects = async () => {
-      if (user) {
-        try {
-          const supabaseSubjects = await fetchUserSubjects();
-          if (supabaseSubjects && supabaseSubjects.length > 0) {
-            const convertedSubjects = supabaseSubjects.map(convertFromSupabase);
-            setSubjects(convertedSubjects);
-            // Also sync to localStorage for offline support
-            localStorage.setItem('subjects', JSON.stringify(convertedSubjects.map(({ icon, ...rest }) => rest)));
-          } else {
-            // Fallback to localStorage
-            const savedSubjects = JSON.parse(localStorage.getItem('subjects') || '[]');
-            const subjectsWithIcons = savedSubjects.map(subject => ({
-              ...subject,
-              icon: ICON_COMPONENTS[subject.iconName] || BookOpen,
-            }));
-            setSubjects(subjectsWithIcons);
-          }
-        } catch (error) {
-          console.error('Error loading subjects from Supabase, falling back to localStorage:', error);
-          // Fallback to localStorage
-          const savedSubjects = JSON.parse(localStorage.getItem('subjects') || '[]');
-          const subjectsWithIcons = savedSubjects.map(subject => ({
-            ...subject,
-            icon: ICON_COMPONENTS[subject.iconName] || BookOpen,
-          }));
-          setSubjects(subjectsWithIcons);
-        }
-      } else {
-        // No user, use localStorage only
-        const savedSubjects = JSON.parse(localStorage.getItem('subjects') || '[]');
-        const subjectsWithIcons = savedSubjects.map(subject => ({
-          ...subject,
-          icon: ICON_COMPONENTS[subject.iconName] || BookOpen,
-        }));
-        setSubjects(subjectsWithIcons);
-      }
+    const loadSubjects = () => {
+      // Load from localStorage only
+      const savedSubjects = JSON.parse(localStorage.getItem('subjects') || '[]');
+      const subjectsWithIcons = savedSubjects.map(subject => ({
+        ...subject,
+        icon: ICON_COMPONENTS[subject.iconName] || BookOpen,
+      }));
+      setSubjects(subjectsWithIcons);
     };
 
     loadSubjects();
-  }, [user]);
+  }, []);
 
 
 
@@ -167,15 +138,7 @@ const Subjects = () => {
       
       // Save to localStorage
       localStorage.setItem('subjects', JSON.stringify(updatedSubjects.map(({ icon, ...rest }) => rest)));
-
-      // Sync to Supabase
-      if (user) {
-        try {
-          await upsertUserSubject(convertToSupabase(newSubject));
-        } catch (error) {
-          console.error('Error syncing subject to Supabase:', error);
-        }
-      }
+      // All data is now local-only (no Supabase syncing)
 
       // Reset state
       setNewSubjectName('');
@@ -196,18 +159,7 @@ const Subjects = () => {
       
       // Save to localStorage
       localStorage.setItem('subjects', JSON.stringify(updatedSubjects.map(({ icon, ...rest }) => rest)));
-
-      // Sync to Supabase
-      if (user) {
-        try {
-          const editedSubject = updatedSubjects.find(s => s.id === editingSubject.id);
-          if (editedSubject) {
-            await upsertUserSubject(convertToSupabase(editedSubject));
-          }
-        } catch (error) {
-          console.error('Error syncing edited subject to Supabase:', error);
-        }
-      }
+      // All data is now local-only (no Supabase syncing)
 
       setEditingSubject(null);
       setShowEditModal(false);
@@ -220,15 +172,7 @@ const Subjects = () => {
     
     // Save to localStorage
     localStorage.setItem('subjects', JSON.stringify(updatedSubjects.map(({ icon, ...rest }) => rest)));
-
-    // Sync to Supabase
-    if (user) {
-      try {
-        await deleteUserSubject(subjectId);
-      } catch (error) {
-        console.error('Error deleting subject from Supabase:', error);
-      }
-    }
+    // All data is now local-only (no Supabase syncing)
   };
 
 

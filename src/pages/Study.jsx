@@ -49,6 +49,7 @@ const Study = () => {
   const [sessionDifficulty, setSessionDifficulty] = useState(2);
   const [isDistractionFree, setIsDistractionFree] = useState(false);
   const [isAmbientSoundOn, setIsAmbientSoundOn] = useState(false);
+  const [isAmbientMode, setIsAmbientMode] = useState(false);
   const [subjects, setSubjects] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [studySessions, setStudySessions] = useState([]);
@@ -107,6 +108,20 @@ const Study = () => {
       try { stopTimer?.(); } catch {}
     };
   }, []);
+
+  // Handle fullscreen exit events
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement && isAmbientMode) {
+        setIsAmbientMode(false);
+      }
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, [isAmbientMode]);
 
   // Local timer helpers
   const getTotalDuration = () => {
@@ -649,6 +664,43 @@ const Study = () => {
     <div className="min-h-screen mt-20 flex bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
       <Sidebar />
       <div className="flex-1 ml-16 transition-all duration-300 ease-in-out [body>div>aside:hover_+_div&]:ml-64">
+        {/* Ambient Mode Fullscreen Overlay */}
+        <AnimatePresence>
+          {isAmbientMode && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] bg-black flex items-center justify-center"
+              onClick={() => {
+                setIsAmbientMode(false);
+                if (document.exitFullscreen) {
+                  document.exitFullscreen().catch(err => console.log(err));
+                }
+              }}
+            >
+              <div className="text-center">
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.8, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="text-white"
+                >
+                  <div className="text-9xl font-mono font-light tracking-wider mb-4">
+                    {getDisplayTime()}
+                  </div>
+                  {subject && (
+                    <div className="text-2xl text-white/60 mt-8">
+                      {subject}
+                    </div>
+                  )}
+                </motion.div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Focus Mode Overlay */}
         {isFocusMode && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
@@ -867,21 +919,31 @@ const Study = () => {
                       Cancel Study
                     </motion.button>
                     <motion.button
-                      onClick={() => setIsAmbientSoundOn(!isAmbientSoundOn)}
+                      onClick={() => {
+                        setIsAmbientMode(!isAmbientMode);
+                        if (!isAmbientMode) {
+                          // Request fullscreen
+                          const element = document.documentElement;
+                          if (element.requestFullscreen) {
+                            element.requestFullscreen().catch(err => console.log(err));
+                          }
+                        } else {
+                          // Exit fullscreen
+                          if (document.exitFullscreen) {
+                            document.exitFullscreen().catch(err => console.log(err));
+                          }
+                        }
+                      }}
                       className={`px-6 py-3 rounded-lg transition flex items-center gap-2 ${
-                        isAmbientSoundOn
+                        isAmbientMode
                           ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50"
                           : "bg-purple-900/40 text-purple-300 hover:bg-purple-900/60 border border-purple-700/40"
                       }`}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      {isAmbientSoundOn ? (
-                        <Volume2 className="w-5 h-5" />
-                      ) : (
-                        <VolumeX className="w-5 h-5" />
-                      )}
-                      Ambient Sound
+                      <Clock className="w-5 h-5" />
+                      Ambient Mode
                     </motion.button>
                   </div>
                 </div>
@@ -1147,21 +1209,31 @@ const Study = () => {
                         {isFocusMode ? "Exit Focus" : "Focus Mode"}
                       </motion.button>
                       <motion.button
-                        onClick={() => setIsAmbientSoundOn(!isAmbientSoundOn)}
+                        onClick={() => {
+                          setIsAmbientMode(!isAmbientMode);
+                          if (!isAmbientMode) {
+                            // Request fullscreen
+                            const element = document.documentElement;
+                            if (element.requestFullscreen) {
+                              element.requestFullscreen().catch(err => console.log(err));
+                            }
+                          } else {
+                            // Exit fullscreen
+                            if (document.exitFullscreen) {
+                              document.exitFullscreen().catch(err => console.log(err));
+                            }
+                          }
+                        }}
                         className={`px-4 py-2 rounded-lg transition flex items-center gap-2 ${
-                          isAmbientSoundOn
+                          isAmbientMode
                             ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50"
                             : "bg-purple-900/40 text-purple-300 hover:bg-purple-900/60 border border-purple-700/40"
                         }`}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                       >
-                        {isAmbientSoundOn ? (
-                          <Volume2 className="w-4 h-4" />
-                        ) : (
-                          <VolumeX className="w-4 h-4" />
-                        )}
-                        Ambient Sound
+                        <Clock className="w-4 h-4" />
+                        Ambient Mode
                       </motion.button>
                     </div>
                   </div>

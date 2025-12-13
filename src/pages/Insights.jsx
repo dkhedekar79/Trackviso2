@@ -114,6 +114,117 @@ export default function Insights() {
 
   const subjectTimeDistribution = getSubjectTimeDistribution();
 
+  // Weekly Study Time by Day and Subject (for compound bar graph)
+  const getWeeklyStudyByDay = () => {
+    if (timeRange !== 'week') return null;
+    
+    const now = new Date();
+    const startOfWeek = getStartOfWeek(now);
+    const weekSessions = studySessions.filter(session => {
+      const sessionDate = new Date(session.timestamp);
+      return sessionDate >= startOfWeek;
+    });
+
+    // Initialize days of week (Monday = 1, Sunday = 0)
+    const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const dayData = {};
+    
+    daysOfWeek.forEach((day, index) => {
+      dayData[index] = {
+        dayName: day,
+        dayIndex: index,
+        subjects: {},
+        totalMinutes: 0
+      };
+    });
+
+    // Group sessions by day and subject
+    weekSessions.forEach(session => {
+      const sessionDate = new Date(session.timestamp);
+      const dayOfWeek = sessionDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+      // Convert to Monday-based (0 = Monday, 6 = Sunday)
+      const mondayBasedDay = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+      
+      if (dayData[mondayBasedDay]) {
+        const subjectName = session.subjectName || 'Unknown';
+        if (!dayData[mondayBasedDay].subjects[subjectName]) {
+          dayData[mondayBasedDay].subjects[subjectName] = 0;
+        }
+        dayData[mondayBasedDay].subjects[subjectName] += session.durationMinutes || 0;
+        dayData[mondayBasedDay].totalMinutes += session.durationMinutes || 0;
+      }
+    });
+
+    // Convert to array and get all unique subjects for colors
+    const allSubjects = new Set();
+    Object.values(dayData).forEach(day => {
+      Object.keys(day.subjects).forEach(subject => allSubjects.add(subject));
+    });
+
+    return {
+      days: Object.values(dayData),
+      subjects: Array.from(allSubjects),
+      maxMinutes: Math.max(...Object.values(dayData).map(d => d.totalMinutes), 1)
+    };
+  };
+
+  const weeklyStudyData = getWeeklyStudyByDay();
+
+  // Monthly Study Time by Day and Subject (for compound bar graph)
+  const getMonthlyStudyByDay = () => {
+    if (timeRange !== 'month') return null;
+    
+    const now = new Date();
+    const startOfMonth = getStartOfMonth(now);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0); // Last day of month
+    const daysInMonth = endOfMonth.getDate();
+    
+    const monthSessions = studySessions.filter(session => {
+      const sessionDate = new Date(session.timestamp);
+      return sessionDate >= startOfMonth && sessionDate <= endOfMonth;
+    });
+
+    // Initialize all days of the month
+    const dayData = {};
+    for (let day = 1; day <= daysInMonth; day++) {
+      dayData[day] = {
+        dayNumber: day,
+        subjects: {},
+        totalMinutes: 0
+      };
+    }
+
+    // Group sessions by day and subject
+    monthSessions.forEach(session => {
+      const sessionDate = new Date(session.timestamp);
+      const dayOfMonth = sessionDate.getDate();
+      
+      if (dayData[dayOfMonth]) {
+        const subjectName = session.subjectName || 'Unknown';
+        if (!dayData[dayOfMonth].subjects[subjectName]) {
+          dayData[dayOfMonth].subjects[subjectName] = 0;
+        }
+        dayData[dayOfMonth].subjects[subjectName] += session.durationMinutes || 0;
+        dayData[dayOfMonth].totalMinutes += session.durationMinutes || 0;
+      }
+    });
+
+    // Convert to array and get all unique subjects for colors
+    const allSubjects = new Set();
+    Object.values(dayData).forEach(day => {
+      Object.keys(day.subjects).forEach(subject => allSubjects.add(subject));
+    });
+
+    return {
+      days: Object.values(dayData),
+      subjects: Array.from(allSubjects),
+      maxMinutes: Math.max(...Object.values(dayData).map(d => d.totalMinutes), 1),
+      daysInMonth
+    };
+  };
+
+  const monthlyStudyData = getMonthlyStudyByDay();
+
   // Subject Leaderboard (All Time)
   const getSubjectLeaderboard = () => {
     const leaderboard = {};
@@ -570,32 +681,421 @@ export default function Insights() {
               <p className="text-pink-200/80 text-sm">per session</p>
             </motion.div>
 
+            {/* Compressed Subject Leaderboard */}
             <motion.div
-              className="bg-gradient-to-br from-orange-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-orange-700/30 hover:border-orange-600/50 transition-all group cursor-pointer"
+              className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all group cursor-pointer col-span-2"
               variants={itemVariants}
               whileHover={{ y: -5, scale: 1.02 }}
             >
               <div className="flex items-center gap-3 mb-4">
-                <Flame className="w-6 h-6 text-orange-400 transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300" />
-                <h3 className="text-lg font-semibold text-white">Current Streak</h3>
+                <Trophy className="w-6 h-6 text-yellow-400 transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300" />
+                <h3 className="text-lg font-semibold text-white">Subject Leaderboard</h3>
               </div>
-              <div className="text-3xl font-bold text-white mb-2">{streakHistory.currentStreak}</div>
-              <p className="text-orange-200/80 text-sm">days (best: {streakHistory.longestStreak})</p>
+              {subjectLeaderboard.length > 0 ? (
+                <div className="grid grid-cols-3 gap-3">
+                  {subjectLeaderboard.slice(0, 3).map((subject, index) => (
+                    <motion.div
+                      key={subject.subjectName}
+                      className="flex items-center gap-2 p-3 rounded-lg bg-purple-800/20 border border-purple-700/30 hover:bg-purple-800/40 transition-all"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.1 }}
+                      viewport={{ once: true }}
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center text-white font-bold text-xs">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-white font-medium text-sm truncate">{subject.subjectName}</div>
+                        <div className="text-purple-200/80 text-xs">
+                          {subject.totalHours}h {subject.totalMinutesRemaining}m
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-purple-300/70 text-sm">No study data yet</div>
+              )}
+            </motion.div>
             </motion.div>
 
+          {/* Weekly Study Time Compound Bar Graph */}
+          {timeRange === 'week' && weeklyStudyData && (
             <motion.div
-              className="bg-gradient-to-br from-emerald-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-emerald-700/30 hover:border-emerald-600/50 transition-all group cursor-pointer"
-              variants={itemVariants}
-              whileHover={{ y: -5, scale: 1.02 }}
+              className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all mb-8"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -5 }}
             >
-              <div className="flex items-center gap-3 mb-4">
-                <CheckCircle className="w-6 h-6 text-emerald-400 transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300" />
-                <h3 className="text-lg font-semibold text-white">Task Completion</h3>
+              <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
+                <BarChart className="w-5 h-5 text-purple-400" />
+                Daily Study Hours by Subject
+              </h3>
+              
+              <div className="flex gap-6">
+                {/* Graph Area */}
+                <div className="flex-1">
+                  {/* X-axis labels (hours) */}
+                  <div className="flex justify-between mb-2 px-2">
+                    {[0, 2, 4, 6, 8, 10, 12, 14, 16].map(hour => (
+                      <div key={hour} className="text-xs text-purple-300/70">
+                        {hour}h
               </div>
-              <div className="text-3xl font-bold text-white mb-2">{taskStats.rate.toFixed(1)}%</div>
-              <p className="text-emerald-200/80 text-sm">{taskStats.completed}/{taskStats.total} tasks</p>
+                    ))}
+                  </div>
+                  
+                  {/* Graph Grid */}
+                  <div className="relative" style={{ height: '420px' }}>
+                    {/* Vertical grid lines */}
+                    <div className="absolute inset-0 flex">
+                      {[0, 2, 4, 6, 8, 10, 12, 14, 16].map((hour, index) => (
+                        <div
+                          key={hour}
+                          className="flex-1 border-l border-dashed border-purple-700/30"
+                          style={{ 
+                            borderLeftWidth: index === 0 ? '0px' : '1px',
+                            marginLeft: index === 0 ? '0' : '-1px'
+                          }}
+                        />
+                      ))}
+                    </div>
+                    
+                    {/* Bars for each day */}
+                    <div className="relative h-full flex flex-col justify-between gap-3 py-2">
+                      {weeklyStudyData.days.map((day, dayIndex) => {
+                        const totalHours = day.totalMinutes / 60;
+                        const maxHours = Math.max(16, weeklyStudyData.maxMinutes / 60); // Cap at 16 hours for display
+                        const barWidth = maxHours > 0 ? Math.min(100, (totalHours / maxHours) * 100) : 0;
+                        
+                        // Get subject segments
+                        const subjectSegments = [];
+                        let currentLeft = 0;
+                        Object.entries(day.subjects).forEach(([subjectName, minutes]) => {
+                          const subjectData = subjects.find(s => s.name === subjectName);
+                          const subjectColor = subjectData?.color || '#6C5DD3';
+                          const segmentWidth = day.totalMinutes > 0 ? (minutes / day.totalMinutes) * 100 : 0;
+                          
+                          subjectSegments.push({
+                            subjectName,
+                            minutes,
+                            width: segmentWidth,
+                            left: currentLeft,
+                            color: subjectColor
+                          });
+                          
+                          currentLeft += segmentWidth;
+                        });
+
+                        return (
+                          <motion.div
+                            key={day.dayName}
+                            className="flex items-center gap-4"
+                            initial={{ opacity: 0, x: -20 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            transition={{ delay: dayIndex * 0.1 }}
+                            viewport={{ once: true }}
+                          >
+                            {/* Day label */}
+                            <div className="w-24 text-sm text-white font-medium text-right">
+                              {day.dayName}
+                            </div>
+                            
+                            {/* Bar container */}
+                            <div className="flex-1 relative h-10 bg-purple-800/20 rounded-lg overflow-hidden border border-purple-700/30">
+                              {day.totalMinutes > 0 ? (
+                                <motion.div
+                                  className="absolute left-0 top-0 h-full flex"
+                                  initial={{ width: 0 }}
+                                  whileInView={{ width: `${barWidth}%` }}
+                                  transition={{ duration: 0.8, delay: dayIndex * 0.1 }}
+                                  viewport={{ once: true }}
+                                  style={{ maxWidth: '100%' }}
+                                >
+                                  {subjectSegments.map((segment, segIndex) => (
+                                    <motion.div
+                                      key={`${day.dayName}-${segment.subjectName}`}
+                                      className="h-full relative group cursor-pointer"
+                                      style={{
+                                        width: `${segment.width}%`,
+                                        backgroundColor: segment.color,
+                                        opacity: 0.85
+                                      }}
+                                      initial={{ opacity: 0 }}
+                                      whileInView={{ opacity: 0.85 }}
+                                      transition={{ delay: dayIndex * 0.1 + segIndex * 0.05 }}
+                                      viewport={{ once: true }}
+                                      whileHover={{ opacity: 1, scale: 1.02 }}
+                                    >
+                                      {/* Tooltip on hover */}
+                                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-purple-900/95 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
+                                        {segment.subjectName}: {Math.round(segment.minutes / 60)}h {Math.round(segment.minutes % 60)}m
+                                      </div>
             </motion.div>
+                                  ))}
           </motion.div>
+                              ) : (
+                                <div className="absolute inset-0 flex items-center justify-center text-purple-400/50 text-xs">
+                                  No study
+                                </div>
+                              )}
+                            </div>
+                            
+                            {/* Total time label */}
+                            <div className="w-20 text-sm text-purple-300 text-right font-medium">
+                              {day.totalMinutes > 0 ? (
+                                <>
+                                  {Math.round(day.totalMinutes / 60)}h {Math.round(day.totalMinutes % 60)}m
+                                </>
+                              ) : (
+                                <span className="text-purple-400/50">—</span>
+                              )}
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Legend */}
+                {weeklyStudyData.subjects.length > 0 && (
+                  <div className="w-56 bg-purple-800/20 rounded-lg p-4 border border-purple-700/30">
+                    <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                      <BookOpen className="w-4 h-4" />
+                      Subjects
+                    </h4>
+                    <div className="space-y-2 max-h-96 overflow-y-auto">
+                      {weeklyStudyData.subjects.map((subjectName, index) => {
+                        const subjectData = subjects.find(s => s.name === subjectName);
+                        const subjectColor = subjectData?.color || '#6C5DD3';
+                        const totalMinutes = weeklyStudyData.days.reduce((sum, day) => 
+                          sum + (day.subjects[subjectName] || 0), 0
+                        );
+                        
+                        return (
+                          <motion.div
+                            key={subjectName}
+                            className="flex items-center gap-2 p-2 rounded hover:bg-purple-800/30 transition-colors"
+                            initial={{ opacity: 0 }}
+                            whileInView={{ opacity: 1 }}
+                            transition={{ delay: index * 0.1 }}
+                            viewport={{ once: true }}
+                          >
+                            <div
+                              className="w-4 h-4 rounded flex-shrink-0"
+                              style={{ backgroundColor: subjectColor }}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="text-white text-sm font-medium truncate">{subjectName}</div>
+                              <div className="text-purple-300/70 text-xs">
+                                {Math.round(totalMinutes / 60)}h {Math.round(totalMinutes % 60)}m total
+                              </div>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Monthly Study Time Compound Bar Graph */}
+          {timeRange === 'month' && monthlyStudyData && (
+            <motion.div
+              className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all mb-8"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -5 }}
+            >
+              <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
+                <BarChart className="w-5 h-5 text-purple-400" />
+                Daily Study Hours by Subject (This Month)
+              </h3>
+              
+              <div className="flex gap-6">
+                {/* Graph Area */}
+                <div className="flex-1">
+                  {/* X-axis labels (hours) */}
+                  <div className="flex justify-between mb-2 px-2">
+                    {[0, 2, 4, 6, 8, 10, 12, 14, 16].map(hour => (
+                      <div key={hour} className="text-xs text-purple-300/70">
+                        {hour}h
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Graph Grid - Scrollable for 31 days */}
+                  <div className="relative max-h-[600px] overflow-y-auto overflow-x-hidden pr-2" style={{ scrollbarWidth: 'thin' }}>
+                    <div className="relative" style={{ minHeight: `${monthlyStudyData.days.length * 24}px` }}>
+                      {/* Vertical grid lines */}
+                      <div className="absolute inset-0 flex">
+                        {[0, 2, 4, 6, 8, 10, 12, 14, 16].map((hour, index) => (
+                          <div
+                            key={hour}
+                            className="flex-1 border-l border-dashed border-purple-700/30"
+                            style={{ 
+                              borderLeftWidth: index === 0 ? '0px' : '1px',
+                              marginLeft: index === 0 ? '0' : '-1px'
+                            }}
+                          />
+                        ))}
+                      </div>
+                      
+                      {/* Bars for each day - smaller rows */}
+                      <div className="relative flex flex-col gap-1 py-1">
+                        {monthlyStudyData.days.map((day, dayIndex) => {
+                          const totalHours = day.totalMinutes / 60;
+                          const maxHours = Math.max(16, monthlyStudyData.maxMinutes / 60);
+                          const barWidth = maxHours > 0 ? Math.min(100, (totalHours / maxHours) * 100) : 0;
+                          
+                          // Get subject segments
+                          const subjectSegments = [];
+                          let currentLeft = 0;
+                          Object.entries(day.subjects).forEach(([subjectName, minutes]) => {
+                            const subjectData = subjects.find(s => s.name === subjectName);
+                            const subjectColor = subjectData?.color || '#6C5DD3';
+                            const segmentWidth = day.totalMinutes > 0 ? (minutes / day.totalMinutes) * 100 : 0;
+                            
+                            subjectSegments.push({
+                              subjectName,
+                              minutes,
+                              width: segmentWidth,
+                              left: currentLeft,
+                              color: subjectColor
+                            });
+                            
+                            currentLeft += segmentWidth;
+                          });
+
+                          // Format date for label
+                          const now = new Date();
+                          const dayDate = new Date(now.getFullYear(), now.getMonth(), day.dayNumber);
+                          const dayLabel = `${day.dayNumber}${day.dayNumber === 1 || day.dayNumber === 21 || day.dayNumber === 31 ? 'st' : day.dayNumber === 2 || day.dayNumber === 22 ? 'nd' : day.dayNumber === 3 || day.dayNumber === 23 ? 'rd' : 'th'}`;
+                          const isToday = day.dayNumber === now.getDate() && now.getMonth() === dayDate.getMonth();
+
+                          return (
+                            <motion.div
+                              key={day.dayNumber}
+                              className="flex items-center gap-3"
+                              initial={{ opacity: 0, x: -20 }}
+                              whileInView={{ opacity: 1, x: 0 }}
+                              transition={{ delay: dayIndex * 0.02 }}
+                              viewport={{ once: true }}
+                            >
+                              {/* Day label - smaller */}
+                              <div className={`w-16 text-xs font-medium text-right ${isToday ? 'text-yellow-400 font-bold' : 'text-white'}`}>
+                                {dayLabel}
+                              </div>
+                              
+                              {/* Bar container - smaller height */}
+                              <div className="flex-1 relative h-5 bg-purple-800/20 rounded overflow-hidden border border-purple-700/30">
+                                {day.totalMinutes > 0 ? (
+                                  <motion.div
+                                    className="absolute left-0 top-0 h-full flex"
+                                    initial={{ width: 0 }}
+                                    whileInView={{ width: `${barWidth}%` }}
+                                    transition={{ duration: 0.6, delay: dayIndex * 0.02 }}
+                                    viewport={{ once: true }}
+                                    style={{ maxWidth: '100%' }}
+                                  >
+                                    {subjectSegments.map((segment, segIndex) => (
+                                      <motion.div
+                                        key={`${day.dayNumber}-${segment.subjectName}`}
+                                        className="h-full relative group cursor-pointer"
+                                        style={{
+                                          width: `${segment.width}%`,
+                                          backgroundColor: segment.color,
+                                          opacity: 0.85
+                                        }}
+                                        initial={{ opacity: 0 }}
+                                        whileInView={{ opacity: 0.85 }}
+                                        transition={{ delay: dayIndex * 0.02 + segIndex * 0.01 }}
+                                        viewport={{ once: true }}
+                                        whileHover={{ opacity: 1, scale: 1.05 }}
+                                      >
+                                        {/* Tooltip on hover */}
+                                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 bg-purple-900/95 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
+                                          {segment.subjectName}: {Math.round(segment.minutes / 60)}h {Math.round(segment.minutes % 60)}m
+                                        </div>
+                                      </motion.div>
+                                    ))}
+                                  </motion.div>
+                                ) : (
+                                  <div className="absolute inset-0 flex items-center justify-center text-purple-400/50 text-[10px]">
+                                    —
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Total time label - smaller */}
+                              <div className="w-16 text-xs text-purple-300 text-right">
+                                {day.totalMinutes > 0 ? (
+                                  <>
+                                    {Math.round(day.totalMinutes / 60)}h {Math.round(day.totalMinutes % 60)}m
+                                  </>
+                                ) : (
+                                  <span className="text-purple-400/50">—</span>
+                                )}
+                              </div>
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Legend */}
+                {monthlyStudyData.subjects.length > 0 && (
+                  <div className="w-56 bg-purple-800/20 rounded-lg p-4 border border-purple-700/30">
+                    <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                      <BookOpen className="w-4 h-4" />
+                      Subjects
+                    </h4>
+                    <div className="space-y-2 max-h-[550px] overflow-y-auto">
+                      {monthlyStudyData.subjects.map((subjectName, index) => {
+                        const subjectData = subjects.find(s => s.name === subjectName);
+                        const subjectColor = subjectData?.color || '#6C5DD3';
+                        const totalMinutes = monthlyStudyData.days.reduce((sum, day) => 
+                          sum + (day.subjects[subjectName] || 0), 0
+                        );
+                        
+                        return (
+                          <motion.div
+                            key={subjectName}
+                            className="flex items-center gap-2 p-2 rounded hover:bg-purple-800/30 transition-colors"
+                            initial={{ opacity: 0 }}
+                            whileInView={{ opacity: 1 }}
+                            transition={{ delay: index * 0.1 }}
+                            viewport={{ once: true }}
+                          >
+                            <div
+                              className="w-4 h-4 rounded flex-shrink-0"
+                              style={{ backgroundColor: subjectColor }}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="text-white text-sm font-medium truncate">{subjectName}</div>
+                              <div className="text-purple-300/70 text-xs">
+                                {Math.round(totalMinutes / 60)}h {Math.round(totalMinutes % 60)}m total
+                              </div>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
 
           {/* Key Metrics Grid */}
           <motion.div
@@ -659,9 +1159,10 @@ export default function Insights() {
             </motion.div>
           </motion.div>
 
-          {/* Subject Time Distribution */}
+          {/* Subject Time Distribution with Pie Chart */}
+          <div className="mb-8">
           <motion.div
-            className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all mb-8"
+              className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all w-full lg:w-1/2"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -672,15 +1173,114 @@ export default function Insights() {
               <PieChart className="w-5 h-5 text-purple-400" />
               Subject Time Distribution
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {Object.entries(subjectTimeDistribution).map(([subject, time], index) => {
+            
+            {Object.keys(subjectTimeDistribution).length > 0 ? (
+              <div className="flex gap-6 items-center">
+                {/* Pie Chart */}
+                <div className="flex-shrink-0">
+                  <svg width="200" height="200" viewBox="0 0 200 200">
+                    {(() => {
+                      const entries = Object.entries(subjectTimeDistribution);
+                      const total = entries.reduce((sum, [, time]) => sum + time, 0);
+                      
+                      if (total === 0) {
+                        return (
+                          <circle
+                            cx="100"
+                            cy="100"
+                            r="80"
+                            fill="none"
+                            stroke="rgba(255, 255, 255, 0.1)"
+                            strokeWidth="40"
+                          />
+                        );
+                      }
+                      
+                      let currentAngle = -90; // Start from top (12 o'clock)
+                      const angles = entries.map(([, time]) => {
+                        const percentage = (time / total) * 100;
+                        return percentage * 3.6; // Convert to degrees (percentage * 360 / 100)
+                      });
+                      
+                      // Ensure angles sum to exactly 360 by adjusting the last one
+                      const sumAngles = angles.reduce((sum, angle) => sum + angle, 0);
+                      if (angles.length > 0) {
+                        angles[angles.length - 1] += (360 - sumAngles);
+                      }
+                      
+                      return (
+                        <>
+                          {/* Background circle */}
+                          <circle
+                            cx="100"
+                            cy="100"
+                            r="80"
+                            fill="none"
+                            stroke="rgba(255, 255, 255, 0.1)"
+                            strokeWidth="40"
+                          />
+                          {/* Pie slices */}
+                          {entries.map(([subject, time], index) => {
+                            const subjectData = subjects.find(s => s.name === subject);
+                            const color = subjectData?.color || '#6C5DD3';
+                            const angle = angles[index];
+                            
+                            // Calculate path for pie slice
+                            const startAngle = currentAngle;
+                            const endAngle = currentAngle + angle;
+                            
+                            const startAngleRad = (startAngle * Math.PI) / 180;
+                            const endAngleRad = (endAngle * Math.PI) / 180;
+                            
+                            const x1 = 100 + 80 * Math.cos(startAngleRad);
+                            const y1 = 100 + 80 * Math.sin(startAngleRad);
+                            const x2 = 100 + 80 * Math.cos(endAngleRad);
+                            const y2 = 100 + 80 * Math.sin(endAngleRad);
+                            
+                            const largeArcFlag = angle > 180 ? 1 : 0;
+                            
+                            const pathData = [
+                              `M 100 100`,
+                              `L ${x1} ${y1}`,
+                              `A 80 80 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+                              `Z`
+                            ].join(' ');
+                            
+                            currentAngle += angle;
+                            
+                            return (
+                              <motion.path
+                                key={subject}
+                                d={pathData}
+                                fill={color}
+                                initial={{ opacity: 0 }}
+                                whileInView={{ opacity: 1 }}
+                                transition={{ delay: index * 0.1 }}
+                                viewport={{ once: true }}
+                                className="cursor-pointer hover:opacity-80 transition-opacity"
+                                style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}
+                              />
+                            );
+                          })}
+                        </>
+                      );
+                    })()}
+                  </svg>
+                </div>
+                
+                {/* Legend */}
+                <div className="flex-1 space-y-2 max-h-[200px] overflow-y-auto">
+                  {Object.entries(subjectTimeDistribution)
+                    .sort(([, a], [, b]) => b - a)
+                    .map(([subject, time], index) => {
                 const percentage = totalStudyTime > 0 ? (time / totalStudyTime) * 100 : 0;
                 const subjectData = subjects.find(s => s.name === subject);
+                      const color = subjectData?.color || '#6C5DD3';
 
                 return (
                   <motion.div
                     key={subject}
-                    className="flex items-center gap-3 p-3 rounded-lg bg-purple-800/20 border border-purple-700/30 hover:bg-purple-800/40 transition-all"
+                          className="flex items-center gap-3 p-2 rounded-lg bg-purple-800/20 border border-purple-700/30 hover:bg-purple-800/40 transition-all group"
                     initial={{ opacity: 0, x: -20 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
@@ -688,89 +1288,32 @@ export default function Insights() {
                     whileHover={{ x: 5 }}
                   >
                     <div
-                      className="w-4 h-4 rounded-full"
-                      style={{ backgroundColor: subjectData?.color || '#6C5DD3' }}
-                    />
-                    <div className="flex-1">
-                      <div className="text-white font-medium">{subject}</div>
-                      <div className="text-purple-200/80 text-sm">{Math.round(time / 60)}h ({percentage.toFixed(1)}%)</div>
+                            className="w-4 h-4 rounded flex-shrink-0"
+                            style={{ backgroundColor: color }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-white font-medium text-sm truncate">{subject}</div>
+                            <div className="text-purple-200/80 text-xs">
+                              {Math.round(time / 60)}h {Math.round(time % 60)}m ({percentage.toFixed(1)}%)
+                            </div>
                     </div>
                   </motion.div>
                 );
               })}
             </div>
-          </motion.div>
-
-          {/* Subject Leaderboard */}
-          <motion.div
-            className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all mb-8"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            whileHover={{ y: -5 }}
-          >
-            <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-yellow-400" />
-              Subject Leaderboard (All Time)
-            </h3>
-            {subjectLeaderboard.length > 0 ? (
-              <div className="space-y-4">
-                {subjectLeaderboard.map((subject, index) => (
-                  <motion.div
-                    key={subject.subjectName}
-                    className="flex items-center justify-between p-4 rounded-lg bg-purple-800/20 border border-purple-700/30 hover:bg-purple-800/40 transition-all group cursor-pointer"
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    viewport={{ once: true }}
-                    whileHover={{ x: 10, scale: 1.02 }}
-                  >
-                    <div className="flex items-center gap-4">
-                      <motion.div
-                        className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center text-white font-bold text-sm"
-                        whileHover={{ scale: 1.15, rotate: 5 }}
-                      >
-                        {index + 1}
-                      </motion.div>
-                      <div>
-                        <div className="text-white font-semibold text-lg">{subject.subjectName}</div>
-                        <div className="text-purple-200/80 text-sm">
-                          {subject.totalHours}h {subject.totalMinutesRemaining}m total
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      {index === 0 && (
-                        <motion.div
-                          className="flex items-center gap-2 text-yellow-400 mb-1"
-                          animate={{ y: [-3, 3, -3] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                        >
-                          <Trophy className="w-5 h-5" />
-                          <span className="text-sm font-medium">Top Studier</span>
-                        </motion.div>
-                      )}
-                      <div className="text-2xl font-bold text-white group-hover:text-purple-300 transition-colors">
-                        {subject.totalHours}h {subject.totalMinutesRemaining}m
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
               </div>
             ) : (
-              <motion.div
-                className="text-center py-8"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-              >
-                <Trophy className="w-12 h-12 text-purple-400/50 mx-auto mb-3" />
+              <div className="text-center py-8">
+                <PieChart className="w-12 h-12 text-purple-400/50 mx-auto mb-3" />
                 <p className="text-purple-300/80 text-lg">No study data yet!</p>
-                <p className="text-purple-300/60 text-sm">Complete your first study session to see the leaderboard</p>
-              </motion.div>
+                <p className="text-purple-300/60 text-sm">Complete study sessions to see distribution</p>
+              </div>
             )}
           </motion.div>
+          </div>
+
+          {/* Subject Leaderboard */}
+          
 
           {/* Study Patterns */}
           <motion.div

@@ -448,7 +448,7 @@ const generateQuest = (template, category) => {
 };
 
 // Main Quest System Component
-const QuestSystem = () => {
+const QuestSystem = ({ claimWeeklyGoalXP }) => {
   const { 
     userStats, 
     updateQuestProgress, 
@@ -461,41 +461,10 @@ const QuestSystem = () => {
   const [showCompleted, setShowCompleted] = useState(false);
   const [questCompletions, setQuestCompletions] = useState([]);
   
-  // Generate fresh quests if needed
-  useEffect(() => {
-    const now = new Date();
-    
-    // Check if we need new daily quests
-    const lastDailyReset = localStorage.getItem('lastDailyQuestReset');
-    const shouldResetDaily = !lastDailyReset || 
-      (now.getTime() - parseInt(lastDailyReset)) > QUEST_CATEGORIES.daily.resetInterval;
-    
-    if (shouldResetDaily || userStats.dailyQuests.length === 0) {
-      generateNewQuests('daily');
-      localStorage.setItem('lastDailyQuestReset', now.getTime().toString());
-    }
-    
-    // Check if we need new weekly quests
-    const lastWeeklyReset = localStorage.getItem('lastWeeklyQuestReset');
-    const shouldResetWeekly = !lastWeeklyReset || 
-      (now.getTime() - parseInt(lastWeeklyReset)) > QUEST_CATEGORIES.weekly.resetInterval;
-    
-    if (shouldResetWeekly || userStats.weeklyQuests.length === 0) {
-      generateNewQuests('weekly');
-      localStorage.setItem('lastWeeklyQuestReset', now.getTime().toString());
-    }
-  }, []);
+  // Quest initialization is now handled in GamificationContext
+  // This component just displays the quests from the context
   
-  // Generate new quests for a category
-  const generateNewQuests = (category) => {
-    if (category === 'daily') {
-      generateDailyQuests();
-    } else if (category === 'weekly') {
-      generateWeeklyQuests();
-    }
-  };
-  
-  // Get quests for active category
+  // Get quests for active category - FIXED to use context quests
   const getQuestsForCategory = (category) => {
     let quests = [];
     switch (category) {
@@ -512,12 +481,22 @@ const QuestSystem = () => {
         quests = [];
     }
 
-    // Filter out any invalid quest objects
+    // Filter out any invalid quest objects and ensure they have required fields
     return quests.filter(quest =>
       quest &&
       typeof quest === 'object' &&
-      typeof quest.name === 'string'
-    );
+      typeof quest.name === 'string' &&
+      typeof quest.target === 'number' &&
+      typeof quest.progress === 'number'
+    ).map(quest => ({
+      ...quest,
+      progress: quest.progress || 0,
+      target: quest.target || 1,
+      completed: quest.completed || false,
+      xp: quest.xp || 0,
+      icon: quest.icon || '🎯',
+      difficulty: quest.difficulty || 'medium',
+    }));
   };
   
   const currentQuests = getQuestsForCategory(activeCategory);
@@ -580,6 +559,51 @@ const QuestSystem = () => {
         })}
       </div>
       
+      {/* Weekly Goal XP Bank - Only show for weekly category */}
+      {activeCategory === 'weekly' && (userStats.weeklyGoalXpBank > 0 || userStats.weeklyGoalXpClaimed) && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-2xl p-6 mb-6 border-2 border-blue-400/50 backdrop-blur"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                <Trophy className="w-6 h-6 text-yellow-400" />
+                Weekly Goal XP Bank
+              </h3>
+              <p className="text-gray-300 mb-4">
+                {userStats.weeklyGoalXpClaimed 
+                  ? "You've already claimed your weekly goal XP this week. Complete more weekly quests next week!"
+                  : `You have ${userStats.weeklyGoalXpBank || 0} XP waiting in your weekly goal bank!`}
+              </p>
+              {userStats.weeklyGoalXpBank > 0 && !userStats.weeklyGoalXpClaimed && claimWeeklyGoalXP && (
+                <div className="flex items-center gap-4">
+                  <div className="text-3xl font-bold text-yellow-400">
+                    {userStats.weeklyGoalXpBank} XP
+                  </div>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={claimWeeklyGoalXP}
+                    className="px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
+                  >
+                    <Trophy className="w-5 h-5" />
+                    Claim XP
+                  </motion.button>
+                </div>
+              )}
+              {userStats.weeklyGoalXpClaimed && (
+                <div className="flex items-center gap-2 text-green-400">
+                  <CheckCircle className="w-5 h-5" />
+                  <span className="font-medium">Claimed this week!</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Quest Overview */}
       <div className="bg-white/10 rounded-xl p-6 mb-6 backdrop-blur">
         <div className="flex items-center justify-between mb-4">

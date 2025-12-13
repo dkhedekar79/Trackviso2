@@ -6,7 +6,7 @@ import BlurtModeSection from '../components/BlurtModeSection';
 import ActiveRecallModeSection from '../components/ActiveRecallModeSection';
 import MockExamModeSection from '../components/MockExamModeSection';
 import { applyMemoryDeterioration, getDeteriorationInfo } from '../utils/memoryDeterioration';
-import { fetchTopicProgress, updateTopicProgress } from '../utils/supabaseDb';
+// Supabase syncing removed - using localStorage only
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import { useGamification } from '../context/GamificationContext';
@@ -66,26 +66,10 @@ const Mastery = () => {
         const setup = JSON.parse(savedSetup);
         setMasterySetup(setup);
 
-        // Load progress from Supabase first, fallback to localStorage
-        let progress = null;
-        try {
-          if (user) {
-            const supabaseProgress = await fetchTopicProgress(setup.subject);
-            if (supabaseProgress) {
-              progress = supabaseProgress;
-            }
-          }
-        } catch (error) {
-          console.error('Error loading from Supabase, falling back to localStorage:', error);
-        }
-
-        if (!progress) {
-          const storageKey = getStorageKey(setup.subject);
-          const savedProgress = localStorage.getItem(storageKey);
-          if (savedProgress) {
-            progress = JSON.parse(savedProgress);
-          }
-        }
+        // Load progress from localStorage only (no Supabase)
+        const storageKey = getStorageKey(setup.subject);
+        const savedProgress = localStorage.getItem(storageKey);
+        const progress = savedProgress ? JSON.parse(savedProgress) : null;
 
         if (progress) {
           // Recalculate completion scores for all topics (with deterioration)
@@ -114,28 +98,13 @@ const Mastery = () => {
     localStorage.setItem('masterySetup', JSON.stringify(setup));
     setShowSetupModal(false);
 
-    // Load existing progress for this subject if it exists
+    // Load existing progress for this subject from localStorage only
     const storageKey = getStorageKey(setup.subject);
     let progress = {};
-
-    // Try to load from Supabase first
-    try {
-      if (user) {
-        const supabaseProgress = await fetchTopicProgress(setup.subject);
-        if (supabaseProgress) {
-          progress = supabaseProgress;
-        }
-      }
-    } catch (error) {
-      console.error('Error loading from Supabase:', error);
-    }
-
-    // Fallback to localStorage
-    if (Object.keys(progress).length === 0) {
-      const existingProgress = localStorage.getItem(storageKey);
-      if (existingProgress) {
-        progress = JSON.parse(existingProgress);
-      }
+    
+    const existingProgress = localStorage.getItem(storageKey);
+    if (existingProgress) {
+      progress = JSON.parse(existingProgress);
     }
 
     // Initialize new topics if they don't exist
@@ -160,15 +129,7 @@ const Mastery = () => {
 
     setTopicProgress(progress);
     localStorage.setItem(storageKey, JSON.stringify(progress));
-
-    // Sync to Supabase
-    try {
-      if (user) {
-        await updateTopicProgress(setup.subject, progress);
-      }
-    } catch (error) {
-      console.error('Error syncing to Supabase:', error);
-    }
+    // All data is now local-only (no Supabase syncing)
   };
 
   const toggleTopicSelection = async (topicId) => {
@@ -182,15 +143,7 @@ const Mastery = () => {
     setTopicProgress(updated);
     const storageKey = getStorageKey(masterySetup.subject);
     localStorage.setItem(storageKey, JSON.stringify(updated));
-
-    // Sync to Supabase
-    try {
-      if (user) {
-        await updateTopicProgress(masterySetup.subject, updated);
-      }
-    } catch (error) {
-      console.error('Error syncing to Supabase:', error);
-    }
+    // All data is now local-only (no Supabase syncing)
   };
 
   const toggleExpandTopic = (topicId) => {
@@ -719,15 +672,7 @@ const Mastery = () => {
 
                   // Check for subject mastery milestones
                   checkSubjectMasteryMilestones(masterySetup.subject, updated);
-
-                  // Sync to Supabase
-                  try {
-                    if (user) {
-                      await updateTopicProgress(masterySetup.subject, updated);
-                    }
-                  } catch (error) {
-                    console.error('Error syncing to Supabase:', error);
-                  }
+                  // All data is now local-only (no Supabase syncing)
                 }
 
                 setIsBlurtModeActive(false);
@@ -792,15 +737,7 @@ const Mastery = () => {
 
                   // Check for subject mastery milestones
                   checkSubjectMasteryMilestones(masterySetup.subject, updated);
-
-                  // Sync to Supabase
-                  try {
-                    if (user) {
-                      await updateTopicProgress(masterySetup.subject, updated);
-                    }
-                  } catch (error) {
-                    console.error('Error syncing to Supabase:', error);
-                  }
+                  // All data is now local-only (no Supabase syncing)
                 }
 
                 setIsActiveRecallModeActive(false);
@@ -866,15 +803,7 @@ const Mastery = () => {
 
                     // Check for subject mastery milestones
                     checkSubjectMasteryMilestones(masterySetup.subject, updated);
-
-                    // Sync to Supabase
-                    try {
-                      if (user) {
-                        await updateTopicProgress(masterySetup.subject, updated);
-                      }
-                    } catch (error) {
-                      console.error('Error syncing to Supabase:', error);
-                    }
+                    // All data is now local-only (no Supabase syncing)
                   }
                 } catch (error) {
                   console.error('Error processing mock exam results:', error);

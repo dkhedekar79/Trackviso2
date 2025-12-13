@@ -1,6 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { useSupabaseUserStats } from "../hooks/useSupabaseSync";
-import { supabase } from "../supabaseClient";
 
 const GamificationContext = createContext();
 
@@ -72,6 +70,10 @@ export const GamificationProvider = ({ children }) => {
       jackpotCount: 0,
       gems: 0,
       xpEvents: [],
+      
+      // Weekly goal XP bank
+      weeklyGoalXpBank: 0,
+      weeklyGoalXpClaimed: false,
     };
 
     if (saved) {
@@ -89,6 +91,8 @@ export const GamificationProvider = ({ children }) => {
         dailyQuests: savedStats.dailyQuests ?? [],
         weeklyQuests: savedStats.weeklyQuests ?? [],
         gems: savedStats.gems ?? 0,
+        weeklyGoalXpBank: savedStats.weeklyGoalXpBank ?? 0,
+        weeklyGoalXpClaimed: savedStats.weeklyGoalXpClaimed ?? false,
       };
     }
 
@@ -99,8 +103,60 @@ export const GamificationProvider = ({ children }) => {
   const [showRewards, setShowRewards] = useState(false);
   const [activeAnimations, setActiveAnimations] = useState([]);
 
-  // Sync with Supabase and handle real-time updates
-  useSupabaseUserStats(userStats, setUserStats);
+  // All data is now local-only (no Supabase syncing)
+
+  // Initialize quests and check for daily/weekly resets - FIXED
+  useEffect(() => {
+    const now = new Date();
+    const todayStr = now.toDateString();
+    
+    // Check if we need to reset daily quests
+    const lastDailyReset = localStorage.getItem('lastDailyQuestReset');
+    const lastDailyResetDate = lastDailyReset ? new Date(parseInt(lastDailyReset)) : null;
+    const needsDailyReset = !lastDailyResetDate || 
+      lastDailyResetDate.toDateString() !== todayStr;
+    
+    // Check if we need to reset weekly quests
+    const lastWeeklyReset = localStorage.getItem('lastWeeklyQuestReset');
+    const lastWeeklyResetDate = lastWeeklyReset ? new Date(parseInt(lastWeeklyReset)) : null;
+    const oneWeekAgo = new Date(now);
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    const needsWeeklyReset = !lastWeeklyResetDate || 
+      lastWeeklyResetDate < oneWeekAgo;
+    
+    // Initialize or reset daily quests
+    if (needsDailyReset || !userStats.dailyQuests || userStats.dailyQuests.length === 0) {
+      setTimeout(() => {
+        generateDailyQuests();
+        localStorage.setItem('lastDailyQuestReset', now.getTime().toString());
+      }, 100);
+    }
+    
+    // Initialize or reset weekly quests
+    if (needsWeeklyReset || !userStats.weeklyQuests || userStats.weeklyQuests.length === 0) {
+      setTimeout(() => {
+        generateWeeklyQuests();
+        localStorage.setItem('lastWeeklyQuestReset', now.getTime().toString());
+        
+        // Reset weekly goal XP bank and claim status when week resets
+        setUserStats((prev) => ({
+          ...prev,
+          weeklyGoalXpBank: 0,
+          weeklyGoalXpClaimed: false,
+        }));
+      }, 150);
+    }
+    
+    // Refresh quest progress to ensure accuracy
+    setTimeout(() => {
+      refreshQuestProgress();
+    }, 300);
+    
+    // Check achievements on mount
+    setTimeout(() => {
+      checkAchievements();
+    }, 500);
+  }, []); // Only run on mount
 
   // Save stats to localStorage whenever they change (as backup)
   useEffect(() => {
@@ -301,17 +357,62 @@ export const GamificationProvider = ({ children }) => {
     return getTotalXPForLevel(level) - getTotalXPForLevel(level - 1);
   };
 
-  // Calculate current level from total XP
+  // Calculate current level from total XP - FIXED to match getTotalXPForLevel exactly
   const getLevelFromXP = (totalXP) => {
-    if (totalXP < 100) return 1; // Level 1
-    if (totalXP < 1000) return Math.floor((totalXP - 100) / 100) + 2; // Levels 2-10
-    if (totalXP < 4000) return Math.floor((totalXP - 1000) / 200) + 11; // Levels 11-25
-    if (totalXP < 16500) return Math.floor((totalXP - 4000) / 500) + 26; // Levels 26-50
-    if (totalXP < 41500) return Math.floor((totalXP - 16500) / 1000) + 51; // Levels 51-75
-    // Levels 76-100
-    const remainingXP = totalXP - 41500;
-    if (remainingXP < 0) return 75;
-    return Math.min(100, Math.floor(remainingXP / 1500) + 76);
+    if (totalXP < 0) return 1;
+    
+    // Level 1: 0 XP (getTotalXPForLevel(1) = 0)
+    if (totalXP < 500) return 1;
+    
+    // Level 2: 500 XP (getTotalXPForLevel(2) = 500)
+    if (totalXP < 1000) return 2;
+    
+    // Levels 3-10: 500 XP per level
+    // Level 3 = 1000, Level 4 = 1500, ..., Level 10 = 4500
+    // getTotalXPForLevel(10) = 500 + (10-2)*500 = 500 + 4000 = 4500
+    if (totalXP < 5000) {
+      // Level 3 starts at 1000, so: level = 2 + floor((totalXP - 500) / 500)
+      // But we need to handle level 2 separately, so for levels 3-10:
+      // level = 2 + floor((totalXP - 500) / 500)
+      const level = 2 + Math.floor((totalXP - 500) / 500);
+      return Math.min(10, level);
+    }
+    
+    // Level 11: 5000 XP (getTotalXPForLevel(11) = 500 + 9*500 + (11-10)*1000 = 5000)
+    // Levels 11-25: 1000 XP per level
+    // Level 11 = 5000, Level 12 = 6000, ..., Level 25 = 20000
+    // getTotalXPForLevel(25) = 500 + 9*500 + (25-10)*1000 = 500 + 4500 + 15000 = 20000
+    if (totalXP < 22000) {
+      // Level 11 starts at 5000, so: level = 10 + floor((totalXP - 5000) / 1000) + 1
+      // Actually: level = 11 + floor((totalXP - 5000) / 1000)
+      const level = 11 + Math.floor((totalXP - 5000) / 1000);
+      return Math.min(25, level);
+    }
+    
+    // Level 26: 22000 XP (getTotalXPForLevel(26) = 500 + 9*500 + 15*1000 + (26-25)*2000 = 22000)
+    // Levels 26-50: 2000 XP per level
+    // Level 26 = 22000, Level 27 = 24000, ..., Level 50 = 70000
+    // getTotalXPForLevel(50) = 500 + 9*500 + 15*1000 + (50-25)*2000 = 500 + 4500 + 15000 + 50000 = 70000
+    if (totalXP < 74000) {
+      const level = 26 + Math.floor((totalXP - 22000) / 2000);
+      return Math.min(50, level);
+    }
+    
+    // Level 51: 74000 XP (getTotalXPForLevel(51) = 500 + 9*500 + 15*1000 + 25*2000 + (51-50)*4000 = 74000)
+    // Levels 51-75: 4000 XP per level
+    // Level 51 = 74000, Level 52 = 78000, ..., Level 75 = 170000
+    // getTotalXPForLevel(75) = 500 + 9*500 + 15*1000 + 25*2000 + (75-50)*4000 = 500 + 4500 + 15000 + 50000 + 100000 = 170000
+    if (totalXP < 176000) {
+      const level = 51 + Math.floor((totalXP - 74000) / 4000);
+      return Math.min(75, level);
+    }
+    
+    // Level 76: 176000 XP (getTotalXPForLevel(76) = 500 + 9*500 + 15*1000 + 25*2000 + 25*4000 + (76-75)*6000 = 176000)
+    // Levels 76-100: 6000 XP per level
+    // Level 76 = 176000, Level 77 = 182000, ..., Level 100 = 320000
+    // getTotalXPForLevel(100) = 500 + 9*500 + 15*1000 + 25*2000 + 25*4000 + (100-75)*6000 = 500 + 4500 + 15000 + 50000 + 100000 + 150000 = 320000
+    const level = 76 + Math.floor((totalXP - 176000) / 6000);
+    return Math.min(100, level);
   };
 
   // Get XP progress to next level
@@ -723,13 +824,15 @@ export const GamificationProvider = ({ children }) => {
     // Update streak
     const streakResult = updateStreak();
 
-    // Check achievements
+    // Check achievements after XP is awarded
+    setTimeout(() => {
     checkAchievements();
+    }, 50);
 
     return xpData;
   };
 
-  // Handle level up rewards
+  // Handle level up rewards - FIXED
   const handleLevelUp = (newLevel) => {
     addReward({
       type: "LEVEL_UP",
@@ -741,7 +844,9 @@ export const GamificationProvider = ({ children }) => {
     });
 
     // Track weekly level-up quest
+    setTimeout(() => {
     updateQuestProgress("level", 1);
+    }, 100);
 
     // Level milestone rewards
     const milestones = {
@@ -769,6 +874,11 @@ export const GamificationProvider = ({ children }) => {
         tier: newLevel >= 100 ? "legendary" : newLevel >= 50 ? "epic" : "rare",
       });
     }
+    
+    // Check achievements after level up
+    setTimeout(() => {
+      checkAchievements();
+    }, 150);
   };
 
   // Check and award XP for subject mastery milestones
@@ -960,7 +1070,7 @@ export const GamificationProvider = ({ children }) => {
     );
   };
 
-  // Enhanced achievement system
+  // Enhanced achievement system - FIXED to accept stats parameter
   const achievements = {
     // Session achievements
     first_session: {
@@ -969,7 +1079,7 @@ export const GamificationProvider = ({ children }) => {
       description: "Complete your first study session",
       icon: "🎯",
       xp: 25,
-      condition: () => userStats.totalSessions >= 1,
+      condition: (stats) => (stats.totalSessions || 0) >= 1,
       tier: "common",
     },
     session_marathon: {
@@ -978,8 +1088,8 @@ export const GamificationProvider = ({ children }) => {
       description: "Study for 3+ hours in one session",
       icon: "🏃‍♂️",
       xp: 200,
-      condition: () =>
-        userStats.sessionHistory.some((s) => s.durationMinutes >= 180),
+      condition: (stats) =>
+        (stats.sessionHistory || []).some((s) => s && s.durationMinutes >= 180),
       tier: "rare",
     },
 
@@ -990,7 +1100,7 @@ export const GamificationProvider = ({ children }) => {
       description: "Reach level 10",
       icon: "⭐",
       xp: 100,
-      condition: () => userStats.level >= 10,
+      condition: (stats) => (stats.level || 1) >= 10,
       tier: "uncommon",
     },
     level_50: {
@@ -999,7 +1109,7 @@ export const GamificationProvider = ({ children }) => {
       description: "Reach level 50",
       icon: "⚡",
       xp: 500,
-      condition: () => userStats.level >= 50,
+      condition: (stats) => (stats.level || 1) >= 50,
       tier: "epic",
     },
 
@@ -1010,7 +1120,7 @@ export const GamificationProvider = ({ children }) => {
       description: "Study for 100+ total hours",
       icon: "💯",
       xp: 300,
-      condition: () => userStats.totalStudyTime >= 6000, // 100 hours in minutes
+      condition: (stats) => (stats.totalStudyTime || 0) >= 6000, // 100 hours in minutes
       tier: "rare",
     },
 
@@ -1021,9 +1131,9 @@ export const GamificationProvider = ({ children }) => {
       description: "Study after 10 PM",
       icon: "🦉",
       xp: 50,
-      condition: () =>
-        userStats.sessionHistory.some(
-          (s) => new Date(s.timestamp).getHours() >= 22,
+      condition: (stats) =>
+        (stats.sessionHistory || []).some(
+          (s) => s && s.timestamp && new Date(s.timestamp).getHours() >= 22,
         ),
       tier: "uncommon",
     },
@@ -1033,38 +1143,97 @@ export const GamificationProvider = ({ children }) => {
       description: "Study before 6 AM",
       icon: "🐦",
       xp: 75,
-      condition: () =>
-        userStats.sessionHistory.some(
-          (s) => new Date(s.timestamp).getHours() < 6,
+      condition: (stats) =>
+        (stats.sessionHistory || []).some(
+          (s) => s && s.timestamp && new Date(s.timestamp).getHours() < 6,
         ),
       tier: "uncommon",
     },
   };
 
-  // Check and unlock achievements
+  // Check and unlock achievements - FIXED VERSION
   const checkAchievements = () => {
+    setUserStats((prev) => {
+      const newlyUnlocked = [];
+      
     Object.values(achievements).forEach((achievement) => {
-      if (
-        !userStats.achievements.includes(achievement.id) &&
-        achievement.condition()
-      ) {
-        unlockAchievement(achievement);
+        // Check if already unlocked
+        if (prev.achievements.includes(achievement.id)) {
+          return;
+        }
+        
+        // Check condition with current stats
+        try {
+          if (achievement.condition(prev)) {
+            newlyUnlocked.push(achievement);
+          }
+        } catch (error) {
+          console.error(`Error checking achievement ${achievement.id}:`, error);
+        }
+      });
+      
+      // If any achievements were unlocked, update state and grant XP
+      if (newlyUnlocked.length > 0) {
+        const newAchievementIds = newlyUnlocked.map(a => a.id);
+        let totalXP = 0;
+        
+        // Grant XP for each achievement immediately
+        newlyUnlocked.forEach((achievement) => {
+          totalXP += achievement.xp || 0;
+          
+          // Show reward notification
+          setTimeout(() => {
+            addReward({
+              type: "ACHIEVEMENT",
+              title: `🏆 ${achievement.name}`,
+              description: achievement.description,
+              tier: achievement.tier,
+              xp: achievement.xp,
+              icon: achievement.icon,
+              animation: "achievement",
+            });
+          }, 50);
+        });
+        
+        // Grant all XP at once
+        if (totalXP > 0) {
+          grantXP(totalXP, "achievement");
+        }
+        
+        // Track weekly achievement quest
+        if (newlyUnlocked.length > 0) {
+          setTimeout(() => {
+            updateQuestProgress("achievement", newlyUnlocked.length);
+          }, 100);
+        }
+        
+        return {
+          ...prev,
+          achievements: [...prev.achievements, ...newAchievementIds],
+        };
       }
+      
+      return prev;
     });
   };
 
-  // Unlock achievement
+  // Unlock achievement - DEPRECATED, use checkAchievements instead
   const unlockAchievement = (achievement) => {
-    setUserStats((prev) => ({
-      ...prev,
-      achievements: [...prev.achievements, achievement.id],
-    }));
-
-    grantXP(achievement.xp, "achievement");
+    setUserStats((prev) => {
+      // Check if already unlocked
+      if (prev.achievements.includes(achievement.id)) {
+        return prev;
+      }
+      
+      // Grant XP immediately
+      grantXP(achievement.xp || 0, "achievement");
 
     // Track weekly achievement quest
+      setTimeout(() => {
     updateQuestProgress("achievement", 1);
+      }, 100);
 
+      // Show reward
     addReward({
       type: "ACHIEVEMENT",
       title: `🏆 ${achievement.name}`,
@@ -1073,6 +1242,12 @@ export const GamificationProvider = ({ children }) => {
       xp: achievement.xp,
       icon: achievement.icon,
       animation: "achievement",
+      });
+      
+      return {
+        ...prev,
+        achievements: [...prev.achievements, achievement.id],
+      };
     });
   };
 
@@ -1084,7 +1259,7 @@ export const GamificationProvider = ({ children }) => {
     return userStats.currentTitle;
   };
 
-  // Add study session with enhanced tracking
+  // Add study session with enhanced tracking - FIXED
   const addStudySession = (sessionData) => {
     const session = {
       ...sessionData,
@@ -1105,12 +1280,14 @@ export const GamificationProvider = ({ children }) => {
       bonuses: xpData.bonuses,
     };
 
-    setUserStats((prev) => ({
+    setUserStats((prev) => {
+      const newStats = {
       ...prev,
-      sessionHistory: [enhancedSession, ...prev.sessionHistory.slice(0, 99)],
-    }));
+        sessionHistory: [enhancedSession, ...(prev.sessionHistory || []).slice(0, 99)],
+      };
 
-    // Update quest progress signals
+      // Update quest progress after state update
+      setTimeout(() => {
     updateQuestProgress("time", session.durationMinutes);
     updateQuestProgress("sessions", 1);
     updateQuestProgress("subjects", 1, session.subjectName);
@@ -1122,6 +1299,10 @@ export const GamificationProvider = ({ children }) => {
     updateQuestProgress("new_subject", 1, session.subjectName);
     updateQuestProgress("week_balance");
     updateQuestProgress("double_days");
+      }, 100);
+      
+      return newStats;
+    });
 
     return enhancedSession;
   };
@@ -1318,15 +1499,16 @@ export const GamificationProvider = ({ children }) => {
     },
   ];
 
-  // Generate contextual daily quests based on user's actual performance
+  // Generate contextual daily quests based on user's actual performance - FIXED
   const generateDailyQuests = () => {
+    setUserStats((prev) => {
     const avgSessionLength =
-      userStats.sessionHistory.length > 0
+        (prev.sessionHistory || []).length > 0
         ? Math.round(
-            userStats.sessionHistory.reduce(
-              (sum, s) => sum + s.durationMinutes,
+              (prev.sessionHistory || []).reduce(
+                (sum, s) => sum + (s.durationMinutes || 0),
               0,
-            ) / userStats.sessionHistory.length,
+              ) / (prev.sessionHistory || []).length,
           )
         : 25;
 
@@ -1357,14 +1539,16 @@ export const GamificationProvider = ({ children }) => {
         deadline: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       }));
 
-    setUserStats((prev) => ({
+      return {
       ...prev,
       dailyQuests: selectedQuests,
-    }));
+      };
+    });
   };
 
-  // Generate weekly quests
+  // Generate weekly quests - FIXED
   const generateWeeklyQuests = () => {
+    setUserStats((prev) => {
     const selectedQuests = weeklyQuestTemplates
       .sort(() => Math.random() - 0.5)
       .slice(0, 5)
@@ -1381,24 +1565,25 @@ export const GamificationProvider = ({ children }) => {
         deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       }));
 
-    setUserStats((prev) => ({
+      return {
       ...prev,
       weeklyQuests: selectedQuests,
-    }));
+      };
+    });
   };
 
-  // Update quest progress for both daily and weekly quests
+  // Update quest progress for both daily and weekly quests - COMPLETELY REVAMPED
   const updateQuestProgress = (type, amount = 1, subjectName = null) => {
     setUserStats((prev) => {
       const todayStr = new Date().toDateString();
       const oneWeekAgo = new Date();
       oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
-      const todaysSessions = prev.sessionHistory.filter(
-        (s) => new Date(s.timestamp).toDateString() === todayStr,
+      const todaysSessions = (prev.sessionHistory || []).filter(
+        (s) => s && s.timestamp && new Date(s.timestamp).toDateString() === todayStr,
       );
-      const weeklySessions = prev.sessionHistory.filter(
-        (s) => new Date(s.timestamp) > oneWeekAgo,
+      const weeklySessions = (prev.sessionHistory || []).filter(
+        (s) => s && s.timestamp && new Date(s.timestamp) > oneWeekAgo,
       );
 
       const getTasks = () => {
@@ -1409,22 +1594,27 @@ export const GamificationProvider = ({ children }) => {
         }
       };
 
-      // Update daily quests
-      const updatedDailyQuests = prev.dailyQuests.map((quest) => {
+      const completedQuests = [];
+      const completedWeeklyQuests = [];
+
+      // Update daily quests - FIXED
+      const updatedDailyQuests = (prev.dailyQuests || []).map((quest) => {
         if (!quest || quest.completed || quest.type !== type) return quest;
 
         let newProgress = quest.progress || 0;
 
         switch (type) {
           case "time":
-            newProgress += amount; // minutes increment
+            // Increment by amount (minutes)
+            newProgress = Math.max(0, (quest.progress || 0) + (typeof amount === "number" ? amount : 0));
             break;
           case "sessions":
-            newProgress += 1; // per session
+            // Increment by 1 per session
+            newProgress = (quest.progress || 0) + 1;
             break;
           case "subjects": {
-            // unique subjects studied today (include current subjectName if provided)
-            const uniqueSet = new Set(todaysSessions.map((s) => s.subjectName));
+            // Count unique subjects studied today
+            const uniqueSet = new Set(todaysSessions.map((s) => s.subjectName).filter(Boolean));
             if (subjectName) uniqueSet.add(subjectName);
             newProgress = uniqueSet.size;
             break;
@@ -1432,15 +1622,16 @@ export const GamificationProvider = ({ children }) => {
           case "tasks": {
             const tasks = getTasks();
             const completedToday = tasks.filter(
-              (t) => t.done && t.doneAt && new Date(t.doneAt).toDateString() === todayStr,
+              (t) => t && t.done && t.doneAt && new Date(t.doneAt).toDateString() === todayStr,
             ).length;
             newProgress = completedToday;
             break;
           }
           case "streak":
-            newProgress = prev.currentStreak > 0 ? 1 : 0;
+            newProgress = (prev.currentStreak || 0) > 0 ? 1 : 0;
             break;
           case "xp": {
+            // Calculate total XP earned today
             const xpToday = todaysSessions.reduce(
               (sum, s) => sum + (s.xpEarned || 0),
               0,
@@ -1449,15 +1640,17 @@ export const GamificationProvider = ({ children }) => {
             break;
           }
           case "early_bird": {
-            const hasEarly = [...todaysSessions].some(
-              (s) => new Date(s.timestamp).getHours() < 10,
+            const now = new Date();
+            const hasEarly = now.getHours() < 10 || todaysSessions.some(
+              (s) => s.timestamp && new Date(s.timestamp).getHours() < 10,
             );
             newProgress = hasEarly ? 1 : 0;
             break;
           }
           case "night_owl": {
-            const hasLate = [...todaysSessions].some(
-              (s) => new Date(s.timestamp).getHours() >= 20,
+            const now = new Date();
+            const hasLate = now.getHours() >= 20 || todaysSessions.some(
+              (s) => s.timestamp && new Date(s.timestamp).getHours() >= 20,
             );
             newProgress = hasLate ? 1 : 0;
             break;
@@ -1467,11 +1660,12 @@ export const GamificationProvider = ({ children }) => {
             yesterday.setDate(yesterday.getDate() - 1);
             const yStr = yesterday.toDateString();
             const ySubjects = new Set(
-              prev.sessionHistory
-                .filter((s) => new Date(s.timestamp).toDateString() === yStr)
-                .map((s) => s.subjectName),
+              (prev.sessionHistory || [])
+                .filter((s) => s && s.timestamp && new Date(s.timestamp).toDateString() === yStr)
+                .map((s) => s.subjectName)
+                .filter(Boolean),
             );
-            const tSubjects = new Set(todaysSessions.map((s) => s.subjectName));
+            const tSubjects = new Set(todaysSessions.map((s) => s.subjectName).filter(Boolean));
             if (subjectName) tSubjects.add(subjectName);
             const hasNew = [...tSubjects].some((subj) => !ySubjects.has(subj));
             newProgress = hasNew ? 1 : 0;
@@ -1481,8 +1675,8 @@ export const GamificationProvider = ({ children }) => {
             const yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
             const yStr = yesterday.toDateString();
-            const yMax = prev.sessionHistory
-              .filter((s) => new Date(s.timestamp).toDateString() === yStr)
+            const yMax = (prev.sessionHistory || [])
+              .filter((s) => s && s.timestamp && new Date(s.timestamp).toDateString() === yStr)
               .reduce((max, s) => Math.max(max, s.durationMinutes || 0), 0);
             const todayMax = todaysSessions.reduce(
               (max, s) => Math.max(max, s.durationMinutes || 0),
@@ -1496,35 +1690,30 @@ export const GamificationProvider = ({ children }) => {
             break;
           }
           default:
-            newProgress += amount || 0;
+            newProgress = (quest.progress || 0) + (typeof amount === "number" ? amount : 0);
         }
 
-        const completed = newProgress >= quest.target;
+        // Ensure progress doesn't exceed target
+        newProgress = Math.min(newProgress, quest.target || 1);
+        const completed = newProgress >= (quest.target || 1);
 
+        // If just completed, grant XP immediately (no setTimeout)
         if (completed && !quest.completed) {
           const questXP = quest.xp || 0;
-          setTimeout(() => {
-            grantXP(questXP, "quest");
-
-            addReward({
-              type: "QUEST_COMPLETE",
-              title: `✅ ${quest.name}`,
-              description: quest.description,
-              tier: "uncommon",
-              xp: questXP,
-            });
-          }, 100);
+          if (questXP > 0) {
+            completedQuests.push({ quest, xp: questXP });
+          }
         }
 
         return {
           ...quest,
-          progress: Math.min(newProgress, quest.target),
+          progress: newProgress,
           completed,
         };
       });
 
-      // Update weekly quests
-      const updatedWeeklyQuests = prev.weeklyQuests.map((quest) => {
+      // Update weekly quests - FIXED
+      const updatedWeeklyQuests = (prev.weeklyQuests || []).map((quest) => {
         if (!quest || quest.completed || quest.type !== type) return quest;
 
         let newProgress = quest.progress || 0;
@@ -1550,23 +1739,23 @@ export const GamificationProvider = ({ children }) => {
             break;
           }
           case "streak": {
-            newProgress = prev.currentStreak;
+            newProgress = prev.currentStreak || 0;
             break;
           }
           case "tasks": {
             const tasks = getTasks();
             const completedThisWeek = tasks.filter(
-              (t) => t.done && t.doneAt && new Date(t.doneAt) > oneWeekAgo,
+              (t) => t && t.done && t.doneAt && new Date(t.doneAt) > oneWeekAgo,
             ).length;
             newProgress = completedThisWeek;
             break;
           }
           case "level": {
-            newProgress += typeof amount === "number" ? amount : 0; // increment on level ups
+            newProgress = (quest.progress || 0) + (typeof amount === "number" ? amount : 0);
             break;
           }
           case "achievement": {
-            newProgress += typeof amount === "number" ? amount : 0; // increment on unlocks
+            newProgress = (quest.progress || 0) + (typeof amount === "number" ? amount : 0);
             break;
           }
           case "week_balance": {
@@ -1590,52 +1779,301 @@ export const GamificationProvider = ({ children }) => {
               map[key] = (map[key] || 0) + (s.durationMinutes || 0);
               return map;
             }, {});
-            const count = Object.values(minutesByDay).filter((m) => m >= 120)
-              .length;
+            const count = Object.values(minutesByDay).filter((m) => m >= 120).length;
             newProgress = count;
             break;
           }
           default:
-            newProgress += amount || 0;
+            newProgress = (quest.progress || 0) + (typeof amount === "number" ? amount : 0);
         }
 
-        const completed = newProgress >= quest.target;
+        newProgress = Math.min(newProgress, quest.target || 1);
+        const completed = newProgress >= (quest.target || 1);
 
+        // If just completed, grant XP immediately
         if (completed && !quest.completed) {
           const questXP = quest.xp || 0;
-          setTimeout(() => {
-            grantXP(questXP, "quest");
-
-            addReward({
-              type: "WEEKLY_QUEST_COMPLETE",
-              title: `🏆 ${quest.name}`,
-              description: quest.description,
-              tier: "epic",
-              xp: questXP,
-            });
-          }, 100);
+          if (questXP > 0) {
+            completedWeeklyQuests.push({ quest, xp: questXP });
+          }
         }
 
         return {
           ...quest,
-          progress: Math.min(newProgress, quest.target),
+          progress: newProgress,
+          completed,
+        };
+      });
+
+      // Grant XP for completed quests immediately (no setTimeout)
+      completedQuests.forEach(({ quest, xp }) => {
+        grantXP(xp, "quest");
+        addReward({
+          type: "QUEST_COMPLETE",
+          title: `✅ ${quest.name}`,
+          description: quest.description,
+          tier: "uncommon",
+          xp: xp,
+        });
+      });
+
+      // Bank weekly quest XP instead of granting immediately
+      const totalWeeklyXP = completedWeeklyQuests.reduce((sum, { xp }) => sum + xp, 0);
+      if (totalWeeklyXP > 0) {
+        setUserStats((prev) => ({
+          ...prev,
+          weeklyGoalXpBank: (prev.weeklyGoalXpBank || 0) + totalWeeklyXP,
+        }));
+        
+        // Show notification that XP was banked
+        completedWeeklyQuests.forEach(({ quest }) => {
+            addReward({
+              type: "WEEKLY_QUEST_COMPLETE",
+              title: `🏆 ${quest.name}`,
+            description: `XP banked! Claim it from the weekly goal bank.`,
+              tier: "epic",
+            xp: 0, // No XP granted yet
+          });
+        });
+      }
+
+      return {
+        ...prev,
+        dailyQuests: updatedDailyQuests,
+        weeklyQuests: updatedWeeklyQuests,
+        completedQuestsToday: updatedDailyQuests.filter((q) => q && q.completed).length,
+      };
+    });
+  };
+
+  // Refresh quest progress - recalculates all quest progress from current stats
+  const refreshQuestProgress = () => {
+    setUserStats((prev) => {
+      const todayStr = new Date().toDateString();
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+      const todaysSessions = (prev.sessionHistory || []).filter(
+        (s) => s && s.timestamp && new Date(s.timestamp).toDateString() === todayStr,
+      );
+      const weeklySessions = (prev.sessionHistory || []).filter(
+        (s) => s && s.timestamp && new Date(s.timestamp) > oneWeekAgo,
+      );
+
+      const getTasks = () => {
+        try {
+          return JSON.parse(localStorage.getItem("tasks") || "[]");
+        } catch {
+          return [];
+        }
+      };
+
+      // Recalculate all daily quest progress
+      const refreshedDailyQuests = (prev.dailyQuests || []).map((quest) => {
+        if (!quest || quest.completed) return quest;
+
+        let newProgress = 0;
+
+        switch (quest.type) {
+          case "time":
+            newProgress = todaysSessions.reduce((sum, s) => sum + (s.durationMinutes || 0), 0);
+            break;
+          case "sessions":
+            newProgress = todaysSessions.length;
+            break;
+          case "subjects": {
+            const uniqueSet = new Set(todaysSessions.map((s) => s.subjectName).filter(Boolean));
+            newProgress = uniqueSet.size;
+            break;
+          }
+          case "tasks": {
+            const tasks = getTasks();
+            newProgress = tasks.filter(
+              (t) => t && t.done && t.doneAt && new Date(t.doneAt).toDateString() === todayStr,
+            ).length;
+            break;
+          }
+          case "streak":
+            newProgress = (prev.currentStreak || 0) > 0 ? 1 : 0;
+            break;
+          case "xp": {
+            newProgress = todaysSessions.reduce((sum, s) => sum + (s.xpEarned || 0), 0);
+            break;
+          }
+          case "early_bird": {
+            const hasEarly = todaysSessions.some(
+              (s) => s.timestamp && new Date(s.timestamp).getHours() < 10,
+            ) || new Date().getHours() < 10;
+            newProgress = hasEarly ? 1 : 0;
+            break;
+          }
+          case "night_owl": {
+            const hasLate = todaysSessions.some(
+              (s) => s.timestamp && new Date(s.timestamp).getHours() >= 20,
+            ) || new Date().getHours() >= 20;
+            newProgress = hasLate ? 1 : 0;
+            break;
+          }
+          case "new_subject": {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yStr = yesterday.toDateString();
+            const ySubjects = new Set(
+              (prev.sessionHistory || [])
+                .filter((s) => s && s.timestamp && new Date(s.timestamp).toDateString() === yStr)
+                .map((s) => s.subjectName)
+                .filter(Boolean),
+            );
+            const tSubjects = new Set(todaysSessions.map((s) => s.subjectName).filter(Boolean));
+            newProgress = [...tSubjects].some((subj) => !ySubjects.has(subj)) ? 1 : 0;
+            break;
+          }
+          case "personal_best": {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yStr = yesterday.toDateString();
+            const yMax = (prev.sessionHistory || [])
+              .filter((s) => s && s.timestamp && new Date(s.timestamp).toDateString() === yStr)
+              .reduce((max, s) => Math.max(max, s.durationMinutes || 0), 0);
+            const todayMax = todaysSessions.reduce(
+              (max, s) => Math.max(max, s.durationMinutes || 0),
+              0,
+            );
+            newProgress = todayMax > yMax ? 1 : 0;
+            break;
+          }
+          default:
+            newProgress = quest.progress || 0;
+        }
+
+        newProgress = Math.min(newProgress, quest.target || 1);
+        const completed = newProgress >= (quest.target || 1);
+
+        return {
+          ...quest,
+          progress: newProgress,
+          completed,
+        };
+      });
+
+      // Recalculate all weekly quest progress
+      const refreshedWeeklyQuests = (prev.weeklyQuests || []).map((quest) => {
+        if (!quest || quest.completed) return quest;
+
+        let newProgress = 0;
+
+        switch (quest.type) {
+          case "time":
+            newProgress = weeklySessions.reduce((sum, s) => sum + (s.durationMinutes || 0), 0);
+            break;
+          case "sessions":
+            newProgress = weeklySessions.length;
+            break;
+          case "xp": {
+            newProgress = weeklySessions.reduce((sum, s) => sum + (s.xpEarned || 0), 0);
+            break;
+          }
+          case "streak":
+            newProgress = prev.currentStreak || 0;
+            break;
+          case "tasks": {
+            const tasks = getTasks();
+            newProgress = tasks.filter(
+              (t) => t && t.done && t.doneAt && new Date(t.doneAt) > oneWeekAgo,
+            ).length;
+            break;
+          }
+          case "level":
+            newProgress = quest.progress || 0; // Keep existing progress for level quests
+            break;
+          case "achievement":
+            newProgress = quest.progress || 0; // Keep existing progress for achievement quests
+            break;
+          case "week_balance": {
+            const hasWeekday = weeklySessions.some(
+              (s) => {
+                const d = new Date(s.timestamp).getDay();
+                return d >= 1 && d <= 5;
+              },
+            );
+            const hasWeekend = weeklySessions.some((s) => {
+              const d = new Date(s.timestamp).getDay();
+              return d === 0 || d === 6;
+            });
+            newProgress = hasWeekday && hasWeekend ? 1 : 0;
+            break;
+          }
+          case "double_days": {
+            const minutesByDay = weeklySessions.reduce((map, s) => {
+              const key = new Date(s.timestamp).toDateString();
+              map[key] = (map[key] || 0) + (s.durationMinutes || 0);
+              return map;
+            }, {});
+            newProgress = Object.values(minutesByDay).filter((m) => m >= 120).length;
+            break;
+          }
+          default:
+            newProgress = quest.progress || 0;
+        }
+
+        newProgress = Math.min(newProgress, quest.target || 1);
+        const completed = newProgress >= (quest.target || 1);
+
+        return {
+          ...quest,
+          progress: newProgress,
           completed,
         };
       });
 
       return {
         ...prev,
-        dailyQuests: updatedDailyQuests,
-        weeklyQuests: updatedWeeklyQuests,
-        completedQuestsToday: updatedDailyQuests.filter((q) => q.completed).length,
+        dailyQuests: refreshedDailyQuests,
+        weeklyQuests: refreshedWeeklyQuests,
+        completedQuestsToday: refreshedDailyQuests.filter((q) => q && q.completed).length,
       };
     });
   };
 
-  // Debug function to reset user stats
+  // Claim weekly goal XP from bank (one-time use per week)
+  const claimWeeklyGoalXP = () => {
+    setUserStats((prev) => {
+      const bankedXP = prev.weeklyGoalXpBank || 0;
+      const alreadyClaimed = prev.weeklyGoalXpClaimed || false;
+      
+      // Can't claim if already claimed or no XP in bank
+      if (alreadyClaimed || bankedXP <= 0) {
+        return prev;
+      }
+      
+      // Grant the banked XP
+      grantXP(bankedXP, "weekly_goal_claim");
+      
+      // Show reward notification
+      addReward({
+        type: "WEEKLY_GOAL_CLAIM",
+        title: `🎉 Weekly Goal XP Claimed!`,
+        description: `You claimed ${bankedXP} XP from your weekly goal bank!`,
+        tier: "epic",
+        xp: bankedXP,
+      });
+      
+      // Mark as claimed and clear bank
+      return {
+        ...prev,
+        weeklyGoalXpBank: 0,
+        weeklyGoalXpClaimed: true,
+      };
+    });
+  };
+
+  // Debug function to reset user stats - COMPLETELY RESET EVERYTHING
   const resetUserStats = () => {
     localStorage.removeItem("userStats");
-    setUserStats({
+    localStorage.removeItem("lastDailyQuestReset");
+    localStorage.removeItem("lastWeeklyQuestReset");
+    
+    const defaultStats = {
       // Core progression
       xp: 0,
       level: 1,
@@ -1689,7 +2127,19 @@ export const GamificationProvider = ({ children }) => {
       jackpotCount: 0,
       gems: 0,
       xpEvents: [],
-    });
+      
+      // Weekly goal XP bank
+      weeklyGoalXpBank: 0,
+      weeklyGoalXpClaimed: false,
+    };
+    
+    setUserStats(defaultStats);
+    
+    // Generate fresh quests after reset
+    setTimeout(() => {
+      generateDailyQuests();
+      generateWeeklyQuests();
+    }, 100);
   };
 
   const value = {
@@ -1730,6 +2180,8 @@ export const GamificationProvider = ({ children }) => {
     getLevelFromStudyTime,
     getStudyTimeProgress,
     resetUserStats, // Debug function
+    refreshQuestProgress, // Refresh quest progress from current stats
+    claimWeeklyGoalXP, // Claim weekly goal XP from bank (one-time use)
   };
 
   return (
