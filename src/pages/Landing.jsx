@@ -45,7 +45,7 @@ import {
 import ImageCarousel from '../components/ImageCarousel';
 import { ChevronDown } from "lucide-react";
 import Skillpulse from '../components/Skillpulse';
-import ambientImages from '../data/ambientImages';
+import ambientImages, { ambientVideos } from '../data/ambientImages';
 
 const Landing = () => {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
@@ -1209,6 +1209,7 @@ const AmbientModeSection = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(25 * 60 + 34); // 25:34 in seconds
   const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedVideo, setSelectedVideo] = useState(null);
   const sectionRef = useRef(null);
 
   const features = [
@@ -1810,6 +1811,85 @@ const AmbientModeSection = () => {
                   <X className="w-5 h-5" />
                 </button>
               </div>
+
+              {/* Animated Wallpapers Section - Featured First */}
+              {ambientVideos && ambientVideos.length > 0 && (
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                      <Video className="w-6 h-6 text-purple-400" />
+                      Animated Wallpapers
+                      <motion.span
+                        className="ml-2 px-3 py-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-bold rounded-full"
+                        animate={{
+                          scale: [1, 1.1, 1]
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }}
+                      >
+                        ✨ COOLER ✨
+                      </motion.span>
+                    </h3>
+                  </div>
+                  <p className="text-purple-300/70 text-sm mb-4">
+                    Dynamic, immersive backgrounds that bring your study space to life
+                  </p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {ambientVideos.map((video) => (
+                      <motion.div
+                        key={video.id}
+                        className="relative group aspect-video rounded-lg overflow-hidden border-2 transition-all cursor-pointer"
+                        style={{
+                          borderColor: selectedVideo === video.id 
+                            ? 'rgba(168, 85, 247, 1)' 
+                            : 'rgba(168, 85, 247, 0.3)'
+                        }}
+                        whileHover={{ scale: 1.05 }}
+                        onClick={() => {
+                          setSelectedVideo(video.id);
+                          setSelectedImage(null);
+                          setShowSettings(false);
+                        }}
+                      >
+                        <video
+                          src={video.path}
+                          className="w-full h-full object-cover"
+                          muted
+                          loop
+                          playsInline
+                          onMouseEnter={(e) => e.target.play()}
+                          onMouseLeave={(e) => {
+                            e.target.pause();
+                            e.target.currentTime = 0;
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                          <button
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                              selectedVideo === video.id
+                                ? 'bg-purple-600 text-white'
+                                : 'bg-white/20 text-white opacity-0 group-hover:opacity-100'
+                            }`}
+                          >
+                            {selectedVideo === video.id ? 'Selected' : 'Select'}
+                          </button>
+                        </div>
+                        <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
+                          <p className="text-white text-sm font-medium bg-black/50 backdrop-blur-sm px-2 py-1 rounded">
+                            {video.name}
+                          </p>
+                          <span className="text-purple-300 text-xs bg-purple-600/30 px-2 py-1 rounded">
+                            MP4
+                          </span>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Static Images Section */}
               <div className="mb-8">
