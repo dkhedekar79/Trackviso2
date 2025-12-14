@@ -98,7 +98,8 @@ const Mastery = () => {
       let qualification = 'GCSE';
       let examBoard = 'AQA';
       
-      const metadataKey = `${key}_metadata`;
+      const storageKey = getStorageKey(mostRecentSubject);
+      const metadataKey = `${storageKey}_metadata`;
       const metadata = localStorage.getItem(metadataKey);
       if (metadata) {
         try {
@@ -194,17 +195,17 @@ const Mastery = () => {
         {!isBlurtModeActive && !isMockExamModeActive && (
           <>
             {recentSubjectData ? (
-              <motion.div
+        <motion.div
                 initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+          animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4 }}
                 className="space-y-6"
-              >
+        >
                 <div className="flex items-center justify-between">
-                  <div>
+            <div>
                     <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent mb-2">
                       {recentSubjectData.subject}
-                    </h1>
+              </h1>
                     <p className="text-white/70 text-sm">
                       {recentSubjectData.qualification} • {recentSubjectData.examBoard}
                     </p>
@@ -214,17 +215,17 @@ const Mastery = () => {
                         Last practiced: {new Date(recentSubjectData.lastPracticeDate).toLocaleDateString()}
                       </div>
                     )}
-                  </div>
-                  <motion.button
+            </div>
+            <motion.button
                     onClick={() => setShowWizard(true)}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
                     className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-purple-500/50 transition-all flex items-center gap-2"
-                  >
+            >
                     <Sparkles className="w-5 h-5" />
                     New Session
-                  </motion.button>
-                </div>
+            </motion.button>
+            </div>
 
                 <div className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border-2 border-purple-700/30">
                   <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
@@ -239,11 +240,11 @@ const Mastery = () => {
                         ? new Date(topicProgress.lastPracticeDate).toLocaleDateString()
                         : 'Never';
 
-                      return (
-                        <motion.div
-                          key={topic.id}
+                  return (
+                    <motion.div
+                      key={topic.id}
                           initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
+                      animate={{ opacity: 1, y: 0 }}
                           className="bg-white/5 rounded-xl p-4 border border-white/10 hover:border-purple-500/50 transition-all"
                         >
                           <div className="flex items-start justify-between mb-3">
@@ -256,24 +257,24 @@ const Mastery = () => {
                             </div>
                           </div>
                           <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
-                            <motion.div
-                              initial={{ width: 0 }}
+                              <motion.div
+                                initial={{ width: 0 }}
                               animate={{ width: `${completionScore}%` }}
                               transition={{ duration: 0.5, delay: 0.2 }}
                               className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
                             />
-                          </div>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
                 </div>
               </motion.div>
             ) : (
-              <motion.div
+                <motion.div
                 className="flex flex-col items-center justify-center min-h-[60vh]"
                 initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
+                  animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
               >
                 <div className="text-center mb-8">
@@ -281,9 +282,9 @@ const Mastery = () => {
                     Mastery Practice
                   </h1>
                   <p className="text-white/80 text-lg">Your journey to academic excellence, led by an in-depth science-based AI tutor.</p>
-                </div>
+                      </div>
 
-                <motion.button
+                    <motion.button
                   onClick={() => setShowWizard(true)}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -291,10 +292,10 @@ const Mastery = () => {
                 >
                   <Sparkles className="w-5 h-5" />
                   Start Practice Session
-                </motion.button>
-              </motion.div>
-            )}
-          </>
+                    </motion.button>
+                </motion.div>
+              )}
+            </>
         )}
 
         {isBlurtModeActive && currentSession && (
