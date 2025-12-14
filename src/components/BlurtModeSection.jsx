@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Loader, AlertCircle, Eye, EyeOff, Send, RotateCcw, CheckCircle, Lock, Crown } from 'lucide-react';
+import { ArrowRight, Loader, AlertCircle, Eye, EyeOff, Send, RotateCcw, CheckCircle, Lock, Crown, FileText } from 'lucide-react';
 import { generateBlurtNotes, analyzeBlurtResponse } from '../utils/blurtNotesApi';
 import { useSubscription } from '../context/SubscriptionContext';
 import PremiumUpgradeModal from './PremiumUpgradeModal';
@@ -463,24 +463,80 @@ const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue, initialNot
                 </div>
               )}
 
-              <div>
-                <label className="block text-sm font-medium text-amber-200 mb-3">
-                  Your Blurt Response
-                </label>
-                <textarea
-                  value={blurtInput}
-                  onChange={(e) => {
-                    setBlurtInput(e.target.value);
-                    setError(null);
-                  }}
-                  placeholder="Start typing everything you remember... Write freely without worrying about structure. Include key concepts, definitions, examples, formulas, or any related information that comes to mind."
-                  className="w-full px-6 py-4 bg-white/10 border-2 border-white/20 rounded-xl text-white placeholder-gray-400 focus:ring-2 focus:ring-amber-500 focus:border-amber-500/50 resize-none text-base leading-relaxed min-h-[400px]"
-                  rows="20"
-                  autoFocus
-                />
-                <p className="text-white/50 text-xs mt-2">
-                  {blurtInput.length} characters
-                </p>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Left side - Blurt Input */}
+                <div className="lg:col-span-2">
+                  <label className="block text-sm font-medium text-amber-200 mb-3">
+                    Your Blurt Response
+                  </label>
+                  <textarea
+                    value={blurtInput}
+                    onChange={(e) => {
+                      setBlurtInput(e.target.value);
+                      setError(null);
+                    }}
+                    placeholder="Start typing everything you remember... Write freely without worrying about structure. Include key concepts, definitions, examples, formulas, or any related information that comes to mind."
+                    className="w-full px-6 py-4 bg-white/10 border-2 border-white/20 rounded-xl text-white placeholder-gray-400 focus:ring-2 focus:ring-amber-500 focus:border-amber-500/50 resize-none text-base leading-relaxed min-h-[500px]"
+                    rows="20"
+                    autoFocus
+                  />
+                  <p className="text-white/50 text-xs mt-2">
+                    {blurtInput.length} characters
+                  </p>
+                </div>
+
+                {/* Right side - Key Points Card */}
+                <div className="lg:col-span-1">
+                  <div className="bg-gradient-to-br from-amber-900/40 to-orange-900/40 rounded-xl p-6 border-2 border-amber-600/30 h-full">
+                    <div className="flex items-center gap-2 mb-4">
+                      <FileText className="w-5 h-5 text-amber-300" />
+                      <h4 className="text-lg font-bold text-amber-200">Key Points to Write About</h4>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <p className="text-amber-100/90 font-semibold text-sm">Core Concepts</p>
+                        <p className="text-amber-100/70 text-xs leading-relaxed">
+                          Write down the main definitions, principles, and fundamental ideas related to the topics.
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-amber-100/90 font-semibold text-sm">Formulas & Equations</p>
+                        <p className="text-amber-100/70 text-xs leading-relaxed">
+                          Include any mathematical formulas, equations, or calculations you remember.
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-amber-100/90 font-semibold text-sm">Examples & Applications</p>
+                        <p className="text-amber-100/70 text-xs leading-relaxed">
+                          Describe real-world examples, use cases, or practical applications of the concepts.
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-amber-100/90 font-semibold text-sm">Processes & Steps</p>
+                        <p className="text-amber-100/70 text-xs leading-relaxed">
+                          Outline step-by-step processes, procedures, or methods you recall.
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-amber-100/90 font-semibold text-sm">Relationships & Connections</p>
+                        <p className="text-amber-100/70 text-xs leading-relaxed">
+                          Explain how different concepts relate to each other or connect.
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-amber-100/90 font-semibold text-sm">Important Details</p>
+                        <p className="text-amber-100/70 text-xs leading-relaxed">
+                          Note any specific facts, dates, names, or important details that come to mind.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-6 pt-4 border-t border-amber-700/30">
+                      <p className="text-amber-200/80 text-xs italic">
+                        💡 Tip: Don't worry about being perfect or organized. Just write everything you know!
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div className="flex gap-3">
