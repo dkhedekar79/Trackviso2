@@ -1,8 +1,16 @@
 import React from 'react';
+import SEO from '../components/SEO';
 
 export default function Terms() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 mt-20 px-6">
+    <>
+      <SEO 
+        title="Terms of Service - Trackviso"
+        description="Read Trackviso's Terms of Service. Understand the rules and guidelines for using our gamified study tracking platform."
+        keywords="trackviso terms, terms of service, study tracker terms"
+        url="/terms"
+      />
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 mt-20 px-6">
       <div className="max-w-4xl mx-auto bg-white shadow rounded-2xl p-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-4">Terms of Service</h1>
         <p className="text-gray-600 mb-6">Last updated: September 2025</p>
@@ -95,5 +103,6 @@ Support email or contact form link for user questions.</p>
         </div>
       </div>
     </div>
+    </>
   );
 }

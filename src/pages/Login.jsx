@@ -5,6 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import MagneticParticles from "../components/MagneticParticles";
 import { ArrowRight, Sparkles } from "lucide-react";
+import SEO from "../components/SEO";
 
 export default function Login() {
   const { login } = useAuth();
@@ -55,7 +56,15 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 relative overflow-hidden">
+    <>
+      <SEO 
+        title="Login to Trackviso"
+        description="Log in to your Trackviso account to continue tracking your study sessions, earning XP, and achieving your academic goals."
+        keywords="trackviso login, study tracker login, academic tracker sign in"
+        url="/login"
+        robots="noindex, follow"
+      />
+      <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 relative overflow-hidden">
       {/* Background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <MagneticParticles />
@@ -170,5 +179,6 @@ export default function Login() {
         </motion.div>
       </motion.div>
     </div>
+    </>
   );
 }

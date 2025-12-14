@@ -36,27 +36,72 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap" rel="stylesheet" />
 
+     <!-- Enhanced SoftwareApplication Schema -->
      <script type="application/ld+json">
 {
-  "@context":"https://schema.org",
-  "@type":"SoftwareApplication",
-  "name":"Trackviso",
-  "applicationCategory":"EducationalApplication",
-  "operatingSystem":"Web",
-  "url":"https://trackviso.vercel.app/",
-  "description":"Gamified study tracker with quests, streaks, and insights.",
-  "offers":{"@type":"Offer","price":"0","priceCurrency":"GBP"}
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Trackviso",
+  "applicationCategory": "EducationalApplication",
+  "operatingSystem": "Web",
+  "url": "https://trackviso.vercel.app/",
+  "description": "Gamified study tracker with quests, streaks, and insights to keep you consistent. Track study sessions, earn XP, complete quests, and get AI-powered insights.",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "GBP"
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "5",
+    "ratingCount": "3",
+    "bestRating": "5",
+    "worstRating": "1"
+  },
+  "featureList": [
+    "Study session tracking with pomodoro timer",
+    "Gamification with XP and levels",
+    "Quest system for motivation",
+    "AI-powered insights and recommendations",
+    "Streak tracking",
+    "Achievement system",
+    "Subject and task management",
+    "Progress analytics and visualizations"
+  ],
+  "screenshot": "https://trackviso.vercel.app/og.png",
+  "softwareVersion": "0.20",
+  "releaseNotes": "Gamified study tracking with AI-powered features"
 }
 </script>
 
+<!-- WebSite Schema with SearchAction -->
 <script type="application/ld+json">
 {
-  "@context":"https://schema.org",
-  "@type":"WebSite",
-  "name":"Trackviso",
-  "url":"https://trackviso.vercel.app/",
-  "potentialAction":{
-  
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Trackviso",
+  "url": "https://trackviso.vercel.app/",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://trackviso.vercel.app/search?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+
+<!-- Organization Schema -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Trackviso",
+  "url": "https://trackviso.vercel.app/",
+  "logo": "https://trackviso.vercel.app/og.png",
+  "description": "Gamified study tracking platform for students",
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "email": "dskhedekar7@gmail.com",
+    "contactType": "customer support"
   }
 }
 </script>

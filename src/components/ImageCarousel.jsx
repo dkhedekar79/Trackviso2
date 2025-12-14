@@ -26,8 +26,9 @@ const ImageCarousel = () => {
         <motion.img
           key={currentIndex}
           src={images[currentIndex]}
-          alt={`Carousel Image ${currentIndex + 1}`}
+          alt={`Trackviso study dashboard screenshot ${currentIndex + 1} showing gamified study tracking features, progress analytics, and study session management`}
           className="w-full h-auto object-cover"
+          loading="lazy"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import SEO from "../components/SEO";
 import {
   Play,
   Pause,
@@ -481,7 +482,15 @@ const Study = () => {
   // If no subject is selected, show subject selection page
   if (!subject) {
     return (
-      <div className="min-h-screen mt-20 flex bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
+      <>
+        <SEO 
+          title="Study Session - Trackviso"
+          description="Start a focused study session with Trackviso's pomodoro timer, custom timer, and stopwatch. Track your study time and earn XP for your sessions."
+          url="/study"
+          robots="noindex, nofollow"
+          noindex={true}
+        />
+        <div className="min-h-screen mt-20 flex bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
         <Sidebar />
         <div className="flex-1 ml-16 transition-all duration-300 ease-in-out [body>div>aside:hover_+_div&]:ml-64">
           <div className="max-w-4xl mx-auto p-8">
@@ -559,6 +568,7 @@ const Study = () => {
           </div>
         </div>
       </div>
+      </>
     );
   }
 
@@ -668,8 +678,16 @@ const Study = () => {
 
   if (showEndSession) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 mt-20" style={{ backgroundImage: "linear-gradient(135deg, var(--study-from), var(--study-via), var(--study-to))" }}>
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 max-w-md w-full border border-white/20">
+      <>
+        <SEO 
+          title="Study Session - Trackviso"
+          description="Start a focused study session with Trackviso's pomodoro timer, custom timer, and stopwatch. Track your study time and earn XP for your sessions."
+          url="/study"
+          robots="noindex, nofollow"
+          noindex={true}
+        />
+        <div className="min-h-screen flex items-center justify-center p-4 mt-20" style={{ backgroundImage: "linear-gradient(135deg, var(--study-from), var(--study-via), var(--study-to))" }}>
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 max-w-md w-full border border-white/20">
           <h2 className="text-2xl font-bold text-white mb-6 text-center">
             Session Complete! 🎉
           </h2>
@@ -750,11 +768,20 @@ const Study = () => {
           </div>
         </div>
       </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen mt-20 flex bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
+    <>
+      <SEO 
+        title="Study Session - Trackviso"
+        description="Start a focused study session with Trackviso's pomodoro timer, custom timer, and stopwatch. Track your study time and earn XP for your sessions."
+        url="/study"
+        robots="noindex, nofollow"
+        noindex={true}
+      />
+      <div className="min-h-screen mt-20 flex bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
       <Sidebar />
       <div className="flex-1 ml-16 transition-all duration-300 ease-in-out [body>div>aside:hover_+_div&]:ml-64">
         {/* Ambient Mode Fullscreen Overlay */}
@@ -2132,6 +2159,7 @@ const Study = () => {
           })}
       </AnimatePresence>
     </div>
+    </>
   );
 };
 

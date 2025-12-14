@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { User, Crown, FileText, Plus, X, Calendar, Edit2, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
+import SEO from '../components/SEO';
 
 const Settings = () => {
   const { user } = useAuth();
@@ -110,7 +111,15 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 py-8 px-4 mt-20">
+    <>
+      <SEO 
+        title="Settings - Trackviso"
+        description="Manage your Trackviso account settings, view subscription plan, and check patch notes for the latest updates."
+        url="/settings"
+        robots="noindex, nofollow"
+        noindex={true}
+      />
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 py-8 px-4 mt-20">
       <div className="max-w-4xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -432,6 +441,7 @@ const Settings = () => {
         </AnimatePresence>
       </div>
     </div>
+    </>
   );
 };
 

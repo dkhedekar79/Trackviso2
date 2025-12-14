@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from './context/AuthContext';
 import { TimerProvider, useTimer } from './context/TimerContext';
 import { GamificationProvider } from './context/GamificationContext';
@@ -29,6 +30,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { DashboardProvider } from './context/DashboardContext';
 import { SubscriptionProvider } from './context/SubscriptionContext';
 import Unsupported from './pages/Unsupported';
+import NotFound from './pages/NotFound';
 import { isMobileDevice } from './utils/deviceDetection';
 import './styles/index.css';
 
@@ -81,15 +83,16 @@ function App() {
   }
 
   return (
-    <AuthProvider>
-      <SubscriptionProvider>
-        <GamificationProvider>
-          <TimerProvider>
-            <ThemeProvider>
-              <DashboardProvider>
-              <Router>
-              <RouteCleanup />
-            <Routes>
+    <HelmetProvider>
+      <AuthProvider>
+        <SubscriptionProvider>
+          <GamificationProvider>
+            <TimerProvider>
+              <ThemeProvider>
+                <DashboardProvider>
+                  <Router>
+                    <RouteCleanup />
+                    <Routes>
               {/* Public Routes */}
               <Route path="/" element={<div className="flex flex-col min-h-screen"><main className="flex-1"><Landing /><Footer /></main></div>} />
               <Route path="/login" element={<div className="flex flex-col min-h-screen"><main className="flex-1"><Login /><Footer /></main></div>} />
@@ -259,14 +262,18 @@ function App() {
               } />
 
               <Route path="/callback" element={<SpotifyCallback />} />
+              
+              {/* 404 Route */}
+              <Route path="*" element={<NotFound />} />
             </Routes>
-            </Router>
-            </DashboardProvider>
-          </ThemeProvider>
-        </TimerProvider>
-      </GamificationProvider>
-      </SubscriptionProvider>
-    </AuthProvider>
+                  </Router>
+                </DashboardProvider>
+              </ThemeProvider>
+            </TimerProvider>
+          </GamificationProvider>
+        </SubscriptionProvider>
+      </AuthProvider>
+    </HelmetProvider>
   );
 }
 

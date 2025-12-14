@@ -5,6 +5,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import MagneticParticles from "../components/MagneticParticles";
 import { ArrowRight, Sparkles } from "lucide-react";
+import SEO from "../components/SEO";
 
 export default function Signup() {
   const { signup } = useAuth();
@@ -86,7 +87,15 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 relative overflow-hidden">
+    <>
+      <SEO 
+        title="Sign Up for Trackviso - Free Study Tracker"
+        description="Create your free Trackviso account and start transforming your study habits. Join thousands of students using gamification to stay motivated and achieve academic success."
+        keywords="trackviso signup, free study tracker, create study account, gamified learning sign up"
+        url="/signup"
+        robots="noindex, follow"
+      />
+      <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 relative overflow-hidden">
       {/* Background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <MagneticParticles />
@@ -218,5 +227,6 @@ export default function Signup() {
         </motion.div>
       </motion.div>
     </div>
+    </>
   );
 }

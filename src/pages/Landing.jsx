@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import MagneticParticles from "../components/MagneticParticles";
+import SEO from "../components/SEO";
 import {
   BookOpen,
   Brain,
@@ -181,10 +182,32 @@ const Landing = () => {
     }
   };
 
+  // FAQ Schema for SEO
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqs.map(faq => ({
+      "@type": "Question",
+      "name": faq.q,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": faq.a
+      }
+    }))
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-slate-950/80 backdrop-blur-xl z-50 border-b border-purple-900/50">
+    <>
+      <SEO 
+        title="Trackviso — Gamified Study Tracker | Make Every Study Session Count"
+        description="Transform your academic journey with Trackviso. Track study sessions, earn XP, complete quests, and get AI-powered insights. Free study tracker with gamification features, streaks, achievements, and personalized analytics."
+        keywords="study tracker, gamified learning, study productivity app, academic tracker, study streaks, study quests, AI study tutor, revision tracker, study analytics, pomodoro timer, study motivation, exam preparation, study habits, learning tracker"
+        url="/"
+      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
+        {/* Navigation */}
+        <nav className="fixed top-0 w-full bg-slate-950/80 backdrop-blur-xl z-50 border-b border-purple-900/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
@@ -936,7 +959,8 @@ const Landing = () => {
       </section>
 
       
-    </div>
+      </div>
+    </>
   );
 };
 
@@ -1145,8 +1169,9 @@ const StudyModesSection = () => {
                     <div className="bg-gradient-to-br from-purple-900/60 to-slate-900/60 backdrop-blur-md rounded-2xl border-2 border-purple-700/50 shadow-2xl shadow-purple-500/40 overflow-hidden inline-block w-full">
                       <img 
                         src={blurtImages[currentImageIndex].src} 
-                        alt={blurtImages[currentImageIndex].alt}
+                        alt={blurtImages[currentImageIndex].alt || `Trackviso ${currentMode.name} feature screenshot showing study mode interface`}
                         className="w-full h-auto block"
+                        loading="lazy"
                         onError={(e) => {
                           e.target.style.display = 'none';
                           e.target.nextElementSibling.style.display = 'flex';

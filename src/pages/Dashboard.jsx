@@ -11,6 +11,7 @@ import { applyMemoryDeterioration } from "../utils/memoryDeterioration";
 import PremiumUpgradeModal from "../components/PremiumUpgradeModal";
 import PremiumUpgradeCard from "../components/PremiumUpgradeCard";
 import { useSubscription } from "../context/SubscriptionContext";
+import SEO from "../components/SEO";
 
 function getStartOfWeek(date) {
   const d = new Date(date);
@@ -484,8 +485,16 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 flex">
-      <OnboardingModal userId={user?.id} />
+    <>
+      <SEO 
+        title="Dashboard - Trackviso"
+        description="View your study progress, streaks, achievements, and insights on your Trackviso dashboard. Track your academic journey with gamified progress tracking."
+        url="/dashboard"
+        robots="noindex, nofollow"
+        noindex={true}
+      />
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 flex">
+        <OnboardingModal userId={user?.id} />
 
       {/* Main Content Container with Sidebar Offset */}
       <div className="flex-1 pl-16">
@@ -648,5 +657,6 @@ export default function Dashboard() {
       </div>
       </div>
     </div>
+    </>
   );
 }
