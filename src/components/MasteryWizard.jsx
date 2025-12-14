@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, ChevronLeft, Sparkles, FileText, Check, Loader, Wand2, PenTool, ArrowRight, X } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Sparkles, FileText, Check, Loader, Wand2, PenTool, ArrowRight, X, Plus } from 'lucide-react';
 import { generateTopics } from '../utils/geminiApi';
 import { useSubscription } from '../context/SubscriptionContext';
+import { useNavigate } from 'react-router-dom';
 import PremiumUpgradeModal from './PremiumUpgradeModal';
 
 const MasteryWizard = ({ subjects, onComplete, onClose }) => {
   const { subscriptionPlan, getRemainingMockExams, getRemainingBlurtTests, canUseBlurtTest, canUseMockExam } = useSubscription();
+  const navigate = useNavigate();
   const [step, setStep] = useState(1); // 1: Mode, 2: Subject, 3: Topics, 4: Notes
   const [selectedMode, setSelectedMode] = useState(null); // 'blurt' or 'mockExam'
   const [selectedSubject, setSelectedSubject] = useState('');
@@ -296,23 +298,43 @@ const MasteryWizard = ({ subjects, onComplete, onClose }) => {
                     <p className="text-purple-200/70">Choose the subject you want to practice</p>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {subjects.map((subject) => (
+                  {subjects.length === 0 ? (
+                    <div className="text-center py-12">
+                      <FileText className="w-16 h-16 text-purple-400/50 mx-auto mb-4" />
+                      <p className="text-purple-300/80 text-lg mb-2">No subjects available</p>
+                      <p className="text-purple-300/60 text-sm mb-6">Add subjects to get started with mastery practice</p>
                       <motion.button
-                        key={subject.id}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => handleSubjectSelect(subject.name)}
-                        className={`p-4 rounded-lg border-2 transition-all ${
-                          selectedSubject === subject.name
-                            ? 'border-purple-500 bg-purple-600/40'
-                            : 'border-purple-700/30 bg-purple-800/20 hover:border-purple-600/50'
-                        }`}
+                        onClick={() => {
+                          onClose();
+                          navigate('/subjects');
+                        }}
+                        className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-purple-500/50 transition-all flex items-center gap-2 mx-auto"
                       >
-                        <p className="text-white font-medium">{subject.name}</p>
+                        <Plus className="w-5 h-5" />
+                        Go to Subjects Page
                       </motion.button>
-                    ))}
-                  </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {subjects.map((subject) => (
+                        <motion.button
+                          key={subject.id}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handleSubjectSelect(subject.name)}
+                          className={`p-4 rounded-lg border-2 transition-all ${
+                            selectedSubject === subject.name
+                              ? 'border-purple-500 bg-purple-600/40'
+                              : 'border-purple-700/30 bg-purple-800/20 hover:border-purple-600/50'
+                          }`}
+                        >
+                          <p className="text-white font-medium">{subject.name}</p>
+                        </motion.button>
+                      ))}
+                    </div>
+                  )}
 
                   <div className="flex gap-4">
                     <div>
