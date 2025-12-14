@@ -11,7 +11,6 @@ import {
   Users,
   Star,
   ArrowRight,
-  Play,
   CheckCircle,
   Smartphone,
   Laptop,
