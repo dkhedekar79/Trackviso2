@@ -353,6 +353,17 @@ const Mastery = () => {
                   }
                 });
 
+                // Store metadata if not already stored
+                const metadataKey = `${storageKey}_metadata`;
+                const existingMetadata = localStorage.getItem(metadataKey);
+                if (!existingMetadata) {
+                  const metadata = {
+                    qualification: currentSession.qualification,
+                    examBoard: currentSession.examBoard,
+                    lastUpdated: new Date().toISOString(),
+                  };
+                  localStorage.setItem(metadataKey, JSON.stringify(metadata));
+                }
                 localStorage.setItem(storageKey, JSON.stringify(progress));
                 checkSubjectMasteryMilestones(currentSession.subject, progress);
                 }
