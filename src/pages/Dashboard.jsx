@@ -621,28 +621,28 @@ export default function Dashboard() {
           transition={{ delay: 0.4, duration: 0.6 }}
         >
           <motion.button
+            onClick={() => navigate('/study')}
+            className="flex-1 min-w-[200px] px-6 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold shadow-lg hover:shadow-lg hover:shadow-purple-500/50 transition"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Start study session
+          </motion.button>
+          <motion.button
             onClick={() => navigate('/subjects')}
             className="flex-1 min-w-[200px] px-6 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold shadow-lg hover:shadow-lg hover:shadow-purple-500/50 transition"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            + Add Subject
+            Add subject
           </motion.button>
           <motion.button
-            onClick={() => navigate('/tasks')}
+            onClick={() => navigate('/mastery')}
             className="flex-1 min-w-[200px] px-6 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold shadow-lg hover:shadow-lg hover:shadow-purple-500/50 transition"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            + Add Task
-          </motion.button>
-          <motion.button
-            onClick={() => navigate('/schedule')}
-            className="flex-1 min-w-[200px] px-6 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold shadow-lg hover:shadow-lg hover:shadow-purple-500/50 transition"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            + Schedule tasks
+            Master subjects
           </motion.button>
         </motion.section>
       </div>
