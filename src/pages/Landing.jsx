@@ -44,7 +44,7 @@ import {
 import ImageCarousel from '../components/ImageCarousel';
 import { ChevronDown } from "lucide-react";
 import Skillpulse from '../components/Skillpulse';
-import { ambientImages } from '../data/ambientImages';
+import ambientImages from '../data/ambientImages';
 
 const Landing = () => {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
