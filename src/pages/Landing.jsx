@@ -1392,13 +1392,13 @@ const AmbientModeSection = () => {
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7 }}
             viewport={{ once: true }}
-            onHoverStart={() => {
+            onMouseEnter={() => {
               setIsHovered(true);
               setIsFullscreenHover(true);
             }}
-            onHoverEnd={() => {
+            onMouseLeave={() => {
               setIsHovered(false);
-              setIsFullscreenHover(false);
+              // Don't close immediately, let the fullscreen overlay handle it
             }}
           >
             {/* Preview Card */}
@@ -1544,26 +1544,30 @@ const AmbientModeSection = () => {
               }}
             />
           </motion.div>
+        </div>
 
-          {/* Fullscreen Overlay on Hover */}
-          <AnimatePresence>
-            {isFullscreenHover && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden"
-                style={{
-                  backgroundImage: ambientImages.length > 0
-                    ? `url(${ambientImages[0]?.data || ambientImages[0]?.path || ''})`
-                    : 'none',
-                  backgroundColor: ambientImages.length > 0 ? 'transparent' : '#000000',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat'
-                }}
-                onMouseLeave={() => setIsFullscreenHover(false)}
-              >
+        {/* Fullscreen Overlay on Hover - Outside grid */}
+        <AnimatePresence>
+          {isFullscreenHover && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden pointer-events-auto"
+              style={{
+                backgroundImage: ambientImages.length > 0
+                  ? `url(${ambientImages[0]?.data || ambientImages[0]?.path || ''})`
+                  : 'none',
+                backgroundColor: ambientImages.length > 0 ? 'transparent' : '#000000',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+              }}
+              onMouseLeave={() => {
+                setIsFullscreenHover(false);
+                setIsHovered(false);
+              }}
+            >
                 {/* Subtle overlay for better text readability */}
                 <div className="absolute inset-0" />
                 
