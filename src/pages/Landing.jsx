@@ -1689,17 +1689,20 @@ const AmbientModeSection = () => {
             
             {/* Settings Button in Corner */}
             <motion.button
-              className="absolute top-4 right-4 z-20 p-3 rounded-lg bg-black/30 backdrop-blur-sm border border-white/20 hover:bg-black/50 transition-all"
-              whileHover={{ scale: 1.1 }}
+              className="absolute top-6 right-6 z-20 px-6 py-3 rounded-xl bg-black/40 backdrop-blur-md border border-white/30 hover:bg-black/60 transition-all flex items-center gap-2 shadow-lg"
+              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ delay: 0.2 }}
-              title="Manage Background Images"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowSettings(true);
+              }}
             >
               <Settings className="w-5 h-5 text-white" />
+              <span className="text-white font-semibold text-base">Change Background</span>
             </motion.button>
             
             <div className="text-center relative z-10">
