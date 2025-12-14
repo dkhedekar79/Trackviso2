@@ -1195,6 +1195,362 @@ const StudyModesSection = () => {
   );
 };
 
+// Ambient Mode Section Component
+const AmbientModeSection = () => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [activeFeature, setActiveFeature] = useState(0);
+
+  const features = [
+    {
+      icon: Maximize2,
+      title: "Fullscreen Focus",
+      description: "Immerse yourself in distraction-free study sessions with fullscreen ambient mode"
+    },
+    {
+      icon: ImageIcon,
+      title: "Beautiful Backgrounds",
+      description: "Choose from curated static images or animated wallpapers to create your perfect study atmosphere"
+    },
+    {
+      icon: Music,
+      title: "Spotify Integration",
+      description: "Connect your Spotify account and play your favorite study playlists directly in ambient mode"
+    },
+    {
+      icon: Moon,
+      title: "Minimalist Design",
+      description: "Clean, focused interface that keeps your attention on what matters - your study time"
+    }
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveFeature((prev) => (prev + 1) % features.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [features.length]);
+
+  return (
+    <section 
+      id="ambient-mode" 
+      className="py-32 px-4 bg-gradient-to-b from-purple-900/50 via-slate-900 to-slate-900 relative overflow-hidden"
+    >
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div
+          className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl"
+          animate={{
+            scale: [1, 1.2, 1],
+            x: [0, 50, 0],
+            y: [0, -30, 0],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div
+          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-pink-600/20 rounded-full blur-3xl"
+          animate={{
+            scale: [1, 1.3, 1],
+            x: [0, -50, 0],
+            y: [0, 30, 0],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1
+          }}
+        />
+        <motion.div
+          className="absolute top-1/2 left-1/2 w-64 h-64 bg-amber-600/10 rounded-full blur-2xl -translate-x-1/2 -translate-y-1/2"
+          animate={{
+            scale: [1, 1.5, 1],
+            rotate: [0, 360],
+          }}
+          transition={{
+            duration: 15,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+        />
+      </div>
+
+      <div className="max-w-7xl mx-auto relative z-10">
+        {/* Header */}
+        <motion.div
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+          viewport={{ once: true }}
+        >
+          <motion.div
+            className="inline-flex items-center gap-2 bg-purple-900/50 border border-purple-700/50 text-purple-300 px-4 py-2 rounded-full text-sm font-medium mb-6 backdrop-blur-sm"
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <Moon className="w-4 h-4" />
+            New Feature
+          </motion.div>
+          <h2 className="text-4xl lg:text-6xl font-bold mb-6 text-white">
+            Introducing{" "}
+            <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-amber-400 bg-clip-text text-transparent">
+              Ambient Mode
+            </span>
+          </h2>
+          <p className="text-xl lg:text-2xl text-purple-200/80 max-w-3xl mx-auto leading-relaxed">
+            Transform your study sessions into immersive, distraction-free experiences. 
+            Focus deeply with beautiful backgrounds, integrated music, and minimalist design.
+          </p>
+        </motion.div>
+
+        {/* Main Content Grid */}
+        <div className="grid lg:grid-cols-2 gap-12 items-center mb-16">
+          {/* Left Side - Feature Cards */}
+          <div className="space-y-6">
+            {features.map((feature, index) => {
+              const Icon = feature.icon;
+              const isActive = activeFeature === index;
+              
+              return (
+                <motion.div
+                  key={index}
+                  className={`relative bg-gradient-to-br ${
+                    isActive 
+                      ? 'from-purple-600/40 to-pink-600/40 border-purple-500/60' 
+                      : 'from-purple-900/30 to-slate-900/30 border-purple-700/30'
+                  } border rounded-2xl p-6 backdrop-blur-md transition-all duration-500 cursor-pointer group`}
+                  initial={{ opacity: 0, x: -50 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  onHoverStart={() => setActiveFeature(index)}
+                  whileHover={{ scale: 1.02, y: -5 }}
+                  animate={{
+                    scale: isActive ? 1.02 : 1,
+                    borderColor: isActive ? 'rgba(168, 85, 247, 0.6)' : 'rgba(168, 85, 247, 0.3)',
+                  }}
+                >
+                  <div className="flex items-start gap-4">
+                    <motion.div
+                      className={`w-14 h-14 rounded-xl flex items-center justify-center ${
+                        isActive 
+                          ? 'bg-gradient-to-br from-purple-500 to-pink-500' 
+                          : 'bg-purple-800/40'
+                      } transition-all duration-500`}
+                      animate={{
+                        rotate: isActive ? [0, 10, -10, 0] : 0,
+                        scale: isActive ? 1.1 : 1,
+                      }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <Icon className={`w-7 h-7 ${
+                        isActive ? 'text-white' : 'text-purple-300'
+                      } transition-colors duration-500`} />
+                    </motion.div>
+                    <div className="flex-1">
+                      <h3 className={`text-xl font-bold mb-2 transition-colors duration-500 ${
+                        isActive ? 'text-white' : 'text-purple-200'
+                      }`}>
+                        {feature.title}
+                      </h3>
+                      <p className={`text-sm leading-relaxed transition-colors duration-500 ${
+                        isActive ? 'text-purple-100' : 'text-purple-300/70'
+                      }`}>
+                        {feature.description}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Active Indicator */}
+                  {isActive && (
+                    <motion.div
+                      className="absolute top-0 right-0 w-2 h-full bg-gradient-to-b from-purple-400 to-pink-400 rounded-r-2xl"
+                      initial={{ scaleY: 0 }}
+                      animate={{ scaleY: 1 }}
+                      transition={{ duration: 0.3 }}
+                    />
+                  )}
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Right Side - Visual Demo */}
+          <motion.div
+            className="relative"
+            initial={{ opacity: 0, x: 50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7 }}
+            viewport={{ once: true }}
+            onHoverStart={() => setIsHovered(true)}
+            onHoverEnd={() => setIsHovered(false)}
+          >
+            <div className="relative bg-gradient-to-br from-slate-900/80 to-purple-900/80 backdrop-blur-xl rounded-3xl border-2 border-purple-700/50 shadow-2xl shadow-purple-500/30 overflow-hidden">
+              {/* Mock Ambient Mode Screen */}
+              <div className="aspect-[9/16] relative bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
+                {/* Background Image Effect */}
+                <motion.div
+                  className="absolute inset-0 opacity-30"
+                  style={{
+                    backgroundImage: 'linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(236, 72, 153, 0.3) 100%)',
+                  }}
+                  animate={{
+                    backgroundPosition: ['0% 0%', '100% 100%'],
+                  }}
+                  transition={{
+                    duration: 20,
+                    repeat: Infinity,
+                    repeatType: 'reverse',
+                  }}
+                />
+                
+                {/* Content Overlay */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-8 z-10">
+                  <motion.div
+                    className="text-center"
+                    animate={{
+                      y: isHovered ? [-5, 5, -5] : 0,
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    <motion.h3
+                      className="text-6xl font-bold text-white mb-4 font-['Poppins']"
+                      animate={{
+                        scale: [1, 1.05, 1],
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                    >
+                      25:34
+                    </motion.h3>
+                    <motion.p
+                      className="text-2xl text-purple-300 font-semibold font-['Poppins']"
+                      animate={{
+                        opacity: [0.7, 1, 0.7],
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                    >
+                      Biology
+                    </motion.p>
+                  </motion.div>
+
+                  {/* Floating Controls */}
+                  <motion.div
+                    className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-4"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                  >
+                    <motion.button
+                      className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-all"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <PauseCircle className="w-6 h-6" />
+                    </motion.button>
+                    <motion.button
+                      className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-all"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <PlayCircle className="w-6 h-6" />
+                    </motion.button>
+                  </motion.div>
+
+                  {/* Settings Button */}
+                  <motion.button
+                    className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition-all"
+                    whileHover={{ scale: 1.1, rotate: 90 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <Sparkles className="w-5 h-5" />
+                  </motion.button>
+                </div>
+
+                {/* Animated Particles */}
+                {[...Array(20)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className="absolute w-1 h-1 bg-purple-400/50 rounded-full"
+                    style={{
+                      left: `${Math.random() * 100}%`,
+                      top: `${Math.random() * 100}%`,
+                    }}
+                    animate={{
+                      y: [0, -30, 0],
+                      opacity: [0, 1, 0],
+                      scale: [0, 1, 0],
+                    }}
+                    transition={{
+                      duration: 3 + Math.random() * 2,
+                      repeat: Infinity,
+                      delay: Math.random() * 2,
+                      ease: "easeInOut"
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Glow Effect */}
+            <motion.div
+              className="absolute -inset-4 bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-3xl blur-2xl -z-10"
+              animate={{
+                opacity: [0.5, 0.8, 0.5],
+                scale: [1, 1.1, 1],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
+          </motion.div>
+        </div>
+
+        {/* Bottom CTA */}
+        <motion.div
+          className="text-center"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.3 }}
+          viewport={{ once: true }}
+        >
+          <motion.div
+            className="inline-block"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Link
+              to="/signup"
+              className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:shadow-xl hover:shadow-purple-500/50 transition-all duration-300"
+            >
+              <Moon className="w-5 h-5" />
+              Try Ambient Mode Now
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+          </motion.div>
+        </motion.div>
+      </div>
+    </section>
+  );
+};
+
 export default Landing;
 
 const faqs = [
