@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, TrendingUp, Clock } from 'lucide-react';
 import MasteryWizard from '../components/MasteryWizard';
 import BlurtModeSection from '../components/BlurtModeSection';
 import MockExamModeSection from '../components/MockExamModeSection';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import { useGamification } from '../context/GamificationContext';
+import { getTopicsForSubject } from '../data/masteryTopics';
 
 // Helper function to calculate completion score from individual scores
 const calculateCompletionScore = (topicProgress, applyDeterioration = true) => {
@@ -38,6 +39,7 @@ const Mastery = () => {
   const [currentSession, setCurrentSession] = useState(null); // { mode, subject, topics, topicIds, notes, qualification, examBoard }
   const [isBlurtModeActive, setIsBlurtModeActive] = useState(false);
   const [isMockExamModeActive, setIsMockExamModeActive] = useState(false);
+  const [recentSubjectData, setRecentSubjectData] = useState(null); // { subject, qualification, examBoard, topics, progress }
 
   // Helper function to get storage key for a subject
   const getStorageKey = (subject) => {
@@ -52,6 +54,84 @@ const Mastery = () => {
 
     loadSubjects();
   }, [user]);
+
+  // Load most recent subject data
+  useEffect(() => {
+    const loadMostRecentSubject = () => {
+      // Get all mastery data keys
+      const allKeys = Object.keys(localStorage);
+      const masteryKeys = allKeys.filter(key => key.startsWith('masteryData_'));
+      
+      if (masteryKeys.length === 0) {
+        setRecentSubjectData(null);
+        return;
+      }
+
+      let mostRecentSubject = null;
+      let mostRecentDate = null;
+      let mostRecentData = null;
+
+      // Find the subject with the most recent practice date
+      masteryKeys.forEach(key => {
+        const subjectName = key.replace('masteryData_', '');
+        const progressData = JSON.parse(localStorage.getItem(key) || '{}');
+        
+        // Find the most recent lastPracticeDate in this subject's topics
+        Object.values(progressData).forEach(topicData => {
+          if (topicData.lastPracticeDate) {
+            const practiceDate = new Date(topicData.lastPracticeDate);
+            if (!mostRecentDate || practiceDate > mostRecentDate) {
+              mostRecentDate = practiceDate;
+              mostRecentSubject = subjectName;
+              mostRecentData = progressData;
+            }
+          }
+        });
+      });
+
+      if (!mostRecentSubject || !mostRecentData) {
+        setRecentSubjectData(null);
+        return;
+      }
+
+      // Try to get qualification and examBoard from metadata
+      let qualification = 'GCSE';
+      let examBoard = 'AQA';
+      
+      const metadataKey = `${key}_metadata`;
+      const metadata = localStorage.getItem(metadataKey);
+      if (metadata) {
+        try {
+          const meta = JSON.parse(metadata);
+          if (meta.qualification) qualification = meta.qualification;
+          if (meta.examBoard) examBoard = meta.examBoard;
+        } catch (e) {
+          console.error('Error parsing metadata:', e);
+        }
+      }
+
+      // Get topics for this subject
+      const availableTopics = getTopicsForSubject(qualification, examBoard, mostRecentSubject);
+      
+      if (availableTopics.length === 0) {
+        setRecentSubjectData(null);
+        return;
+      }
+
+      setRecentSubjectData({
+        subject: mostRecentSubject,
+        qualification,
+        examBoard,
+        topics: availableTopics,
+        progress: mostRecentData,
+        lastPracticeDate: mostRecentDate,
+      });
+    };
+
+    if (!isBlurtModeActive && !isMockExamModeActive) {
+      loadMostRecentSubject();
+    }
+  }, [user, isBlurtModeActive, isMockExamModeActive]);
 
   const handleWizardComplete = async (wizardData) => {
     setCurrentSession(wizardData);
@@ -112,29 +192,109 @@ const Mastery = () => {
 
       <div className="max-w-5xl mx-auto">
         {!isBlurtModeActive && !isMockExamModeActive && (
-        <motion.div
-            className="flex flex-col items-center justify-center min-h-[60vh]"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-            <div className="text-center mb-8">
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent mb-2">
-                Mastery Practice
-              </h1>
-              <p className="text-white/80 text-lg">Your journey to academic excellence, led by an in-depth science-based AI tutor.</p>
-            </div>
+          <>
+            {recentSubjectData ? (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className="space-y-6"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent mb-2">
+                      {recentSubjectData.subject}
+                    </h1>
+                    <p className="text-white/70 text-sm">
+                      {recentSubjectData.qualification} • {recentSubjectData.examBoard}
+                    </p>
+                    {recentSubjectData.lastPracticeDate && (
+                      <div className="flex items-center gap-2 mt-2 text-white/60 text-xs">
+                        <Clock className="w-4 h-4" />
+                        Last practiced: {new Date(recentSubjectData.lastPracticeDate).toLocaleDateString()}
+                      </div>
+                    )}
+                  </div>
+                  <motion.button
+                    onClick={() => setShowWizard(true)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-purple-500/50 transition-all flex items-center gap-2"
+                  >
+                    <Sparkles className="w-5 h-5" />
+                    New Session
+                  </motion.button>
+                </div>
 
-            <motion.button
-              onClick={() => setShowWizard(true)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-purple-500/50 transition-all text-lg flex items-center gap-2"
-            >
-              <Sparkles className="w-5 h-5" />
-              Start Practice Session
-            </motion.button>
-        </motion.div>
+                <div className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border-2 border-purple-700/30">
+                  <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-purple-400" />
+                    Topics & Progress
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {recentSubjectData.topics.map((topic) => {
+                      const topicProgress = recentSubjectData.progress[topic.id] || {};
+                      const completionScore = calculateCompletionScore(topicProgress, true);
+                      const lastPractice = topicProgress.lastPracticeDate 
+                        ? new Date(topicProgress.lastPracticeDate).toLocaleDateString()
+                        : 'Never';
+
+                      return (
+                        <motion.div
+                          key={topic.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="bg-white/5 rounded-xl p-4 border border-white/10 hover:border-purple-500/50 transition-all"
+                        >
+                          <div className="flex items-start justify-between mb-3">
+                            <h3 className="text-white font-semibold text-sm flex-1">{topic.name}</h3>
+                            <div className="text-right">
+                              <div className="text-lg font-bold text-purple-400">
+                                {Math.round(completionScore)}%
+                              </div>
+                              <div className="text-xs text-white/50">{lastPractice}</div>
+                            </div>
+                          </div>
+                          <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${completionScore}%` }}
+                              transition={{ duration: 0.5, delay: 0.2 }}
+                              className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
+                            />
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                className="flex flex-col items-center justify-center min-h-[60vh]"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+              >
+                <div className="text-center mb-8">
+                  <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text text-transparent mb-2">
+                    Mastery Practice
+                  </h1>
+                  <p className="text-white/80 text-lg">Your journey to academic excellence, led by an in-depth science-based AI tutor.</p>
+                </div>
+
+                <motion.button
+                  onClick={() => setShowWizard(true)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-purple-500/50 transition-all text-lg flex items-center gap-2"
+                >
+                  <Sparkles className="w-5 h-5" />
+                  Start Practice Session
+                </motion.button>
+              </motion.div>
+            )}
+          </>
         )}
 
         {isBlurtModeActive && currentSession && (
