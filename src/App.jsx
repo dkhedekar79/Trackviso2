@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { TimerProvider, useTimer } from './context/TimerContext';
@@ -28,6 +28,8 @@ import Footer from './components/Footer';
 import { ThemeProvider } from './context/ThemeContext';
 import { DashboardProvider } from './context/DashboardContext';
 import { SubscriptionProvider } from './context/SubscriptionContext';
+import Unsupported from './pages/Unsupported';
+import { isMobileDevice } from './utils/deviceDetection';
 import './styles/index.css';
 
 
@@ -44,6 +46,40 @@ const RouteCleanup = () => {
 };
 
 function App() {
+  const [isMobile, setIsMobile] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
+
+  useEffect(() => {
+    // Check on mount
+    setIsMobile(isMobileDevice());
+    setIsChecking(false);
+
+    // Check on window resize
+    const handleResize = () => {
+      setIsMobile(isMobileDevice());
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Show loading while checking
+  if (isChecking) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+          <p className="text-purple-300">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show unsupported page for mobile devices
+  if (isMobile) {
+    return <Unsupported />;
+  }
+
   return (
     <AuthProvider>
       <SubscriptionProvider>
