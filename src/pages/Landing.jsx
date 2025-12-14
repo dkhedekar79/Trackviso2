@@ -1680,7 +1680,7 @@ const AmbientModeSection = () => {
                 style={{ fontFamily: 'Poppins, sans-serif' }}
               >
                 <div className="text-9xl font-bold tracking-wider mb-4" style={{ fontWeight: 900 }}>
-                  25:34
+                  {formatTime(timerSeconds)}
                 </div>
                 <div className="text-2xl text-white/90 mt-8 drop-shadow-lg font-bold" style={{ fontWeight: 700 }}>
                   Biology
@@ -1739,6 +1739,93 @@ const AmbientModeSection = () => {
                 </motion.button>
               </motion.div>
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Settings Modal */}
+      <AnimatePresence>
+        {showSettings && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[10000] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setShowSettings(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-gradient-to-br from-purple-900/95 to-slate-900/95 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                  <ImageIcon className="w-6 h-6 text-purple-400" />
+                  Ambient Mode Background Gallery
+                </h2>
+                <button
+                  onClick={() => setShowSettings(false)}
+                  className="p-2 rounded-lg bg-purple-800/40 hover:bg-purple-800/60 text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Static Images Section */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                  <ImageIcon className="w-5 h-5 text-purple-400" />
+                  Static Backgrounds
+                </h3>
+                {ambientImages.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {ambientImages.map((image) => (
+                      <motion.div
+                        key={image.id}
+                        className="relative group aspect-video rounded-lg overflow-hidden border-2 transition-all cursor-pointer"
+                        style={{
+                          borderColor: selectedImage === image.id 
+                            ? 'rgba(168, 85, 247, 1)' 
+                            : 'rgba(168, 85, 247, 0.3)'
+                        }}
+                        whileHover={{ scale: 1.05 }}
+                        onClick={() => {
+                          setSelectedImage(image.id);
+                          setShowSettings(false);
+                        }}
+                      >
+                        <div
+                          className="absolute inset-0 bg-cover bg-center"
+                          style={{
+                            backgroundImage: `url(${image.data || image.path || ''})`
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                          <button
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                              selectedImage === image.id
+                                ? 'bg-purple-600 text-white'
+                                : 'bg-white/20 text-white opacity-0 group-hover:opacity-100'
+                            }`}
+                          >
+                            {selectedImage === image.id ? 'Selected' : 'Select'}
+                          </button>
+                        </div>
+                        <div className="absolute bottom-2 left-2 right-2">
+                          <p className="text-white text-sm font-medium bg-black/50 backdrop-blur-sm px-2 py-1 rounded">
+                            {image.name}
+                          </p>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-purple-300/70 text-sm">No static backgrounds available</p>
+                )}
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
