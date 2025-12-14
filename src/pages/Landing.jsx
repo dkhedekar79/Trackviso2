@@ -1671,9 +1671,12 @@ const AmbientModeSection = () => {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden pointer-events-auto"
             style={{
-              backgroundImage: ambientImages.length > 0
-                ? `url(${ambientImages[0]?.data || ambientImages[0]?.path || ''})`
-                : 'none',
+              backgroundImage: ambientImages.length > 0 && (() => {
+                const currentImage = selectedImage 
+                  ? ambientImages.find(img => img.id === selectedImage) 
+                  : ambientImages[0];
+                return currentImage ? `url(${currentImage.data || currentImage.path || ''})` : 'none';
+              })() || 'none',
               backgroundColor: ambientImages.length > 0 ? 'transparent' : '#000000',
               backgroundSize: 'cover',
               backgroundPosition: 'center',
