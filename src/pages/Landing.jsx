@@ -1671,23 +1671,44 @@ const AmbientModeSection = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden pointer-events-auto"
-            style={{
-              backgroundImage: ambientImages.length > 0 && (() => {
-                const currentImage = selectedImage 
-                  ? ambientImages.find(img => img.id === selectedImage) 
-                  : ambientImages[0];
-                return currentImage ? `url(${currentImage.data || currentImage.path || ''})` : 'none';
-              })() || 'none',
-              backgroundColor: ambientImages.length > 0 ? 'transparent' : '#000000',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat'
-            }}
             onMouseLeave={() => {
               setIsFullscreenHover(false);
               setIsHovered(false);
             }}
           >
+            {/* Background - Video or Image */}
+            {selectedVideo && ambientVideos ? (() => {
+              const currentVideo = ambientVideos.find(vid => vid.id === selectedVideo);
+              return currentVideo ? (
+                <video
+                  src={currentVideo.path}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                />
+              ) : null;
+            })() : ambientImages.length > 0 && (() => {
+              const currentImage = selectedImage 
+                ? ambientImages.find(img => img.id === selectedImage) 
+                : ambientImages[0];
+              return currentImage ? (
+                <div
+                  className="absolute inset-0 w-full h-full"
+                  style={{
+                    backgroundImage: `url(${currentImage.data || currentImage.path || ''})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat'
+                  }}
+                />
+              ) : null;
+            })()}
+            {(!selectedVideo && (!ambientImages || ambientImages.length === 0)) && (
+              <div className="absolute inset-0 bg-black" />
+            )}
+            
             {/* Subtle overlay for better text readability */}
             <div className="absolute inset-0" />
             
