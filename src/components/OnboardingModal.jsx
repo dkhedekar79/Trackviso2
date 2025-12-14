@@ -5,8 +5,7 @@ import React, { useState, useEffect } from "react";
 const OnboardingModal = ({ userId }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState(0);
-
-  const storageKey = `onboardingDismissed_${userId || "guest"}`;
+  const [hasChecked, setHasChecked] = useState(false);
 
   const steps = [
     {
@@ -32,14 +31,31 @@ const OnboardingModal = ({ userId }) => {
   ];
 
   // Show only on first visit per user (or guest)
+  // Only check once when userId is available, or if userId is null/undefined (guest)
   useEffect(() => {
+    // Don't check again if we've already checked
+    if (hasChecked) return;
+
+    // If userId is not available yet, wait
+    if (userId === undefined) return;
+
+    // Now we can check - userId is either a string or null/undefined (guest)
+    const storageKey = `onboardingDismissed_${userId || "guest"}`;
     const globalSeen = localStorage.getItem("seenOnboarding"); // legacy key support
     const seen = localStorage.getItem(storageKey);
-    if (!seen && !globalSeen) setIsOpen(true);
-  }, [storageKey]);
+    
+    if (!seen && !globalSeen) {
+      setIsOpen(true);
+    }
+    
+    setHasChecked(true);
+  }, [userId, hasChecked]);
 
   const closeForever = () => {
+    const storageKey = `onboardingDismissed_${userId || "guest"}`;
     localStorage.setItem(storageKey, "true");
+    // Also set the legacy key for backward compatibility
+    localStorage.setItem("seenOnboarding", "true");
     setIsOpen(false);
   };
 
