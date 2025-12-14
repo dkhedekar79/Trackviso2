@@ -9,14 +9,15 @@ import {
 import { useSubscription } from '../context/SubscriptionContext';
 import PremiumUpgradeModal from './PremiumUpgradeModal';
 
-const MockExamModeSection = ({ selectedTopics, masterySetup, onContinue }) => {
+const MockExamModeSection = ({ selectedTopics, masterySetup, onContinue, initialNotes = null, initialKnowledgeMap = null }) => {
   const { canUseMockExam, incrementMockExamUsage, subscriptionPlan, getRemainingMockExams } = useSubscription();
-  const [stage, setStage] = useState('choice'); // 'choice' | 'loading' | 'display' | 'setup' | 'exam' | 'marking' | 'results'
-  const [notes, setNotes] = useState('');
+  // If initialNotes is provided, skip the choice stage and go straight to display
+  const [stage, setStage] = useState(initialNotes ? 'display' : 'choice'); // 'choice' | 'loading' | 'display' | 'setup' | 'exam' | 'marking' | 'results'
+  const [notes, setNotes] = useState(initialNotes || '');
   const [manualInput, setManualInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [knowledgeMap, setKnowledgeMap] = useState(null);
+  const [knowledgeMap, setKnowledgeMap] = useState(initialKnowledgeMap || initialNotes || null);
   const [showNotes, setShowNotes] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   
