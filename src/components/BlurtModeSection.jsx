@@ -20,6 +20,20 @@ const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue, initialNot
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [isAIGenerated, setIsAIGenerated] = useState(initialIsAIGenerated); // Track if notes are AI-generated
 
+  // Extract topic headings from notes (### headings)
+  const extractTopicHeadings = (notesText) => {
+    if (!notesText) return [];
+    const headingRegex = /^###\s+(.+)$/gm;
+    const headings = [];
+    let match;
+    while ((match = headingRegex.exec(notesText)) !== null) {
+      headings.push(match[1].trim());
+    }
+    return headings;
+  };
+
+  const topicHeadings = isAIGenerated && notes ? extractTopicHeadings(notes) : [];
+
   const handleAIGenerate = async () => {
     setLoading(true);
     setError(null);
@@ -497,16 +511,13 @@ const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue, initialNot
                         <h4 className="text-lg font-bold text-amber-200">Topics to Write About</h4>
                       </div>
                       <div className="space-y-3">
-                        {selectedTopics && masterySetup?.topics && selectedTopics.length > 0 ? (
-                          selectedTopics
-                            .map(topicId => masterySetup.topics.find(t => t.id === topicId)?.name)
-                            .filter(Boolean)
-                            .map((topicName, index) => (
-                              <div key={index} className="flex items-start gap-2">
-                                <div className="w-2 h-2 rounded-full bg-amber-400 mt-2 flex-shrink-0" />
-                                <p className="text-amber-100/90 text-sm leading-relaxed">{topicName}</p>
-                              </div>
-                            ))
+                        {topicHeadings.length > 0 ? (
+                          topicHeadings.map((heading, index) => (
+                            <div key={index} className="flex items-start gap-2">
+                              <div className="w-2 h-2 rounded-full bg-amber-400 mt-2 flex-shrink-0" />
+                              <p className="text-amber-100/90 text-sm leading-relaxed">{heading}</p>
+                            </div>
+                          ))
                         ) : (
                           <p className="text-amber-100/70 text-sm">No topics available</p>
                         )}
