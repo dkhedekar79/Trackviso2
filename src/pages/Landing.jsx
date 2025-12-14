@@ -1552,120 +1552,6 @@ const AmbientModeSection = () => {
           </motion.div>
         </div>
 
-        {/* Fullscreen Overlay on Hover - Outside grid */}
-        <AnimatePresence>
-          {isFullscreenHover && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden pointer-events-auto"
-              style={{
-                backgroundImage: ambientImages.length > 0
-                  ? `url(${ambientImages[0]?.data || ambientImages[0]?.path || ''})`
-                  : 'none',
-                backgroundColor: ambientImages.length > 0 ? 'transparent' : '#000000',
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat'
-              }}
-              onMouseLeave={() => {
-                setIsFullscreenHover(false);
-                setIsHovered(false);
-              }}
-            >
-                {/* Subtle overlay for better text readability */}
-                <div className="absolute inset-0" />
-                
-                {/* Settings Button in Corner */}
-                <motion.button
-                  className="absolute top-4 right-4 z-20 p-3 rounded-lg bg-black/30 backdrop-blur-sm border border-white/20 hover:bg-black/50 transition-all"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ delay: 0.2 }}
-                  title="Manage Background Images"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Settings className="w-5 h-5 text-white" />
-                </motion.button>
-                
-                <div className="text-center relative z-10">
-                  <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.8, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="text-white drop-shadow-2xl"
-                    style={{ fontFamily: 'Poppins, sans-serif' }}
-                  >
-                    <div className="text-9xl font-bold tracking-wider mb-4" style={{ fontWeight: 900 }}>
-                      25:34
-                    </div>
-                    <div className="text-2xl text-white/90 mt-8 drop-shadow-lg font-bold" style={{ fontWeight: 700 }}>
-                      Biology
-                    </div>
-                  </motion.div>
-                  
-                  {/* Minimal Control Buttons */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="mt-12 flex items-center justify-center gap-4"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {/* Start/Pause Button */}
-                    {isRunning ? (
-                      <motion.button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsRunning(false);
-                        }}
-                        className="p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white transition-all"
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.95 }}
-                        title="Pause"
-                      >
-                        <Pause className="w-5 h-5" />
-                      </motion.button>
-                    ) : (
-                      <motion.button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsRunning(true);
-                        }}
-                        className="p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white transition-all"
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.95 }}
-                        title="Start"
-                      >
-                        <Play className="w-5 h-5" />
-                      </motion.button>
-                    )}
-                    
-                    {/* End Session Button */}
-                    <motion.button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsRunning(false);
-                      }}
-                      className="p-3 rounded-full bg-red-500/20 hover:bg-red-500/30 backdrop-blur-sm border border-red-400/30 text-white transition-all"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
-                      title="End Session"
-                    >
-                      <Square className="w-5 h-5" />
-                    </motion.button>
-                  </motion.div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
         {/* Bottom CTA */}
         <motion.div
           className="text-center"
@@ -1690,6 +1576,119 @@ const AmbientModeSection = () => {
           </motion.div>
         </motion.div>
       </div>
+
+      {/* Fullscreen Overlay on Hover - Outside section container */}
+      <AnimatePresence>
+        {isFullscreenHover && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden pointer-events-auto"
+            style={{
+              backgroundImage: ambientImages.length > 0
+                ? `url(${ambientImages[0]?.data || ambientImages[0]?.path || ''})`
+                : 'none',
+              backgroundColor: ambientImages.length > 0 ? 'transparent' : '#000000',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat'
+            }}
+            onMouseLeave={() => {
+              setIsFullscreenHover(false);
+              setIsHovered(false);
+            }}
+          >
+            {/* Subtle overlay for better text readability */}
+            <div className="absolute inset-0" />
+            
+            {/* Settings Button in Corner */}
+            <motion.button
+              className="absolute top-4 right-4 z-20 p-3 rounded-lg bg-black/30 backdrop-blur-sm border border-white/20 hover:bg-black/50 transition-all"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ delay: 0.2 }}
+              title="Manage Background Images"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Settings className="w-5 h-5 text-white" />
+            </motion.button>
+            
+            <div className="text-center relative z-10">
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="text-white drop-shadow-2xl"
+                style={{ fontFamily: 'Poppins, sans-serif' }}
+              >
+                <div className="text-9xl font-bold tracking-wider mb-4" style={{ fontWeight: 900 }}>
+                  25:34
+                </div>
+                <div className="text-2xl text-white/90 mt-8 drop-shadow-lg font-bold" style={{ fontWeight: 700 }}>
+                  Biology
+                </div>
+              </motion.div>
+              
+              {/* Minimal Control Buttons */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="mt-12 flex items-center justify-center gap-4"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Start/Pause Button */}
+                {isRunning ? (
+                  <motion.button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsRunning(false);
+                    }}
+                    className="p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white transition-all"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    title="Pause"
+                  >
+                    <Pause className="w-5 h-5" />
+                  </motion.button>
+                ) : (
+                  <motion.button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsRunning(true);
+                    }}
+                    className="p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white transition-all"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    title="Start"
+                  >
+                    <Play className="w-5 h-5" />
+                  </motion.button>
+                )}
+                
+                {/* End Session Button */}
+                <motion.button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsRunning(false);
+                  }}
+                  className="p-3 rounded-full bg-red-500/20 hover:bg-red-500/30 backdrop-blur-sm border border-red-400/30 text-white transition-all"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  title="End Session"
+                >
+                  <Square className="w-5 h-5" />
+                </motion.button>
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 };
