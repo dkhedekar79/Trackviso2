@@ -29,7 +29,14 @@ import {
   Gem,
   FileText,
   RefreshCw,
-  Eye
+  Eye,
+  Moon,
+  Maximize2,
+  Image as ImageIcon,
+  Video,
+  Music,
+  PlayCircle,
+  PauseCircle
 } from "lucide-react";
 import ImageCarousel from '../components/ImageCarousel';
 import { ChevronDown } from "lucide-react";
@@ -477,6 +484,8 @@ const Landing = () => {
       </section>
 
       <StudyModesSection />
+
+      <AmbientModeSection />
 
       {/* How It Works Section */}
       <section id="how-it-works" className="py-32 px-4 bg-gradient-to-b from-purple-900/50 via-slate-900 to-slate-900 relative overflow-hidden">
@@ -928,7 +937,7 @@ const Landing = () => {
 
 // Study Modes Section Component
 const StudyModesSection = () => {
-  const [activeMode, setActiveMode] = useState(0); // 0: Blurt, 1: Spaced Retrieval, 2: Mock Exam
+  const [activeMode, setActiveMode] = useState(0); // 0: Blurt, 1: Mock Exam
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const modes = [
@@ -946,19 +955,6 @@ const StudyModesSection = () => {
       isAvailable: true
     },
     {
-      name: "Spaced Retrieval",
-      icon: RefreshCw,
-      description: "A fully adaptive spaced-repetition system powered by precision AI scheduling. Create flashcards, take targeted quizzes or let the platform auto-generate questions from your notes or specifications. Each review is timed according to your memory strength, ensuring you study material exactly when you're most likely to forget it.",
-      features: [
-        "Adaptive scheduling: AI determines optimal review intervals based on your memory strength",
-        "Smart flashcards: Create custom cards or let AI generate them from your notes",
-        "Performance tracking: Comprehensive reports track retention trends and highlight weak areas",
-        "Personalized timing: Study material exactly when you're most likely to forget it"
-      ],
-      color: "purple",
-      isAvailable: false
-    },
-    {
       name: "Mock Exam",
       icon: FileText,
       description: "A realistic exam-simulation environment built for high-stakes preparation. Generate full papers aligned to your exam board, practice under timed conditions and receive structured, examiner-style marking. The system analyses your answers for accuracy, technique and depth, while also pinpointing content gaps and recurring weaknesses.",
@@ -969,7 +965,7 @@ const StudyModesSection = () => {
         "Performance analysis: Identify content gaps and recurring weaknesses"
       ],
       color: "red",
-      isAvailable: false
+      isAvailable: true
     }
   ];
 

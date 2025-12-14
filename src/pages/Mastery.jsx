@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, TrendingUp, Clock, Zap, FileText, Play, Image, Video, ArrowRight, Star } from 'lucide-react';
+import { Sparkles, TrendingUp, Clock } from 'lucide-react';
 import MasteryWizard from '../components/MasteryWizard';
 import BlurtModeSection from '../components/BlurtModeSection';
 import MockExamModeSection from '../components/MockExamModeSection';
@@ -8,7 +8,6 @@ import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import { useGamification } from '../context/GamificationContext';
 import { getTopicsForSubject } from '../data/masteryTopics';
-import { useNavigate } from 'react-router-dom';
 
 // Helper function to calculate completion score from individual scores
 const calculateCompletionScore = (topicProgress, applyDeterioration = true) => {
@@ -35,7 +34,6 @@ const Mastery = () => {
   const { user } = useAuth();
   const { subscriptionPlan } = useSubscription();
   const { awardMasteryXP, checkSubjectMasteryMilestones } = useGamification();
-  const navigate = useNavigate();
   const [subjects, setSubjects] = useState([]);
   const [showWizard, setShowWizard] = useState(false);
   const [currentSession, setCurrentSession] = useState(null); // { mode, subject, topics, topicIds, notes, qualification, examBoard }

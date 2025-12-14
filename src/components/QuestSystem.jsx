@@ -603,7 +603,7 @@ const QuestSystem = ({ claimWeeklyGoalXP }) => {
           </div>
         </motion.div>
       )}
-
+      
       {/* Quest Overview */}
       <div className="bg-white/10 rounded-xl p-6 mb-6 backdrop-blur">
         <div className="flex items-center justify-between mb-4">
