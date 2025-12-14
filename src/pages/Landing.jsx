@@ -39,7 +39,8 @@ import {
   Settings,
   Play,
   Pause,
-  Square
+  Square,
+  X
 } from "lucide-react";
 import ImageCarousel from '../components/ImageCarousel';
 import { ChevronDown } from "lucide-react";
@@ -1205,6 +1206,10 @@ const AmbientModeSection = () => {
   const [isFullscreenHover, setIsFullscreenHover] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [timerSeconds, setTimerSeconds] = useState(25 * 60 + 34); // 25:34 in seconds
+  const [selectedImage, setSelectedImage] = useState(null);
+  const sectionRef = useRef(null);
 
   const features = [
     {
@@ -1235,6 +1240,54 @@ const AmbientModeSection = () => {
     }, 3000);
     return () => clearInterval(interval);
   }, [features.length]);
+
+  // Timer functionality
+  useEffect(() => {
+    let interval = null;
+    if (isRunning && timerSeconds > 0) {
+      interval = setInterval(() => {
+        setTimerSeconds((prev) => Math.max(0, prev - 1));
+      }, 1000);
+    } else if (timerSeconds === 0) {
+      setIsRunning(false);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isRunning, timerSeconds]);
+
+  // Format time display
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Scroll detection to fade out overlay
+  useEffect(() => {
+    if (!isFullscreenHover) return;
+
+    const handleScroll = () => {
+      if (sectionRef.current) {
+        const rect = sectionRef.current.getBoundingClientRect();
+        // If scrolled past the section, fade out
+        if (rect.bottom < 0 || rect.top > window.innerHeight) {
+          setIsFullscreenHover(false);
+          setIsHovered(false);
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isFullscreenHover]);
+
+  // Set default selected image
+  useEffect(() => {
+    if (ambientImages.length > 0 && !selectedImage) {
+      setSelectedImage(ambientImages[0].id);
+    }
+  }, [ambientImages, selectedImage]);
 
   return (
     <section 
@@ -1450,7 +1503,7 @@ const AmbientModeSection = () => {
                         ease: "easeInOut"
                       }}
                     >
-                      25:34
+                      {formatTime(timerSeconds)}
                     </motion.h3>
                     <motion.p
                       className="text-2xl text-white/90 mt-8"
