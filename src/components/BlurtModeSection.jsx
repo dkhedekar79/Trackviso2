@@ -18,6 +18,7 @@ const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue, initialNot
   const [showNotes, setShowNotes] = useState(false);
   const [analysisResults, setAnalysisResults] = useState(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [isAIGenerated, setIsAIGenerated] = useState(initialIsAIGenerated); // Track if notes are AI-generated
 
   const handleAIGenerate = async () => {
     setLoading(true);
@@ -43,6 +44,7 @@ const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue, initialNot
 
       setNotes(data.notes || '');
       setKnowledgeMap(data.knowledgeMap || null);
+      setIsAIGenerated(true); // Mark as AI-generated
       setShowNotes(false); // Reset to blurred state
       setStage('display');
     } catch (err) {
@@ -60,6 +62,7 @@ const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue, initialNot
     }
     setNotes(manualInput);
     setKnowledgeMap(manualInput); // Use manual input as knowledge map reference
+    setIsAIGenerated(false); // Mark as manual entry
     setShowNotes(false); // Reset to blurred state
     setStage('display');
     setError(null);
@@ -463,9 +466,9 @@ const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue, initialNot
                 </div>
               )}
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className={`grid grid-cols-1 ${isAIGenerated ? 'lg:grid-cols-3' : 'lg:grid-cols-1'} gap-6`}>
                 {/* Left side - Blurt Input */}
-                <div className="lg:col-span-2">
+                <div className={isAIGenerated ? "lg:col-span-2" : ""}>
                   <label className="block text-sm font-medium text-amber-200 mb-3">
                     Your Blurt Response
                   </label>
@@ -485,58 +488,33 @@ const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue, initialNot
                   </p>
                 </div>
 
-                {/* Right side - Key Points Card */}
-                <div className="lg:col-span-1">
-                  <div className="bg-gradient-to-br from-amber-900/40 to-orange-900/40 rounded-xl p-6 border-2 border-amber-600/30 h-full">
-                    <div className="flex items-center gap-2 mb-4">
-                      <FileText className="w-5 h-5 text-amber-300" />
-                      <h4 className="text-lg font-bold text-amber-200">Key Points to Write About</h4>
-                    </div>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <p className="text-amber-100/90 font-semibold text-sm">Core Concepts</p>
-                        <p className="text-amber-100/70 text-xs leading-relaxed">
-                          Write down the main definitions, principles, and fundamental ideas related to the topics.
+                {/* Right side - Key Points Card (only show if AI-generated) */}
+                {isAIGenerated && (
+                  <div className="lg:col-span-1">
+                    <div className="bg-gradient-to-br from-amber-900/40 to-orange-900/40 rounded-xl p-6 border-2 border-amber-600/30 h-full">
+                      <div className="flex items-center gap-2 mb-4">
+                        <FileText className="w-5 h-5 text-amber-300" />
+                        <h4 className="text-lg font-bold text-amber-200">Topics to Write About</h4>
+                      </div>
+                      <div className="space-y-3">
+                        {selectedTopics
+                          .map(topicId => masterySetup?.topics?.find(t => t.id === topicId)?.name)
+                          .filter(Boolean)
+                          .map((topicName, index) => (
+                            <div key={index} className="flex items-start gap-2">
+                              <div className="w-2 h-2 rounded-full bg-amber-400 mt-2 flex-shrink-0" />
+                              <p className="text-amber-100/90 text-sm leading-relaxed">{topicName}</p>
+                            </div>
+                          ))}
+                      </div>
+                      <div className="mt-6 pt-4 border-t border-amber-700/30">
+                        <p className="text-amber-200/80 text-xs italic">
+                          💡 Tip: Write about everything you remember for these topics!
                         </p>
                       </div>
-                      <div className="space-y-2">
-                        <p className="text-amber-100/90 font-semibold text-sm">Formulas & Equations</p>
-                        <p className="text-amber-100/70 text-xs leading-relaxed">
-                          Include any mathematical formulas, equations, or calculations you remember.
-                        </p>
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-amber-100/90 font-semibold text-sm">Examples & Applications</p>
-                        <p className="text-amber-100/70 text-xs leading-relaxed">
-                          Describe real-world examples, use cases, or practical applications of the concepts.
-                        </p>
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-amber-100/90 font-semibold text-sm">Processes & Steps</p>
-                        <p className="text-amber-100/70 text-xs leading-relaxed">
-                          Outline step-by-step processes, procedures, or methods you recall.
-                        </p>
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-amber-100/90 font-semibold text-sm">Relationships & Connections</p>
-                        <p className="text-amber-100/70 text-xs leading-relaxed">
-                          Explain how different concepts relate to each other or connect.
-                        </p>
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-amber-100/90 font-semibold text-sm">Important Details</p>
-                        <p className="text-amber-100/70 text-xs leading-relaxed">
-                          Note any specific facts, dates, names, or important details that come to mind.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="mt-6 pt-4 border-t border-amber-700/30">
-                      <p className="text-amber-200/80 text-xs italic">
-                        💡 Tip: Don't worry about being perfect or organized. Just write everything you know!
-                      </p>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
 
               <div className="flex gap-3">

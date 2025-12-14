@@ -148,6 +148,7 @@ const Mastery = () => {
             }}
             initialNotes={currentSession.notes}
             initialKnowledgeMap={currentSession.knowledgeMap}
+            initialIsAIGenerated={currentSession.isAIGenerated || false}
               onContinue={async (blurtData) => {
                 // If finishing (has percentage), update topic scores
                 if (blurtData.percentage !== undefined) {
@@ -213,6 +214,7 @@ const Mastery = () => {
             }}
             initialNotes={currentSession.notes}
             initialKnowledgeMap={currentSession.knowledgeMap}
+            initialIsAIGenerated={currentSession.isAIGenerated || false}
             onContinue={async (mockExamData) => {
               try {
                 // If finishing (has percentage), update topic scores

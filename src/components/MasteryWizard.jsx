@@ -16,6 +16,7 @@ const MasteryWizard = ({ subjects, onComplete, onClose }) => {
   const [availableTopics, setAvailableTopics] = useState([]);
   const [notes, setNotes] = useState('');
   const [knowledgeMap, setKnowledgeMap] = useState(null);
+  const [isAIGenerated, setIsAIGenerated] = useState(false);
   const [manualInput, setManualInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -98,6 +99,7 @@ const MasteryWizard = ({ subjects, onComplete, onClose }) => {
         );
         setNotes(data.notes || '');
         setKnowledgeMap(data.knowledgeMap || data.notes || '');
+        setIsAIGenerated(true);
       } else {
         const { generateMockExamNotes } = await import('../utils/mockExamApi');
         const data = await generateMockExamNotes(
@@ -108,6 +110,7 @@ const MasteryWizard = ({ subjects, onComplete, onClose }) => {
         );
         setNotes(data.notes || '');
         setKnowledgeMap(data.knowledgeMap || data.notes || '');
+        setIsAIGenerated(true);
       }
     } catch (err) {
       setError(err.message || 'Failed to generate notes. Please try again.');
@@ -123,6 +126,7 @@ const MasteryWizard = ({ subjects, onComplete, onClose }) => {
     }
     setNotes(manualInput);
     setKnowledgeMap(manualInput); // Use manual input as knowledge map
+    setIsAIGenerated(false);
     setError('');
   };
 
@@ -145,6 +149,7 @@ const MasteryWizard = ({ subjects, onComplete, onClose }) => {
       knowledgeMap: knowledgeMap || notes, // Pass knowledgeMap as well
       qualification,
       examBoard,
+      isAIGenerated: isAIGenerated, // Pass AI generation flag
     });
   };
 
