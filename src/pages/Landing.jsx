@@ -1402,7 +1402,13 @@ const AmbientModeSection = () => {
             }}
           >
             {/* Preview Card */}
-            <div className="relative bg-gradient-to-br from-slate-900/80 to-purple-900/80 backdrop-blur-xl rounded-3xl border-2 border-purple-700/50 shadow-2xl shadow-purple-500/30 overflow-hidden cursor-pointer">
+            <div 
+              className="relative bg-gradient-to-br from-slate-900/80 to-purple-900/80 backdrop-blur-xl rounded-3xl border-2 border-purple-700/50 shadow-2xl shadow-purple-500/30 overflow-hidden cursor-pointer"
+              onMouseEnter={() => {
+                setIsHovered(true);
+                setIsFullscreenHover(true);
+              }}
+            >
               {/* Mock Ambient Mode Screen */}
               <div className="aspect-[9/16] relative bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
                 {/* Background Image Effect */}
