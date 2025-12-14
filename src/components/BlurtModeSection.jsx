@@ -5,7 +5,7 @@ import { generateBlurtNotes, analyzeBlurtResponse } from '../utils/blurtNotesApi
 import { useSubscription } from '../context/SubscriptionContext';
 import PremiumUpgradeModal from './PremiumUpgradeModal';
 
-const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue, initialNotes = null, initialKnowledgeMap = null }) => {
+const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue, initialNotes = null, initialKnowledgeMap = null, initialIsAIGenerated = false }) => {
   const { canUseBlurtTest, incrementBlurtTestUsage, subscriptionPlan, getRemainingBlurtTests } = useSubscription();
   // If initialNotes is provided, skip the choice stage and go straight to display
   const [stage, setStage] = useState(initialNotes ? 'display' : 'choice'); // 'choice' | 'loading' | 'display' | 'blurt' | 'analyzing' | 'results'
@@ -497,15 +497,19 @@ const BlurtModeSection = ({ selectedTopics, masterySetup, onContinue, initialNot
                         <h4 className="text-lg font-bold text-amber-200">Topics to Write About</h4>
                       </div>
                       <div className="space-y-3">
-                        {selectedTopics
-                          .map(topicId => masterySetup?.topics?.find(t => t.id === topicId)?.name)
-                          .filter(Boolean)
-                          .map((topicName, index) => (
-                            <div key={index} className="flex items-start gap-2">
-                              <div className="w-2 h-2 rounded-full bg-amber-400 mt-2 flex-shrink-0" />
-                              <p className="text-amber-100/90 text-sm leading-relaxed">{topicName}</p>
-                            </div>
-                          ))}
+                        {selectedTopics && masterySetup?.topics && selectedTopics.length > 0 ? (
+                          selectedTopics
+                            .map(topicId => masterySetup.topics.find(t => t.id === topicId)?.name)
+                            .filter(Boolean)
+                            .map((topicName, index) => (
+                              <div key={index} className="flex items-start gap-2">
+                                <div className="w-2 h-2 rounded-full bg-amber-400 mt-2 flex-shrink-0" />
+                                <p className="text-amber-100/90 text-sm leading-relaxed">{topicName}</p>
+                              </div>
+                            ))
+                        ) : (
+                          <p className="text-amber-100/70 text-sm">No topics available</p>
+                        )}
                       </div>
                       <div className="mt-6 pt-4 border-t border-amber-700/30">
                         <p className="text-amber-200/80 text-xs italic">
