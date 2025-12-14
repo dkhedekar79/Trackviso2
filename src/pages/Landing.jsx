@@ -1495,6 +1495,22 @@ const AmbientModeSection = () => {
                 setIsFullscreenHover(true);
               }}
             >
+              {/* Bouncing "Hover on me" Tag */}
+              <motion.div
+                className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-bold rounded-full shadow-lg backdrop-blur-sm border border-white/20"
+                animate={{
+                  y: [0, -8, 0],
+                  scale: [1, 1.05, 1]
+                }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              >
+                ✨ Hover on me ✨
+              </motion.div>
+              
               {/* Mock Ambient Mode Screen */}
               <div className="aspect-[9/16] relative bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
                 {/* Background Image Effect */}
