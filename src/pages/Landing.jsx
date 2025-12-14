@@ -1267,19 +1267,51 @@ const AmbientModeSection = () => {
   useEffect(() => {
     if (!isFullscreenHover) return;
 
+    let lastScrollY = window.scrollY;
+    let scrollTimeout = null;
+
     const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const scrollDelta = Math.abs(currentScrollY - lastScrollY);
+      
+      // If user scrolled more than 50px, fade out the overlay
+      if (scrollDelta > 50) {
+        setIsFullscreenHover(false);
+        setIsHovered(false);
+        lastScrollY = currentScrollY;
+        return;
+      }
+      
+      // Also check if section is out of view
       if (sectionRef.current) {
         const rect = sectionRef.current.getBoundingClientRect();
-        // If scrolled past the section, fade out
-        if (rect.bottom < 0 || rect.top > window.innerHeight) {
+        // If scrolled past the section significantly, fade out
+        if (rect.bottom < -100 || rect.top > window.innerHeight + 100) {
           setIsFullscreenHover(false);
           setIsHovered(false);
         }
       }
+      
+      lastScrollY = currentScrollY;
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    // Use throttled scroll for better performance
+    const throttledHandleScroll = () => {
+      if (scrollTimeout) return;
+      scrollTimeout = setTimeout(() => {
+        handleScroll();
+        scrollTimeout = null;
+      }, 50);
+    };
+
+    window.addEventListener('scroll', throttledHandleScroll, { passive: true });
+    window.addEventListener('wheel', throttledHandleScroll, { passive: true });
+    
+    return () => {
+      window.removeEventListener('scroll', throttledHandleScroll);
+      window.removeEventListener('wheel', throttledHandleScroll);
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+    };
   }, [isFullscreenHover]);
 
   // Set default selected image
