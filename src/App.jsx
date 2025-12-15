@@ -28,8 +28,6 @@ import OnboardingModal from "./components/OnboardingModal";
 import Footer from './components/Footer';
 import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
-import Blog from './pages/Blog';
-import BlogPost from './pages/BlogPost';
 import { ThemeProvider } from './context/ThemeContext';
 import { DashboardProvider } from './context/DashboardContext';
 import { SubscriptionProvider } from './context/SubscriptionContext';
