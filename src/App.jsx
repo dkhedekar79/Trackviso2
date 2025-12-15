@@ -266,6 +266,10 @@ function App() {
               } />
 
               <Route path="/callback" element={<SpotifyCallback />} />
+
+              {/* Blog Routes - Not in navigation, SEO only */}
+              <Route path="/blog" element={<div className="flex flex-col min-h-screen"><main className="flex-1"><Blog /></main></div>} />
+              <Route path="/blog/:slug" element={<div className="flex flex-col min-h-screen"><main className="flex-1"><BlogPost /></main></div>} />
               
               {/* 404 Route */}
               <Route path="*" element={<NotFound />} />
