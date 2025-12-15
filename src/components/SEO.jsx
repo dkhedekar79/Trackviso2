@@ -52,6 +52,16 @@ const SEO = ({
       <meta name="theme-color" content="#0ea5e9" />
       <meta name="apple-mobile-web-app-capable" content="yes" />
       <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+      {/* Article-specific meta tags */}
+      {type === "article" && (
+        <>
+          <meta property="article:published_time" content={new Date().toISOString()} />
+          <meta property="article:modified_time" content={new Date().toISOString()} />
+          <meta property="article:author" content="Trackviso Team" />
+          <meta property="article:section" content="Education" />
+        </>
+      )}
     </Helmet>
   );
 };
