@@ -16,217 +16,163 @@
 export const blogPosts = [
   {
     id: 1,
-    slug: 'how-to-build-effective-study-habits',
-    title: 'How to Build Effective Study Habits That Actually Stick',
-    description: 'Discover proven strategies to develop consistent study habits, overcome procrastination, and maintain long-term academic success with science-backed techniques.',
-    keywords: 'study habits, effective studying, study routine, academic success, study tips, productivity, learning strategies',
+    slug: 'best-study-tracking-app-for-students',
+    title: 'Best Study Tracking App for Students: How to Track Study Time Properly',
+    description: 'Looking for the best study tracking app? Learn how tracking study time improves grades and why Trackviso is built specifically for students.',
+    keywords: 'study tracking app, track study time, student productivity app, best study app, Trackviso, time tracking for students',
     author: 'Trackviso Team',
-    authorBio: 'The Trackviso team is dedicated to helping students achieve academic excellence through gamified learning and proven study techniques.',
-    publishDate: '2024-01-15',
-    lastUpdated: '2024-01-15',
-    readingTime: 8,
-    category: 'Study Tips',
-    tags: ['study habits', 'productivity', 'learning', 'academic success'],
+    authorBio: 'Trackviso builds analytics-driven tools to help students study consistently and intelligently.',
+    publishDate: '2024-02-01',
+    lastUpdated: '2024-02-01',
+    readingTime: 9,
+    category: 'Productivity',
+    tags: ['study tracking', 'productivity', 'students', 'study app'],
     featuredImage: '/og.png',
     content: `
-      <h1>How to Build Effective Study Habits That Actually Stick</h1>
-      
-      <p>Building effective study habits is one of the most important skills you can develop as a student. Unlike motivation, which comes and goes, habits are automatic behaviors that help you maintain consistency even when you don't feel like studying.</p>
-      
-      <h2>Understanding the Science of Habit Formation</h2>
-      
-      <p>Habits are formed through a neurological loop consisting of three parts: cue, routine, and reward. Understanding this loop is crucial for building lasting study habits.</p>
-      
-      <h3>The Habit Loop Explained</h3>
-      
+      <h1>Best Study Tracking App for Students</h1>
+      <p>Most students believe they study a lot, but very few can actually prove it. Without tracking study time, effort becomes a vague feeling rather than measurable progress. This is why using a dedicated study tracking app has become essential for modern students.</p>
+      <p>A study tracking app allows students to record exactly how long they study, what subjects they focus on, and how consistent they are over time. This data-driven approach replaces guesswork with clarity.</p>
+      <h2>Why Tracking Study Time Improves Grades</h2>
+      <p>Tracking study time creates awareness. When students see how little time they actually spend on weaker subjects, they are more likely to rebalance their revision. Research in behavioural psychology shows that self-monitoring significantly increases habit consistency.</p>
+      <p>Instead of cramming before exams, students who track their study time tend to spread effort more evenly, leading to better long-term retention.</p>
+      <h2>What Makes the Best Study Tracking App</h2>
+      <p>The best study tracking app for students should go beyond a basic timer. It should track time by subject, show trends over weeks, and highlight consistency gaps.</p>
       <ul>
-        <li><strong>Cue:</strong> A trigger that tells your brain to go into automatic mode</li>
-        <li><strong>Routine:</strong> The behavior itself (studying)</li>
-        <li><strong>Reward:</strong> The benefit you gain from the behavior</li>
+        <li>Subject-based and session-based time tracking</li>
+        <li>Clear analytics and weekly summaries</li>
+        <li>Motivation through streaks and goals</li>
       </ul>
-      
-      <h2>Key Strategies for Building Study Habits</h2>
-      
-      <h3>1. Start Small and Build Gradually</h3>
-      
-      <p>One of the biggest mistakes students make is trying to study for hours on end from day one. Instead, start with just 15-20 minutes daily and gradually increase the duration as the habit becomes automatic.</p>
-      
-      <h3>2. Create a Consistent Study Schedule</h3>
-      
-      <p>Consistency is more important than duration. Studying for 30 minutes every day is far more effective than studying for 5 hours once a week. Use a study tracker like Trackviso to monitor your consistency and build streaks.</p>
-      
-      <h3>3. Design Your Environment</h3>
-      
-      <p>Your environment plays a crucial role in habit formation. Designate a specific study space, eliminate distractions, and make it easy to start studying. The easier it is to begin, the more likely you are to follow through.</p>
-      
-      <h3>4. Use Implementation Intentions</h3>
-      
-      <p>Research shows that "if-then" planning significantly increases habit formation. For example: "If it's 7 PM, then I will study for 30 minutes." This creates a clear trigger for your study habit.</p>
-      
-      <h2>Overcoming Common Obstacles</h2>
-      
-      <h3>Dealing with Procrastination</h3>
-      
-      <p>Procrastination often stems from perfectionism or fear of failure. Break large tasks into smaller, manageable chunks and focus on progress rather than perfection.</p>
-      
-      <h3>Maintaining Motivation</h3>
-      
-      <p>While motivation fluctuates, habits remain constant. Focus on building the habit first; motivation will follow as you see progress and results.</p>
-      
-      <h2>Tracking Your Progress</h2>
-      
-      <p>Using a study tracker helps you visualize your progress, maintain streaks, and stay accountable. Trackviso's gamification system turns habit-building into an engaging experience with XP, levels, and achievements.</p>
-      
-      <h2>Conclusion</h2>
-      
-      <p>Building effective study habits takes time and consistency, but the results are worth it. Start small, be consistent, and use tools like Trackviso to track your progress. Remember, it's not about perfection—it's about progress.</p>
+      <h2>Why Trackviso Is Built for Students</h2>
+      <p><a href="https://trackviso.com">Trackviso</a> is designed specifically for students, not generic productivity users. It combines time tracking, analytics, and gamification so students can see progress early and stay consistent.</p>
+      <p>When study time becomes visible, improvement becomes inevitable.</p>
     `,
   },
   {
     id: 2,
-    slug: 'spaced-repetition-technique-guide',
-    title: 'The Complete Guide to Spaced Repetition: Science-Backed Learning Technique',
-    description: 'Learn how spaced repetition can dramatically improve your memory retention and exam performance. Discover the science behind this powerful learning technique and how to implement it effectively.',
-    keywords: 'spaced repetition, memory retention, learning technique, active recall, study method, exam preparation, memory techniques',
+    slug: 'how-to-build-study-consistency',
+    title: 'How to Build Study Consistency Without Burning Out',
+    description: 'Struggling to study consistently? Learn practical strategies to build sustainable study habits using analytics and time tracking.',
+    keywords: 'study consistency, how to study consistently, study habits, student routine, Trackviso, daily study routine',
     author: 'Trackviso Team',
-    authorBio: 'The Trackviso team is dedicated to helping students achieve academic excellence through gamified learning and proven study techniques.',
-    publishDate: '2024-01-20',
-    lastUpdated: '2024-01-20',
+    authorBio: 'Trackviso helps students build sustainable study systems using data and behavioural science.',
+    publishDate: '2024-02-05',
+    lastUpdated: '2024-02-05',
     readingTime: 10,
-    category: 'Study Methods',
-    tags: ['spaced repetition', 'memory', 'learning techniques', 'active recall'],
+    category: 'Study Habits',
+    tags: ['study habits', 'consistency', 'students'],
     featuredImage: '/og.png',
     content: `
-      <h1>The Complete Guide to Spaced Repetition: Science-Backed Learning Technique</h1>
-      
-      <p>Spaced repetition is one of the most effective learning techniques backed by decades of cognitive science research. It can help you remember information for months or even years, making it invaluable for exam preparation and long-term learning.</p>
-      
-      <h2>What is Spaced Repetition?</h2>
-      
-      <p>Spaced repetition is a learning technique that involves reviewing information at increasing intervals over time. Instead of cramming, you review material just before you're about to forget it, strengthening your memory each time.</p>
-      
-      <h2>The Science Behind Spaced Repetition</h2>
-      
-      <p>Research by cognitive scientists like Hermann Ebbinghaus has shown that we forget information exponentially over time. However, each time we review information, the forgetting curve becomes less steep, meaning we retain information longer.</p>
-      
-      <h3>Key Research Findings</h3>
-      
-      <ul>
-        <li>Students using spaced repetition retain 50-70% more information than those using massed practice</li>
-        <li>Optimal spacing intervals follow a specific pattern based on forgetting curves</li>
-        <li>Active recall combined with spaced repetition is significantly more effective than passive review</li>
-      </ul>
-      
-      <h2>How to Implement Spaced Repetition</h2>
-      
-      <h3>1. Create Your Study Schedule</h3>
-      
-      <p>Start by reviewing new material daily. As you become more familiar with it, increase the intervals: review after 1 day, then 3 days, then 1 week, then 2 weeks, and so on.</p>
-      
-      <h3>2. Use Active Recall</h3>
-      
-      <p>Don't just re-read your notes. Test yourself by trying to recall information from memory. This active process strengthens neural pathways more effectively than passive review.</p>
-      
-      <h3>3. Track Your Performance</h3>
-      
-      <p>Use a system to track which items you know well and which need more review. Tools like Trackviso's mastery system can help you track your progress and optimize your review schedule.</p>
-      
-      <h2>Optimal Spacing Intervals</h2>
-      
-      <p>While optimal intervals vary by individual and material difficulty, a common schedule is:</p>
-      
-      <ul>
-        <li>Day 1: Initial learning</li>
-        <li>Day 2: First review</li>
-        <li>Day 5: Second review</li>
-        <li>Day 10: Third review</li>
-        <li>Day 20: Fourth review</li>
-        <li>Day 40: Fifth review</li>
-      </ul>
-      
-      <h2>Common Mistakes to Avoid</h2>
-      
-      <h3>Reviewing Too Frequently</h3>
-      
-      <p>Reviewing material you already know well wastes time. Trust the spacing intervals and only review when necessary.</p>
-      
-      <h3>Not Using Active Recall</h3>
-      
-      <p>Passive reading is much less effective than actively testing your memory. Always try to recall information before checking your notes.</p>
-      
-      <h2>Conclusion</h2>
-      
-      <p>Spaced repetition is a powerful tool for long-term retention. By implementing this technique with proper tracking and active recall, you can dramatically improve your exam performance and knowledge retention.</p>
+      <h1>How to Build Study Consistency Without Burning Out</h1>
+      <p>Study consistency is one of the strongest predictors of academic success. Yet most students struggle to maintain a daily routine, relying instead on motivation or last-minute pressure.</p>
+      <p>The truth is simple: consistency beats intensity. Studying one hour every day is far more effective than studying five hours once a week.</p>
+      <h2>Why Students Struggle With Consistency</h2>
+      <p>Motivation is unreliable. It fluctuates based on mood, stress, and workload. When students depend on motivation alone, consistency collapses during busy periods.</p>
+      <p>Another common issue is lack of feedback. Without tracking, students do not realise how inconsistent their study routine actually is.</p>
+      <h2>How Time Tracking Builds Habits</h2>
+      <p>Time tracking transforms studying into a measurable habit. When students record their daily effort, consistency becomes visible and rewarding.</p>
+      <p><a href="https://trackviso.com">Trackviso</a> helps students build streaks based on effort, not outcomes. This shifts focus away from perfection and toward showing up regularly.</p>
+      <h2>Using Analytics to Avoid Burnout</h2>
+      <p>Burnout often comes from imbalance. Studying too much of one subject while neglecting others creates stress and inefficiency.</p>
+      <p>Trackviso analytics highlight workload distribution early, allowing students to adjust before exhaustion sets in.</p>
+      <p>Consistency is not about doing more. It is about doing enough, every day.</p>
     `,
   },
   {
     id: 3,
-    slug: 'active-recall-study-method',
-    title: 'Active Recall: The Most Effective Study Method You\'re Not Using',
-    description: 'Discover why active recall outperforms passive studying methods. Learn how to implement this powerful technique to improve your exam scores and long-term retention.',
-    keywords: 'active recall, study method, effective studying, exam preparation, learning techniques, memory techniques, study strategies',
+    slug: 'study-analytics-for-students',
+    title: 'Study Analytics for Students: How Data Improves Learning',
+    description: 'Learn how study analytics help students identify weak areas, optimise revision, and improve academic performance.',
+    keywords: 'study analytics, student analytics, learning data, revision analytics, Trackviso, study insights',
     author: 'Trackviso Team',
-    authorBio: 'The Trackviso team is dedicated to helping students achieve academic excellence through gamified learning and proven study techniques.',
-    publishDate: '2024-01-25',
-    lastUpdated: '2024-01-25',
-    readingTime: 7,
+    authorBio: 'Trackviso applies analytics to help students make better study decisions.',
+    publishDate: '2024-02-10',
+    lastUpdated: '2024-02-10',
+    readingTime: 11,
     category: 'Study Methods',
-    tags: ['active recall', 'study methods', 'learning', 'exam preparation'],
+    tags: ['analytics', 'learning', 'students'],
     featuredImage: '/og.png',
     content: `
-      <h1>Active Recall: The Most Effective Study Method You're Not Using</h1>
-      
-      <p>While most students spend hours re-reading notes and highlighting textbooks, research shows that active recall is significantly more effective for learning and retention. Yet, it's one of the least commonly used study techniques.</p>
-      
-      <h2>What is Active Recall?</h2>
-      
-      <p>Active recall is the process of actively retrieving information from memory rather than passively reviewing it. Instead of re-reading your notes, you test yourself by trying to recall the information without looking at your materials.</p>
-      
-      <h2>Why Active Recall Works</h2>
-      
-      <p>When you actively retrieve information, you're strengthening the neural pathways associated with that knowledge. This process, known as the testing effect, has been shown to improve long-term retention by up to 50% compared to passive review.</p>
-      
-      <h3>The Science Behind It</h3>
-      
-      <p>Research by cognitive scientists demonstrates that the act of retrieval itself enhances learning. Each time you successfully recall information, you're making it easier to recall in the future.</p>
-      
-      <h2>How to Use Active Recall</h2>
-      
-      <h3>1. Create Questions from Your Notes</h3>
-      
-      <p>After learning new material, write questions that test your understanding. These questions should require you to explain concepts, not just recall facts.</p>
-      
-      <h3>2. Test Yourself Regularly</h3>
-      
-      <p>Set aside time to answer your questions without looking at your notes. Only check your answers after attempting to recall the information.</p>
-      
-      <h3>3. Use the Blurt Method</h3>
-      
-      <p>The blurt method involves writing down everything you can remember about a topic without looking at your notes. This is one of the most effective forms of active recall and is built into Trackviso's mastery system.</p>
-      
-      <h3>4. Practice with Past Papers</h3>
-      
-      <p>Past exam papers are excellent for active recall practice. Attempt questions without notes, then review your answers to identify knowledge gaps.</p>
-      
-      <h2>Common Active Recall Techniques</h2>
-      
+      <h1>Study Analytics for Students: How Data Improves Learning</h1>
+      <p>Most students study without feedback. They revise, hope for the best, and wait for exam results to tell them whether it worked.</p>
+      <p>Study analytics change this by providing immediate insight into effort, consistency, and subject balance.</p>
+      <h2>What Study Analytics Actually Show</h2>
+      <p>Study analytics reveal patterns that are invisible day to day. Students can see which subjects dominate their time, where gaps are forming, and how consistent their routine truly is.</p>
       <ul>
-        <li><strong>Flashcards:</strong> Test yourself with questions on one side and answers on the other</li>
-        <li><strong>Practice Questions:</strong> Solve problems without referring to solutions</li>
-        <li><strong>Teaching Others:</strong> Explain concepts to someone else (or yourself)</li>
-        <li><strong>Mind Maps:</strong> Create mind maps from memory, then compare with your notes</li>
+        <li>Under-studied subjects</li>
+        <li>Inconsistent weekly routines</li>
+        <li>Periods of overload or inactivity</li>
       </ul>
-      
-      <h2>Combining Active Recall with Other Techniques</h2>
-      
-      <p>Active recall is most effective when combined with spaced repetition. Review material using active recall at increasing intervals to maximize retention.</p>
-      
-      <h2>Conclusion</h2>
-      
-      <p>Active recall is a simple but powerful study technique that can dramatically improve your learning efficiency. Start implementing it today by testing yourself regularly instead of just re-reading your notes.</p>
+      <h2>Why Data Beats Guesswork</h2>
+      <p>Without analytics, students often overestimate their effort. Data removes bias and replaces assumptions with evidence.</p>
+      <p><a href="https://trackviso.com">Trackviso</a> turns raw study time into clear insights, helping students make small adjustments that compound over time.</p>
+      <h2>Turning Insights Into Results</h2>
+      <p>When students respond to analytics early, they prevent problems long before exams. Better awareness leads to better planning, consistency, and confidence.</p>
+      <p>Better data leads to better decisions, and better decisions lead to better grades.</p>
     `,
   },
-];
+  {
+    id: 4,
+    slug: 'gamification-in-studying',
+    title: 'Gamification in Studying: Does It Actually Work?',
+    description: 'Discover how gamification increases motivation and consistency in studying and why it works for long-term learning.',
+    keywords: 'gamification in education, gamified studying, student motivation, Trackviso, study streaks',
+    author: 'Trackviso Team',
+    authorBio: 'Trackviso blends behavioural science and gamification to improve study habits.',
+    publishDate: '2024-02-15',
+    lastUpdated: '2024-02-15',
+    readingTime: 9,
+    category: 'Motivation',
+    tags: ['gamification', 'motivation', 'students'],
+    featuredImage: '/og.png',
+    content: `
+      <h1>Gamification in Studying: Does It Actually Work?</h1>
+      <p>Gamification is often dismissed as a gimmick. In reality, it is grounded in behavioural science and habit formation.</p>
+      <p>When used correctly, gamification increases consistency rather than distracting from learning.</p>
+      <h2>Why Gamification Works for Students</h2>
+      <p>Small rewards reinforce behaviour. XP, streaks, and milestones activate the brain’s reward system, making habits easier to maintain.</p>
+      <p>Instead of rewarding grades alone, gamification rewards effort, which students can control daily.</p>
+      <h2>Gamification vs Motivation</h2>
+      <p>Motivation fades quickly. Systems persist. Gamification creates a system where studying feels incomplete if a streak is broken.</p>
+      <p><a href="https://trackviso.com">Trackviso</a> uses gamification to encourage consistency, not competition or pressure.</p>
+      <h2>Long-Term Impact on Learning</h2>
+      <p>When students associate studying with progress feedback rather than stress, habits form naturally.</p>
+      <p>The goal is not to turn studying into a game. The goal is to make consistency automatic.</p>
+    `,
+  },
+  {
+    id: 5,
+    slug: 'how-to-measure-study-progress',
+    title: 'How to Measure Study Progress the Right Way',
+    description: 'Grades come late. Learn how to measure study progress early using time, consistency, and analytics.',
+    keywords: 'measure study progress, study improvement, student analytics, Trackviso, learning progress',
+    author: 'Trackviso Team',
+    authorBio: 'Trackviso focuses on making student progress visible long before exams.',
+    publishDate: '2024-02-20',
+    lastUpdated: '2024-02-20',
+    readingTime: 10,
+    category: 'Study Planning',
+    tags: ['progress', 'analytics', 'students'],
+    featuredImage: '/og.png',
+    content: `
+      <h1>How to Measure Study Progress the Right Way</h1>
+      <p>Many students rely entirely on grades to measure progress. The problem is that grades arrive too late to fix mistakes.</p>
+      <p>Effective students measure progress using leading indicators, not just outcomes.</p>
+      <h2>Leading vs Lagging Indicators</h2>
+      <p>Grades are lagging indicators. Study time, consistency, and subject balance are leading indicators.</p>
+      <p>Tracking these early allows students to adjust weeks or months before exams.</p>
+      <h2>Why Effort Tracking Matters</h2>
+      <p>Effort compounds over time. Students who track effort consistently outperform those who rely on last-minute revision.</p>
+      <p><a href="https://trackviso.com">Trackviso</a> makes effort visible through analytics and trends.</p>
+      <h2>Seeing Progress Before Results</h2>
+      <p>When progress is visible early, confidence increases and stress decreases.</p>
+      <p>Progress should be measurable long before exam day.</p>
+    `,
+  },
+]
+
+
+  
+  
 
 /**
  * Get all blog posts
