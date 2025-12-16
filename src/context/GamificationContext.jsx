@@ -1280,9 +1280,40 @@ export const GamificationProvider = ({ children }) => {
       bonuses: xpData.bonuses,
     };
 
+    // Save to Supabase asynchronously (don't block UI)
+    (async () => {
+      try {
+        const { addStudySession: addSupabaseSession, updateUserStats } = await import('../utils/supabaseDb');
+        
+        // Save session to Supabase
+        const supabaseSession = await addSupabaseSession({
+          subject_name: session.subjectName,
+          duration_minutes: session.durationMinutes,
+          difficulty: session.difficulty,
+          mood: session.mood,
+          xp_earned: xpData.totalXP,
+          bonuses: xpData.bonuses,
+        });
+
+        if (supabaseSession) {
+          // Update total_study_time in Supabase
+          setUserStats((prev) => {
+            const newTotalStudyTime = (prev.totalStudyTime || 0) + session.durationMinutes;
+            // Update Supabase asynchronously
+            updateUserStats({ total_study_time: newTotalStudyTime });
+            return prev; // Don't update state here, it's already updated below
+          });
+        }
+      } catch (error) {
+        console.error('Error saving study session to Supabase:', error);
+        // Continue with local storage even if Supabase fails
+      }
+    })();
+
     setUserStats((prev) => {
       const newStats = {
       ...prev,
+        totalStudyTime: (prev.totalStudyTime || 0) + session.durationMinutes,
         sessionHistory: [enhancedSession, ...(prev.sessionHistory || []).slice(0, 99)],
       };
 

@@ -156,7 +156,7 @@ export function useWebsiteTimeTracker() {
           website_time_minutes: totalMinutes
         });
         
-        // Use sendBeacon for reliable save on page unload
+        // Use sendBeacon for reliable save on page unload (works even if page is closing)
         if (navigator.sendBeacon) {
           navigator.sendBeacon(
             `${window.location.origin}/api/user/update-website-time`,
