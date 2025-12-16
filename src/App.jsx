@@ -31,9 +31,12 @@ import BlogPost from './pages/BlogPost';
 import { ThemeProvider } from './context/ThemeContext';
 import { DashboardProvider } from './context/DashboardContext';
 import { SubscriptionProvider } from './context/SubscriptionContext';
+import { AdminProvider } from './context/AdminContext';
+import Admin from './pages/Admin';
 import Unsupported from './pages/Unsupported';
 import NotFound from './pages/NotFound';
 import { isMobileDevice } from './utils/deviceDetection';
+import { useWebsiteTimeTracker } from './hooks/useWebsiteTimeTracker';
 import './styles/index.css';
 
 
@@ -46,6 +49,12 @@ const RouteCleanup = () => {
       try { resetTimer(); } catch {}
     }
   }, [location.pathname, isRunning, stopTimer, resetTimer]);
+  return null;
+};
+
+// Component to track website time globally
+const WebsiteTimeTracker = () => {
+  useWebsiteTimeTracker();
   return null;
 };
 
@@ -87,14 +96,16 @@ function App() {
   return (
     <HelmetProvider>
       <AuthProvider>
-        <SubscriptionProvider>
-          <GamificationProvider>
-            <TimerProvider>
-              <ThemeProvider>
-                <DashboardProvider>
-                  <Router>
-                    <RouteCleanup />
-                    <Routes>
+        <AdminProvider>
+          <SubscriptionProvider>
+            <GamificationProvider>
+              <TimerProvider>
+                <ThemeProvider>
+                  <DashboardProvider>
+                    <Router>
+                      <RouteCleanup />
+                      <WebsiteTimeTracker />
+                      <Routes>
               {/* Public Routes */}
               <Route path="/" element={<div className="flex flex-col min-h-screen"><main className="flex-1"><Landing /><Footer /></main></div>} />
               <Route path="/login" element={<div className="flex flex-col min-h-screen"><main className="flex-1"><Login /><Footer /></main></div>} />
@@ -227,6 +238,12 @@ function App() {
                 </ProtectedRoute>
               } />
 
+              <Route path="/admin" element={
+                <ProtectedRoute>
+                  <Admin />
+                </ProtectedRoute>
+              } />
+
               <Route path="/resources" element={
                 <ProtectedRoute>
                   <div className="flex h-screen bg-[var(--app-bg)]">
@@ -272,12 +289,13 @@ function App() {
               {/* 404 Route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-                  </Router>
-                </DashboardProvider>
-              </ThemeProvider>
-            </TimerProvider>
-          </GamificationProvider>
-        </SubscriptionProvider>
+                    </Router>
+                  </DashboardProvider>
+                </ThemeProvider>
+              </TimerProvider>
+            </GamificationProvider>
+          </SubscriptionProvider>
+        </AdminProvider>
       </AuthProvider>
     </HelmetProvider>
   );

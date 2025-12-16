@@ -54,6 +54,11 @@ export default function Insights() {
   const [studySessions, setStudySessions] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [timeRange, setTimeRange] = useState('week'); // week, month, all
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    // Default to current month in YYYY-MM format
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
 
   useEffect(() => {
     const savedSubjects = localStorage.getItem('subjects');
@@ -225,12 +230,84 @@ export default function Insights() {
 
   const monthlyStudyData = getMonthlyStudyByDay();
 
-  // Subject Leaderboard (All Time)
+  // Monthly Study Time by Day and Subject for All Time (with month selector)
+  const getAllTimeMonthlyStudyByDay = () => {
+    if (timeRange !== 'all') return null;
+    
+    // Parse selected month
+    const [year, month] = selectedMonth.split('-').map(Number);
+    const selectedDate = new Date(year, month - 1, 1);
+    const startOfMonth = new Date(year, month - 1, 1);
+    const endOfMonth = new Date(year, month, 0); // Last day of month
+    const daysInMonth = endOfMonth.getDate();
+    
+    const monthSessions = studySessions.filter(session => {
+      const sessionDate = new Date(session.timestamp);
+      return sessionDate >= startOfMonth && sessionDate <= endOfMonth;
+    });
+
+    // Initialize all days of the month
+    const dayData = {};
+    for (let day = 1; day <= daysInMonth; day++) {
+      dayData[day] = {
+        dayNumber: day,
+        subjects: {},
+        totalMinutes: 0
+      };
+    }
+
+    // Group sessions by day and subject
+    monthSessions.forEach(session => {
+      const sessionDate = new Date(session.timestamp);
+      const dayOfMonth = sessionDate.getDate();
+      
+      if (dayData[dayOfMonth]) {
+        const subjectName = session.subjectName || 'Unknown';
+        if (!dayData[dayOfMonth].subjects[subjectName]) {
+          dayData[dayOfMonth].subjects[subjectName] = 0;
+        }
+        dayData[dayOfMonth].subjects[subjectName] += session.durationMinutes || 0;
+        dayData[dayOfMonth].totalMinutes += session.durationMinutes || 0;
+      }
+    });
+
+    // Convert to array and get all unique subjects for colors
+    const allSubjects = new Set();
+    Object.values(dayData).forEach(day => {
+      Object.keys(day.subjects).forEach(subject => allSubjects.add(subject));
+    });
+
+    return {
+      days: Object.values(dayData),
+      subjects: Array.from(allSubjects),
+      maxMinutes: Math.max(...Object.values(dayData).map(d => d.totalMinutes), 1),
+      daysInMonth,
+      month: selectedDate.toLocaleString('default', { month: 'long', year: 'numeric' })
+    };
+  };
+
+  const allTimeMonthlyStudyData = getAllTimeMonthlyStudyByDay();
+
+  // Get available months from study sessions
+  const getAvailableMonths = () => {
+    const monthsSet = new Set();
+    studySessions.forEach(session => {
+      const sessionDate = new Date(session.timestamp);
+      const year = sessionDate.getFullYear();
+      const month = String(sessionDate.getMonth() + 1).padStart(2, '0');
+      monthsSet.add(`${year}-${month}`);
+    });
+    return Array.from(monthsSet).sort().reverse(); // Most recent first
+  };
+
+  const availableMonths = getAvailableMonths();
+
+  // Subject Leaderboard (for selected timeframe)
   const getSubjectLeaderboard = () => {
     const leaderboard = {};
     
-    // Calculate total time for each subject across all sessions
-    studySessions.forEach(session => {
+    // Calculate total time for each subject across filtered sessions (based on selected timeframe)
+    filteredSessions.forEach(session => {
       if (!leaderboard[session.subjectName]) {
         leaderboard[session.subjectName] = 0;
       }
@@ -1110,6 +1187,221 @@ export default function Insights() {
                         const subjectData = subjects.find(s => s.name === subjectName);
                         const subjectColor = subjectData?.color || '#6C5DD3';
                         const totalMinutes = monthlyStudyData.days.reduce((sum, day) => 
+                          sum + (day.subjects[subjectName] || 0), 0
+                        );
+                        
+                        return (
+                          <motion.div
+                            key={subjectName}
+                            className="flex items-center gap-2 p-2 rounded hover:bg-purple-800/30 transition-colors"
+                            initial={{ opacity: 0 }}
+                            whileInView={{ opacity: 1 }}
+                            transition={{ delay: index * 0.1 }}
+                            viewport={{ once: true }}
+                          >
+                            <div
+                              className="w-4 h-4 rounded flex-shrink-0"
+                              style={{ backgroundColor: subjectColor }}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="text-white text-sm font-medium truncate">{subjectName}</div>
+                              <div className="text-purple-300/70 text-xs">
+                                {Math.round(totalMinutes / 60)}h {Math.round(totalMinutes % 60)}m total
+                              </div>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {/* All Time Monthly Study Time Compound Bar Graph */}
+          {timeRange === 'all' && allTimeMonthlyStudyData && (
+            <motion.div
+              className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all mb-8"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -5 }}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-white flex items-center gap-2">
+                  <BarChart className="w-5 h-5 text-purple-400" />
+                  Daily Study Hours by Subject
+                </h3>
+                <div className="flex items-center gap-3">
+                  <label className="text-sm text-purple-300">Select Month:</label>
+                  <select
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    className="px-4 py-2 bg-purple-800/40 border border-purple-700/50 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 hover:bg-purple-800/60 transition-colors"
+                  >
+                    {availableMonths.map(month => {
+                      const [year, monthNum] = month.split('-');
+                      const date = new Date(parseInt(year), parseInt(monthNum) - 1, 1);
+                      return (
+                        <option key={month} value={month}>
+                          {date.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              </div>
+              
+              <div className="flex gap-6">
+                {/* Graph Area */}
+                <div className="flex-1">
+                  {/* X-axis labels (hours) */}
+                  <div className="flex justify-between mb-2 px-2">
+                    {[0, 2, 4, 6, 8, 10, 12, 14, 16].map(hour => (
+                      <div key={hour} className="text-xs text-purple-300/70">
+                        {hour}h
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Graph Grid - Scrollable for 31 days */}
+                  <div className="relative max-h-[600px] overflow-y-auto overflow-x-hidden pr-2" style={{ scrollbarWidth: 'thin' }}>
+                    <div className="relative" style={{ minHeight: `${allTimeMonthlyStudyData.days.length * 24}px` }}>
+                      {/* Vertical grid lines */}
+                      <div className="absolute inset-0 flex">
+                        {[0, 2, 4, 6, 8, 10, 12, 14, 16].map((hour, index) => (
+                          <div
+                            key={hour}
+                            className="flex-1 border-l border-dashed border-purple-700/30"
+                            style={{ 
+                              borderLeftWidth: index === 0 ? '0px' : '1px',
+                              marginLeft: index === 0 ? '0' : '-1px'
+                            }}
+                          />
+                        ))}
+                      </div>
+                      
+                      {/* Bars for each day - smaller rows */}
+                      <div className="relative flex flex-col gap-1 py-1">
+                        {allTimeMonthlyStudyData.days.map((day, dayIndex) => {
+                          const totalHours = day.totalMinutes / 60;
+                          const maxHours = Math.max(16, allTimeMonthlyStudyData.maxMinutes / 60);
+                          const barWidth = maxHours > 0 ? Math.min(100, (totalHours / maxHours) * 100) : 0;
+                          
+                          // Get subject segments
+                          const subjectSegments = [];
+                          let currentLeft = 0;
+                          Object.entries(day.subjects).forEach(([subjectName, minutes]) => {
+                            const subjectData = subjects.find(s => s.name === subjectName);
+                            const subjectColor = subjectData?.color || '#6C5DD3';
+                            const segmentWidth = day.totalMinutes > 0 ? (minutes / day.totalMinutes) * 100 : 0;
+                            
+                            subjectSegments.push({
+                              subjectName,
+                              minutes,
+                              width: segmentWidth,
+                              left: currentLeft,
+                              color: subjectColor
+                            });
+                            
+                            currentLeft += segmentWidth;
+                          });
+
+                          // Format date for label
+                          const [year, monthNum] = selectedMonth.split('-').map(Number);
+                          const dayDate = new Date(year, monthNum - 1, day.dayNumber);
+                          const dayLabel = `${day.dayNumber}${day.dayNumber === 1 || day.dayNumber === 21 || day.dayNumber === 31 ? 'st' : day.dayNumber === 2 || day.dayNumber === 22 ? 'nd' : day.dayNumber === 3 || day.dayNumber === 23 ? 'rd' : 'th'}`;
+                          const now = new Date();
+                          const isToday = day.dayNumber === now.getDate() && 
+                                         monthNum === now.getMonth() + 1 && 
+                                         year === now.getFullYear();
+
+                          return (
+                            <motion.div
+                              key={day.dayNumber}
+                              className="flex items-center gap-3"
+                              initial={{ opacity: 0, x: -20 }}
+                              whileInView={{ opacity: 1, x: 0 }}
+                              transition={{ delay: dayIndex * 0.02 }}
+                              viewport={{ once: true }}
+                            >
+                              {/* Day label - smaller */}
+                              <div className={`w-16 text-xs font-medium text-right ${isToday ? 'text-yellow-400 font-bold' : 'text-white'}`}>
+                                {dayLabel}
+                              </div>
+                              
+                              {/* Bar container - smaller height */}
+                              <div className="flex-1 relative h-5 bg-purple-800/20 rounded overflow-hidden border border-purple-700/30">
+                                {day.totalMinutes > 0 ? (
+                                  <motion.div
+                                    className="absolute left-0 top-0 h-full flex"
+                                    initial={{ width: 0 }}
+                                    whileInView={{ width: `${barWidth}%` }}
+                                    transition={{ duration: 0.6, delay: dayIndex * 0.02 }}
+                                    viewport={{ once: true }}
+                                    style={{ maxWidth: '100%' }}
+                                  >
+                                    {subjectSegments.map((segment, segIndex) => (
+                                      <motion.div
+                                        key={`${day.dayNumber}-${segment.subjectName}`}
+                                        className="h-full relative group cursor-pointer"
+                                        style={{
+                                          width: `${segment.width}%`,
+                                          backgroundColor: segment.color,
+                                          opacity: 0.85
+                                        }}
+                                        initial={{ opacity: 0 }}
+                                        whileInView={{ opacity: 0.85 }}
+                                        transition={{ delay: dayIndex * 0.02 + segIndex * 0.01 }}
+                                        viewport={{ once: true }}
+                                        whileHover={{ opacity: 1, scale: 1.05 }}
+                                      >
+                                        {/* Tooltip on hover */}
+                                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 bg-purple-900/95 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
+                                          {segment.subjectName}: {Math.round(segment.minutes / 60)}h {Math.round(segment.minutes % 60)}m
+                                        </div>
+                                      </motion.div>
+                                    ))}
+                                  </motion.div>
+                                ) : (
+                                  <div className="absolute inset-0 flex items-center justify-center text-purple-400/50 text-[10px]">
+                                    —
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Total time label - smaller */}
+                              <div className="w-16 text-xs text-purple-300 text-right">
+                                {day.totalMinutes > 0 ? (
+                                  <>
+                                    {Math.round(day.totalMinutes / 60)}h {Math.round(day.totalMinutes % 60)}m
+                                  </>
+                                ) : (
+                                  <span className="text-purple-400/50">—</span>
+                                )}
+                              </div>
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Legend */}
+                {allTimeMonthlyStudyData.subjects.length > 0 && (
+                  <div className="w-56 bg-purple-800/20 rounded-lg p-4 border border-purple-700/30">
+                    <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                      <BookOpen className="w-4 h-4" />
+                      Subjects
+                    </h4>
+                    <div className="space-y-2 max-h-[550px] overflow-y-auto">
+                      {allTimeMonthlyStudyData.subjects.map((subjectName, index) => {
+                        const subjectData = subjects.find(s => s.name === subjectName);
+                        const subjectColor = subjectData?.color || '#6C5DD3';
+                        const totalMinutes = allTimeMonthlyStudyData.days.reduce((sum, day) => 
                           sum + (day.subjects[subjectName] || 0), 0
                         );
                         

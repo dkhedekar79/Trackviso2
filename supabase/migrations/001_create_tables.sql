@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS public.user_stats (
   daily_quests JSONB DEFAULT '[]'::jsonb,
   weekly_quests JSONB DEFAULT '[]'::jsonb,
   completed_quests_today INTEGER DEFAULT 0,
+  website_time_minutes INTEGER DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );

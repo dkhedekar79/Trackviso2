@@ -15,7 +15,7 @@ export const migrateLegacyDataToSupabase = async () => {
     // Check if user already has data in Supabase
     const { data: existingStats } = await supabase
       .from('user_stats')
-      .select('id')
+      .select('user_id')
       .eq('user_id', session.user.id)
       .single();
 

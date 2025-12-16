@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { generateAIContent, generateAIJSON } from "./aiService.js";
 
 async function searchWebForGrade9Notes(topics, qualification, subject, examBoard) {
   const TAVILY_API_KEY = import.meta.env.TAVILY_API_KEY;
@@ -69,16 +69,6 @@ async function searchWebForGrade9Notes(topics, qualification, subject, examBoard
 }
 
 export async function generateMockExamNotes(topics, qualification, subject, examBoard) {
-  const apiKey = import.meta.env.VITE_GOOGLE_AI_API_KEY;
-  
-  if (!apiKey) {
-    throw new Error('Google AI API key is not configured');
-  }
-
-  const ai = new GoogleGenAI({
-    apiKey: apiKey,
-  });
-
   try {
     let webSearchResults = '';
     
@@ -112,25 +102,7 @@ Please provide comprehensive but concise notes in this format:
 
 Use clear, simple language suitable for 13-14 year old students. Organize the information logically with headings and bullet points. Focus on the essential content needed to understand these topics at GCSE level.`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-    });
-
-    console.log('Mock Exam Notes API Response:', response);
-
-    let content = null;
-    
-    if (response?.text && typeof response.text === 'string') {
-      content = response.text;
-    } else if (response?.candidates?.[0]?.content?.parts?.[0]?.text) {
-      content = response.candidates[0].content.parts[0].text;
-    }
-
-    if (!content) {
-      console.error('Response structure:', JSON.stringify(response, null, 2));
-      throw new Error('No content in API response. Please try again.');
-    }
+    const content = await generateAIContent(prompt, { preferredModel: 'gemini-2.5-flash' });
 
     return {
       notes: content.trim(),
@@ -151,16 +123,6 @@ export async function generateMockExam(
   tier,
   totalMarks
 ) {
-  const apiKey = import.meta.env.VITE_GOOGLE_AI_API_KEY;
-  
-  if (!apiKey) {
-    throw new Error('Google AI API key is not configured');
-  }
-
-  const ai = new GoogleGenAI({
-    apiKey: apiKey,
-  });
-
   try {
     const topicsText = topics.join(', ');
 
@@ -227,39 +189,7 @@ IMPORTANT:
 
 Return ONLY the JSON object, no additional text.`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-    });
-
-    console.log('Mock Exam API Response:', response);
-
-    let content = null;
-    
-    if (response?.text && typeof response.text === 'string') {
-      content = response.text;
-    } else if (response?.candidates?.[0]?.content?.parts?.[0]?.text) {
-      content = response.candidates[0].content.parts[0].text;
-    }
-
-    if (!content) {
-      console.error('Response structure:', JSON.stringify(response, null, 2));
-      throw new Error('No content in API response. Please try again.');
-    }
-
-    // Extract JSON from response
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('Could not parse exam response');
-    }
-
-    let exam;
-    try {
-      exam = JSON.parse(jsonMatch[0]);
-    } catch (parseError) {
-      console.error('JSON parse error:', parseError, 'Content:', jsonMatch[0]);
-      throw new Error('Could not parse exam');
-    }
+    const exam = await generateAIJSON(prompt, { preferredModel: 'gemini-2.5-flash' });
 
     // Validate and fix exam structure
     if (!exam.questions || !Array.isArray(exam.questions)) {
@@ -318,16 +248,6 @@ export async function markMockExam(
   examBoard,
   tier
 ) {
-  const apiKey = import.meta.env.VITE_GOOGLE_AI_API_KEY;
-  
-  if (!apiKey) {
-    throw new Error('Google AI API key is not configured');
-  }
-
-  const ai = new GoogleGenAI({
-    apiKey: apiKey,
-  });
-
   try {
     const topicsText = topics.join(', ');
     const totalMarks = exam.questions.reduce((sum, q) => sum + (q.marks || 0), 0);
@@ -400,39 +320,7 @@ Guidelines for marking:
 
 Return ONLY the JSON object, no additional text.`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-    });
-
-    console.log('Mock Exam Marking API Response:', response);
-
-    let content = null;
-    
-    if (response?.text && typeof response.text === 'string') {
-      content = response.text;
-    } else if (response?.candidates?.[0]?.content?.parts?.[0]?.text) {
-      content = response.candidates[0].content.parts[0].text;
-    }
-
-    if (!content) {
-      console.error('Response structure:', JSON.stringify(response, null, 2));
-      throw new Error('No content in API response. Please try again.');
-    }
-
-    // Extract JSON from response
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('Could not parse marking response');
-    }
-
-    let marking;
-    try {
-      marking = JSON.parse(jsonMatch[0]);
-    } catch (parseError) {
-      console.error('JSON parse error:', parseError, 'Content:', jsonMatch[0]);
-      throw new Error('Could not parse marking results');
-    }
+    const marking = await generateAIJSON(prompt, { preferredModel: 'gemini-2.5-flash' });
 
     // Validate and ensure all required fields exist
     if (typeof marking.marksAwarded !== 'number') {

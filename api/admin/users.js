@@ -1,19 +1,53 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
+// Get environment variables - try both Vercel and Vite naming conventions
+const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('Missing Supabase environment variables:', {
+    hasUrl: !!supabaseUrl,
+    hasServiceKey: !!supabaseServiceKey,
+    envKeys: Object.keys(process.env).filter(k => k.includes('SUPABASE'))
+  });
+}
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // Verify admin status
 async function verifyAdmin(userId) {
-  const { data, error } = await supabase
-    .from('admin_users')
-    .select('*')
-    .eq('user_id', userId)
-    .single();
+  if (!supabaseUrl || !supabaseServiceKey) {
+    console.error('Cannot verify admin: Missing Supabase credentials');
+    return false;
+  }
 
-  return data && !error;
+  // Also check if user email is the specific admin email (check this first for speed)
+  try {
+    const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
+    if (!userError && userData?.user?.email === 'dskhedekar7@gmail.com') {
+      return true;
+    }
+  } catch (e) {
+    console.warn('Error checking user email for admin:', e.message);
+  }
+
+  // Check if user is in admin_users table
+  try {
+    const { data, error } = await supabase
+      .from('admin_users')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (data && !error) {
+      return true;
+    }
+  } catch (e) {
+    // Table might not exist, that's okay
+    console.warn('Error checking admin_users table:', e.message);
+  }
+
+  return false;
 }
 
 // List all users
@@ -22,49 +56,88 @@ async function listUsers(adminUserId) {
     // Verify admin
     const isAdmin = await verifyAdmin(adminUserId);
     if (!isAdmin) {
+      console.log('Admin verification failed for user:', adminUserId);
       return { status: 403, body: { error: 'Unauthorized: Not an admin' } };
     }
 
+    console.log('Fetching all users from Supabase...');
     // Get all users from auth.users table
-    const { data: users, error } = await supabase.auth.admin.listUsers();
+    const { data: users, error: usersError } = await supabase.auth.admin.listUsers();
 
-    if (error) {
-      return { status: 400, body: { error: error.message } };
+    if (usersError) {
+      console.error('Error listing users:', usersError);
+      return { status: 400, body: { error: usersError.message } };
+    }
+
+    console.log('Users response:', {
+      hasData: !!users,
+      hasUsers: !!users?.users,
+      userCount: users?.users?.length || 0,
+      dataKeys: users ? Object.keys(users) : []
+    });
+
+    if (!users || !users.users) {
+      console.warn('No users found in response:', users);
+      return { status: 200, body: { users: [], total: 0 } };
     }
 
     // Get user stats for each user
-    const { data: userStats } = await supabase
+    const { data: userStats, error: statsError } = await supabase
       .from('user_stats')
-      .select('user_id, is_premium, xp, level, total_study_time');
+      .select('user_id, is_premium, xp, level, total_study_time, website_time_minutes');
+
+    if (statsError) {
+      console.error('Error fetching user stats:', statsError);
+      // Continue without stats rather than failing completely
+    } else {
+      console.log('User stats fetched:', userStats?.length || 0, 'records');
+    }
 
     // Get admin list
-    const { data: adminUsers } = await supabase
+    const { data: adminUsers, error: adminError } = await supabase
       .from('admin_users')
       .select('user_id, email');
 
-    const adminUserIds = new Set(adminUsers?.map(a => a.user_id) || []);
+    if (adminError) {
+      console.error('Error fetching admin users:', adminError);
+      // Continue without admin list
+    } else {
+      console.log('Admin users fetched:', adminUsers?.length || 0, 'records');
+    }
 
-    // Combine data
-    const enrichedUsers = users.identities.map(identity => {
-      const stats = userStats?.find(s => s.user_id === identity.user_id);
-      const isAdmin = adminUserIds.has(identity.user_id);
-      const user = users.users.find(u => u.id === identity.user_id);
+    const adminUserIds = new Set((adminUsers || []).map(a => a.user_id));
+
+    console.log('Processing', users.users.length, 'users...');
+    // Combine data - use users array directly
+    const enrichedUsers = users.users.map(user => {
+      const stats = (userStats || []).find(s => s.user_id === user.id);
+      const isAdmin = adminUserIds.has(user.id);
+      
+      // Get website time from user_stats (tracked accurately)
+      const websiteTimeMinutes = stats?.website_time_minutes || 0;
+
+      // Get email from user object or identities
+      const userEmail = user.email || 
+        (users.identities?.find(i => i.user_id === user.id)?.identity_data?.email) || 
+        'Unknown';
 
       return {
-        id: identity.user_id,
-        email: identity.identity_data?.email || user?.email || 'Unknown',
-        created_at: user?.created_at,
-        is_premium: user?.user_metadata?.is_premium || stats?.is_premium || false,
-        subscription_plan: user?.user_metadata?.subscription_plan || 'scholar',
+        id: user.id,
+        email: userEmail,
+        created_at: user.created_at,
+        is_premium: user.user_metadata?.is_premium || stats?.is_premium || false,
+        subscription_plan: user.user_metadata?.subscription_plan || 'scholar',
         xp: stats?.xp || 0,
         level: stats?.level || 1,
         total_study_time: stats?.total_study_time || 0,
+        website_time_minutes: websiteTimeMinutes,
         is_admin: isAdmin,
-        mock_exams_used: user?.user_metadata?.mock_exams_used || 0,
-        blurt_tests_used: user?.user_metadata?.blurt_tests_used || 0,
+        mock_exams_used: user.user_metadata?.mock_exams_used || 0,
+        blurt_tests_used: user.user_metadata?.blurt_tests_used || 0,
       };
     });
 
+    console.log('Returning', enrichedUsers.length, 'enriched users');
     return {
       status: 200,
       body: { users: enrichedUsers, total: enrichedUsers.length }
@@ -239,6 +312,15 @@ async function resetUserUsage(adminUserId, targetUserId) {
 // Main handler
 export default async function handler(req, res) {
   try {
+    // Check environment variables first
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Missing Supabase credentials');
+      return res.status(500).json({ 
+        error: 'Server configuration error: Missing Supabase credentials',
+        details: 'Check that SUPABASE_SERVICE_ROLE_KEY and VITE_SUPABASE_URL are set'
+      });
+    }
+
     const { method, query, body } = req;
     const adminUserId = req.headers['x-admin-user-id'];
 
@@ -247,15 +329,18 @@ export default async function handler(req, res) {
     }
 
     if (method === 'GET') {
-      const { users, total } = (await listUsers(adminUserId)).body;
-      if (users) {
-        return res.status(200).json({ users, total });
+      const result = await listUsers(adminUserId);
+      if (result.status === 200) {
+        return res.status(200).json(result.body);
+      } else {
+        return res.status(result.status).json(result.body);
       }
     }
 
     if (method === 'POST') {
-      const action = query.action?.[0];
-      const userId = query.userId?.[0];
+      // Handle both array and string query parameters
+      const action = Array.isArray(query.action) ? query.action[0] : query.action;
+      const userId = Array.isArray(query.userId) ? query.userId[0] : query.userId;
 
       if (action === 'make-admin') {
         const result = await makeUserAdmin(adminUserId, userId, body.email);
@@ -281,6 +366,10 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid request' });
   } catch (error) {
     console.error('Admin API error:', error);
-    return res.status(500).json({ error: error.message });
+    console.error('Error stack:', error.stack);
+    return res.status(500).json({ 
+      error: error.message || 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 }

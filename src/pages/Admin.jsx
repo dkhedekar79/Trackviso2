@@ -29,12 +29,16 @@ const Admin = () => {
   const [expandedUser, setExpandedUser] = useState(null);
   const [actionInProgress, setActionInProgress] = useState(null);
 
-  // Redirect if not admin
+  // Redirect if not admin - check email specifically
   useEffect(() => {
-    if (!adminLoading && !isAdmin) {
-      navigate('/dashboard');
+    if (!adminLoading) {
+      // Check if user is the specific admin email
+      const isSpecificAdmin = user?.email === 'dskhedekar7@gmail.com';
+      if (!isAdmin && !isSpecificAdmin) {
+        navigate('/dashboard');
+      }
     }
-  }, [isAdmin, adminLoading, navigate]);
+  }, [isAdmin, adminLoading, navigate, user]);
 
   // Load users
   useEffect(() => {
@@ -52,16 +56,39 @@ const Admin = () => {
         }
       });
 
+      const contentType = response.headers.get('content-type') || '';
+      const parseBody = async () => {
+        if (contentType.includes('application/json')) return await response.json();
+        const text = await response.text();
+        try { return JSON.parse(text); } catch { return { error: text || 'Unknown error' }; }
+      };
+
+      const body = await parseBody();
+
       if (response.ok) {
-        const data = await response.json();
-        setUsers(data.users || []);
+        setUsers(body.users || []);
       } else {
-        const error = await response.json();
-        alert(`Error: ${error.error}`);
+        const msg = body?.error || body?.message || `HTTP ${response.status}`;
+        const errorDetails = body?.details ? `\n\nDetails: ${body.details}` : '';
+        // Common local-dev issue: Vite proxies /api -> localhost:3000 but vercel dev isn't running.
+        if (String(msg).includes('ECONNREFUSED') || 
+            String(msg).includes('Failed to fetch') ||
+            response.status === 502 || 
+            response.status === 504 ||
+            response.status === 500 && String(msg).includes('Missing Supabase')) {
+          alert(`Admin API is not running or misconfigured.\n\nRun this in another terminal:\n\nnpm run dev:api\n\n(That starts Vercel functions on http://localhost:3000, which Vite proxies /api to.)\n\nError: ${msg}${errorDetails}`);
+        } else {
+          alert(`Error loading users: ${msg}${errorDetails}`);
+        }
       }
     } catch (error) {
       console.error('Error loading users:', error);
-      alert('Failed to load users');
+      const msg = error?.message || String(error);
+      if (msg.includes('Failed to fetch') || msg.includes('ECONNREFUSED')) {
+        alert(`Admin API is not running.\n\nRun this in another terminal:\n\nnpm run dev:api\n\n(That starts Vercel functions on http://localhost:3000, which Vite proxies /api to.)`);
+      } else {
+        alert('Failed to load users');
+      }
     } finally {
       setLoading(false);
     }
@@ -315,22 +342,34 @@ const Admin = () => {
                       )}
                     </div>
                     <p className="text-sm text-purple-300/60">
-                      Level {u.level} • {u.total_study_time} mins studied
+                      Level {u.level} • {Math.round(u.total_study_time / 60)}h {u.total_study_time % 60}m studied
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4 mr-4">
+                  <div className="grid grid-cols-4 gap-4 mr-4">
                     <div className="text-right">
                       <p className="text-xs text-purple-300/60">XP</p>
-                      <p className="font-semibold text-white">{u.xp}</p>
+                      <p className="font-semibold text-white">{u.xp?.toLocaleString() || 0}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-purple-300/60">Website Time</p>
+                      <p className="font-semibold text-white">
+                        {u.website_time_minutes ? (
+                          <>
+                            {Math.floor(u.website_time_minutes / 60)}h {u.website_time_minutes % 60}m
+                          </>
+                        ) : (
+                          '—'
+                        )}
+                      </p>
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-purple-300/60">Blurt Tests</p>
-                      <p className="font-semibold text-white">{u.blurt_tests_used}/1</p>
+                      <p className="font-semibold text-white">{u.blurt_tests_used || 0}/1</p>
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-purple-300/60">Mock Exams</p>
-                      <p className="font-semibold text-white">{u.mock_exams_used}/1</p>
+                      <p className="font-semibold text-white">{u.mock_exams_used || 0}/1</p>
                     </div>
                   </div>
 
@@ -415,6 +454,39 @@ const Admin = () => {
                             <RotateCcw className="w-4 h-4" />
                             {actionInProgress === `${u.id}-reset` ? 'Resetting...' : 'Reset Daily Usage'}
                           </button>
+                        </div>
+
+                        {/* User Stats */}
+                        <div>
+                          <h4 className="text-sm font-semibold text-purple-300 mb-3">User Statistics</h4>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="bg-purple-950/50 rounded p-3">
+                              <p className="text-xs text-purple-300/60 mb-1">Total Study Time</p>
+                              <p className="text-sm font-semibold text-white">
+                                {Math.floor((u.total_study_time || 0) / 60)}h {(u.total_study_time || 0) % 60}m
+                              </p>
+                            </div>
+                            <div className="bg-purple-950/50 rounded p-3">
+                              <p className="text-xs text-purple-300/60 mb-1">Website Time</p>
+                              <p className="text-sm font-semibold text-white">
+                                {u.website_time_minutes ? (
+                                  <>
+                                    {Math.floor(u.website_time_minutes / 60)}h {u.website_time_minutes % 60}m
+                                  </>
+                                ) : (
+                                  'No data'
+                                )}
+                              </p>
+                            </div>
+                            <div className="bg-purple-950/50 rounded p-3">
+                              <p className="text-xs text-purple-300/60 mb-1">Level</p>
+                              <p className="text-sm font-semibold text-white">{u.level || 1}</p>
+                            </div>
+                            <div className="bg-purple-950/50 rounded p-3">
+                              <p className="text-xs text-purple-300/60 mb-1">XP Amount</p>
+                              <p className="text-sm font-semibold text-white">{(u.xp || 0).toLocaleString()}</p>
+                            </div>
+                          </div>
                         </div>
 
                         {/* Info */}

@@ -13,7 +13,7 @@ export const initializeDatabase = async () => {
     // Check if user_stats record exists
     const { data: userStatsData, error: selectError } = await supabase
       .from('user_stats')
-      .select('id')
+      .select('user_id')
       .eq('user_id', userId)
       .single();
 
