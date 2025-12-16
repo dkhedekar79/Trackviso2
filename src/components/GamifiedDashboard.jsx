@@ -57,7 +57,6 @@ const GamifiedDashboard = () => {
     generateDailyQuests,
     generateWeeklyQuests,
     achievements,
-    claimWeeklyGoalXP,
   } = useGamification();
   const { user } = useAuth();
 
@@ -466,7 +465,7 @@ const GamifiedDashboard = () => {
             />
           )}
 
-          {activeTab === "quests" && <QuestSystem claimWeeklyGoalXP={claimWeeklyGoalXP} />}
+          {activeTab === "quests" && <QuestSystem />}
 
           {activeTab === "achievements" && <AchievementSystem />}
 

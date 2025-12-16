@@ -448,7 +448,7 @@ const generateQuest = (template, category) => {
 };
 
 // Main Quest System Component
-const QuestSystem = ({ claimWeeklyGoalXP }) => {
+const QuestSystem = () => {
   const { 
     userStats, 
     updateQuestProgress, 
@@ -558,51 +558,6 @@ const QuestSystem = ({ claimWeeklyGoalXP }) => {
           );
         })}
       </div>
-      
-      {/* Weekly Goal XP Bank - Only show for weekly category */}
-      {activeCategory === 'weekly' && (userStats.weeklyGoalXpBank > 0 || userStats.weeklyGoalXpClaimed) && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-2xl p-6 mb-6 border-2 border-blue-400/50 backdrop-blur"
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
-                <Trophy className="w-6 h-6 text-yellow-400" />
-                Weekly Goal XP Bank
-              </h3>
-              <p className="text-gray-300 mb-4">
-                {userStats.weeklyGoalXpClaimed 
-                  ? "You've already claimed your weekly goal XP this week. Complete more weekly quests next week!"
-                  : `You have ${userStats.weeklyGoalXpBank || 0} XP waiting in your weekly goal bank!`}
-              </p>
-              {userStats.weeklyGoalXpBank > 0 && !userStats.weeklyGoalXpClaimed && claimWeeklyGoalXP && (
-                <div className="flex items-center gap-4">
-                  <div className="text-3xl font-bold text-yellow-400">
-                    {userStats.weeklyGoalXpBank} XP
-                  </div>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={claimWeeklyGoalXP}
-                    className="px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
-                  >
-                    <Trophy className="w-5 h-5" />
-                    Claim XP
-                  </motion.button>
-                </div>
-              )}
-              {userStats.weeklyGoalXpClaimed && (
-                <div className="flex items-center gap-2 text-green-400">
-                  <CheckCircle className="w-5 h-5" />
-                  <span className="font-medium">Claimed this week!</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </motion.div>
-      )}
       
       {/* Quest Overview */}
       <div className="bg-white/10 rounded-xl p-6 mb-6 backdrop-blur">

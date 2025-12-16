@@ -70,10 +70,6 @@ export const GamificationProvider = ({ children }) => {
       jackpotCount: 0,
       gems: 0,
       xpEvents: [],
-      
-      // Weekly goal XP bank
-      weeklyGoalXpBank: 0,
-      weeklyGoalXpClaimed: false,
     };
 
     if (saved) {
@@ -91,8 +87,6 @@ export const GamificationProvider = ({ children }) => {
         dailyQuests: savedStats.dailyQuests ?? [],
         weeklyQuests: savedStats.weeklyQuests ?? [],
         gems: savedStats.gems ?? 0,
-        weeklyGoalXpBank: savedStats.weeklyGoalXpBank ?? 0,
-        weeklyGoalXpClaimed: savedStats.weeklyGoalXpClaimed ?? false,
       };
     }
 
@@ -137,13 +131,6 @@ export const GamificationProvider = ({ children }) => {
       setTimeout(() => {
         generateWeeklyQuests();
         localStorage.setItem('lastWeeklyQuestReset', now.getTime().toString());
-        
-        // Reset weekly goal XP bank and claim status when week resets
-        setUserStats((prev) => ({
-          ...prev,
-          weeklyGoalXpBank: 0,
-          weeklyGoalXpClaimed: false,
-        }));
       }, 150);
     }
     
@@ -1153,68 +1140,67 @@ export const GamificationProvider = ({ children }) => {
 
   // Check and unlock achievements - FIXED VERSION
   const checkAchievements = () => {
-    setUserStats((prev) => {
-      const newlyUnlocked = [];
-      
+    // Check which achievements should be unlocked using current stats
+    const currentStats = userStats;
+    const newlyUnlocked = [];
+    
     Object.values(achievements).forEach((achievement) => {
-        // Check if already unlocked
-        if (prev.achievements.includes(achievement.id)) {
-          return;
-        }
-        
-        // Check condition with current stats
-        try {
-          if (achievement.condition(prev)) {
-            newlyUnlocked.push(achievement);
-          }
-        } catch (error) {
-          console.error(`Error checking achievement ${achievement.id}:`, error);
-        }
-      });
-      
-      // If any achievements were unlocked, update state and grant XP
-      if (newlyUnlocked.length > 0) {
-        const newAchievementIds = newlyUnlocked.map(a => a.id);
-        let totalXP = 0;
-        
-        // Grant XP for each achievement immediately
-        newlyUnlocked.forEach((achievement) => {
-          totalXP += achievement.xp || 0;
-          
-          // Show reward notification
-          setTimeout(() => {
-            addReward({
-              type: "ACHIEVEMENT",
-              title: `🏆 ${achievement.name}`,
-              description: achievement.description,
-              tier: achievement.tier,
-              xp: achievement.xp,
-              icon: achievement.icon,
-              animation: "achievement",
-            });
-          }, 50);
-        });
-        
-        // Grant all XP at once
-        if (totalXP > 0) {
-          grantXP(totalXP, "achievement");
-        }
-        
-        // Track weekly achievement quest
-        if (newlyUnlocked.length > 0) {
-          setTimeout(() => {
-            updateQuestProgress("achievement", newlyUnlocked.length);
-          }, 100);
-        }
-        
-        return {
-          ...prev,
-          achievements: [...prev.achievements, ...newAchievementIds],
-        };
+      // Check if already unlocked
+      if (currentStats.achievements.includes(achievement.id)) {
+        return;
       }
       
-      return prev;
+      // Check condition with current stats
+      try {
+        if (achievement.condition(currentStats)) {
+          newlyUnlocked.push(achievement);
+        }
+      } catch (error) {
+        console.error(`Error checking achievement ${achievement.id}:`, error);
+      }
     });
+    
+    // If any achievements were unlocked, update state and grant XP
+    if (newlyUnlocked.length > 0) {
+      const newAchievementIds = newlyUnlocked.map(a => a.id);
+      let totalXP = 0;
+      
+      // Calculate total XP
+      newlyUnlocked.forEach((achievement) => {
+        totalXP += achievement.xp || 0;
+      });
+      
+      // Update achievements list
+      setUserStats((prev) => ({
+        ...prev,
+        achievements: [...prev.achievements, ...newAchievementIds],
+      }));
+      
+      // Grant XP and show rewards OUTSIDE of setUserStats
+      if (totalXP > 0) {
+        grantXP(totalXP, "achievement");
+      }
+      
+      // Show reward notifications
+      newlyUnlocked.forEach((achievement) => {
+        setTimeout(() => {
+          addReward({
+            type: "ACHIEVEMENT",
+            title: `🏆 ${achievement.name}`,
+            description: achievement.description,
+            tier: achievement.tier,
+            xp: achievement.xp,
+            icon: achievement.icon,
+            animation: "achievement",
+          });
+        }, 50);
+      });
+      
+      // Track weekly achievement quest
+      setTimeout(() => {
+        updateQuestProgress("achievement", newlyUnlocked.length);
+      }, 100);
+    }
   };
 
   // Unlock achievement - DEPRECATED, use checkAchievements instead
@@ -1836,7 +1822,7 @@ export const GamificationProvider = ({ children }) => {
         };
       });
 
-      // Grant XP for completed quests immediately (no setTimeout)
+      // Grant XP for completed quests immediately (both daily and weekly)
       completedQuests.forEach(({ quest, xp }) => {
         grantXP(xp, "quest");
         addReward({
@@ -1848,25 +1834,17 @@ export const GamificationProvider = ({ children }) => {
         });
       });
 
-      // Bank weekly quest XP instead of granting immediately
-      const totalWeeklyXP = completedWeeklyQuests.reduce((sum, { xp }) => sum + xp, 0);
-      if (totalWeeklyXP > 0) {
-        setUserStats((prev) => ({
-          ...prev,
-          weeklyGoalXpBank: (prev.weeklyGoalXpBank || 0) + totalWeeklyXP,
-        }));
-        
-        // Show notification that XP was banked
-        completedWeeklyQuests.forEach(({ quest }) => {
-            addReward({
-              type: "WEEKLY_QUEST_COMPLETE",
-              title: `🏆 ${quest.name}`,
-            description: `XP banked! Claim it from the weekly goal bank.`,
-              tier: "epic",
-            xp: 0, // No XP granted yet
-          });
+      // Grant XP for completed weekly quests immediately (same as daily)
+      completedWeeklyQuests.forEach(({ quest, xp }) => {
+        grantXP(xp, "quest");
+        addReward({
+          type: "QUEST_COMPLETE",
+          title: `🏆 ${quest.name}`,
+          description: quest.description,
+          tier: "epic",
+          xp: xp,
         });
-      }
+      });
 
       return {
         ...prev,
@@ -2066,37 +2044,6 @@ export const GamificationProvider = ({ children }) => {
     });
   };
 
-  // Claim weekly goal XP from bank (one-time use per week)
-  const claimWeeklyGoalXP = () => {
-    setUserStats((prev) => {
-      const bankedXP = prev.weeklyGoalXpBank || 0;
-      const alreadyClaimed = prev.weeklyGoalXpClaimed || false;
-      
-      // Can't claim if already claimed or no XP in bank
-      if (alreadyClaimed || bankedXP <= 0) {
-        return prev;
-      }
-      
-      // Grant the banked XP
-      grantXP(bankedXP, "weekly_goal_claim");
-      
-      // Show reward notification
-      addReward({
-        type: "WEEKLY_GOAL_CLAIM",
-        title: `🎉 Weekly Goal XP Claimed!`,
-        description: `You claimed ${bankedXP} XP from your weekly goal bank!`,
-        tier: "epic",
-        xp: bankedXP,
-      });
-      
-      // Mark as claimed and clear bank
-      return {
-        ...prev,
-        weeklyGoalXpBank: 0,
-        weeklyGoalXpClaimed: true,
-      };
-    });
-  };
 
   // Debug function to reset user stats - COMPLETELY RESET EVERYTHING
   const resetUserStats = () => {
@@ -2158,10 +2105,6 @@ export const GamificationProvider = ({ children }) => {
       jackpotCount: 0,
       gems: 0,
       xpEvents: [],
-      
-      // Weekly goal XP bank
-      weeklyGoalXpBank: 0,
-      weeklyGoalXpClaimed: false,
     };
     
     setUserStats(defaultStats);
@@ -2212,7 +2155,6 @@ export const GamificationProvider = ({ children }) => {
     getStudyTimeProgress,
     resetUserStats, // Debug function
     refreshQuestProgress, // Refresh quest progress from current stats
-    claimWeeklyGoalXP, // Claim weekly goal XP from bank (one-time use)
   };
 
   return (
