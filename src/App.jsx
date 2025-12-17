@@ -118,16 +118,16 @@ function App() {
     <HelmetProvider>
       <AuthProvider>
         <AdminProvider>
-          <SubscriptionProvider>
-            <GamificationProvider>
-              <TimerProvider>
-                <ThemeProvider>
-                  <DashboardProvider>
-                    <Router>
-                      <RouteCleanup />
+        <SubscriptionProvider>
+          <GamificationProvider>
+            <TimerProvider>
+              <ThemeProvider>
+                <DashboardProvider>
+                  <Router>
+                    <RouteCleanup />
                       <WebsiteTimeTracker />
                       <OnboardingWrapper>
-                      <Routes>
+                    <Routes>
               {/* Public Routes */}
               <Route path="/" element={<div className="flex flex-col min-h-screen"><main className="flex-1"><Landing /><Footer /></main></div>} />
               <Route path="/login" element={<div className="flex flex-col min-h-screen"><main className="flex-1"><Login /><Footer /></main></div>} />
@@ -312,12 +312,12 @@ function App() {
               <Route path="*" element={<NotFound />} />
             </Routes>
                       </OnboardingWrapper>
-                    </Router>
-                  </DashboardProvider>
-                </ThemeProvider>
-              </TimerProvider>
-            </GamificationProvider>
-          </SubscriptionProvider>
+                  </Router>
+                </DashboardProvider>
+              </ThemeProvider>
+            </TimerProvider>
+          </GamificationProvider>
+        </SubscriptionProvider>
         </AdminProvider>
       </AuthProvider>
     </HelmetProvider>

@@ -33,11 +33,11 @@ async function verifyAdmin(userId) {
 
   // Check if user is in admin_users table
   try {
-    const { data, error } = await supabase
-      .from('admin_users')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
+  const { data, error } = await supabase
+    .from('admin_users')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
 
     if (data && !error) {
       return true;

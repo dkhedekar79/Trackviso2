@@ -80,7 +80,7 @@ export const AdminProvider = ({ children }) => {
                                 error.message?.includes('permission denied');
         
         if (!isExpectedError) {
-          console.error('Error checking admin status:', error);
+        console.error('Error checking admin status:', error);
         }
         
         setIsAdmin(false);

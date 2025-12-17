@@ -26,6 +26,9 @@ export const GamificationProvider = ({ children }) => {
       totalSessions: 0,
       totalStudyTime: 0,
       sessionHistory: [],
+      
+      // Pomodoro tracking
+      pomodoroCyclesCompleted: 0,
 
       // Streak system
       currentStreak: 0,
@@ -87,6 +90,7 @@ export const GamificationProvider = ({ children }) => {
         dailyQuests: savedStats.dailyQuests ?? [],
         weeklyQuests: savedStats.weeklyQuests ?? [],
         gems: savedStats.gems ?? 0,
+        pomodoroCyclesCompleted: savedStats.pomodoroCyclesCompleted ?? 0,
       };
     }
 
@@ -621,6 +625,10 @@ export const GamificationProvider = ({ children }) => {
         totalXPEarned: (prev.totalXPEarned || 0) + amount,
         weeklyXP: (prev.weeklyXP || 0) + amount,
         xpEvents: [event, ...(prev.xpEvents || [])].slice(0, 500),
+        // Increment pomodoro cycle counter if this XP is from completing a cycle
+        pomodoroCyclesCompleted: source === "pomodoro_cycle" 
+          ? (prev.pomodoroCyclesCompleted || 0) + 1 
+          : (prev.pomodoroCyclesCompleted || 0),
       };
       
       // Check for level up
@@ -629,6 +637,11 @@ export const GamificationProvider = ({ children }) => {
         for (let i = 1; i <= levelsGained; i++) {
           setTimeout(() => handleLevelUp(oldLevel + i), 100 * i);
         }
+      }
+      
+      // Check pomodoro achievements after updating
+      if (source === "pomodoro_cycle") {
+        setTimeout(() => checkAchievements(), 100);
       }
       
       return updatedStats;
@@ -1136,6 +1149,44 @@ export const GamificationProvider = ({ children }) => {
         ),
       tier: "uncommon",
     },
+    
+    // Pomodoro achievements
+    pomodoro_beginner: {
+      id: "pomodoro_beginner",
+      name: "Pomodoro Beginner",
+      description: "Complete your first Pomodoro cycle",
+      icon: "🍅",
+      xp: 50,
+      condition: (stats) => (stats.pomodoroCyclesCompleted || 0) >= 1,
+      tier: "common",
+    },
+    pomodoro_focused: {
+      id: "pomodoro_focused",
+      name: "Focused Mind",
+      description: "Complete 10 Pomodoro cycles",
+      icon: "🍅",
+      xp: 150,
+      condition: (stats) => (stats.pomodoroCyclesCompleted || 0) >= 10,
+      tier: "uncommon",
+    },
+    pomodoro_master: {
+      id: "pomodoro_master",
+      name: "Pomodoro Master",
+      description: "Complete 50 Pomodoro cycles",
+      icon: "🍅",
+      xp: 400,
+      condition: (stats) => (stats.pomodoroCyclesCompleted || 0) >= 50,
+      tier: "rare",
+    },
+    pomodoro_legend: {
+      id: "pomodoro_legend",
+      name: "Pomodoro Legend",
+      description: "Complete 200 Pomodoro cycles",
+      icon: "🍅",
+      xp: 1000,
+      condition: (stats) => (stats.pomodoroCyclesCompleted || 0) >= 200,
+      tier: "epic",
+    },
   };
 
   // Check and unlock achievements - FIXED VERSION
@@ -1427,6 +1478,24 @@ export const GamificationProvider = ({ children }) => {
       xp: 150,
       icon: "🔄",
     },
+    {
+      id: "complete_2_pomodoros",
+      name: "Complete 2 Pomodoro cycles",
+      description: "Complete 2 full Pomodoro cycles (25min work + 5min break)",
+      type: "pomodoro_cycles",
+      target: 2,
+      xp: 120,
+      icon: "🍅",
+    },
+    {
+      id: "complete_4_pomodoros",
+      name: "Complete 4 Pomodoro cycles",
+      description: "Complete 4 full Pomodoro cycles for deep focus",
+      type: "pomodoro_cycles",
+      target: 4,
+      xp: 200,
+      icon: "🍅",
+    },
   ];
 
   // Weekly quest templates
@@ -1513,6 +1582,24 @@ export const GamificationProvider = ({ children }) => {
       target: 2,
       xp: 900,
       icon: "⚡",
+    },
+    {
+      id: "weekly_10_pomodoros",
+      name: "Complete 10 Pomodoro cycles",
+      description: "Complete 10 Pomodoro cycles this week for maximum focus",
+      type: "pomodoro_cycles",
+      target: 10,
+      xp: 800,
+      icon: "🍅",
+    },
+    {
+      id: "weekly_20_pomodoros",
+      name: "Complete 20 Pomodoro cycles",
+      description: "Master productivity with 20 Pomodoro cycles",
+      type: "pomodoro_cycles",
+      target: 20,
+      xp: 1200,
+      icon: "🍅",
     },
   ];
 
@@ -1706,6 +1793,10 @@ export const GamificationProvider = ({ children }) => {
             newProgress = withCurrent > yMax ? 1 : 0;
             break;
           }
+          case "pomodoro_cycles":
+            // Increment by amount (number of completed cycles)
+            newProgress = (quest.progress || 0) + (typeof amount === "number" ? amount : 1);
+            break;
           default:
             newProgress = (quest.progress || 0) + (typeof amount === "number" ? amount : 0);
         }
@@ -1800,6 +1891,10 @@ export const GamificationProvider = ({ children }) => {
             newProgress = count;
             break;
           }
+          case "pomodoro_cycles":
+            // Increment by amount (number of completed cycles)
+            newProgress = (quest.progress || 0) + (typeof amount === "number" ? amount : 1);
+            break;
           default:
             newProgress = (quest.progress || 0) + (typeof amount === "number" ? amount : 0);
         }

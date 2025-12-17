@@ -107,6 +107,7 @@ const MouseTrail = ({ mousePosition, isInNavbar }) => {
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
+  const [navOpacity, setNavOpacity] = useState(1);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isInNavbar, setIsInNavbar] = useState(false);
   const navRef = useRef(null);
@@ -116,11 +117,24 @@ const Navbar = () => {
   const location = useLocation();
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+    const handleScroll = (e) => {
+      // Get scroll position from the scrollable element (main) or window
+      const scrollY = e.target.scrollTop || window.scrollY;
+      setScrolled(scrollY > 20);
+      
+      // Fade out navbar when scrolling down (max fade at 100px scroll)
+      const opacity = Math.max(0, 1 - scrollY / 100);
+      setNavOpacity(opacity);
     };
+    
+    // Listen on document with capture to catch scroll events from any element
+    document.addEventListener("scroll", handleScroll, true);
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    
+    return () => {
+      document.removeEventListener("scroll", handleScroll, true);
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
   useEffect(() => {
@@ -156,64 +170,80 @@ const Navbar = () => {
 
   return (
     <>
-      {/* Mouse trail effect */}
-      <MouseTrail mousePosition={mousePosition} isInNavbar={isInNavbar} />
+      {/* Mouse trail effect - hidden on dashboard */}
+      {location.pathname !== "/dashboard" && (
+        <MouseTrail mousePosition={mousePosition} isInNavbar={isInNavbar} />
+      )}
 
-      {/* Animated gradient line at top */}
-      <div className="fixed top-0 left-0 right-0 h-[3px] z-[60] overflow-hidden">
-        <motion.div
-          className="h-full w-[200%] bg-gradient-to-r from-amber-400 via-purple-500 via-pink-500 via-amber-400 to-purple-500"
-          animate={{ x: ["-50%", "0%"] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-        />
-      </div>
-
+      {/* Animated gradient line at top - hidden on dashboard */}
+      {location.pathname !== "/dashboard" && (
+        <div className="fixed top-0 left-0 right-0 h-[3px] z-[60] overflow-hidden">
+          <motion.div
+            className="h-full w-[200%] bg-gradient-to-r from-amber-400 via-purple-500 via-pink-500 via-amber-400 to-purple-500"
+            animate={{ x: ["-50%", "0%"] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+          />
+        </div>
+      )}
+      
       <motion.nav
         ref={navRef}
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ type: "spring", stiffness: 100, damping: 20 }}
-        className={`fixed top-[3px] left-0 right-0 z-50 transition-all duration-500 ${
-          scrolled 
-            ? "bg-slate-950/95 backdrop-blur-xl shadow-2xl shadow-purple-900/30" 
-            : "bg-gradient-to-r from-slate-950 via-purple-950/95 to-slate-950 backdrop-blur-lg"
+        style={{ 
+          opacity: navOpacity,
+          pointerEvents: navOpacity < 0.1 ? 'none' : 'auto',
+          transition: 'opacity 0.2s ease-out'
+        }}
+        className={`fixed left-0 right-0 z-50 ${
+          location.pathname === "/dashboard"
+            ? "top-0 bg-transparent"
+            : `top-[3px] ${scrolled 
+                ? "bg-gradient-to-r from-indigo-600/95 via-purple-600/95 to-violet-600/95 backdrop-blur-xl shadow-2xl shadow-purple-500/40" 
+                : "bg-gradient-to-r from-indigo-500/90 via-purple-500/90 to-violet-500/90 backdrop-blur-lg shadow-xl shadow-purple-500/30"
+              }`
         }`}
       >
-        {/* Animated glow that follows mouse */}
-        <div 
-          className="absolute inset-0 pointer-events-none transition-opacity duration-300"
-          style={{
-            background: isInNavbar 
-              ? `radial-gradient(400px circle at ${mousePosition.x}px ${mousePosition.y - 3}px, rgba(251, 191, 36, 0.15), rgba(139, 92, 246, 0.08) 40%, transparent 70%)`
-              : 'none',
-            opacity: isInNavbar ? 1 : 0
-          }}
-        />
+        {/* Animated glow that follows mouse - hidden on dashboard */}
+        {location.pathname !== "/dashboard" && (
+          <div 
+            className="absolute inset-0 pointer-events-none transition-opacity duration-300"
+            style={{
+              background: isInNavbar 
+                ? `radial-gradient(400px circle at ${mousePosition.x}px ${mousePosition.y - 3}px, rgba(255, 255, 255, 0.25), rgba(251, 191, 36, 0.15) 40%, transparent 70%)`
+                : 'none',
+              opacity: isInNavbar ? 1 : 0
+            }}
+          />
+        )}
 
-        {/* Subtle animated particles background */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(5)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-1 h-1 rounded-full bg-amber-400/30"
-              initial={{ 
-                x: Math.random() * 100 + "%", 
-                y: "100%",
-                opacity: 0 
-              }}
-              animate={{ 
-                y: "-100%",
-                opacity: [0, 0.6, 0],
-              }}
-              transition={{ 
-                duration: 3 + Math.random() * 2,
-                repeat: Infinity,
-                delay: i * 0.8,
-                ease: "linear"
-              }}
-            />
-          ))}
-        </div>
+        {/* Subtle animated particles background - hidden on dashboard */}
+        {location.pathname !== "/dashboard" && (
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {[...Array(8)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-1.5 h-1.5 rounded-full bg-white/40"
+                initial={{ 
+                  x: Math.random() * 100 + "%", 
+                  y: "100%",
+                  opacity: 0 
+                }}
+                animate={{ 
+                  y: "-100%",
+                  opacity: [0, 0.8, 0],
+                }}
+                transition={{ 
+                  duration: 3 + Math.random() * 2,
+                  repeat: Infinity,
+                  delay: i * 0.6,
+                  ease: "linear"
+                }}
+              />
+            ))}
+      </div>
+        )}
 
         <div className="relative flex items-center justify-between px-8 py-4 h-20">
           {/* Left: Logo with animation */}
@@ -238,7 +268,7 @@ const Navbar = () => {
                   transition={{ duration: 2, repeat: Infinity }}
                 />
               </motion.div>
-              <span className="text-2xl font-black bg-gradient-to-r from-amber-300 via-white to-purple-300 bg-clip-text text-transparent group-hover:from-amber-200 group-hover:via-yellow-100 group-hover:to-purple-200 transition-all duration-300 tracking-tight">
+              <span className="text-2xl font-black text-white drop-shadow-lg group-hover:drop-shadow-xl transition-all duration-300 tracking-tight">
                 Trackviso
               </span>
             </Link>
@@ -257,11 +287,11 @@ const Navbar = () => {
                   className="text-center"
                 >
                   <div className="relative">
-                    <span className="text-2xl font-black tracking-[0.25em] bg-gradient-to-r from-white via-amber-200 to-white bg-clip-text text-transparent drop-shadow-lg">
+                    <span className="text-2xl font-black tracking-[0.25em] text-white drop-shadow-lg">
                       {pageTitle}
                     </span>
                     <motion.div
-                      className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 h-[3px] bg-gradient-to-r from-transparent via-amber-400 to-transparent rounded-full"
+                      className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 h-[3px] bg-gradient-to-r from-transparent via-white to-transparent rounded-full"
                       initial={{ width: 0 }}
                       animate={{ width: "80%" }}
                       transition={{ delay: 0.2, duration: 0.4 }}
@@ -271,7 +301,7 @@ const Navbar = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.3 }}
-                    className="text-xs font-semibold text-amber-300/60 mt-2 block tracking-[0.2em] uppercase"
+                    className="text-xs font-semibold text-white/70 mt-2 block tracking-[0.2em] uppercase"
                   >
                     {new Date().toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
                   </motion.span>
@@ -286,14 +316,14 @@ const Navbar = () => {
               <div className="flex items-center gap-3">
                 <Link 
                   to="/login" 
-                  className="px-5 py-2.5 rounded-xl font-semibold text-amber-200 hover:text-white hover:bg-white/10 transition-all duration-300 border border-transparent hover:border-amber-500/30"
+                  className="px-5 py-2.5 rounded-xl font-semibold text-white hover:bg-white/20 transition-all duration-300 border border-white/30"
                 >
                   Login
                 </Link>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Link 
                     to="/signup" 
-                    className="px-5 py-2.5 rounded-xl font-bold bg-gradient-to-r from-amber-500 to-purple-600 text-white shadow-lg shadow-amber-500/30 hover:shadow-amber-400/50 transition-all duration-300"
+                    className="px-5 py-2.5 rounded-xl font-bold bg-white text-purple-600 shadow-lg hover:shadow-xl transition-all duration-300"
                   >
                     Sign Up
                   </Link>
@@ -307,17 +337,17 @@ const Navbar = () => {
                   whileHover={{ scale: 1.1, y: -2 }}
                   className="relative group cursor-pointer"
                 >
-                  <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500/25 to-yellow-500/25 border border-amber-400/50 backdrop-blur-sm shadow-lg shadow-amber-500/20">
+                  <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/20 border border-white/30 backdrop-blur-sm shadow-lg">
                     <motion.div
                       animate={{ rotate: [0, 15, -15, 0] }}
                       transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
                     >
                       <Star className="w-4 h-4 text-amber-300" fill="currentColor" />
                     </motion.div>
-                    <span className="text-sm font-bold text-amber-200">Lvl {userStats?.level || 1}</span>
+                    <span className="text-sm font-bold text-white">Lvl {userStats?.level || 1}</span>
                   </div>
                   <motion.div 
-                    className="absolute inset-0 rounded-xl bg-amber-400/30 blur-md -z-10 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute inset-0 rounded-xl bg-white/20 blur-md -z-10 opacity-0 group-hover:opacity-100 transition-opacity"
                   />
                 </motion.div>
 
@@ -326,17 +356,17 @@ const Navbar = () => {
                   whileHover={{ scale: 1.1, y: -2 }}
                   className="relative group cursor-pointer"
                 >
-                  <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-500/25 to-red-500/25 border border-orange-400/50 backdrop-blur-sm shadow-lg shadow-orange-500/20">
+                  <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/20 border border-white/30 backdrop-blur-sm shadow-lg">
                     <motion.div
                       animate={{ scale: [1, 1.3, 1] }}
                       transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 1.5 }}
                     >
-                      <Flame className="w-4 h-4 text-orange-300" />
+                <Flame className="w-4 h-4 text-orange-300" />
                     </motion.div>
-                    <span className="text-sm font-bold text-orange-200">{userStats?.currentStreak || 0} day</span>
+                    <span className="text-sm font-bold text-white">{userStats?.currentStreak || 0} day</span>
                   </div>
                   <motion.div 
-                    className="absolute inset-0 rounded-xl bg-orange-400/30 blur-md -z-10 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute inset-0 rounded-xl bg-white/20 blur-md -z-10 opacity-0 group-hover:opacity-100 transition-opacity"
                   />
                 </motion.div>
 
@@ -345,30 +375,34 @@ const Navbar = () => {
                   whileHover={{ scale: 1.1, y: -2 }}
                   className="relative group cursor-pointer"
                 >
-                  <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500/25 to-pink-500/25 border border-purple-400/50 backdrop-blur-sm shadow-lg shadow-purple-500/20">
-                    <Zap className="w-4 h-4 text-purple-300" />
-                    <span className="text-sm font-bold text-purple-200">{userStats?.xp || 0} XP</span>
+                  <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/20 border border-white/30 backdrop-blur-sm shadow-lg">
+                    <Zap className="w-4 h-4 text-yellow-300" />
+                    <span className="text-sm font-bold text-white">{userStats?.xp || 0} XP</span>
                   </div>
                   <motion.div 
-                    className="absolute inset-0 rounded-xl bg-purple-400/30 blur-md -z-10 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute inset-0 rounded-xl bg-white/20 blur-md -z-10 opacity-0 group-hover:opacity-100 transition-opacity"
                   />
                 </motion.div>
 
-                <div className="w-px h-10 bg-gradient-to-b from-transparent via-amber-500/40 to-transparent mx-2" />
+                <div className="w-px h-10 bg-gradient-to-b from-transparent via-white/40 to-transparent mx-2" />
                 
                 <ProfileDropdown />
               </div>
-            )}
-          </div>
+        )}
+      </div>
         </div>
 
         {/* Bottom gradient border */}
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
+        <div className={`absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent ${
+          location.pathname === "/dashboard" 
+            ? "via-white/20" 
+            : "via-white/50"
+        } to-transparent`} />
       </motion.nav>
 
       {/* Gamification Notifications */}
       <AnimatePresence>
-        {showRewards && rewardQueue && Array.isArray(rewardQueue) && rewardQueue.length > 0 && (
+      {showRewards && rewardQueue && Array.isArray(rewardQueue) && rewardQueue.length > 0 && (
           <motion.div 
             initial={{ opacity: 0, x: 100, scale: 0.8 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
@@ -383,13 +417,13 @@ const Navbar = () => {
               >
                 🎉
               </motion.div>
-              <div>
-                <h4 className="font-bold text-lg">{rewardQueue[rewardQueue.length - 1]?.title || "Session Complete!"}</h4>
-                <p className="text-sm opacity-90">{rewardQueue[rewardQueue.length - 1]?.description || "Great work!"}</p>
-              </div>
+            <div>
+              <h4 className="font-bold text-lg">{rewardQueue[rewardQueue.length - 1]?.title || "Session Complete!"}</h4>
+              <p className="text-sm opacity-90">{rewardQueue[rewardQueue.length - 1]?.description || "Great work!"}</p>
             </div>
+          </div>
           </motion.div>
-        )}
+      )}
       </AnimatePresence>
     </>
   );

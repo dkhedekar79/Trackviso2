@@ -84,6 +84,9 @@ const Study = () => {
     stopwatchSeconds,
     isPomodoroBreak,
     pomodoroCount,
+    totalCyclesCompleted,
+    phaseJustCompleted,
+    showPhaseNotification,
     startTimer,
     stopTimer,
     resetTimer,
@@ -92,6 +95,10 @@ const Study = () => {
     setCustomMinutes,
     customMinutes,
     getActualElapsedTime,
+    setOnCycleComplete,
+    clearPhaseNotification,
+    skipBreak,
+    playNotificationSound,
   } = useTimer();
 
   // Gamification context
@@ -100,6 +107,7 @@ const Study = () => {
     addStudySession,
     updateQuestProgress,
     awardXP,
+    grantXP,
     addReward,
     rewardQueue,
     showRewards,
@@ -217,10 +225,17 @@ const Study = () => {
     }
   }, [isPremium, selectedAmbientVideo, ambientVideos]);
 
+  // Track if we just completed a phase (to avoid double triggering)
+  const phaseCompletedRef = useRef(false);
+  const [localPomodoroPhase, setLocalPomodoroPhase] = useState("work"); // "work" or "break"
+  const [localPomodoroCount, setLocalPomodoroCount] = useState(0);
+  const [showPomodoroNotification, setShowPomodoroNotification] = useState(false);
+  const [pomodoroNotificationMessage, setPomodoroNotificationMessage] = useState("");
+
   // Local timer helpers
   const getTotalDuration = () => {
     if (mode === "pomodoro")
-      return (pomodoroPhaseRef.current === "break" ? 5 : 25) * 60;
+      return (localPomodoroPhase === "break" ? 5 : 25) * 60;
     if (mode === "custom") return (customMinutes || 25) * 60;
     return 0; // stopwatch
   };
@@ -228,10 +243,11 @@ const Study = () => {
   const startLocalTimer = () => {
     // lock current pomodoro phase at start
     if (mode === "pomodoro") {
-      pomodoroPhaseRef.current = isPomodoroBreak ? "break" : "work";
+      pomodoroPhaseRef.current = localPomodoroPhase;
     } else {
       pomodoroPhaseRef.current = "";
     }
+    phaseCompletedRef.current = false;
     // resume from paused
     const now = Date.now();
     startMsRef.current = now - pausedAccumulatedRef.current * 1000;
@@ -252,7 +268,79 @@ const Study = () => {
     startMsRef.current = null;
     pausedAccumulatedRef.current = 0;
     setElapsedSeconds(0);
+    phaseCompletedRef.current = false;
   };
+  
+  // Auto-transition between Pomodoro work/break phases
+  useEffect(() => {
+    if (mode !== "pomodoro" || !isRunning) return;
+    
+    const totalDuration = localPomodoroPhase === "break" ? 5 * 60 : 25 * 60;
+    
+    // Check if timer reached 0 and we haven't already processed this completion
+    if (elapsedSeconds >= totalDuration && !phaseCompletedRef.current) {
+      phaseCompletedRef.current = true;
+      
+      if (localPomodoroPhase === "work") {
+        // Work phase complete - start break
+        playNotificationSound?.("work");
+        setPomodoroNotificationMessage("🌴 Great work! Time for a 5-minute break.");
+        setShowPomodoroNotification(true);
+        
+        // Reset local timer and switch to break phase
+        if (intervalRef.current) clearInterval(intervalRef.current);
+        startMsRef.current = Date.now();
+        pausedAccumulatedRef.current = 0;
+        setElapsedSeconds(0);
+        setLocalPomodoroPhase("break");
+        pomodoroPhaseRef.current = "break";
+        phaseCompletedRef.current = false;
+        
+        // Restart the interval
+        intervalRef.current = setInterval(() => {
+          const diff = Date.now() - startMsRef.current;
+          setElapsedSeconds(Math.floor(diff / 1000));
+        }, 100);
+        
+        // Auto-hide notification after 4 seconds
+        setTimeout(() => setShowPomodoroNotification(false), 4000);
+        
+      } else {
+        // Break phase complete - this counts as a completed pomodoro cycle!
+        playNotificationSound?.("break");
+        const newCycleCount = localPomodoroCount + 1;
+        setLocalPomodoroCount(newCycleCount);
+        setPomodoroNotificationMessage(`🏆 Pomodoro #${newCycleCount} complete! +50 XP bonus. Back to work!`);
+        setShowPomodoroNotification(true);
+        
+        // Award XP for completing a pomodoro cycle
+        if (grantXP) {
+          grantXP(50, "pomodoro_cycle");
+        }
+        
+        // Update quest progress for pomodoro cycles
+        updateQuestProgress?.("pomodoro_cycles", 1);
+        
+        // Reset local timer and switch to work phase
+        if (intervalRef.current) clearInterval(intervalRef.current);
+        startMsRef.current = Date.now();
+        pausedAccumulatedRef.current = 0;
+        setElapsedSeconds(0);
+        setLocalPomodoroPhase("work");
+        pomodoroPhaseRef.current = "work";
+        phaseCompletedRef.current = false;
+        
+        // Restart the interval
+        intervalRef.current = setInterval(() => {
+          const diff = Date.now() - startMsRef.current;
+          setElapsedSeconds(Math.floor(diff / 1000));
+        }, 100);
+        
+        // Auto-hide notification after 4 seconds
+        setTimeout(() => setShowPomodoroNotification(false), 4000);
+      }
+    }
+  }, [elapsedSeconds, mode, isRunning, localPomodoroPhase, localPomodoroCount, playNotificationSound, updateQuestProgress]);
 
   // Helper function to get start of week
   const getStartOfWeek = (date) => {
@@ -316,6 +404,11 @@ const Study = () => {
       setShowCustomInput(false);
       setTimerMode(newMode);
       resetLocalTimer();
+      // Reset pomodoro state when switching modes
+      if (newMode === "pomodoro") {
+        setLocalPomodoroPhase("work");
+        setLocalPomodoroCount(0);
+      }
     }
   };
 
@@ -330,7 +423,7 @@ const Study = () => {
       const overtime = Math.max(0, elapsedSeconds - total);
       if (
         mode === "pomodoro" &&
-        pomodoroPhaseRef.current === "work" &&
+        localPomodoroPhase === "work" &&
         overtime > 0
       ) {
         const minutes = Math.floor(overtime / 60);
@@ -343,6 +436,9 @@ const Study = () => {
       return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
     }
   };
+  
+  // Check if currently in break phase
+  const isInBreakPhase = mode === "pomodoro" && localPomodoroPhase === "break";
 
   // Progress based on local timer
   const getProgress = () => {
@@ -355,7 +451,7 @@ const Study = () => {
   const getModeDuration = (timerMode) => {
     switch (timerMode) {
       case "pomodoro":
-        return isPomodoroBreak ? 5 * 60 : 25 * 60;
+        return localPomodoroPhase === "break" ? 5 * 60 : 25 * 60;
       case "custom":
         return (customMinutes || 25) * 60;
       case "stopwatch":
@@ -1185,6 +1281,44 @@ const Study = () => {
           feature="Animated Wallpapers"
         />
 
+        {/* Pomodoro Phase Transition Notification */}
+        <AnimatePresence>
+          {showPomodoroNotification && (
+            <motion.div
+              initial={{ opacity: 0, y: -50, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -50, scale: 0.9 }}
+              className="fixed top-24 left-1/2 transform -translate-x-1/2 z-[150] max-w-md"
+            >
+              <div className={`px-6 py-4 rounded-2xl shadow-2xl border-2 backdrop-blur-md ${
+                isInBreakPhase 
+                  ? "bg-green-900/90 border-green-400/50 shadow-green-500/30" 
+                  : "bg-purple-900/90 border-purple-400/50 shadow-purple-500/30"
+              }`}>
+                <div className="flex items-center gap-3">
+                  <motion.div
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ repeat: Infinity, duration: 1 }}
+                    className="text-3xl"
+                  >
+                    {isInBreakPhase ? "🌴" : "💪"}
+                  </motion.div>
+                  <div>
+                    <p className="text-white font-semibold text-lg">
+                      {pomodoroNotificationMessage}
+                    </p>
+                    <p className="text-white/70 text-sm mt-1">
+                      {isInBreakPhase 
+                        ? "Take a short break, stretch, and relax!" 
+                        : "Stay focused and keep up the great work!"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Focus Mode Overlay */}
         {isFocusMode && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
@@ -1257,17 +1391,17 @@ const Study = () => {
                     ))}
                   </div>
 
-                  {/* Mode Status */}
-                  {mode === "pomodoro" && (
-                    <div className="text-center mb-8">
-                      <div className={`text-xl font-medium ${isPomodoroBreak ? 'text-green-400' : 'text-white'}`}>
-                        {isPomodoroBreak ? "🌴 Break Time" : "📚 Work Time"}
+{/* Mode Status */}
+                    {mode === "pomodoro" && (
+                      <div className="text-center mb-8">
+                        <div className={`text-xl font-medium ${isInBreakPhase ? 'text-green-400' : 'text-white'}`}>
+                          {isInBreakPhase ? "🌴 Break Time" : "📚 Work Time"}
+                        </div>
+                        <div className="text-gray-300 text-lg">
+                          {localPomodoroCount} pomodoros completed
+                        </div>
                       </div>
-                      <div className="text-gray-300 text-lg">
-                        {pomodoroCount} pomodoros completed
-                      </div>
-                    </div>
-                  )}
+                    )}
 
                   {/* Large Timer Display */}
                   <div className="relative mb-12 w-[320px] h-[320px]">
@@ -1285,33 +1419,33 @@ const Study = () => {
                           strokeWidth="12"
                           fill="none"
                         />
-                        <circle
-                          cx="160"
-                          cy="160"
-                          r="144"
-                          stroke={
-                            mode === "pomodoro" && isPomodoroBreak
-                              ? "#4ADE80"
-                              : mode === "pomodoro" &&
-                                elapsedSeconds > getTotalDuration() &&
-                                pomodoroPhaseRef.current === "work"
-                                ? "#EF4444"
-                                : "var(--primary)"
-                          }
-                          strokeWidth="12"
-                          fill="none"
-                          strokeDasharray={2 * Math.PI * 144}
-                          strokeDashoffset={
-                            2 * Math.PI * 144 * (1 - getProgress() / 100)
-                          }
-                          style={{
-                            transition: "stroke-dashoffset 0.5s, stroke 0.2s",
-                          }}
-                        />
+<circle
+                            cx="160"
+                            cy="160"
+                            r="144"
+                            stroke={
+                              isInBreakPhase
+                                ? "#4ADE80"
+                                : mode === "pomodoro" &&
+                                  elapsedSeconds > getTotalDuration() &&
+                                  localPomodoroPhase === "work"
+                                  ? "#EF4444"
+                                  : "var(--primary)"
+                            }
+                            strokeWidth="12"
+                            fill="none"
+                            strokeDasharray={2 * Math.PI * 144}
+                            strokeDashoffset={
+                              2 * Math.PI * 144 * (1 - getProgress() / 100)
+                            }
+                            style={{
+                              transition: "stroke-dashoffset 0.5s, stroke 0.2s",
+                            }}
+                          />
                       </svg>
                     )}
                     <div
-                      className={`absolute inset-0 rounded-full bg-white/10 flex items-center justify-center ${mode === "pomodoro" && isPomodoroBreak ? "text-green-400" : mode === "pomodoro" && elapsedSeconds > getTotalDuration() && pomodoroPhaseRef.current === "work" ? "text-red-400" : "text-white"}`}
+                      className={`absolute inset-0 rounded-full bg-white/10 flex items-center justify-center ${isInBreakPhase ? "text-green-400" : mode === "pomodoro" && elapsedSeconds > getTotalDuration() && localPomodoroPhase === "work" ? "text-red-400" : "text-white"}`}
                     >
                       <span className="text-8xl font-mono drop-shadow-2xl">
                         {getDisplayTime()}
@@ -1564,11 +1698,11 @@ const Study = () => {
                     {/* Mode Status */}
                     {mode === "pomodoro" && (
                       <div className="text-center mb-6">
-                        <div className="text-sm text-white font-medium">
-                          {isPomodoroBreak ? "Break Time" : "Work Time"}
+                        <div className={`text-sm font-medium ${isInBreakPhase ? 'text-green-400' : 'text-white'}`}>
+                          {isInBreakPhase ? "🌴 Break Time" : "📚 Work Time"}
                         </div>
                         <div className="text-xs text-gray-300">
-                          {pomodoroCount} pomodoros completed
+                          {localPomodoroCount} pomodoros completed
                         </div>
                       </div>
                     )}
@@ -1594,11 +1728,13 @@ const Study = () => {
                             cy="80"
                             r="64"
                             stroke={
-                              mode === "pomodoro" &&
-                              elapsedSeconds > getTotalDuration() &&
-                              pomodoroPhaseRef.current === "work"
-                                ? "#EF4444"
-                                : "var(--primary)"
+                              isInBreakPhase
+                                ? "#4ADE80"
+                                : mode === "pomodoro" &&
+                                  elapsedSeconds > getTotalDuration() &&
+                                  localPomodoroPhase === "work"
+                                  ? "#EF4444"
+                                  : "var(--primary)"
                             }
                             strokeWidth="8"
                             fill="none"
@@ -1613,7 +1749,7 @@ const Study = () => {
                         </svg>
                       )}
                       <div
-                        className={`absolute inset-0 rounded-full bg-white/10 flex items-center justify-center ${mode === "pomodoro" && isPomodoroBreak ? "text-green-400" : mode === "pomodoro" && elapsedSeconds > getTotalDuration() && pomodoroPhaseRef.current === "work" ? "text-red-400" : "text-white"}`}
+                        className={`absolute inset-0 rounded-full bg-white/10 flex items-center justify-center ${isInBreakPhase ? "text-green-400" : mode === "pomodoro" && elapsedSeconds > getTotalDuration() && localPomodoroPhase === "work" ? "text-red-400" : "text-white"}`}
                       >
                         <span className={`text-6xl font-mono drop-shadow-lg`}>
                           {getDisplayTime()}

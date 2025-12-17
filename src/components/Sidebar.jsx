@@ -41,7 +41,7 @@ export default function Sidebar() {
 
   return (
     <motion.aside 
-      className="fixed left-0 top-[3px] h-[calc(100%-3px)] z-40 flex flex-col"
+      className="fixed left-0 top-20 h-[calc(100%-5rem)] z-40 flex flex-col"
       initial={{ x: -100 }}
       animate={{ x: 0 }}
       transition={{ type: "spring", stiffness: 100, damping: 20 }}
@@ -66,8 +66,8 @@ export default function Sidebar() {
           />
         </div>
 
-        {/* Navigation items - moved up */}
-        <nav className="flex-1 flex flex-col gap-1.5 px-2 pt-24 overflow-y-auto overflow-x-hidden">
+        {/* Navigation items */}
+        <nav className="flex-1 flex flex-col gap-1.5 px-2 pt-4 overflow-y-auto overflow-x-hidden">
           {navItems.map((item, index) => {
             const isActive = location.pathname === item.path;
             const isHovered = hoveredItem === item.path;

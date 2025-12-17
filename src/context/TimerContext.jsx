@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 
 const TimerContext = createContext();
 
@@ -10,6 +10,40 @@ export const useTimer = () => {
   return context;
 };
 
+// Sound notification helper
+const playNotificationSound = (type = 'work') => {
+  try {
+    // Create audio context for notification sound
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    // Different tones for work vs break completion
+    if (type === 'break') {
+      // Uplifting tone for break end (time to work!)
+      oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+      oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.15); // E5
+      oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.3); // G5
+    } else {
+      // Relaxing tone for work end (time to rest!)
+      oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime); // G5
+      oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.15); // E5
+      oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime + 0.3); // C5
+    }
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.5);
+  } catch (e) {
+    console.log('Audio notification not available');
+  }
+};
+
 export const TimerProvider = ({ children }) => {
   const [timerState, setTimerState] = useState({
     isRunning: false,
@@ -18,13 +52,21 @@ export const TimerProvider = ({ children }) => {
     stopwatchSeconds: 0, // For stopwatch mode
     isPomodoroBreak: false,
     pomodoroCount: 0,
+    totalCyclesCompleted: 0, // Track total completed pomodoro cycles
     subjectName: '',
     // Custom duration (minutes) for custom mode
     customMinutes: 25,
     startTime: null, // Store when timer started (ms)
     pausedTime: null, // Accumulated time when paused (seconds)
-    lastUpdateTime: null // Track last update for accuracy (ms)
+    lastUpdateTime: null, // Track last update for accuracy (ms)
+    phaseJustCompleted: null, // 'work' or 'break' - used for detecting phase transitions
+    showPhaseNotification: false, // Show notification when phase changes
   });
+  
+  // Callbacks for phase completion (can be set by Study page)
+  const onWorkCompleteRef = useRef(null);
+  const onBreakCompleteRef = useRef(null);
+  const onCycleCompleteRef = useRef(null);
 
   const { isRunning, mode, secondsLeft, stopwatchSeconds, isPomodoroBreak, pomodoroCount, subjectName, startTime, pausedTime, lastUpdateTime, customMinutes } = timerState;
 
@@ -164,24 +206,56 @@ export const TimerProvider = ({ children }) => {
   const handleTimerComplete = () => {
     if (mode === 'pomodoro') {
       if (isPomodoroBreak) {
-        // Break is complete, restart work phase
+        // Break is complete - this counts as a completed pomodoro cycle!
+        playNotificationSound('break');
+        
+        // Call the cycle complete callback if registered
+        if (onCycleCompleteRef.current) {
+          onCycleCompleteRef.current(timerState.pomodoroCount + 1);
+        }
+        if (onBreakCompleteRef.current) {
+          onBreakCompleteRef.current();
+        }
+        
+        // Restart work phase
         setTimerState(prev => ({
           ...prev,
           isPomodoroBreak: false,
           pomodoroCount: prev.pomodoroCount + 1,
+          totalCyclesCompleted: prev.totalCyclesCompleted + 1,
           startTime: Date.now(),
           pausedTime: null,
-          secondsLeft: 25 * 60
+          secondsLeft: 25 * 60,
+          phaseJustCompleted: 'break',
+          showPhaseNotification: true,
         }));
+        
+        // Clear the notification after 3 seconds
+        setTimeout(() => {
+          setTimerState(prev => ({ ...prev, showPhaseNotification: false, phaseJustCompleted: null }));
+        }, 3000);
       } else {
         // Work phase is complete, start break
+        playNotificationSound('work');
+        
+        if (onWorkCompleteRef.current) {
+          onWorkCompleteRef.current();
+        }
+        
         setTimerState(prev => ({
           ...prev,
           isPomodoroBreak: true,
           startTime: Date.now(),
           pausedTime: null,
-          secondsLeft: 5 * 60
+          secondsLeft: 5 * 60,
+          phaseJustCompleted: 'work',
+          showPhaseNotification: true,
         }));
+        
+        // Clear the notification after 3 seconds
+        setTimeout(() => {
+          setTimerState(prev => ({ ...prev, showPhaseNotification: false, phaseJustCompleted: null }));
+        }, 3000);
       }
     } else {
       stopTimer();
@@ -196,6 +270,54 @@ export const TimerProvider = ({ children }) => {
     localStorage.setItem('studySessions', JSON.stringify(updatedSessions));
   }, [mode, stopwatchSeconds, secondsLeft, subjectName]);
 
+  // Callback setters for phase completions
+  const setOnWorkComplete = useCallback((callback) => {
+    onWorkCompleteRef.current = callback;
+  }, []);
+  
+  const setOnBreakComplete = useCallback((callback) => {
+    onBreakCompleteRef.current = callback;
+  }, []);
+  
+  const setOnCycleComplete = useCallback((callback) => {
+    onCycleCompleteRef.current = callback;
+  }, []);
+  
+  // Clear phase notification manually
+  const clearPhaseNotification = useCallback(() => {
+    setTimerState(prev => ({ ...prev, showPhaseNotification: false, phaseJustCompleted: null }));
+  }, []);
+  
+  // Skip break and start work immediately
+  const skipBreak = useCallback(() => {
+    if (mode === 'pomodoro' && isPomodoroBreak) {
+      setTimerState(prev => ({
+        ...prev,
+        isPomodoroBreak: false,
+        startTime: Date.now(),
+        pausedTime: null,
+        secondsLeft: 25 * 60,
+        showPhaseNotification: false,
+        phaseJustCompleted: null,
+      }));
+    }
+  }, [mode, isPomodoroBreak]);
+  
+  // Skip work and start break immediately (for testing)
+  const skipWork = useCallback(() => {
+    if (mode === 'pomodoro' && !isPomodoroBreak) {
+      setTimerState(prev => ({
+        ...prev,
+        isPomodoroBreak: true,
+        startTime: Date.now(),
+        pausedTime: null,
+        secondsLeft: 5 * 60,
+        showPhaseNotification: false,
+        phaseJustCompleted: null,
+      }));
+    }
+  }, [mode, isPomodoroBreak]);
+
   const value = {
     ...timerState,
     startTimer,
@@ -205,7 +327,15 @@ export const TimerProvider = ({ children }) => {
     setTimerMode,
     setTimerSubject,
     saveStudySession,
-    getActualElapsedTime
+    getActualElapsedTime,
+    // New Pomodoro-specific exports
+    setOnWorkComplete,
+    setOnBreakComplete,
+    setOnCycleComplete,
+    clearPhaseNotification,
+    skipBreak,
+    skipWork,
+    playNotificationSound,
   };
 
   return (

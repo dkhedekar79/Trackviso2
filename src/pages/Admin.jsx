@@ -35,7 +35,7 @@ const Admin = () => {
       // Check if user is the specific admin email
       const isSpecificAdmin = user?.email === 'dskhedekar7@gmail.com';
       if (!isAdmin && !isSpecificAdmin) {
-        navigate('/dashboard');
+      navigate('/dashboard');
       }
     }
   }, [isAdmin, adminLoading, navigate, user]);
@@ -87,7 +87,7 @@ const Admin = () => {
       if (msg.includes('Failed to fetch') || msg.includes('ECONNREFUSED')) {
         alert(`Admin API is not running.\n\nRun this in another terminal:\n\nnpm run dev:api\n\n(That starts Vercel functions on http://localhost:3000, which Vite proxies /api to.)`);
       } else {
-        alert('Failed to load users');
+      alert('Failed to load users');
       }
     } finally {
       setLoading(false);

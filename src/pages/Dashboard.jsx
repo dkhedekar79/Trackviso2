@@ -163,72 +163,7 @@ export default function Dashboard() {
   };
 
   // Load subjects, study sessions, and tasks from Supabase (with localStorage fallback)
-  useEffect(() => {
-    const loadData = async () => {
-      // Try to load from Supabase first
-      if (user) {
-        try {
-          const [supabaseSubjects, supabaseSessions, supabaseTasks] = await Promise.all([
-            fetchUserSubjects(),
-            fetchStudySessions(),
-            fetchUserTasks(),
-          ]);
-
-          if (supabaseSubjects && supabaseSubjects.length > 0) {
-            // Normalize subjects from Supabase format to app format
-            const normalizedSubjects = supabaseSubjects.map(normalizeSubject);
-            setSubjects(normalizedSubjects);
-            // Also sync to localStorage for offline support
-            localStorage.setItem("subjects", JSON.stringify(normalizedSubjects));
-          } else {
-            const savedSubjects = localStorage.getItem("subjects");
-            if (savedSubjects) {
-              setSubjects(JSON.parse(savedSubjects));
-            }
-          }
-
-          if (supabaseSessions && supabaseSessions.length > 0) {
-            setStudySessions(supabaseSessions);
-          } else {
-            const savedSessions = localStorage.getItem("studySessions");
-            if (savedSessions) {
-              setStudySessions(JSON.parse(savedSessions));
-            }
-          }
-
-          if (supabaseTasks && supabaseTasks.length > 0) {
-            setTasks(supabaseTasks);
-          } else {
-            const savedTasks = localStorage.getItem("tasks");
-            if (savedTasks) {
-              setTasks(JSON.parse(savedTasks));
-            }
-          }
-        } catch (error) {
-          console.error('Error loading from Supabase, falling back to localStorage:', error);
-          // Fallback to localStorage
-          const savedSubjects = localStorage.getItem("subjects");
-          const savedSessions = localStorage.getItem("studySessions");
-          const savedTasks = localStorage.getItem("tasks");
-
-          if (savedSubjects) {
-            setSubjects(JSON.parse(savedSubjects));
-          }
-
-          if (savedSessions) {
-            setStudySessions(JSON.parse(savedSessions));
-          }
-
-          if (savedTasks) {
-            setTasks(JSON.parse(savedTasks));
-          }
-        }
-      }
-    };
-
-    loadData();
-  }, [user]);
-
+  
   // Calculate study statistics, streak, and completed tasks
   useEffect(() => {
     const now = new Date();
@@ -524,7 +459,7 @@ export default function Dashboard() {
                 className="hidden md:flex items-center gap-3 px-6 py-3 bg-white text-purple-700 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
               >
                 <Zap className="w-5 h-5" />
-                Start Practising
+                Start Studying
                 <ArrowRight className="w-4 h-4" />
               </motion.button>
             </div>
