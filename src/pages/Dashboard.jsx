@@ -511,7 +511,7 @@ export default function Dashboard() {
                       transition={{ duration: 0.5 }}
                       className="text-purple-100/80 text-sm md:text-base max-w-xl"
                     >
-                      {motivationalQuotes[quoteIndex]}
+                      "{motivationalQuotes[quoteIndex]}"
                     </motion.p>
                   </AnimatePresence>
                 </div>
