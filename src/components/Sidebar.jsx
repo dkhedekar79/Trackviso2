@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   FlameIcon, BookIcon, CalendarIcon, ListChecksIcon, BrainIcon,
   BarChart2Icon, Settings2Icon, LayoutDashboardIcon, BarChart3, GraduationCap, BookOpen,
-  ChevronRight, Sparkles
+  ChevronRight
 } from "lucide-react";
 
 const navItems = [
@@ -28,14 +28,58 @@ const colorVariants = {
   slate: { bg: "from-slate-500/30 to-slate-600/30", border: "border-slate-400/60", glow: "shadow-slate-500/40", text: "text-slate-300", icon: "text-slate-300" },
 };
 
+// Custom 4-pointed star logo SVG component
+const StarLogo = ({ className, isGlowing }) => (
+  <svg viewBox="0 0 100 100" className={className} fill="none">
+    {/* Glow filter */}
+    <defs>
+      <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+        <feMerge>
+          <feMergeNode in="coloredBlur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+      <linearGradient id="starGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#a1a1aa" />
+        <stop offset="50%" stopColor="#e4e4e7" />
+        <stop offset="100%" stopColor="#a1a1aa" />
+      </linearGradient>
+    </defs>
+    
+    {/* 4-pointed star shape */}
+    <path
+      d="M50 5 Q55 45 95 50 Q55 55 50 95 Q45 55 5 50 Q45 45 50 5Z"
+      fill="url(#starGradient)"
+      filter={isGlowing ? "url(#glow)" : undefined}
+      opacity="0.9"
+    />
+    
+    {/* Center circle */}
+    <circle
+      cx="50"
+      cy="50"
+      r="20"
+      fill="#818cf8"
+      filter={isGlowing ? "url(#glow)" : undefined}
+    />
+  </svg>
+);
+
 export default function Sidebar() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [hoveredItem, setHoveredItem] = useState(null);
   const location = useLocation();
 
+  // Close sidebar when a link is clicked
+  const handleLinkClick = () => {
+    setIsExpanded(false);
+    setHoveredItem(null);
+  };
+
   return (
     <motion.aside 
-      className="fixed left-0 top-[2px] h-[calc(100%-2px)] z-40 flex flex-col"
+      className="fixed left-0 top-[3px] h-[calc(100%-3px)] z-40 flex flex-col"
       initial={{ x: -100 }}
       animate={{ x: 0 }}
       transition={{ type: "spring", stiffness: 100, damping: 20 }}
@@ -60,42 +104,29 @@ export default function Sidebar() {
           />
         </div>
 
-        {/* Logo area */}
-        <div className="pt-24 pb-6 px-4">
-          <motion.div 
-            className="flex items-center gap-3 px-2"
-            animate={{ justifyContent: isExpanded ? "flex-start" : "center" }}
-          >
-            <motion.div
-              whileHover={{ rotate: 180, scale: 1.1 }}
-              transition={{ duration: 0.5 }}
+        {/* Logo area - glowing star */}
+        <div className="pt-24 pb-4 px-2 flex justify-center">
+          <Link to="/dashboard" onClick={handleLinkClick}>
+            <motion.div 
               className="relative"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
-        </div>
+              <StarLogo className="w-12 h-12" isGlowing={true} />
+              {/* Animated glow behind logo */}
               <motion.div
-                className="absolute inset-0 rounded-xl bg-purple-500/50 blur-lg -z-10"
-                animate={{ opacity: [0.3, 0.6, 0.3] }}
+                className="absolute inset-0 rounded-full bg-indigo-500/40 blur-xl -z-10"
+                animate={{ 
+                  scale: [1, 1.4, 1],
+                  opacity: [0.4, 0.7, 0.4]
+                }}
                 transition={{ duration: 2, repeat: Infinity }}
               />
             </motion.div>
-            <AnimatePresence>
-              {isExpanded && (
-                <motion.span
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
-                  className="font-bold text-lg bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent whitespace-nowrap"
-                >
-                  Menu
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </motion.div>
+          </Link>
         </div>
 
-{/* Navigation items */}
+        {/* Navigation items */}
         <nav className="flex-1 flex flex-col gap-1.5 px-2 overflow-y-auto overflow-x-hidden">
           {navItems.map((item, index) => {
             const isActive = location.pathname === item.path;
@@ -112,6 +143,7 @@ export default function Sidebar() {
               >
                 <Link
                   to={item.path}
+                  onClick={handleLinkClick}
                   onMouseEnter={() => setHoveredItem(item.path)}
                   onMouseLeave={() => !isExpanded && setHoveredItem(null)}
                   className="relative block"
@@ -197,10 +229,11 @@ export default function Sidebar() {
           <div className="h-px bg-gradient-to-r from-transparent via-purple-500/30 to-transparent" />
         </div>
 
-{/* Settings at bottom */}
+        {/* Settings at bottom */}
         <div className="pb-6 px-2">
           <Link
             to="/settings"
+            onClick={handleLinkClick}
             onMouseEnter={() => setHoveredItem("/settings")}
             onMouseLeave={() => !isExpanded && setHoveredItem(null)}
             className="relative block"
