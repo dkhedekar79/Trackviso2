@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { TimerProvider, useTimer } from './context/TimerContext';
 import { GamificationProvider } from './context/GamificationContext';
 import ProtectedRoute from './routes/ProtectedRoute';
@@ -24,7 +24,7 @@ import Signup from './pages/Signup';
 import Payment from './pages/Payment';
 import PaymentSuccess from './pages/PaymentSuccess';
 import SpotifyCallback from './pages/SpotifyCallback';
-import OnboardingModal from "./components/OnboardingModal";
+import OnboardingFlow from "./components/OnboardingFlow";
 import Footer from './components/Footer';
 import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
@@ -56,6 +56,27 @@ const RouteCleanup = () => {
 const WebsiteTimeTracker = () => {
   useWebsiteTimeTracker();
   return null;
+};
+
+// Onboarding wrapper to show onboarding for new users
+const OnboardingWrapper = ({ children }) => {
+  const { user, onboardingCompleted, loading } = useAuth();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    // Only show onboarding for logged-in users who haven't completed it
+    if (user && !onboardingCompleted && !loading) {
+      setShowOnboarding(true);
+    } else {
+      setShowOnboarding(false);
+    }
+  }, [user, onboardingCompleted, loading]);
+
+  if (showOnboarding) {
+    return <OnboardingFlow onComplete={() => setShowOnboarding(false)} />;
+  }
+
+  return children;
 };
 
 function App() {
@@ -105,6 +126,7 @@ function App() {
                     <Router>
                       <RouteCleanup />
                       <WebsiteTimeTracker />
+                      <OnboardingWrapper>
                       <Routes>
               {/* Public Routes */}
               <Route path="/" element={<div className="flex flex-col min-h-screen"><main className="flex-1"><Landing /><Footer /></main></div>} />
@@ -289,6 +311,7 @@ function App() {
               {/* 404 Route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+                      </OnboardingWrapper>
                     </Router>
                   </DashboardProvider>
                 </ThemeProvider>

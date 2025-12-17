@@ -11,16 +11,10 @@ export default function ProfileDropdown() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
-  const { user, userProfile, logout, deleteUserAccount } = useAuth();
+  const { user, displayName, logout, deleteUserAccount } = useAuth();
   const { resetUserStats } = useGamification();
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
-
-  // Debug logging
-  useEffect(() => {
-    console.log("ProfileDropdown - Current user:", user);
-    console.log("ProfileDropdown - Current userProfile:", userProfile);
-  }, [user, userProfile]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -86,7 +80,7 @@ export default function ProfileDropdown() {
       >
         <User className="w-4 h-4" />
         <span className="text-sm font-medium">
-          {userProfile?.name ? `Hey, ${userProfile.name}` : `Hey, ${user?.email?.split('@')[0] || "there"}`}
+          {displayName ? `Hey, ${displayName}` : `Hey, ${user?.email?.split('@')[0] || "there"}`}
         </span>
       </button>
 
@@ -101,7 +95,7 @@ export default function ProfileDropdown() {
               <div className="flex-1">
                 <div>
                   <p className="font-semibold text-gray-800">
-                    {userProfile?.name || user?.email?.split('@')[0] || "User"}
+                    {displayName || user?.email?.split('@')[0] || "User"}
                   </p>
                   <p className="text-sm text-gray-600">{user?.email}</p>
                 </div>
@@ -151,7 +145,13 @@ export default function ProfileDropdown() {
               </div>
             )}
 
-            
+            <button
+              onClick={() => setShowDeleteConfirm(!showDeleteConfirm)}
+              className="flex items-center gap-2 w-full px-3 py-2 text-left hover:bg-red-50 rounded text-sm text-red-600"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete Account
+            </button>
 
             {showDeleteConfirm && (
               <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded">

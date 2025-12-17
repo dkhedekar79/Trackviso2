@@ -4,7 +4,6 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "../components/Sidebar";
-import OnboardingModal from "../components/OnboardingModal";
 import Skillpulse from "../components/Skillpulse";
 import { FlameIcon } from "lucide-react";
 import { applyMemoryDeterioration } from "../utils/memoryDeterioration";
@@ -494,8 +493,6 @@ export default function Dashboard() {
         noindex={true}
       />
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 flex">
-        <OnboardingModal userId={user?.id} />
-
       {/* Main Content Container with Sidebar Offset */}
       <div className="flex-1 pl-16">
       {/* Main Content */}

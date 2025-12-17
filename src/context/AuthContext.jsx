@@ -12,6 +12,8 @@ export const AuthProvider = ({ children }) => {
   const [isPremiumUser, setIsPremiumUser] = useState(false);
   const [freeQuizQuestionsUsed, setFreeQuizQuestionsUsed] = useState(0);
   const [lastQuizResetDate, setLastQuizResetDate] = useState(null);
+  const [onboardingCompleted, setOnboardingCompleted] = useState(true); // Default true to avoid flash
+  const [displayName, setDisplayName] = useState('');
 
   // Get initial session
   useEffect(() => {
@@ -25,6 +27,8 @@ export const AuthProvider = ({ children }) => {
         setIsPremiumUser(session?.user?.user_metadata?.is_premium || false);
         setFreeQuizQuestionsUsed(session?.user?.user_metadata?.free_quiz_questions_used || 0);
         setLastQuizResetDate(session?.user?.user_metadata?.last_quiz_reset_date || null);
+        setOnboardingCompleted(session?.user?.user_metadata?.onboarding_completed || false);
+        setDisplayName(session?.user?.user_metadata?.display_name || '');
 
         // Client-side daily reset check
         const today = new Date().toDateString();
@@ -45,6 +49,8 @@ export const AuthProvider = ({ children }) => {
         setIsPremiumUser(false);
         setFreeQuizQuestionsUsed(0);
         setLastQuizResetDate(null);
+        setOnboardingCompleted(true);
+        setDisplayName('');
       } finally {
         setLoading(false);
       }
@@ -58,6 +64,8 @@ export const AuthProvider = ({ children }) => {
       setIsPremiumUser(session?.user?.user_metadata?.is_premium || false);
       setFreeQuizQuestionsUsed(session?.user?.user_metadata?.free_quiz_questions_used || 0);
       setLastQuizResetDate(session?.user?.user_metadata?.last_quiz_reset_date || null);
+      setOnboardingCompleted(session?.user?.user_metadata?.onboarding_completed || false);
+      setDisplayName(session?.user?.user_metadata?.display_name || '');
 
       // Client-side daily reset check on auth state change
       const today = new Date().toDateString();
@@ -119,6 +127,55 @@ export const AuthProvider = ({ children }) => {
     setIsPremiumUser(false);
     setFreeQuizQuestionsUsed(0);
     setLastQuizResetDate(null);
+    setOnboardingCompleted(true);
+    setDisplayName('');
+  };
+
+  // Update user metadata (for onboarding, display name, etc.)
+  const updateUserMetadata = async (metadata) => {
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        data: metadata
+      });
+      if (error) throw error;
+      
+      setUser(data.user);
+      if (metadata.onboarding_completed !== undefined) {
+        setOnboardingCompleted(metadata.onboarding_completed);
+      }
+      if (metadata.display_name !== undefined) {
+        setDisplayName(metadata.display_name);
+      }
+      return data.user;
+    } catch (error) {
+      console.error('Error updating user metadata:', error);
+      throw error;
+    }
+  };
+
+  // Delete user account
+  const deleteUserAccount = async () => {
+    try {
+      // First, clear all local data
+      localStorage.clear();
+      
+      // Sign out the user (Supabase doesn't support self-deletion, but we can sign them out)
+      // For actual account deletion, you would need a server-side function
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      setUser(null);
+      setIsPremiumUser(false);
+      setFreeQuizQuestionsUsed(0);
+      setLastQuizResetDate(null);
+      setOnboardingCompleted(true);
+      setDisplayName('');
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting user account:', error);
+      throw error;
+    }
   };
 
   // Function to update premium status (will be called after successful payment)
@@ -169,7 +226,23 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout, isPremiumUser, updatePremiumStatus, freeQuizQuestionsUsed, updateFreeQuizQuestionsUsed, lastQuizResetDate, resetFreeQuizQuestions }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      login, 
+      signup, 
+      logout, 
+      isPremiumUser, 
+      updatePremiumStatus, 
+      freeQuizQuestionsUsed, 
+      updateFreeQuizQuestionsUsed, 
+      lastQuizResetDate, 
+      resetFreeQuizQuestions,
+      onboardingCompleted,
+      displayName,
+      updateUserMetadata,
+      deleteUserAccount
+    }}>
       {children}
     </AuthContext.Provider>
   );

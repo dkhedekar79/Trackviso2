@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Crown, FileText, Plus, X, Calendar, Edit2, Trash2 } from 'lucide-react';
+import { User, Crown, FileText, Plus, X, Calendar, Edit2, Trash2, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
+import { useNavigate } from 'react-router-dom';
 import SEO from '../components/SEO';
 
 const Settings = () => {
-  const { user } = useAuth();
+  const { user, displayName, deleteUserAccount } = useAuth();
   const { subscriptionPlan } = useSubscription();
+  const navigate = useNavigate();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
   const [patchNotes, setPatchNotes] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -21,6 +26,18 @@ const Settings = () => {
   useEffect(() => {
     setIsAuthorized(user?.email === ADMIN_EMAIL);
   }, [user]);
+
+  const handleDeleteAccount = async () => {
+    setDeleteLoading(true);
+    setDeleteError('');
+    try {
+      await deleteUserAccount();
+      navigate('/');
+    } catch (error) {
+      setDeleteError('Failed to delete account. Please try again.');
+      setDeleteLoading(false);
+    }
+  };
 
   // Load patch notes from localStorage
   useEffect(() => {
@@ -148,6 +165,10 @@ const Settings = () => {
           
           <div className="space-y-4">
             <div>
+              <label className="text-sm font-medium text-purple-300/80 mb-1 block">Name</label>
+              <p className="text-white text-lg">{displayName || 'Not set'}</p>
+            </div>
+            <div>
               <label className="text-sm font-medium text-purple-300/80 mb-1 block">Email</label>
               <p className="text-white text-lg">{user?.email || 'Not available'}</p>
             </div>
@@ -168,6 +189,61 @@ const Settings = () => {
               </p>
             </div>
           </div>
+        </motion.div>
+
+        {/* Delete Account Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="bg-gradient-to-br from-red-900/30 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-red-700/30 mb-6"
+        >
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-3 rounded-lg bg-red-600/20">
+              <AlertTriangle className="w-6 h-6 text-red-400" />
+            </div>
+            <h2 className="text-2xl font-bold text-white">Danger Zone</h2>
+          </div>
+          
+          <p className="text-purple-200/70 mb-4">
+            Once you delete your account, there is no going back. All your data will be permanently removed.
+          </p>
+
+          {deleteError && (
+            <div className="mb-4 p-3 bg-red-900/40 border border-red-700/50 rounded-lg text-red-200 text-sm">
+              {deleteError}
+            </div>
+          )}
+
+          {!showDeleteConfirm ? (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="px-6 py-3 bg-red-600/20 border border-red-600/50 text-red-400 font-semibold rounded-lg hover:bg-red-600/30 hover:border-red-500 transition-all"
+            >
+              Delete Account
+            </button>
+          ) : (
+            <div className="p-4 bg-red-900/30 border border-red-700/50 rounded-lg">
+              <p className="text-red-200 mb-4 font-medium">
+                Are you absolutely sure you want to delete your account? This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleteLoading}
+                  className="px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  {deleteLoading ? 'Deleting...' : 'Yes, Delete My Account'}
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="px-6 py-3 bg-white/10 text-white font-semibold rounded-lg hover:bg-white/20 transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </motion.div>
 
         {/* Subscription Plan Section */}
