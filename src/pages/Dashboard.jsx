@@ -5,7 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "../components/Sidebar";
 import Skillpulse from "../components/Skillpulse";
-import { FlameIcon } from "lucide-react";
+import { FlameIcon, Zap, ArrowRight } from "lucide-react";
 import { applyMemoryDeterioration } from "../utils/memoryDeterioration";
 import PremiumUpgradeModal from "../components/PremiumUpgradeModal";
 import PremiumUpgradeCard from "../components/PremiumUpgradeCard";
@@ -68,8 +68,7 @@ function calculateStreak(studySessions) {
 }
 
 
-function QuoteRotator() {
-  const quotes = [
+const motivationalQuotes = [
   "You don't need to be motivated — just don't be lazy.",
   "Future you is watching right now. Don't embarrass them.",
   "Discipline > Motivation. Every. Single. Time.",
@@ -100,35 +99,10 @@ function QuoteRotator() {
   "Your laptop isn't broken — your discipline is.",
   "If procrastination was a subject, you'd ace it.",
   "Remember when you said you'd start early? Neither do I.",
+  "Keep up the great work. Your consistency is building exam confidence.",
+  "Every study session counts. You're building momentum!",
+  "Small steps every day lead to big results.",
 ];
-
-
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIndex((prev) => (prev + 1) % quotes.length);
-    }, 4000); // change every 4 seconds
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <div className="relative h-8 flex items-center">
-      <AnimatePresence mode="wait">
-        <motion.span
-          key={index}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 1.2 }}
-          className="text-lg font-semibold text-white text-center"
-        >
-          {quotes[index]}
-        </motion.span>
-      </AnimatePresence>
-    </div>
-  );
-}
 
 function getCompletedTasksThisWeek(tasks) {
   const now = Date.now();
@@ -140,8 +114,17 @@ function getCompletedTasksThisWeek(tasks) {
 }
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
+  const { user, logout, displayName } = useAuth();
   const navigate = useNavigate();
+  const [quoteIndex, setQuoteIndex] = useState(0);
+
+  // Rotate quotes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setQuoteIndex((prev) => (prev + 1) % motivationalQuotes.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
   const [subjects, setSubjects] = useState([]);
   const [studySessions, setStudySessions] = useState([]);
   const [tasks, setTasks] = useState([]);
@@ -497,13 +480,67 @@ export default function Dashboard() {
       <div className="flex-1 pl-16">
       {/* Main Content */}
       <div>
-        {/* Header Section */}
-        <div className="flex justify-between items-center px-6 py-4 bg-gradient-to-r from-purple-900/40 to-slate-900/40 backdrop-blur-md border-b border-purple-700/30 mt-20">
-            <div>
-              <h1>
-              <QuoteRotator />
-              </h1>
+        {/* Welcome Card */}
+        <div className="px-6 pt-24 pb-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-600 p-8 shadow-2xl"
+          >
+            {/* Decorative background elements */}
+            <div className="absolute inset-0 overflow-hidden">
+              <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
+              <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-purple-400/20 rounded-full blur-2xl" />
+              <div className="absolute top-1/2 right-1/3 w-32 h-32 bg-indigo-400/15 rounded-full blur-xl" />
             </div>
+
+            <div className="relative z-10 flex items-center justify-between">
+              <div className="flex-1">
+                <p className="text-purple-200 text-sm font-medium mb-1">Welcome back</p>
+                <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">
+                  Good to see you, {displayName || user?.email?.split('@')[0] || 'there'}!
+                </h1>
+                <div className="h-6 overflow-hidden">
+                  <AnimatePresence mode="wait">
+                    <motion.p
+                      key={quoteIndex}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.5 }}
+                      className="text-purple-100/80 text-sm md:text-base max-w-xl"
+                    >
+                      {motivationalQuotes[quoteIndex]}
+                    </motion.p>
+                  </AnimatePresence>
+                </div>
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.05, x: 5 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate('/study')}
+                className="hidden md:flex items-center gap-3 px-6 py-3 bg-white text-purple-700 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
+              >
+                <Zap className="w-5 h-5" />
+                Start Practising
+                <ArrowRight className="w-4 h-4" />
+              </motion.button>
+            </div>
+
+            {/* Mobile button */}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => navigate('/study')}
+              className="md:hidden mt-4 w-full flex items-center justify-center gap-3 px-6 py-3 bg-white text-purple-700 font-semibold rounded-xl shadow-lg"
+            >
+              <Zap className="w-5 h-5" />
+              Start Practising
+              <ArrowRight className="w-4 h-4" />
+            </motion.button>
+          </motion.div>
         </div>
 
         {/* Summary & Exam Readiness */}
