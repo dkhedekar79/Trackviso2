@@ -3,8 +3,48 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useGamification } from "../context/GamificationContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, User, LogOut, Menu, X, Star, Trophy, Flame, Sparkles, Zap } from 'lucide-react';
+import { Bell, User, LogOut, Menu, X, Star, Trophy, Flame, Zap } from 'lucide-react';
 import ProfileDropdown from "./ProfileDropdown";
+
+// Custom 4-pointed star logo SVG component
+const StarLogo = ({ className }) => (
+  <svg viewBox="0 0 100 100" className={className} fill="none">
+    <defs>
+      <filter id="navGlow" x="-100%" y="-100%" width="300%" height="300%">
+        <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+        <feMerge>
+          <feMergeNode in="coloredBlur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+      <linearGradient id="navStarGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#d4d4d8" />
+        <stop offset="50%" stopColor="#ffffff" />
+        <stop offset="100%" stopColor="#d4d4d8" />
+      </linearGradient>
+      <radialGradient id="centerGradient" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stopColor="#a5b4fc" />
+        <stop offset="100%" stopColor="#6366f1" />
+      </radialGradient>
+    </defs>
+    
+    {/* 4-pointed star shape */}
+    <path
+      d="M50 5 Q55 45 95 50 Q55 55 50 95 Q45 55 5 50 Q45 45 50 5Z"
+      fill="url(#navStarGradient)"
+      filter="url(#navGlow)"
+    />
+    
+    {/* Center circle with gradient */}
+    <circle
+      cx="50"
+      cy="50"
+      r="18"
+      fill="url(#centerGradient)"
+      filter="url(#navGlow)"
+    />
+  </svg>
+);
 
 // Particle trail component
 const MouseTrail = ({ mousePosition, isInNavbar }) => {
@@ -184,15 +224,17 @@ const Navbar = () => {
             <Link to="/dashboard" className="group flex items-center gap-3">
               <motion.div
                 className="relative"
-                whileHover={{ rotate: [0, -10, 10, 0] }}
-                transition={{ duration: 0.5 }}
+                whileHover={{ rotate: 180 }}
+                transition={{ duration: 0.6, ease: "easeInOut" }}
               >
-                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-amber-500/30 group-hover:shadow-amber-400/50 transition-shadow">
-                  <Sparkles className="w-6 h-6 text-white" />
-                </div>
+                <StarLogo className="w-11 h-11 drop-shadow-lg" />
+                {/* Animated glow behind logo */}
                 <motion.div 
-                  className="absolute inset-0 rounded-xl bg-gradient-to-br from-amber-400 to-purple-500 blur-lg opacity-40 -z-10"
-                  animate={{ scale: [1, 1.3, 1], opacity: [0.4, 0.6, 0.4] }}
+                  className="absolute inset-0 bg-indigo-500/50 blur-xl rounded-full -z-10"
+                  animate={{ 
+                    scale: [1, 1.4, 1], 
+                    opacity: [0.5, 0.8, 0.5] 
+                  }}
                   transition={{ duration: 2, repeat: Infinity }}
                 />
               </motion.div>

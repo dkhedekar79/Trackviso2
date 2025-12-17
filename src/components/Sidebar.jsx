@@ -28,44 +28,6 @@ const colorVariants = {
   slate: { bg: "from-slate-500/30 to-slate-600/30", border: "border-slate-400/60", glow: "shadow-slate-500/40", text: "text-slate-300", icon: "text-slate-300" },
 };
 
-// Custom 4-pointed star logo SVG component
-const StarLogo = ({ className, isGlowing }) => (
-  <svg viewBox="0 0 100 100" className={className} fill="none">
-    {/* Glow filter */}
-    <defs>
-      <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-        <feMerge>
-          <feMergeNode in="coloredBlur"/>
-          <feMergeNode in="SourceGraphic"/>
-        </feMerge>
-      </filter>
-      <linearGradient id="starGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#a1a1aa" />
-        <stop offset="50%" stopColor="#e4e4e7" />
-        <stop offset="100%" stopColor="#a1a1aa" />
-      </linearGradient>
-    </defs>
-    
-    {/* 4-pointed star shape */}
-    <path
-      d="M50 5 Q55 45 95 50 Q55 55 50 95 Q45 55 5 50 Q45 45 50 5Z"
-      fill="url(#starGradient)"
-      filter={isGlowing ? "url(#glow)" : undefined}
-      opacity="0.9"
-    />
-    
-    {/* Center circle */}
-    <circle
-      cx="50"
-      cy="50"
-      r="20"
-      fill="#818cf8"
-      filter={isGlowing ? "url(#glow)" : undefined}
-    />
-  </svg>
-);
-
 export default function Sidebar() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [hoveredItem, setHoveredItem] = useState(null);
@@ -104,30 +66,8 @@ export default function Sidebar() {
           />
         </div>
 
-        {/* Logo area - glowing star */}
-        <div className="pt-24 pb-4 px-2 flex justify-center">
-          <Link to="/dashboard" onClick={handleLinkClick}>
-            <motion.div 
-              className="relative"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <StarLogo className="w-12 h-12" isGlowing={true} />
-              {/* Animated glow behind logo */}
-              <motion.div
-                className="absolute inset-0 rounded-full bg-indigo-500/40 blur-xl -z-10"
-                animate={{ 
-                  scale: [1, 1.4, 1],
-                  opacity: [0.4, 0.7, 0.4]
-                }}
-                transition={{ duration: 2, repeat: Infinity }}
-              />
-            </motion.div>
-          </Link>
-        </div>
-
-        {/* Navigation items */}
-        <nav className="flex-1 flex flex-col gap-1.5 px-2 overflow-y-auto overflow-x-hidden">
+        {/* Navigation items - moved up */}
+        <nav className="flex-1 flex flex-col gap-1.5 px-2 pt-24 overflow-y-auto overflow-x-hidden">
           {navItems.map((item, index) => {
             const isActive = location.pathname === item.path;
             const isHovered = hoveredItem === item.path;
