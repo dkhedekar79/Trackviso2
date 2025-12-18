@@ -108,6 +108,16 @@ const ambientImages = [
         id: 'future_garden-1',
         name: 'Future Garden',
         path: '/ambient-images/Futuregarden.jpg'
+      },
+      {
+        id: 'aurora-1',
+        name: 'Aurora',
+        path: '/ambient-images/Aurora Borealis Stock Photo.jpg'
+      },
+      {
+        id: 'anime_cottage-3',
+        name: 'Dreamy times',
+        path: 'ambient-images/Anime Girl Dreams Skyline 2560x1440.jpg'
       }
       
       
@@ -151,6 +161,11 @@ const ambientVideos = [
         id: 'samurai-1',
         name: 'Samurai',
         path: '/ambient-images/videos/Samurai Sword 4K Wallpaper.mp4'
+      },
+      {
+        id: 'anime_cottage-3',
+        name: 'Sunset dock',
+        path: '/ambient-images/videos/Evening Dock 4K Live Wallpaper.mp4'
       }
   // Add your animated wallpapers (MP4 videos) here
   // 

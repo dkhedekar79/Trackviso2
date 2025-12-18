@@ -156,13 +156,34 @@ export const AuthProvider = ({ children }) => {
   // Delete user account
   const deleteUserAccount = async () => {
     try {
-      // First, clear all local data
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session || !session.user) {
+        throw new Error('No active session');
+      }
+
+      // Call API endpoint to delete account
+      const response = await fetch('/api/user/delete-account', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user_id: session.user.id }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete account');
+      }
+
+      // Clear all local data
       localStorage.clear();
       
-      // Sign out the user (Supabase doesn't support self-deletion, but we can sign them out)
-      // For actual account deletion, you would need a server-side function
+      // Sign out the user
       const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      if (error) {
+        console.error('Error signing out after deletion:', error);
+        // Continue anyway since account is deleted
+      }
       
       setUser(null);
       setIsPremiumUser(false);
