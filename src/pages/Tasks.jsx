@@ -24,6 +24,8 @@ import {
   Edit,
   Calendar as CalendarIcon,
   BookOpen,
+  Repeat,
+  RotateCcw,
 } from "lucide-react";
 import { useGamification } from "../context/GamificationContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -38,7 +40,16 @@ export default function Tasks() {
   const [tasks, setTasks] = useState([]);
   const { updateQuestProgress } = useGamification();
   const [subjects, setSubjects] = useState([]);
-  const [form, setForm] = useState({ name: "", subject: "", time: "", priority: "Low", scheduledDate: "" });
+  const [form, setForm] = useState({ 
+    name: "", 
+    subject: "", 
+    time: "", 
+    priority: "Low", 
+    scheduledDate: "",
+    recurrence: "none",
+    recurrenceInterval: 1,
+    recurrenceDays: []
+  });
   const [formError, setFormError] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [tab, setTab] = useState("todo");
@@ -61,11 +72,102 @@ export default function Tasks() {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
-  // Load tasks from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem("tasks");
-    if (saved) setTasks(JSON.parse(saved));
-  }, []);
+  // Function to check and create recurring tasks
+  const checkAndCreateRecurringTasks = (currentTasks) => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const newTasks = [];
+    let tasksUpdated = false;
+
+    currentTasks.forEach(task => {
+      // Only process completed recurring tasks
+      if (!task.done || !task.recurrence || task.recurrence === 'none') return;
+
+      // Check if this is a recurring task that needs a new instance
+      const lastScheduledDate = task.scheduledDate ? new Date(task.scheduledDate) : null;
+      const nextDate = calculateNextRecurrenceDate(task, lastScheduledDate || today);
+
+      if (nextDate && nextDate <= today) {
+        // Check if a task for this recurrence already exists
+        const existingTask = currentTasks.find(t => 
+          t.name === task.name &&
+          t.subject === task.subject &&
+          t.recurrence === task.recurrence &&
+          t.recurrenceParentId === task.id &&
+          t.scheduledDate === nextDate.toISOString().split('T')[0]
+        );
+
+        if (!existingTask) {
+          // Create new recurring task instance
+          const newTask = {
+            ...task,
+            id: Date.now() + Math.random(),
+            done: false,
+            doneAt: undefined,
+            scheduledDate: nextDate.toISOString().split('T')[0],
+            recurrenceParentId: task.id,
+            createdAt: Date.now()
+          };
+          newTasks.push(newTask);
+          tasksUpdated = true;
+        }
+      }
+    });
+
+    if (tasksUpdated) {
+      setTasks([...currentTasks, ...newTasks]);
+    }
+  };
+
+  // Calculate next recurrence date
+  const calculateNextRecurrenceDate = (task, fromDate) => {
+    if (!task.recurrence || task.recurrence === 'none') return null;
+
+    const nextDate = new Date(fromDate);
+    const interval = task.recurrenceInterval || 1;
+
+    switch (task.recurrence) {
+      case 'daily':
+        nextDate.setDate(nextDate.getDate() + interval);
+        break;
+      case 'weekly':
+        if (task.recurrenceDays && task.recurrenceDays.length > 0) {
+          // Find next occurrence based on selected days
+          const daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+          let daysToAdd = 0;
+          let found = false;
+          
+          for (let i = 0; i < 14; i++) {
+            const checkDate = new Date(nextDate);
+            checkDate.setDate(nextDate.getDate() + i);
+            const dayName = daysOfWeek[checkDate.getDay()].toLowerCase();
+            
+            if (task.recurrenceDays.includes(dayName)) {
+              daysToAdd = i;
+              found = true;
+              break;
+            }
+          }
+          
+          if (found) {
+            nextDate.setDate(nextDate.getDate() + daysToAdd);
+          } else {
+            // If no day found in next 2 weeks, add interval weeks
+            nextDate.setDate(nextDate.getDate() + (interval * 7));
+          }
+        } else {
+          nextDate.setDate(nextDate.getDate() + (interval * 7));
+        }
+        break;
+      case 'monthly':
+        nextDate.setMonth(nextDate.getMonth() + interval);
+        break;
+      default:
+        return null;
+    }
+
+    return nextDate;
+  };
 
   // Load subjects from localStorage on mount
   useEffect(() => {
@@ -89,23 +191,77 @@ export default function Tasks() {
     localStorage.setItem("tasks", JSON.stringify(tasks));
   }, [tasks]);
 
+  // Daily check for recurring tasks (runs once per day)
+  useEffect(() => {
+    if (tasks.length === 0) return;
+
+    const lastCheck = localStorage.getItem('lastRecurringTaskCheck');
+    const today = new Date().toDateString();
+    
+    // Only check once per day
+    if (lastCheck !== today) {
+      checkAndCreateRecurringTasks(tasks);
+      localStorage.setItem('lastRecurringTaskCheck', today);
+    }
+
+    // Set up interval to check every hour (in case user keeps tab open)
+    const interval = setInterval(() => {
+      const currentCheck = localStorage.getItem('lastRecurringTaskCheck');
+      const currentToday = new Date().toDateString();
+      if (currentCheck !== currentToday) {
+        checkAndCreateRecurringTasks(tasks);
+        localStorage.setItem('lastRecurringTaskCheck', currentToday);
+      }
+    }, 60 * 60 * 1000); // Every hour
+
+    return () => clearInterval(interval);
+  }, [tasks.length]); // Only depend on length to avoid infinite loops
+
   const addTask = () => {
     if (!form.name.trim() || !form.subject.trim() || !form.time.trim()) {
       setFormError("Please enter a task name, subject, and duration.");
       return;
     }
-    if (editId) {
-      setTasks(tasks.map(t => t.id === editId ? { ...t, ...form } : t));
-    } else {
-      setTasks([...tasks, { ...form, id: Date.now(), done: false }]);
+
+    // Validate recurrence settings
+    if (form.recurrence === 'weekly' && form.recurrenceDays && form.recurrenceDays.length === 0) {
+      setFormError("Please select at least one day for weekly recurrence.");
+      return;
     }
-    setForm({ name: "", subject: "", time: "", priority: "Low", scheduledDate: "" });
+
+    const taskData = {
+      ...form,
+      recurrence: form.recurrence || 'none',
+      recurrenceInterval: form.recurrenceInterval || 1,
+      recurrenceDays: form.recurrenceDays || [],
+      recurrenceParentId: null
+    };
+
+    if (editId) {
+      setTasks(tasks.map(t => t.id === editId ? { ...t, ...taskData } : t));
+    } else {
+      setTasks([...tasks, { ...taskData, id: Date.now(), done: false, createdAt: Date.now() }]);
+    }
+    
+    setForm({ 
+      name: "", 
+      subject: "", 
+      time: "", 
+      priority: "Low", 
+      scheduledDate: "",
+      recurrence: "none",
+      recurrenceInterval: 1,
+      recurrenceDays: []
+    });
     setFormError("");
     setShowModal(false);
     setEditId(null);
   };
 
   const toggleDone = (id) => {
+    const task = tasks.find(t => t.id === id);
+    if (!task) return;
+
     const updated = tasks.map((t) =>
       t.id === id
         ? t.done
@@ -113,6 +269,24 @@ export default function Tasks() {
           : { ...t, done: true, doneAt: Date.now() }
         : t
     );
+
+    // If completing a recurring task, create the next instance
+    if (!task.done && task.recurrence && task.recurrence !== 'none') {
+      const nextDate = calculateNextRecurrenceDate(task, task.scheduledDate ? new Date(task.scheduledDate) : new Date());
+      if (nextDate) {
+        const newTask = {
+          ...task,
+          id: Date.now() + Math.random(),
+          done: false,
+          doneAt: undefined,
+          scheduledDate: nextDate.toISOString().split('T')[0],
+          recurrenceParentId: task.id,
+          createdAt: Date.now()
+        };
+        updated.push(newTask);
+      }
+    }
+
     setTasks(updated);
     localStorage.setItem("tasks", JSON.stringify(updated));
     updateQuestProgress("tasks");
@@ -215,14 +389,48 @@ export default function Tasks() {
       subject: task.subject,
       time: task.time,
       priority: task.priority,
-      scheduledDate: task.scheduledDate || ""
+      scheduledDate: task.scheduledDate || "",
+      recurrence: task.recurrence || "none",
+      recurrenceInterval: task.recurrenceInterval || 1,
+      recurrenceDays: task.recurrenceDays || []
     });
     setEditId(task.id);
     setShowModal(true);
   };
 
   const handleDelete = (id) => {
-    setTasks(tasks.filter(t => t.id !== id));
+    const task = tasks.find(t => t.id === id);
+    // If deleting a recurring task, ask if user wants to delete all instances
+    if (task && task.recurrence && task.recurrence !== 'none') {
+      const hasOtherInstances = tasks.some(t => 
+        t.recurrenceParentId === id || 
+        (t.id === task.recurrenceParentId && t.id !== id) ||
+        (t.recurrenceParentId === task.recurrenceParentId && t.id !== id)
+      );
+      
+      if (hasOtherInstances) {
+        const deleteAll = window.confirm(
+          "This is a recurring task. Do you want to delete all instances of this task?"
+        );
+        if (deleteAll) {
+          // Delete all instances (parent and children)
+          const parentId = task.recurrenceParentId || task.id;
+          setTasks(tasks.filter(t => 
+            t.id !== id && 
+            t.id !== parentId && 
+            t.recurrenceParentId !== parentId &&
+            !(t.recurrenceParentId === id && t.id !== id)
+          ));
+        } else {
+          // Delete only this instance
+          setTasks(tasks.filter(t => t.id !== id));
+        }
+      } else {
+        setTasks(tasks.filter(t => t.id !== id));
+      }
+    } else {
+      setTasks(tasks.filter(t => t.id !== id));
+    }
   };
 
   const getSubjectColor = (subjectName) => {
@@ -588,8 +796,19 @@ export default function Tasks() {
                           <div className={`flex items-center gap-2 text-xs px-2 py-1 rounded-lg border ${scheduleStatus.color} inline-flex`}>
                             <CalendarIcon className="w-3 h-3" />
                             <span>{scheduleStatus.text}</span>
-                    </div>
-                      )}
+                          </div>
+                        )}
+                        
+                        {task.recurrence && task.recurrence !== 'none' && (
+                          <div className="flex items-center gap-2 text-xs px-2 py-1 rounded-lg border border-purple-500/30 bg-purple-500/20 text-purple-300 inline-flex">
+                            <Repeat className="w-3 h-3" />
+                            <span>
+                              {task.recurrence === 'daily' && `Every ${task.recurrenceInterval || 1} day(s)`}
+                              {task.recurrence === 'weekly' && `Every ${task.recurrenceInterval || 1} week(s)`}
+                              {task.recurrence === 'monthly' && `Every ${task.recurrenceInterval || 1} month(s)`}
+                            </span>
+                          </div>
+                        )}
                     </div>
 
                       {/* Priority Badge */}
@@ -659,12 +878,21 @@ export default function Tasks() {
                   : "Complete some tasks to see them here"}
               </p>
               {tab === "todo" && (
-                <motion.button
-                  onClick={() => {
-                    setForm({ name: "", subject: "", time: "", priority: "Low", scheduledDate: "" });
-                    setEditId(null);
-                    setShowModal(true);
-                  }}
+              <motion.button
+                onClick={() => {
+                  setForm({ 
+                    name: "", 
+                    subject: "", 
+                    time: "", 
+                    priority: "Low", 
+                    scheduledDate: "",
+                    recurrence: "none",
+                    recurrenceInterval: 1,
+                    recurrenceDays: []
+                  });
+                  setEditId(null);
+                  setShowModal(true);
+                }}
                   className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition-all"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -689,6 +917,16 @@ export default function Tasks() {
                 setShowModal(false);
                 setFormError("");
                 setEditId(null);
+                setForm({ 
+                  name: "", 
+                  subject: "", 
+                  time: "", 
+                  priority: "Low", 
+                  scheduledDate: "",
+                  recurrence: "none",
+                  recurrenceInterval: 1,
+                  recurrenceDays: []
+                });
               }}
             >
               <motion.div
@@ -707,6 +945,16 @@ export default function Tasks() {
                       setShowModal(false);
                       setFormError("");
                       setEditId(null);
+                      setForm({ 
+                        name: "", 
+                        subject: "", 
+                        time: "", 
+                        priority: "Low", 
+                        scheduledDate: "",
+                        recurrence: "none",
+                        recurrenceInterval: 1,
+                        recurrenceDays: []
+                      });
                     }}
                     whileHover={{ scale: 1.1, rotate: 90 }}
                     whileTap={{ scale: 0.9 }}
@@ -803,6 +1051,94 @@ export default function Tasks() {
                     />
                   </div>
 
+                  {/* Recurrence Section */}
+                  <div>
+                    <label className="block text-sm font-semibold text-purple-300 mb-2 flex items-center gap-2">
+                      <Repeat className="w-4 h-4" />
+                      Recurrence
+                    </label>
+                    <select
+                      className="w-full px-4 py-3 rounded-xl bg-purple-900/40 border border-purple-700/30 text-white focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all mb-3"
+                      value={form.recurrence}
+                      onChange={(e) => setForm({ 
+                        ...form, 
+                        recurrence: e.target.value,
+                        recurrenceDays: e.target.value === 'weekly' ? form.recurrenceDays : []
+                      })}
+                    >
+                      <option value="none">No Recurrence</option>
+                      <option value="daily">Daily</option>
+                      <option value="weekly">Weekly</option>
+                      <option value="monthly">Monthly</option>
+                    </select>
+
+                    {/* Recurrence Interval */}
+                    {form.recurrence !== 'none' && (
+                      <div className="mb-3">
+                        <label className="block text-xs text-purple-300/70 mb-2">
+                          Repeat Every
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            min="1"
+                            max="30"
+                            className="w-20 px-3 py-2 rounded-lg bg-purple-900/40 border border-purple-700/30 text-white focus:outline-none focus:border-purple-500/50"
+                            value={form.recurrenceInterval}
+                            onChange={(e) => setForm({ 
+                              ...form, 
+                              recurrenceInterval: parseInt(e.target.value) || 1 
+                            })}
+                          />
+                          <span className="text-purple-300/70 text-sm">
+                            {form.recurrence === 'daily' ? 'day(s)' : 
+                             form.recurrence === 'weekly' ? 'week(s)' : 
+                             'month(s)'}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Weekly Day Selection */}
+                    {form.recurrence === 'weekly' && (
+                      <div>
+                        <label className="block text-xs text-purple-300/70 mb-2">
+                          Repeat On Days
+                        </label>
+                        <div className="grid grid-cols-7 gap-2">
+                          {[
+                            { value: 'sunday', label: 'S' },
+                            { value: 'monday', label: 'M' },
+                            { value: 'tuesday', label: 'T' },
+                            { value: 'wednesday', label: 'W' },
+                            { value: 'thursday', label: 'T' },
+                            { value: 'friday', label: 'F' },
+                            { value: 'saturday', label: 'S' }
+                          ].map((day) => (
+                            <button
+                              key={day.value}
+                              type="button"
+                              onClick={() => {
+                                const currentDays = form.recurrenceDays || [];
+                                const newDays = currentDays.includes(day.value)
+                                  ? currentDays.filter(d => d !== day.value)
+                                  : [...currentDays, day.value];
+                                setForm({ ...form, recurrenceDays: newDays });
+                              }}
+                              className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
+                                form.recurrenceDays?.includes(day.value)
+                                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                                  : 'bg-purple-900/40 border border-purple-700/30 text-purple-300 hover:border-purple-500/50'
+                              }`}
+                            >
+                              {day.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   <motion.button
                     onClick={addTask}
                     whileHover={{ scale: 1.02 }}
@@ -812,7 +1148,7 @@ export default function Tasks() {
                     {editId ? "Update Task" : "Create Task"}
                   </motion.button>
                 </div>
-              </motion.div>
+                  </motion.div>
               </motion.div>
             )}
         </AnimatePresence>
