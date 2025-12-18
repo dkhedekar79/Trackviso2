@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
 import SEO from "../components/SEO";
 import {
   Play,
@@ -15,6 +15,27 @@ import {
   Star,
   Trophy,
   Award,
+  Flame,
+  TrendingUp,
+  Calendar,
+  Zap,
+  Trash2,
+  Volume2,
+  VolumeX,
+  Image,
+  X as XIcon,
+  Settings,
+  ChevronDown,
+  ChevronUp,
+  Maximize2,
+  Minimize2,
+  Sparkles,
+  BarChart3,
+  Activity,
+  Timer,
+  Coffee,
+  Music,
+  Palette,
 } from "lucide-react";
 import { useTimer } from "../context/TimerContext";
 import { useGamification } from "../context/GamificationContext";
@@ -28,18 +49,6 @@ import {
   AnimatedProgressBar,
 } from "../components/RewardAnimations";
 import Sidebar from "../components/Sidebar";
-import {
-  Flame,
-  TrendingUp,
-  Calendar,
-  Zap,
-  Trash2,
-  Volume2,
-  VolumeX,
-  Image,
-  X as XIcon,
-  Settings,
-} from "lucide-react";
 
 const Study = () => {
   const location = useLocation();
@@ -67,16 +76,20 @@ const Study = () => {
   const [studySessions, setStudySessions] = useState([]);
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
-  // Local input state for custom minutes
   const [customMinutesInput, setCustomMinutesInput] = useState("25");
-  // Local high-accuracy timer state
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const startMsRef = useRef(null);
   const intervalRef = useRef(null);
   const pausedAccumulatedRef = useRef(0);
   const pomodoroPhaseRef = useRef("work");
+  
+  // UI State
+  const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
+  const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
+  const [showQuickSettings, setShowQuickSettings] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
-  // Timer context (kept for global sync but display uses local timer)
+  // Timer context
   const {
     isRunning,
     mode,
@@ -118,12 +131,28 @@ const Study = () => {
   const { subscriptionPlan } = useSubscription();
   const isPremium = subscriptionPlan === 'professor';
 
-  // Sync local input with context value when it changes
+  // Track if we just completed a phase
+  const phaseCompletedRef = useRef(false);
+  const [localPomodoroPhase, setLocalPomodoroPhase] = useState("work");
+  const [localPomodoroCount, setLocalPomodoroCount] = useState(0);
+  const [showPomodoroNotification, setShowPomodoroNotification] = useState(false);
+  const [pomodoroNotificationMessage, setPomodoroNotificationMessage] = useState("");
+
+  // Mouse tracking for dynamic effects
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
+
+  // Sync local input with context value
   useEffect(() => {
     if (customMinutes) setCustomMinutesInput(String(customMinutes));
   }, [customMinutes]);
 
-  // Cleanup timers on unmount to avoid leaks and lag when navigating away
+  // Cleanup timers
   useEffect(() => {
     return () => {
       try { if (intervalRef.current) clearInterval(intervalRef.current); } catch {}
@@ -140,28 +169,22 @@ const Study = () => {
         setIsAmbientMode(false);
       }
     };
-
     document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-    };
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, [isAmbientMode]);
 
-  // Load ambient images and videos from config file and selected from localStorage
+  // Load ambient images and videos
   useEffect(() => {
-    // Import ambient images and videos from config
     import('../data/ambientImages.js').then((module) => {
       const images = module.default || module.ambientImages || [];
       const videos = module.ambientVideos || [];
       
       if (images.length > 0) {
         setAmbientImages(images);
-        // Set first image as default if none selected
         const savedSelected = localStorage.getItem('selectedAmbientImage');
         if (savedSelected && images.find(img => img.id === savedSelected)) {
           setSelectedAmbientImage(savedSelected);
         } else {
-          // Always default to first image if no saved selection
           setSelectedAmbientImage(images[0].id);
           localStorage.setItem('selectedAmbientImage', images[0].id);
         }
@@ -169,7 +192,6 @@ const Study = () => {
       
       if (videos.length > 0) {
         setAmbientVideos(videos);
-        // Only set video as default if no images exist
         if (images.length === 0) {
           const savedSelectedVideo = localStorage.getItem('selectedAmbientVideo');
           if (savedSelectedVideo && videos.find(vid => vid.id === savedSelectedVideo)) {
@@ -189,20 +211,17 @@ const Study = () => {
   useEffect(() => {
     if (selectedAmbientImage) {
       localStorage.setItem('selectedAmbientImage', selectedAmbientImage);
-      // Clear video selection when image is selected
       if (selectedAmbientVideo) {
         setSelectedAmbientVideo(null);
         localStorage.removeItem('selectedAmbientVideo');
       }
     }
-    // Don't remove from localStorage if it becomes null - keep the default
   }, [selectedAmbientImage]);
 
   // Save selected video to localStorage
   useEffect(() => {
     if (selectedAmbientVideo) {
       localStorage.setItem('selectedAmbientVideo', selectedAmbientVideo);
-      // Clear image selection when video is selected
       if (selectedAmbientImage) {
         setSelectedAmbientImage(null);
         localStorage.removeItem('selectedAmbientImage');
@@ -212,43 +231,32 @@ const Study = () => {
     }
   }, [selectedAmbientVideo]);
 
-  // Clear video selection if user is not premium (but allow first video)
+  // Clear video selection if user is not premium
   useEffect(() => {
     if (!isPremium && selectedAmbientVideo) {
-      // Check if selected video is the first one (free)
       const firstVideoId = ambientVideos.length > 0 ? ambientVideos[0].id : null;
       if (selectedAmbientVideo !== firstVideoId) {
-        // Only clear if it's not the first video
         setSelectedAmbientVideo(null);
         localStorage.removeItem('selectedAmbientVideo');
       }
     }
   }, [isPremium, selectedAmbientVideo, ambientVideos]);
 
-  // Track if we just completed a phase (to avoid double triggering)
-  const phaseCompletedRef = useRef(false);
-  const [localPomodoroPhase, setLocalPomodoroPhase] = useState("work"); // "work" or "break"
-  const [localPomodoroCount, setLocalPomodoroCount] = useState(0);
-  const [showPomodoroNotification, setShowPomodoroNotification] = useState(false);
-  const [pomodoroNotificationMessage, setPomodoroNotificationMessage] = useState("");
-
   // Local timer helpers
   const getTotalDuration = () => {
     if (mode === "pomodoro")
       return (localPomodoroPhase === "break" ? 5 : 25) * 60;
     if (mode === "custom") return (customMinutes || 25) * 60;
-    return 0; // stopwatch
+    return 0;
   };
 
   const startLocalTimer = () => {
-    // lock current pomodoro phase at start
     if (mode === "pomodoro") {
       pomodoroPhaseRef.current = localPomodoroPhase;
     } else {
       pomodoroPhaseRef.current = "";
     }
     phaseCompletedRef.current = false;
-    // resume from paused
     const now = Date.now();
     startMsRef.current = now - pausedAccumulatedRef.current * 1000;
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -277,17 +285,14 @@ const Study = () => {
     
     const totalDuration = localPomodoroPhase === "break" ? 5 * 60 : 25 * 60;
     
-    // Check if timer reached 0 and we haven't already processed this completion
     if (elapsedSeconds >= totalDuration && !phaseCompletedRef.current) {
       phaseCompletedRef.current = true;
       
       if (localPomodoroPhase === "work") {
-        // Work phase complete - start break
         playNotificationSound?.("work");
         setPomodoroNotificationMessage("🌴 Great work! Time for a 5-minute break.");
         setShowPomodoroNotification(true);
         
-        // Reset local timer and switch to break phase
         if (intervalRef.current) clearInterval(intervalRef.current);
         startMsRef.current = Date.now();
         pausedAccumulatedRef.current = 0;
@@ -296,32 +301,26 @@ const Study = () => {
         pomodoroPhaseRef.current = "break";
         phaseCompletedRef.current = false;
         
-        // Restart the interval
         intervalRef.current = setInterval(() => {
           const diff = Date.now() - startMsRef.current;
           setElapsedSeconds(Math.floor(diff / 1000));
         }, 100);
         
-        // Auto-hide notification after 4 seconds
         setTimeout(() => setShowPomodoroNotification(false), 4000);
         
       } else {
-        // Break phase complete - this counts as a completed pomodoro cycle!
         playNotificationSound?.("break");
         const newCycleCount = localPomodoroCount + 1;
         setLocalPomodoroCount(newCycleCount);
         setPomodoroNotificationMessage(`🏆 Pomodoro #${newCycleCount} complete! +50 XP bonus. Back to work!`);
         setShowPomodoroNotification(true);
         
-        // Award XP for completing a pomodoro cycle
         if (grantXP) {
           grantXP(50, "pomodoro_cycle");
         }
         
-        // Update quest progress for pomodoro cycles
         updateQuestProgress?.("pomodoro_cycles", 1);
         
-        // Reset local timer and switch to work phase
         if (intervalRef.current) clearInterval(intervalRef.current);
         startMsRef.current = Date.now();
         pausedAccumulatedRef.current = 0;
@@ -330,27 +329,24 @@ const Study = () => {
         pomodoroPhaseRef.current = "work";
         phaseCompletedRef.current = false;
         
-        // Restart the interval
         intervalRef.current = setInterval(() => {
           const diff = Date.now() - startMsRef.current;
           setElapsedSeconds(Math.floor(diff / 1000));
         }, 100);
         
-        // Auto-hide notification after 4 seconds
         setTimeout(() => setShowPomodoroNotification(false), 4000);
       }
     }
   }, [elapsedSeconds, mode, isRunning, localPomodoroPhase, localPomodoroCount, playNotificationSound, updateQuestProgress]);
 
-  // Helper function to get start of week
+  // Helper functions
   const getStartOfWeek = (date) => {
     const d = new Date(date);
     const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday as first day
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
     return new Date(d.setDate(diff));
   };
 
-  // Get subject from URL params
   const getSubjectFromURL = () => {
     const params = new URLSearchParams(location.search);
     return params.get("subject");
@@ -374,9 +370,8 @@ const Study = () => {
     if (subject) {
       setTimerSubject(subject);
     }
-  }, [subject, setTimerSubject]); // setTimerSubject is now stable with useCallback
+  }, [subject, setTimerSubject]);
 
-  // Get subject tasks
   const getSubjectTasks = () => {
     return tasks.filter((task) => task.subject === subject);
   };
@@ -387,10 +382,8 @@ const Study = () => {
   const handleCustomDuration = () => {
     const minutes = parseInt(customMinutesInput);
     if (minutes > 0 && minutes <= 480) {
-      // Max 8 hours
       setCustomMinutes(minutes);
       setTimerMode("custom");
-      // restart local timer base
       resetLocalTimer();
       setShowCustomInput(false);
     }
@@ -404,7 +397,6 @@ const Study = () => {
       setShowCustomInput(false);
       setTimerMode(newMode);
       resetLocalTimer();
-      // Reset pomodoro state when switching modes
       if (newMode === "pomodoro") {
         setLocalPomodoroPhase("work");
         setLocalPomodoroCount(0);
@@ -412,7 +404,7 @@ const Study = () => {
     }
   };
 
-  // Get display time using local timer
+  // Get display time
   const getDisplayTime = () => {
     if (mode === "stopwatch") {
       const minutes = Math.floor(elapsedSeconds / 60);
@@ -437,28 +429,13 @@ const Study = () => {
     }
   };
   
-  // Check if currently in break phase
   const isInBreakPhase = mode === "pomodoro" && localPomodoroPhase === "break";
 
-  // Progress based on local timer
+  // Progress calculation
   const getProgress = () => {
     if (mode === "stopwatch") return 0;
     const total = getTotalDuration();
     return total > 0 ? Math.min(100, (elapsedSeconds / total) * 100) : 0;
-  };
-
-  // Helper function to get mode duration
-  const getModeDuration = (timerMode) => {
-    switch (timerMode) {
-      case "pomodoro":
-        return localPomodoroPhase === "break" ? 5 * 60 : 25 * 60;
-      case "custom":
-        return (customMinutes || 25) * 60;
-      case "stopwatch":
-        return 0;
-      default:
-        return 25 * 60;
-    }
   };
 
   // Calculate stats
@@ -575,7 +552,7 @@ const Study = () => {
     }
   };
 
-  // If no subject is selected, show subject selection page
+  // Subject selection screen
   if (!subject) {
     return (
       <>
@@ -669,20 +646,17 @@ const Study = () => {
   }
 
   const handleEndSession = () => {
-    // pause both local and global timers
     pauseLocalTimer();
     stopTimer();
     setShowEndSession(true);
   };
 
   const handleSaveSession = () => {
-    // Ensure we have a valid duration - use minimum 1 minute if session was very short
     const sessionDurationMinutes = Math.max(
       1,
       Math.round((elapsedSeconds / 60) * 100) / 100,
     );
 
-    // Save session data based on actual elapsedSeconds
     const sessionData = {
       subjectName: subject,
       durationMinutes: sessionDurationMinutes,
@@ -695,15 +669,12 @@ const Study = () => {
       isTaskComplete,
     };
 
-    // Add to gamification system (handles XP and quest updates internally)
     const sessionResult = addStudySession(sessionData);
 
-    // Update study sessions in localStorage with enriched data
     const updatedSessions = [...studySessions, sessionResult];
     localStorage.setItem("studySessions", JSON.stringify(updatedSessions));
     setStudySessions(updatedSessions);
 
-    // Update task if completed
     if (isTaskComplete && currentTask) {
       const updatedTasks = tasks.map((task) =>
         task.name === currentTask
@@ -715,7 +686,6 @@ const Study = () => {
       updateQuestProgress("tasks");
     }
 
-    // Show completion success with rewards
     addReward({
       type: "SESSION_COMPLETE",
       title: `🎉 Session Complete!`,
@@ -725,7 +695,6 @@ const Study = () => {
       bonuses: sessionResult.bonuses,
     });
 
-    // Reset session state but keep subject to avoid blank screen
     setSessionNotes("");
     setCurrentTask("");
     setIsTaskComplete(false);
@@ -734,15 +703,10 @@ const Study = () => {
     setSessionReflection("");
     setSessionDifficulty(2);
 
-    // Reset timers but keep the subject active
     resetLocalTimer();
     resetTimer();
 
-    // Show rewards for a few seconds then allow continuing
     setShowRewards(true);
-
-    // Stay on the study page instead of going to subject selection
-    // The subject remains in the URL so user can continue studying
   };
 
   const deleteStudySession = (index) => {
@@ -753,16 +717,15 @@ const Study = () => {
 
   const handleTaskSelection = (taskName) => {
     setCurrentTask(taskName);
-    // Automatically check the completion checkbox when a task is selected
     if (taskName) {
       setIsTaskComplete(true);
     }
   };
 
   const MODES = [
-    { key: "pomodoro", label: "Pomodoro", duration: 25 * 60 },
-    { key: "custom", label: "Custom", duration: null },
-    { key: "stopwatch", label: "Stopwatch", duration: 0 },
+    { key: "pomodoro", label: "Pomodoro", icon: "🍅", duration: 25 * 60 },
+    { key: "custom", label: "Custom", icon: "⚙️", duration: null },
+    { key: "stopwatch", label: "Stopwatch", icon: "⏱️", duration: 0 },
   ];
 
   const moods = [
@@ -772,6 +735,7 @@ const Study = () => {
     { emoji: "😫", label: "Struggled", value: "struggled" },
   ];
 
+  // End session modal
   if (showEndSession) {
     return (
       <>
@@ -788,7 +752,6 @@ const Study = () => {
             Session Complete! 🎉
           </h2>
 
-          {/* Mood Tracker */}
           <div className="mb-6">
             <label className="block text-white text-sm font-medium mb-3">
               How did it go?
@@ -811,7 +774,6 @@ const Study = () => {
             </div>
           </div>
 
-          {/* Reflection */}
           <div className="mb-6">
             <label className="block text-white text-sm font-medium mb-2">
               What did you work on?
@@ -825,7 +787,6 @@ const Study = () => {
             />
           </div>
 
-          {/* Difficulty Rating */}
           <div className="mb-6">
             <label className="block text-white text-sm font-medium mb-2">
               Difficulty Level
@@ -847,7 +808,6 @@ const Study = () => {
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex gap-3">
             <button
               onClick={() => setShowEndSession(false)}
@@ -868,6 +828,7 @@ const Study = () => {
     );
   }
 
+  // Main Study Interface - Modern Redesign
   return (
     <>
       <SEO 
@@ -877,10 +838,593 @@ const Study = () => {
         robots="noindex, nofollow"
         noindex={true}
       />
-      <div className="min-h-screen mt-20 flex bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
-      <Sidebar />
-      <div className="flex-1 ml-16 transition-all duration-300 ease-in-out [body>div>aside:hover_+_div&]:ml-64">
-        {/* Ambient Mode Fullscreen Overlay */}
+      <div className="min-h-screen mt-20 flex bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 relative overflow-hidden">
+        {/* Animated background gradient */}
+        <div className="absolute inset-0 opacity-30">
+          <div 
+            className="absolute w-96 h-96 rounded-full blur-3xl transition-all duration-1000"
+            style={{
+              background: `radial-gradient(circle, rgba(139, 92, 246, 0.4), transparent)`,
+              left: `${(mousePosition.x / window.innerWidth) * 100}%`,
+              top: `${(mousePosition.y / window.innerHeight) * 100}%`,
+              transform: 'translate(-50%, -50%)',
+            }}
+          />
+        </div>
+
+        <Sidebar />
+        
+        {/* Main Content Area */}
+        <div className="flex-1 ml-16 transition-all duration-300 ease-in-out [body>div>aside:hover_+_div&]:ml-64 relative z-10">
+          {/* Top Header Bar */}
+          <motion.div 
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="sticky top-0 z-40 bg-gradient-to-r from-purple-900/80 via-purple-950/80 to-slate-900/80 backdrop-blur-xl border-b border-purple-700/30 px-6 py-4"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div 
+                  className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold text-white shadow-lg"
+                  style={{ backgroundColor: subjects.find(s => s.name === subject)?.color || '#8b5cf6' }}
+                >
+                  {subject?.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-white">{subject}</h1>
+                  {currentTask && (
+                    <p className="text-sm text-purple-300/70 flex items-center gap-1">
+                      <Target className="w-3 h-3" />
+                      {currentTask}
+                    </p>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                {/* Quick Stats */}
+                <div className="hidden md:flex items-center gap-4 text-sm">
+                  <div className="flex items-center gap-1 text-purple-300">
+                    <Clock className="w-4 h-4" />
+                    <span>{Math.round(todayStats.minutes)}m</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-purple-300">
+                    <Flame className="w-4 h-4 text-[#FEC260]" />
+                    <span>{streak}d</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-purple-300">
+                    <Trophy className="w-4 h-4 text-yellow-400" />
+                    <span>{localPomodoroCount}</span>
+                  </div>
+                </div>
+                
+                {/* Quick Settings Toggle */}
+                <motion.button
+                  onClick={() => setShowQuickSettings(!showQuickSettings)}
+                  className="p-2 rounded-lg bg-purple-800/40 hover:bg-purple-800/60 border border-purple-700/30 text-white transition-all"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Settings className="w-5 h-5" />
+                </motion.button>
+                
+                {/* Exit Button */}
+                <motion.button
+                  onClick={() => { handleCancelStudy(); navigate("/subjects"); }}
+                  className="px-4 py-2 rounded-lg bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 text-red-400 font-semibold transition-all"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <X className="w-4 h-4" />
+                </motion.button>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Quick Settings Dropdown */}
+          <AnimatePresence>
+            {showQuickSettings && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute top-full right-6 mt-2 z-50 bg-purple-900/95 backdrop-blur-xl rounded-xl p-4 border border-purple-700/30 shadow-2xl min-w-[200px]"
+              >
+                <div className="space-y-2">
+                  <button
+                    onClick={() => {
+                      setIsAmbientMode(!isAmbientMode);
+                      if (!isAmbientMode) {
+                        document.documentElement.requestFullscreen?.();
+                      } else {
+                        document.exitFullscreen?.();
+                      }
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-purple-800/40 text-white transition-all"
+                  >
+                    {isAmbientMode ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                    <span className="text-sm">Ambient Mode</span>
+                  </button>
+                  <button
+                    onClick={() => setShowAmbientGallery(true)}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-purple-800/40 text-white transition-all"
+                  >
+                    <Palette className="w-4 h-4" />
+                    <span className="text-sm">Backgrounds</span>
+                  </button>
+                  <button
+                    onClick={() => setIsDistractionFree(!isDistractionFree)}
+                    className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-purple-800/40 text-white transition-all ${isDistractionFree ? 'bg-purple-700/40' : ''}`}
+                  >
+                    <Zap className="w-4 h-4" />
+                    <span className="text-sm">Focus Mode</span>
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Main Layout - Split Screen */}
+          <div className="flex h-[calc(100vh-5rem)]">
+            {/* Left Panel - Timer & Controls */}
+            <motion.div
+              initial={{ x: -50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.1 }}
+              className={`${leftPanelCollapsed ? 'w-16' : 'w-96'} transition-all duration-300 flex flex-col border-r border-purple-700/30 bg-gradient-to-b from-purple-900/20 to-slate-900/20 backdrop-blur-sm`}
+            >
+              {/* Collapse Toggle */}
+              <button
+                onClick={() => setLeftPanelCollapsed(!leftPanelCollapsed)}
+                className="absolute -right-3 top-1/2 transform -translate-y-1/2 z-10 w-6 h-6 rounded-full bg-purple-700 border border-purple-600 flex items-center justify-center text-white hover:bg-purple-600 transition-all"
+              >
+                {leftPanelCollapsed ? <ChevronDown className="w-4 h-4 rotate-90" /> : <ChevronUp className="w-4 h-4 rotate-90" />}
+              </button>
+
+              {!leftPanelCollapsed && (
+                <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                  {/* Mode Selection */}
+                  <div>
+                    <label className="text-xs font-semibold text-purple-300/70 uppercase tracking-wider mb-3 block">
+                      Timer Mode
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {MODES.map((m) => (
+                        <motion.button
+                          key={m.key}
+                          onClick={() => handleModeChange(m.key)}
+                          disabled={isRunning}
+                          className={`p-3 rounded-xl font-semibold text-sm transition-all ${
+                            mode === m.key
+                              ? "bg-gradient-to-br from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50"
+                              : "bg-purple-900/30 text-purple-300 hover:bg-purple-800/40 border border-purple-700/30"
+                          } disabled:opacity-50`}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <div className="text-lg mb-1">{m.icon}</div>
+                          <div className="text-xs">{m.label}</div>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Custom Duration Input */}
+                  <AnimatePresence>
+                    {showCustomInput && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <label className="text-xs font-semibold text-purple-300/70 uppercase tracking-wider mb-2 block">
+                          Custom Duration
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="number"
+                            min="1"
+                            max="480"
+                            value={customMinutesInput}
+                            onChange={(e) => setCustomMinutesInput(e.target.value)}
+                            className="flex-1 p-2 rounded-lg bg-purple-900/40 text-white border border-purple-700/50 text-sm focus:outline-none focus:border-purple-600/80"
+                            placeholder="25"
+                          />
+                          <motion.button
+                            onClick={handleCustomDuration}
+                            className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold text-sm"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            Set
+                          </motion.button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Pomodoro Status */}
+                  {mode === "pomodoro" && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="p-4 rounded-xl bg-gradient-to-br from-purple-800/30 to-pink-800/20 border border-purple-700/30"
+                    >
+                      <div className={`text-center font-semibold ${isInBreakPhase ? 'text-green-400' : 'text-purple-200'}`}>
+                        {isInBreakPhase ? "🌴 Break Time" : "📚 Work Time"}
+                      </div>
+                      <div className="text-center text-sm text-purple-300/70 mt-1">
+                        {localPomodoroCount} cycles completed
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Task Selection */}
+                  <div>
+                    <label className="text-xs font-semibold text-purple-300/70 uppercase tracking-wider mb-2 block">
+                      Current Task
+                    </label>
+                    <select
+                      value={currentTask}
+                      onChange={(e) => handleTaskSelection(e.target.value)}
+                      className="w-full p-2 rounded-lg bg-purple-900/40 text-white border border-purple-700/50 text-sm focus:outline-none focus:border-purple-600/80"
+                      disabled={isRunning}
+                    >
+                      <option value="">Select or type custom...</option>
+                      {subjectTasks.map((task) => (
+                        <option key={task.id} value={task.name}>
+                          {task.name}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="text"
+                      value={currentTask}
+                      onChange={(e) => setCurrentTask(e.target.value)}
+                      className="w-full mt-2 p-2 rounded-lg bg-purple-900/40 text-white border border-purple-700/50 text-sm focus:outline-none focus:border-purple-600/80"
+                      placeholder="Or type custom topic..."
+                    />
+                    <label className="flex items-center gap-2 mt-2 text-sm text-purple-300">
+                      <input
+                        type="checkbox"
+                        checked={isTaskComplete}
+                        onChange={(e) => setIsTaskComplete(e.target.checked)}
+                        className="rounded"
+                      />
+                      Mark as complete
+                    </label>
+                  </div>
+
+                  {/* Session Notes */}
+                  <div>
+                    <label className="text-xs font-semibold text-purple-300/70 uppercase tracking-wider mb-2 block">
+                      Session Notes
+                    </label>
+                    <textarea
+                      value={sessionNotes}
+                      onChange={(e) => setSessionNotes(e.target.value)}
+                      className="w-full p-2 rounded-lg bg-purple-900/40 text-white border border-purple-700/50 text-sm focus:outline-none focus:border-purple-600/80 resize-none"
+                      rows="3"
+                      placeholder="Add notes about your session..."
+                    />
+                  </div>
+                </div>
+              )}
+            </motion.div>
+
+            {/* Center - Main Timer Display */}
+            <div className="flex-1 flex items-center justify-center relative">
+              {/* Floating Timer Card */}
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="relative"
+              >
+                {/* Timer Circle */}
+                <div className="relative w-[400px] h-[400px]">
+                  {/* Progress Ring */}
+                  {mode !== "stopwatch" && (
+                    <svg className="absolute inset-0 transform -rotate-90" width="400" height="400">
+                      <circle
+                        cx="200"
+                        cy="200"
+                        r="180"
+                        stroke="rgba(139, 92, 246, 0.2)"
+                        strokeWidth="8"
+                        fill="none"
+                      />
+                      <motion.circle
+                        cx="200"
+                        cy="200"
+                        r="180"
+                        stroke={
+                          isInBreakPhase
+                            ? "#4ADE80"
+                            : mode === "pomodoro" &&
+                              elapsedSeconds > getTotalDuration() &&
+                              localPomodoroPhase === "work"
+                              ? "#EF4444"
+                              : "url(#timerGradient)"
+                        }
+                        strokeWidth="8"
+                        fill="none"
+                        strokeDasharray={2 * Math.PI * 180}
+                        strokeDashoffset={2 * Math.PI * 180 * (1 - getProgress() / 100)}
+                        strokeLinecap="round"
+                        initial={{ strokeDashoffset: 2 * Math.PI * 180 }}
+                        animate={{ strokeDashoffset: 2 * Math.PI * 180 * (1 - getProgress() / 100) }}
+                        transition={{ duration: 0.5 }}
+                      />
+                      <defs>
+                        <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#8b5cf6" />
+                          <stop offset="50%" stopColor="#ec4899" />
+                          <stop offset="100%" stopColor="#8b5cf6" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  )}
+
+                  {/* Timer Display */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <motion.div
+                      className={`text-7xl font-mono font-bold ${
+                        isInBreakPhase
+                          ? "text-green-400"
+                          : mode === "pomodoro" &&
+                            elapsedSeconds > getTotalDuration() &&
+                            localPomodoroPhase === "work"
+                            ? "text-red-400"
+                            : "text-white"
+                      }`}
+                      animate={isRunning ? { scale: [1, 1.02, 1] } : {}}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      {getDisplayTime()}
+                    </motion.div>
+                    {mode === "pomodoro" && (
+                      <div className={`mt-4 text-sm font-semibold ${isInBreakPhase ? 'text-green-400' : 'text-purple-300'}`}>
+                        {isInBreakPhase ? "🌴 Break" : "📚 Work"}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Control Buttons */}
+                <div className="flex items-center justify-center gap-4 mt-8">
+                  {isRunning ? (
+                    <motion.button
+                      onClick={() => {
+                        pauseLocalTimer();
+                        stopTimer();
+                      }}
+                      className="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-500 to-orange-500 text-slate-900 shadow-lg hover:shadow-xl hover:shadow-yellow-500/50 transition-all flex items-center justify-center"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <Pause className="w-8 h-8" />
+                    </motion.button>
+                  ) : (
+                    <motion.button
+                      onClick={() => {
+                        startLocalTimer();
+                        startTimer();
+                      }}
+                      disabled={mode !== "stopwatch" && getTotalDuration() === 0}
+                      className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 text-white shadow-lg hover:shadow-xl hover:shadow-purple-500/50 transition-all flex items-center justify-center disabled:opacity-50"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <Play className="w-8 h-8 ml-1" />
+                    </motion.button>
+                  )}
+                  
+                  <motion.button
+                    onClick={() => {
+                      resetLocalTimer();
+                      resetTimer();
+                    }}
+                    className="w-12 h-12 rounded-full bg-purple-900/40 text-white border border-purple-700/40 hover:bg-purple-900/60 transition-all flex items-center justify-center"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <RotateCcw className="w-5 h-5" />
+                  </motion.button>
+                  
+                  <motion.button
+                    onClick={handleEndSession}
+                    className="w-12 h-12 rounded-full bg-red-600/20 text-red-400 border border-red-500/30 hover:bg-red-600/30 transition-all flex items-center justify-center"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <Square className="w-5 h-5" />
+                  </motion.button>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Right Panel - Stats & Logs */}
+            <motion.div
+              initial={{ x: 50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className={`${rightPanelCollapsed ? 'w-16' : 'w-96'} transition-all duration-300 flex flex-col border-l border-purple-700/30 bg-gradient-to-b from-purple-900/20 to-slate-900/20 backdrop-blur-sm`}
+            >
+              {/* Collapse Toggle */}
+              <button
+                onClick={() => setRightPanelCollapsed(!rightPanelCollapsed)}
+                className="absolute -left-3 top-1/2 transform -translate-y-1/2 z-10 w-6 h-6 rounded-full bg-purple-700 border border-purple-600 flex items-center justify-center text-white hover:bg-purple-600 transition-all"
+              >
+                {rightPanelCollapsed ? <ChevronDown className="w-4 h-4 -rotate-90" /> : <ChevronUp className="w-4 h-4 -rotate-90" />}
+              </button>
+
+              {!rightPanelCollapsed && (
+                <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                  {/* Today's Stats */}
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-purple-800/30 to-slate-800/20 border border-purple-700/30">
+                    <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-purple-400" />
+                      Today's Progress
+                    </h3>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-purple-300/70">Sessions</span>
+                        <span className="text-white font-bold">{todayStats.sessions}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-purple-300/70">Time</span>
+                        <span className="text-white font-bold">{Math.round(todayStats.minutes)}m</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-purple-300/70 flex items-center gap-1">
+                          <Flame className="w-3 h-3 text-[#FEC260]" />
+                          Streak
+                        </span>
+                        <span className="text-white font-bold">{streak}d</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Weekly Progress */}
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-pink-800/30 to-purple-800/20 border border-pink-700/30">
+                    <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-pink-400" />
+                      Weekly Goal
+                    </h3>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-pink-300/70">Studied</span>
+                        <span className="text-white font-bold">{Math.round(weeklyProgress.studied / 60)}h</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-pink-300/70">Goal</span>
+                        <span className="text-white font-bold">{Math.round(weeklyProgress.goal / 60)}h</span>
+                      </div>
+                      <div className="w-full bg-pink-500/20 rounded-full h-2 mt-2">
+                        <motion.div
+                          className="bg-gradient-to-r from-pink-400 to-purple-400 h-2 rounded-full"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min(weeklyProgress.percentage, 100)}%` }}
+                          transition={{ duration: 1 }}
+                        />
+                      </div>
+                      <div className="text-xs text-center text-pink-300/70 mt-1">
+                        {Math.round(weeklyProgress.percentage)}% complete
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Recent Logs */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                      <BookOpen className="w-4 h-4 text-purple-400" />
+                      Recent Sessions
+                    </h3>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {studySessions
+                        .filter((session) => session.subjectName === subject)
+                        .slice(0, 5)
+                        .map((session, index) => {
+                          const moodEmoji = {
+                            great: "😄",
+                            good: "🙂",
+                            okay: "😐",
+                            struggled: "😫",
+                          }[session.mood] || "";
+
+                          return (
+                            <motion.div
+                              key={index}
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: index * 0.05 }}
+                              className="p-3 rounded-lg bg-purple-800/20 border border-purple-700/30 hover:bg-purple-800/40 transition-all group"
+                            >
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-sm font-medium text-white">
+                                  {session.durationMinutes.toFixed(1)}m
+                                </span>
+                                <span className="text-xs text-purple-300/60">
+                                  {new Date(session.timestamp).toLocaleDateString("en-US", {
+                                    month: "short",
+                                    day: "numeric",
+                                  })}
+                                </span>
+                              </div>
+                              {session.task && (
+                                <div className="text-xs text-purple-300/70 truncate">
+                                  {session.task}
+                                </div>
+                              )}
+                              {session.mood && (
+                                <div className="flex items-center gap-1 mt-1 text-xs text-purple-300/70">
+                                  <span>{moodEmoji}</span>
+                                  <span className="capitalize">{session.mood}</span>
+                                </div>
+                              )}
+                              <button
+                                onClick={() => deleteStudySession(studySessions.indexOf(session))}
+                                className="mt-2 opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-600/30 transition text-red-400 hover:text-red-300 text-xs"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </motion.div>
+                          );
+                        })}
+                      {studySessions.filter((s) => s.subjectName === subject).length === 0 && (
+                        <div className="text-center py-4 text-purple-300/50 text-sm">
+                          No sessions yet
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Pomodoro Notification */}
+        <AnimatePresence>
+          {showPomodoroNotification && (
+            <motion.div
+              initial={{ opacity: 0, y: -50, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -50, scale: 0.9 }}
+              className="fixed top-24 left-1/2 transform -translate-x-1/2 z-[150] max-w-md"
+            >
+              <div className={`px-6 py-4 rounded-2xl shadow-2xl border-2 backdrop-blur-md ${
+                isInBreakPhase 
+                  ? "bg-green-900/90 border-green-400/50 shadow-green-500/30" 
+                  : "bg-purple-900/90 border-purple-400/50 shadow-purple-500/30"
+              }`}>
+                <div className="flex items-center gap-3">
+                  <motion.div
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ repeat: Infinity, duration: 1 }}
+                    className="text-3xl"
+                  >
+                    {isInBreakPhase ? "🌴" : "💪"}
+                  </motion.div>
+                  <div>
+                    <p className="text-white font-semibold text-lg">
+                      {pomodoroNotificationMessage}
+                    </p>
+                    <p className="text-white/70 text-sm mt-1">
+                      {isInBreakPhase 
+                        ? "Take a short break, stretch, and relax!" 
+                        : "Stay focused and keep up the great work!"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Ambient Mode - Keep existing implementation */}
         <AnimatePresence>
           {isAmbientMode && (
             <motion.div
@@ -906,12 +1450,10 @@ const Study = () => {
                 }
               }}
             >
-              {/* Video Background - First video is free, rest require premium */}
               {selectedAmbientVideo && (
                 (() => {
                   const selectedVideo = ambientVideos.find(vid => vid.id === selectedAmbientVideo);
                   const isFirstVideo = ambientVideos.length > 0 && ambientVideos[0].id === selectedAmbientVideo;
-                  // Allow first video for free, rest require premium
                   if (selectedVideo && (isFirstVideo || isPremium)) {
                     return (
                       <video
@@ -929,10 +1471,8 @@ const Study = () => {
                 })()
               )}
               
-              {/* Subtle overlay for better text readability */}
               <div className="absolute inset-0" />
               
-              {/* Settings Button in Corner */}
               <motion.button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -941,11 +1481,6 @@ const Study = () => {
                 className="absolute top-4 right-4 z-20 p-3 rounded-lg bg-black/30 backdrop-blur-sm border border-white/20 hover:bg-black/50 transition-all"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ delay: 0.2 }}
-                title="Manage Background Images"
               >
                 <Settings className="w-5 h-5 text-white" />
               </motion.button>
@@ -954,22 +1489,18 @@ const Study = () => {
                 <motion.div
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.8, opacity: 0 }}
-                  transition={{ duration: 0.3 }}
                   className="text-white drop-shadow-2xl"
-                  style={{ fontFamily: 'Poppins, sans-serif' }}
                 >
                   <div className="text-9xl font-bold tracking-wider mb-4" style={{ fontWeight: 900 }}>
                     {getDisplayTime()}
                   </div>
                   {subject && (
-                    <div className="text-2xl text-white/90 mt-8 drop-shadow-lg font-bold" style={{ fontWeight: 700 }}>
+                    <div className="text-2xl text-white/90 mt-8 drop-shadow-lg font-bold">
                       {subject}
                     </div>
                   )}
                 </motion.div>
                 
-                {/* Minimal Control Buttons */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -977,7 +1508,6 @@ const Study = () => {
                   className="mt-12 flex items-center justify-center gap-4"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  {/* Start/Pause Button */}
                   {isRunning ? (
                     <motion.button
                       onClick={(e) => {
@@ -988,7 +1518,6 @@ const Study = () => {
                       className="p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white transition-all"
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
-                      title="Pause"
                     >
                       <Pause className="w-5 h-5" />
                     </motion.button>
@@ -1002,13 +1531,11 @@ const Study = () => {
                       className="p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white transition-all"
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
-                      title="Start"
                     >
                       <Play className="w-5 h-5" />
                     </motion.button>
                   )}
                   
-                  {/* End Session Button */}
                   <motion.button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -1017,7 +1544,6 @@ const Study = () => {
                     className="p-3 rounded-full bg-red-500/20 hover:bg-red-500/30 backdrop-blur-sm border border-red-400/30 text-white transition-all"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
-                    title="End Session"
                   >
                     <Square className="w-5 h-5" />
                   </motion.button>
@@ -1027,7 +1553,7 @@ const Study = () => {
           )}
         </AnimatePresence>
 
-        {/* Ambient Mode Gallery Modal */}
+        {/* Ambient Gallery Modal - Keep existing */}
         <AnimatePresence>
           {showAmbientGallery && (
             <motion.div
@@ -1057,15 +1583,12 @@ const Study = () => {
                   </button>
                 </div>
 
-                {/* Info Section */}
                 <div className="mb-6 p-4 bg-purple-800/20 border border-purple-700/30 rounded-lg">
                   <p className="text-purple-300/80 text-sm">
                     <strong className="text-white">Note:</strong> Images and videos may not appear instantly. Please wait for a few seconds.
-                    
                   </p>
                 </div>
 
-                {/* Static Images Section */}
                 <div className="mb-8">
                   <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                     <Image className="w-5 h-5 text-purple-400" />
@@ -1091,7 +1614,6 @@ const Study = () => {
                             alt={image.name}
                             className="w-full h-full object-cover"
                             onError={(e) => {
-                              // Fallback if image fails to load
                               e.target.style.display = 'none';
                               e.target.parentElement.innerHTML = '<div class="w-full h-full flex items-center justify-center bg-purple-900/40 text-purple-300 text-sm">Image not found</div>';
                             }}
@@ -1123,12 +1645,10 @@ const Study = () => {
                     <div className="text-center py-8 bg-purple-800/20 rounded-lg border border-purple-700/30">
                       <Image className="w-12 h-12 text-purple-400/50 mx-auto mb-3" />
                       <p className="text-purple-300/80">No static images configured</p>
-                      <p className="text-purple-300/60 text-sm mt-1">Add images in ambientImages.js</p>
                     </div>
                   )}
                 </div>
 
-                {/* Animated Wallpapers Section - Premium Only */}
                 <div>
                   <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                     <Zap className="w-5 h-5 text-purple-400" />
@@ -1199,7 +1719,6 @@ const Study = () => {
                               ) : (
                                 <button
                                   onClick={() => {
-                                    // Pause session and exit ambient mode
                                     pauseLocalTimer();
                                     stopTimer();
                                     setIsAmbientMode(false);
@@ -1221,17 +1740,6 @@ const Study = () => {
                                 Active
                               </div>
                             )}
-                            {isLocked && (
-                              <div className="absolute top-2 right-2 bg-yellow-500/80 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
-                                <Zap className="w-3 h-3" />
-                                Premium
-                              </div>
-                            )}
-                            {!isLocked && (
-                              <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
-                                MP4
-                              </div>
-                            )}
                           </motion.div>
                         );
                       })}
@@ -1240,32 +1748,6 @@ const Study = () => {
                     <div className="text-center py-8 bg-purple-800/20 rounded-lg border border-purple-700/30">
                       <Zap className="w-12 h-12 text-purple-400/50 mx-auto mb-3" />
                       <p className="text-purple-300/80">No animated wallpapers configured</p>
-                      <p className="text-purple-300/60 text-sm mt-1">Add MP4 videos in ambientImages.js</p>
-                    </div>
-                  )}
-                  
-                  {!isPremium && ambientVideos.length > 1 && (
-                    <div className="mt-6 text-center py-6 bg-gradient-to-br from-purple-900/30 to-slate-900/30 rounded-lg border-2 border-purple-500/30">
-                      <h4 className="text-lg font-bold text-white mb-2">Unlock More Wallpapers</h4>
-                      <p className="text-purple-300/80 mb-4 text-sm max-w-md mx-auto">
-                        Upgrade to Professor Plan to access all animated wallpapers.
-                      </p>
-                      <button
-                        onClick={() => {
-                          // Pause session and exit ambient mode
-                          pauseLocalTimer();
-                          stopTimer();
-                          setIsAmbientMode(false);
-                          setShowAmbientGallery(false);
-                          if (document.exitFullscreen) {
-                            document.exitFullscreen().catch(err => console.log(err));
-                          }
-                          setShowPremiumModal(true);
-                        }}
-                        className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-purple-500/50 transition-all"
-                      >
-                        Upgrade to Premium
-                      </button>
                     </div>
                   )}
                 </div>
@@ -1281,1020 +1763,107 @@ const Study = () => {
           feature="Animated Wallpapers"
         />
 
-        {/* Pomodoro Phase Transition Notification */}
+        {/* Reward Animations */}
         <AnimatePresence>
-          {showPomodoroNotification && (
-            <motion.div
-              initial={{ opacity: 0, y: -50, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -50, scale: 0.9 }}
-              className="fixed top-24 left-1/2 transform -translate-x-1/2 z-[150] max-w-md"
-            >
-              <div className={`px-6 py-4 rounded-2xl shadow-2xl border-2 backdrop-blur-md ${
-                isInBreakPhase 
-                  ? "bg-green-900/90 border-green-400/50 shadow-green-500/30" 
-                  : "bg-purple-900/90 border-purple-400/50 shadow-purple-500/30"
-              }`}>
-                <div className="flex items-center gap-3">
+          {rewardQueue &&
+            rewardQueue.length > 0 &&
+            rewardQueue.map((reward, index) => {
+              if (reward.type === "SESSION_COMPLETE") {
+                return (
                   <motion.div
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ repeat: Infinity, duration: 1 }}
-                    className="text-3xl"
+                    key={reward.id}
+                    initial={{ opacity: 0, scale: 0.8, y: 50 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.8, y: -50 }}
+                    className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
                   >
-                    {isInBreakPhase ? "🌴" : "💪"}
-                  </motion.div>
-                  <div>
-                    <p className="text-white font-semibold text-lg">
-                      {pomodoroNotificationMessage}
-                    </p>
-                    <p className="text-white/70 text-sm mt-1">
-                      {isInBreakPhase 
-                        ? "Take a short break, stretch, and relax!" 
-                        : "Stay focused and keep up the great work!"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Focus Mode Overlay */}
-        {isFocusMode && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
-            <div className="w-full max-w-2xl">
-              {/* Focus Mode Timer Card */}
-              <div className="bg-gradient-to-br from-purple-900/60 to-slate-900/60 backdrop-blur-md rounded-3xl p-12 border border-purple-700/40 shadow-2xl shadow-purple-500/20">
-                <div className="flex flex-col items-center">
-                  {/* Subject Display */}
-                  <div className="text-center mb-8">
-                    <h2 className="text-2xl font-bold text-white mb-2">
-                      {subject}
-                    </h2>
-                    {currentTask && (
-                      <p className="text-gray-300 text-lg">{currentTask}</p>
-                    )}
-                  </div>
-
-                  {/* Custom Duration Input */}
-                  {showCustomInput && (
                     <motion.div
-                      className="w-full mb-8 p-6 bg-purple-900/30 rounded-xl border border-purple-700/30 backdrop-blur-sm"
-                      initial={{ opacity: 0, y: -20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
+                      initial={{ scale: 0.8 }}
+                      animate={{ scale: 1 }}
+                      className="bg-gradient-to-br from-green-500 to-emerald-600 text-white p-8 rounded-3xl shadow-2xl text-center max-w-md mx-4 border-4 border-yellow-400"
                     >
-                      <label className="block text-white text-lg font-medium mb-3">
-                        Custom Duration (minutes)
-                      </label>
-                      <div className="flex gap-3">
-                        <input
-                          type="number"
-                          min="1"
-                          max="480"
-                          value={customMinutesInput}
-                          onChange={(e) =>
-                            setCustomMinutesInput(e.target.value)
-                          }
-                          className="flex-1 p-3 rounded-lg bg-purple-900/40 text-white border border-purple-700/50 text-lg focus:outline-none focus:border-purple-600/80 transition"
-                          placeholder="25"
-                        />
-                        <motion.button
-                          onClick={handleCustomDuration}
-                          className="px-6 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition text-lg"
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.98 }}
+                      <div className="text-6xl mb-4">🎉</div>
+                      <h2 className="text-3xl font-bold mb-4">{reward.title}</h2>
+                      <p className="text-lg mb-6">{reward.description}</p>
+
+                      {reward.bonuses &&
+                        Object.keys(reward.bonuses).length > 0 && (
+                          <div className="bg-black/20 rounded-lg p-4 mb-6">
+                            <h3 className="font-semibold mb-2">XP Breakdown:</h3>
+                            {Object.entries(reward.bonuses).map(
+                              ([type, value]) =>
+                                value > 0 && (
+                                  <div
+                                    key={type}
+                                    className="flex justify-between text-sm"
+                                  >
+                                    <span className="capitalize">
+                                      {type} Bonus:
+                                    </span>
+                                    <span>+{value} XP</span>
+                                  </div>
+                                ),
+                            )}
+                          </div>
+                        )}
+
+                      <div className="flex gap-4">
+                        <button
+                          onClick={() => {
+                            setShowRewards(false);
+                            navigate("/dashboard");
+                          }}
+                          className="flex-1 bg-white/20 hover:bg-white/30 px-6 py-3 rounded-xl font-semibold transition-all"
                         >
-                          Set
-                        </motion.button>
+                          View Dashboard
+                        </button>
+                        <button
+                          onClick={() => setShowRewards(false)}
+                          className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-black px-6 py-3 rounded-xl font-semibold transition-all"
+                        >
+                          Continue Studying
+                        </button>
                       </div>
                     </motion.div>
-                  )}
-
-                  {/* Mode Selection */}
-                  <div className="flex gap-3 mb-8">
-                    {MODES.map((m) => (
-                      <motion.button
-                        key={m.key}
-                        className={`px-6 py-3 rounded-full font-semibold transition-all text-lg ${
-                          mode === m.key
-                            ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50"
-                            : "bg-purple-900/30 text-purple-300 hover:bg-purple-800/40 border border-purple-700/30"
-                        }`}
-                        onClick={() => handleModeChange(m.key)}
-                        disabled={isRunning}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        {m.label}
-                      </motion.button>
-                    ))}
-                  </div>
-
-{/* Mode Status */}
-                    {mode === "pomodoro" && (
-                      <div className="text-center mb-8">
-                        <div className={`text-xl font-medium ${isInBreakPhase ? 'text-green-400' : 'text-white'}`}>
-                          {isInBreakPhase ? "🌴 Break Time" : "📚 Work Time"}
-                        </div>
-                        <div className="text-gray-300 text-lg">
-                          {localPomodoroCount} pomodoros completed
-                        </div>
-                      </div>
-                    )}
-
-                  {/* Large Timer Display */}
-                  <div className="relative mb-12 w-[320px] h-[320px]">
-                    {mode !== "stopwatch" && (
-                      <svg
-                        width="320"
-                        height="320"
-                        className="absolute inset-0"
-                      >
-                        <circle
-                          cx="160"
-                          cy="160"
-                          r="144"
-                          stroke="rgba(255,255,255,0.15)"
-                          strokeWidth="12"
-                          fill="none"
-                        />
-<circle
-                            cx="160"
-                            cy="160"
-                            r="144"
-                            stroke={
-                              isInBreakPhase
-                                ? "#4ADE80"
-                                : mode === "pomodoro" &&
-                                  elapsedSeconds > getTotalDuration() &&
-                                  localPomodoroPhase === "work"
-                                  ? "#EF4444"
-                                  : "var(--primary)"
-                            }
-                            strokeWidth="12"
-                            fill="none"
-                            strokeDasharray={2 * Math.PI * 144}
-                            strokeDashoffset={
-                              2 * Math.PI * 144 * (1 - getProgress() / 100)
-                            }
-                            style={{
-                              transition: "stroke-dashoffset 0.5s, stroke 0.2s",
-                            }}
-                          />
-                      </svg>
-                    )}
-                    <div
-                      className={`absolute inset-0 rounded-full bg-white/10 flex items-center justify-center ${isInBreakPhase ? "text-green-400" : mode === "pomodoro" && elapsedSeconds > getTotalDuration() && localPomodoroPhase === "work" ? "text-red-400" : "text-white"}`}
-                    >
-                      <span className="text-8xl font-mono drop-shadow-2xl">
-                        {getDisplayTime()}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Timer Controls */}
-                  <div className="flex gap-6 mb-8">
-                    {isRunning ? (
-                      <motion.button
-                        onClick={() => {
-                          pauseLocalTimer();
-                          stopTimer();
-                        }}
-                        className="px-12 py-4 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 text-slate-900 font-bold shadow-lg hover:shadow-xl hover:shadow-yellow-500/50 transition flex items-center gap-3 text-xl"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <Pause className="w-6 h-6" />
-                        Pause
-                      </motion.button>
-                    ) : (
-                      <motion.button
-                        onClick={() => {
-                          startLocalTimer();
-                          startTimer();
-                          // Automatically enable ambient mode when starting
-                          setIsAmbientMode(true);
-                          // Request fullscreen
-                          const element = document.documentElement;
-                          if (element.requestFullscreen) {
-                            element.requestFullscreen().catch(err => console.log(err));
-                          }
-                        }}
-                        disabled={
-                          mode !== "stopwatch" && getTotalDuration() === 0
-                        }
-                        className="px-12 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold shadow-lg hover:shadow-lg hover:shadow-purple-500/50 transition flex items-center gap-3 text-xl disabled:opacity-50"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <Play className="w-6 h-6" />
-                        Start
-                      </motion.button>
-                    )}
-                    <motion.button
-                      onClick={() => {
-                        resetLocalTimer();
-                        resetTimer();
-                      }}
-                      className="px-8 py-4 rounded-xl bg-purple-900/40 text-white font-bold shadow-lg hover:bg-purple-900/60 border border-purple-700/40 transition flex items-center gap-3 text-xl"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <RotateCcw className="w-6 h-6" />
-                      Reset
-                    </motion.button>
-                    <motion.button
-                      onClick={handleEndSession}
-                      className="px-8 py-4 rounded-xl bg-gradient-to-r from-red-600 to-red-700 text-white font-bold shadow-lg hover:shadow-lg hover:shadow-red-500/50 transition flex items-center gap-3 text-xl"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <Square className="w-6 h-6" />
-                      End
-                    </motion.button>
-                  </div>
-
-                  {/* Debug Info */}
-                  <div className="text-sm text-gray-400 mb-6 text-center">
-                    <div>Mode: {mode}</div>
-                    <div>Running: {isRunning ? "Yes" : "No"}</div>
-                    <div>Seconds Left: {secondsLeft}</div>
-                    <div>Stopwatch: {stopwatchSeconds}</div>
-                  </div>
-
-                  {/* Focus Mode Controls */}
-                  <div className="flex items-center gap-6">
-                    <motion.button
-                      onClick={() => setIsFocusMode(false)}
-                      className="px-6 py-3 rounded-lg bg-purple-900/40 text-white font-semibold hover:bg-purple-900/60 border border-purple-700/40 transition flex items-center gap-2"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <Target className="w-5 h-5" />
-                      Exit Focus Mode
-                    </motion.button>
-                    <motion.button
-                      onClick={() => { handleCancelStudy(); navigate("/subjects"); }}
-                      className="px-6 py-3 rounded-lg bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold hover:shadow-lg hover:shadow-red-500/50 transition flex items-center gap-2"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <X className="w-5 h-5" />
-                      Cancel Study
-                    </motion.button>
-                    <motion.button
-                      onClick={() => {
-                        setIsAmbientMode(!isAmbientMode);
-                        if (!isAmbientMode) {
-                          // Request fullscreen
-                          const element = document.documentElement;
-                          if (element.requestFullscreen) {
-                            element.requestFullscreen().catch(err => console.log(err));
-                          }
-                        } else {
-                          // Exit fullscreen
-                          if (document.exitFullscreen) {
-                            document.exitFullscreen().catch(err => console.log(err));
-                          }
-                        }
-                      }}
-                      className={`px-6 py-3 rounded-lg transition flex items-center gap-2 ${
-                        isAmbientMode
-                          ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50"
-                          : "bg-purple-900/40 text-purple-300 hover:bg-purple-900/60 border border-purple-700/40"
-                      }`}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <Clock className="w-5 h-5" />
-                      Ambient Mode
-                    </motion.button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Regular Study Interface */}
-        <div
-          className={`transition-opacity duration-500 ${isFocusMode ? "opacity-0 pointer-events-none" : "opacity-100"}`}
-        >
-          {/* Top Bar - Context Panel */}
-          <div className="bg-gradient-to-r from-purple-900/40 to-slate-900/40 backdrop-blur-md border-b border-purple-700/30 p-4">
-            <div className="max-w-7xl mx-auto flex items-center justify-between">
-              <div className="flex items-center gap-6">
-                <div>
-                  <h1 className="text-xl font-bold text-white">
-                    {subject || "Select Subject"}
-                  </h1>
-                  {currentTask && (
-                    <p className="text-sm text-gray-300">{currentTask}</p>
-                  )}
-                </div>
-                <div className="flex items-center gap-4 text-sm text-gray-300">
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    <span>{todayStats.minutes.toFixed(1)}min today</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Flame className="w-4 h-4 text-[#FEC260]" />
-                    <span>{streak} day streak</span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="text-right mr-4">
-                  <div className="text-sm text-purple-300">Weekly Progress</div>
-                  <div className="text-lg font-bold text-white">
-                    {Math.round(weeklyProgress.studied / 60)}h /{" "}
-                    {Math.round(weeklyProgress.goal / 60)}h
-                  </div>
-                  <div className="text-xs text-purple-300/70">
-                    {weeklyProgress.percentage}% complete
-                  </div>
-                </div>
-                <motion.button
-                  onClick={() => { handleCancelStudy(); navigate("/subjects"); }}
-                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold shadow-lg hover:shadow-lg hover:shadow-red-500/50 transition flex items-center gap-2"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <X className="w-4 h-4" />
-                  Cancel Study
-                </motion.button>
-              </div>
-            </div>
-          </div>
-
-          <div className="max-w-7xl mx-auto p-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Main Study Panel */}
-              <div className="space-y-6">
-                {/* Timer Card */}
-                <motion.div
-                  className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-8 border border-purple-700/30"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <div className="flex flex-col items-center">
-                    {/* Custom Duration Input */}
-                    {showCustomInput && (
-                      <motion.div
-                        className="w-full mb-6 p-4 bg-purple-900/30 rounded-lg border border-purple-700/40"
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <label className="block text-white text-sm font-medium mb-2">
-                          Custom Duration (minutes)
-                        </label>
-                        <div className="flex gap-2">
-                          <input
-                            type="number"
-                            min="1"
-                            max="480"
-                            value={customMinutesInput}
-                            onChange={(e) =>
-                              setCustomMinutesInput(e.target.value)
-                            }
-                            className="flex-1 p-2 rounded bg-purple-900/40 text-white border border-purple-700/50 text-sm focus:outline-none focus:border-purple-600/80 transition"
-                            placeholder="25"
-                          />
-                          <motion.button
-                            onClick={handleCustomDuration}
-                            className="px-4 py-2 rounded bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition text-sm"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            Set
-                          </motion.button>
-                        </div>
-                      </motion.div>
-                    )}
-
-                    {/* Mode Selection */}
-                    <div className="flex gap-2 mb-6">
-                      {MODES.map((m) => (
-                        <motion.button
-                          key={m.key}
-                          className={`px-4 py-2 rounded-full font-semibold transition-all ${
-                            mode === m.key
-                              ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50"
-                              : "bg-purple-900/30 text-purple-300 hover:bg-purple-900/50 border border-purple-700/30"
-                          }`}
-                          onClick={() => handleModeChange(m.key)}
-                          disabled={isRunning}
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          {m.label}
-                        </motion.button>
-                      ))}
-                    </div>
-
-                    {/* Mode Status */}
-                    {mode === "pomodoro" && (
-                      <div className="text-center mb-6">
-                        <div className={`text-sm font-medium ${isInBreakPhase ? 'text-green-400' : 'text-white'}`}>
-                          {isInBreakPhase ? "🌴 Break Time" : "📚 Work Time"}
-                        </div>
-                        <div className="text-xs text-gray-300">
-                          {localPomodoroCount} pomodoros completed
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Timer Display */}
-                    <div className="relative mb-8 w-[160px] h-[160px]">
-                      {mode !== "stopwatch" && (
-                        <svg
-                          width="160"
-                          height="160"
-                          className="absolute inset-0"
-                        >
-                          <circle
-                            cx="80"
-                            cy="80"
-                            r="64"
-                            stroke="rgba(255,255,255,0.15)"
-                            strokeWidth="8"
-                            fill="none"
-                          />
-                          <circle
-                            cx="80"
-                            cy="80"
-                            r="64"
-                            stroke={
-                              isInBreakPhase
-                                ? "#4ADE80"
-                                : mode === "pomodoro" &&
-                                  elapsedSeconds > getTotalDuration() &&
-                                  localPomodoroPhase === "work"
-                                  ? "#EF4444"
-                                  : "var(--primary)"
-                            }
-                            strokeWidth="8"
-                            fill="none"
-                            strokeDasharray={2 * Math.PI * 64}
-                            strokeDashoffset={
-                              2 * Math.PI * 64 * (1 - getProgress() / 100)
-                            }
-                            style={{
-                              transition: "stroke-dashoffset 0.5s, stroke 0.2s",
-                            }}
-                          />
-                        </svg>
-                      )}
-                      <div
-                        className={`absolute inset-0 rounded-full bg-white/10 flex items-center justify-center ${isInBreakPhase ? "text-green-400" : mode === "pomodoro" && elapsedSeconds > getTotalDuration() && localPomodoroPhase === "work" ? "text-red-400" : "text-white"}`}
-                      >
-                        <span className={`text-6xl font-mono drop-shadow-lg`}>
-                          {getDisplayTime()}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Timer Controls */}
-                    <div className="flex gap-4 mb-6">
-                      {isRunning ? (
-                        <motion.button
-                          onClick={() => {
-                            pauseLocalTimer();
-                            stopTimer();
-                          }}
-                          className="px-8 py-3 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 text-slate-900 font-bold shadow-lg hover:shadow-xl hover:shadow-yellow-500/50 transition flex items-center gap-2"
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          <Pause className="w-5 h-5" />
-                          Pause
-                        </motion.button>
-                      ) : (
-                        <motion.button
-                          onClick={() => {
-                            startLocalTimer();
-                            startTimer();
-                            // Automatically enable ambient mode when starting
-                            setIsAmbientMode(true);
-                            // Request fullscreen
-                            const element = document.documentElement;
-                            if (element.requestFullscreen) {
-                              element.requestFullscreen().catch(err => console.log(err));
-                            }
-                          }}
-                          disabled={
-                            mode !== "stopwatch" && getTotalDuration() === 0
-                          }
-                          className="px-8 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold shadow-lg hover:shadow-lg hover:shadow-purple-500/50 transition flex items-center gap-2 disabled:opacity-50"
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          <Play className="w-5 h-5" />
-                          Start
-                        </motion.button>
-                      )}
-                      <motion.button
-                        onClick={() => {
-                          resetLocalTimer();
-                          resetTimer();
-                        }}
-                        className="px-6 py-3 rounded-xl bg-purple-900/40 text-white font-bold shadow-lg hover:bg-purple-900/60 border border-purple-700/40 transition flex items-center gap-2"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <RotateCcw className="w-5 h-5" />
-                        Reset
-                      </motion.button>
-                      <motion.button
-                        onClick={handleEndSession}
-                        className="px-6 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 text-white font-bold shadow-lg hover:shadow-lg hover:shadow-red-500/50 transition flex items-center gap-2"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <Square className="w-5 h-5" />
-                        End
-                      </motion.button>
-                    </div>
-
-                    {/* Debug Info */}
-                    <div className="text-xs text-purple-300/70 mb-4">
-                      <div>Mode: {mode}</div>
-                      <div>Running: {isRunning ? "Yes" : "No"}</div>
-                      <div>Seconds Left: {secondsLeft}</div>
-                      <div>Stopwatch: {stopwatchSeconds}</div>
-                    </div>
-
-                    {/* Focus Mode Toggle */}
-                    <div className="flex items-center gap-4">
-                      
-                      <motion.button
-                        onClick={() => {
-                          setIsAmbientMode(!isAmbientMode);
-                          if (!isAmbientMode) {
-                            // Request fullscreen
-                            const element = document.documentElement;
-                            if (element.requestFullscreen) {
-                              element.requestFullscreen().catch(err => console.log(err));
-                            }
-                          } else {
-                            // Exit fullscreen
-                            if (document.exitFullscreen) {
-                              document.exitFullscreen().catch(err => console.log(err));
-                            }
-                          }
-                        }}
-                        className={`px-4 py-2 rounded-lg transition flex items-center gap-2 ${
-                          isAmbientMode
-                            ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50"
-                            : "bg-purple-900/40 text-purple-300 hover:bg-purple-900/60 border border-purple-700/40"
-                        }`}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <Clock className="w-4 h-4" />
-                        Ambient Mode
-                      </motion.button>
-                      </div>
-                    </div>
                   </motion.div>
+                );
+              }
 
-                {/* Current Task Input */}
-                <motion.div
-                  className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
-                >
-                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                    <Target className="w-5 h-5 text-purple-400" />
-                    Current Task/Topic
-                  </h3>
+              if (reward.type === "XP_EARNED") {
+                return (
+                  <XPGainAnimation
+                    key={reward.id}
+                    amount={reward.xp || 0}
+                    bonuses={reward.bonuses || {}}
+                    onComplete={() => setShowRewards(false)}
+                  />
+                );
+              }
 
-                  <div className="mb-4">
-                    <select
-                      value={currentTask}
-                      onChange={(e) => handleTaskSelection(e.target.value)}
-                      className="w-full p-3 rounded-lg bg-purple-900/40 text-white border border-purple-700/50 focus:outline-none focus:border-purple-600/80 transition"
-                      disabled={isRunning}
-                    >
-                      <option value="">
-                        Select a task or enter custom topic
-                      </option>
-                      {subjectTasks.length > 0 ? (
-                        subjectTasks.map((task) => (
-                          <option key={task.id} value={task.name}>
-                            {task.name} ({task.time} min - {task.priority})
-                          </option>
-                        ))
-                      ) : (
-                        <option value="" disabled>
-                          No tasks available for {subject}
-                        </option>
-                      )}
-                    </select>
-                  </div>
+              if (reward.type === "LEVEL_UP") {
+                return (
+                  <LevelUpCelebration
+                    key={reward.id}
+                    newLevel={userStats.level}
+                    onComplete={() => setShowRewards(false)}
+                  />
+                );
+              }
 
-                  <div className="mb-4">
-                    <input
-                      type="text"
-                      value={currentTask}
-                      onChange={(e) => setCurrentTask(e.target.value)}
-                      className="w-full p-3 rounded-lg bg-purple-900/40 text-white border border-purple-700/50 focus:outline-none focus:border-purple-600/80 transition"
-                      placeholder="Or type a custom topic..."
-                    />
-                  </div>
+              if (reward.type === "ACHIEVEMENT") {
+                return (
+                  <AchievementUnlock
+                    key={reward.id}
+                    achievement={reward}
+                    onComplete={() => setShowRewards(false)}
+                  />
+                );
+              }
 
-                  {/* Task Completion */}
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="taskComplete"
-                      checked={isTaskComplete}
-                      onChange={(e) => setIsTaskComplete(e.target.checked)}
-                      className="rounded"
-                    />
-                    <label
-                      htmlFor="taskComplete"
-                      className="text-white text-sm"
-                    >
-                      Mark task as complete
-                    </label>
-                  </div>
-                </motion.div>
-              </div>
-
-              {/* Sidebar - Stats Panel */}
-              <div className="space-y-6">
-                {/* Today's Stats */}
-                <motion.div
-                  className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                >
-                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-purple-400" />
-                    Today's Progress
-                  </h3>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-purple-200/80">Sessions</span>
-                      <span className="text-white font-bold">
-                        {todayStats.sessions}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-purple-200/80">Time Studied</span>
-                      <span className="text-white font-bold">
-                        {Math.round(todayStats.minutes)} min
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-purple-200/80">Current Streak</span>
-                      <span className="text-white font-bold flex items-center gap-1">
-                        <Flame className="w-4 h-4 text-[#FEC260]" />
-                        {streak} days
-                      </span>
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* Weekly Progress */}
-                <motion.div
-                  className="bg-gradient-to-br from-pink-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-pink-700/30"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.3 }}
-                >
-                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-pink-400" />
-                    Weekly Goal
-                  </h3>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-pink-200/80">Studied</span>
-                      <span className="text-white font-bold">
-                        {Math.round(weeklyProgress.studied / 60)}h
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-pink-200/80">Goal</span>
-                      <span className="text-white font-bold">
-                        {Math.round(weeklyProgress.goal / 60)}h
-                      </span>
-                    </div>
-                    <div className="w-full bg-pink-500/20 rounded-full h-2">
-                      <motion.div
-                        className="bg-gradient-to-r from-pink-400 to-purple-400 h-2 rounded-full transition-all duration-500"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${Math.min(weeklyProgress.percentage, 100)}%` }}
-                        transition={{ duration: 1.5 }}
-                      />
-                    </div>
-                    <div className="text-center text-sm text-pink-200/80">
-                      {weeklyProgress.percentage}% complete
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* Recent Study Logs */}
-                <motion.div
-                  className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.4 }}
-                >
-                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-purple-400" />
-                    Recent Study Logs
-                  </h3>
-                  <div className="max-h-[300px] overflow-y-auto">
-                    {studySessions.filter(
-                      (session) => session.subjectName === subject,
-                    ).length > 0 ? (
-                      <div className="space-y-3">
-                        {studySessions
-                          .filter((session) => session.subjectName === subject)
-                          .slice(0, 5)
-                          .map((session, index) => {
-                            const moodEmoji =
-                              {
-                                great: "😄",
-                                good: "🙂",
-                                okay: "😐",
-                                struggled: "😫",
-                              }[session.mood] || "";
-
-                            return (
-                              <motion.div
-                                key={index}
-                                className="p-3 rounded-lg bg-purple-800/20 border border-purple-700/30 hover:bg-purple-800/40 transition-all"
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: index * 0.05 }}
-                              >
-                                <div className="flex items-center justify-between mb-2">
-                                  <div className="flex items-center gap-2">
-                                    <Clock className="w-4 h-4 text-purple-400" />
-                                    <span className="text-sm font-medium text-white">
-                                      {session.durationMinutes.toFixed(1)} min
-                                    </span>
-                                  </div>
-                                  <span className="text-xs text-purple-200/80">
-                                    {new Date(
-                                      session.timestamp,
-                                    ).toLocaleDateString("en-US", {
-                                      month: "short",
-                                      day: "numeric",
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    })}
-                                  </span>
-                                </div>
-
-                                {session.task && (
-                                  <div className="text-xs text-purple-200/80 mb-1">
-                                    <span className="font-medium">Task:</span>{" "}
-                                    {session.task}
-                                  </div>
-                                )}
-
-                                {session.reflection && (
-                                  <div className="text-xs text-purple-200/80 mb-2 italic">
-                                    "{session.reflection}"
-                                  </div>
-                                )}
-
-                                <div className="flex items-center gap-3 text-xs">
-                                  {session.mood && (
-                                    <span className="text-purple-200/80 flex items-center gap-1">
-                                      <span>{moodEmoji}</span>
-                                      <span className="capitalize">
-                                        {session.mood}
-                                      </span>
-                                    </span>
-                                  )}
-                                  {session.difficulty && (
-                                    <span className="text-purple-200/80">
-                                      Difficulty: {session.difficulty}/4
-                                    </span>
-                                  )}
-                                </div>
-
-                                <motion.button
-                                  onClick={() =>
-                                    deleteStudySession(
-                                      studySessions.indexOf(session),
-                                    )
-                                  }
-                                  className="mt-2 p-1 rounded hover:bg-red-600/30 transition text-red-400 hover:text-red-300"
-                                  title="Delete session"
-                                  whileHover={{ scale: 1.2 }}
-                                  whileTap={{ scale: 0.9 }}
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </motion.button>
-                              </motion.div>
-                            );
-                          })}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8">
-                        <BookOpen className="w-8 h-8 text-purple-400/50 mx-auto mb-2" />
-                        <p className="text-purple-300/80 text-sm">
-                          No study logs yet for this subject
-                        </p>
-                        <p className="text-purple-300/60 text-xs">
-                          Complete a session to see your logs here!
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-
-                {/* Achievements */}
-                <motion.div
-                  className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.5 }}
-                >
-                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                    <Award className="w-5 h-5 text-yellow-400" />
-                    Recent Achievements
-                  </h3>
-                  <div className="space-y-3">
-                    {streak >= 3 && (
-                      <motion.div
-                        className="flex items-center gap-3 p-3 rounded-lg bg-yellow-900/20 border border-yellow-700/30 hover:bg-yellow-900/40 transition-all"
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                      >
-                        <Flame className="w-5 h-5 text-yellow-400" />
-                        <div>
-                          <div className="text-white text-sm font-medium">
-                            Streak Master
-                          </div>
-                          <div className="text-yellow-200/80 text-xs">
-                            {streak} day streak!
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                    {todayStats.minutes >= 120 && (
-                      <motion.div
-                        className="flex items-center gap-3 p-3 rounded-lg bg-blue-900/20 border border-blue-700/30 hover:bg-blue-900/40 transition-all"
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                      >
-                        <Zap className="w-5 h-5 text-blue-400" />
-                        <div>
-                          <div className="text-white text-sm font-medium">
-                            Study Warrior
-                          </div>
-                          <div className="text-blue-200/80 text-xs">
-                            2+ hours today!
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                    {weeklyProgress.percentage >= 80 && (
-                      <motion.div
-                        className="flex items-center gap-3 p-3 rounded-lg bg-emerald-900/20 border border-emerald-700/30 hover:bg-emerald-900/40 transition-all"
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                      >
-                        <Target className="w-5 h-5 text-emerald-400" />
-                        <div>
-                          <div className="text-white text-sm font-medium">
-                            Goal Crusher
-                          </div>
-                          <div className="text-emerald-200/80 text-xs">
-                            80%+ weekly goal!
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                    {studySessions.length === 0 && (
-                      <div className="text-center py-4">
-                        <Award className="w-8 h-8 text-purple-400/50 mx-auto mb-2" />
-                        <p className="text-purple-300/80 text-sm">
-                          Complete your first session to unlock achievements!
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              </div>
-            </div>
-          </div>
-        </div>
+              return null;
+            })}
+        </AnimatePresence>
       </div>
-
-      {/* Gamification Reward Animations */}
-      <AnimatePresence>
-        {rewardQueue &&
-          rewardQueue.length > 0 &&
-          rewardQueue.map((reward, index) => {
-            if (reward.type === "SESSION_COMPLETE") {
-              return (
-                <motion.div
-                  key={reward.id}
-                  initial={{ opacity: 0, scale: 0.8, y: 50 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.8, y: -50 }}
-                  className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
-                >
-                  <motion.div
-                    initial={{ scale: 0.8 }}
-                    animate={{ scale: 1 }}
-                    className="bg-gradient-to-br from-green-500 to-emerald-600 text-white p-8 rounded-3xl shadow-2xl text-center max-w-md mx-4 border-4 border-yellow-400"
-                  >
-                    <div className="text-6xl mb-4">🎉</div>
-                    <h2 className="text-3xl font-bold mb-4">{reward.title}</h2>
-                    <p className="text-lg mb-6">{reward.description}</p>
-
-                    {reward.bonuses &&
-                      Object.keys(reward.bonuses).length > 0 && (
-                        <div className="bg-black/20 rounded-lg p-4 mb-6">
-                          <h3 className="font-semibold mb-2">XP Breakdown:</h3>
-                          {Object.entries(reward.bonuses).map(
-                            ([type, value]) =>
-                              value > 0 && (
-                                <div
-                                  key={type}
-                                  className="flex justify-between text-sm"
-                                >
-                                  <span className="capitalize">
-                                    {type} Bonus:
-                                  </span>
-                                  <span>+{value} XP</span>
-                                </div>
-                              ),
-                          )}
-                        </div>
-                      )}
-
-                    <div className="flex gap-4">
-                      <button
-                        onClick={() => {
-                          setShowRewards(false);
-                          navigate("/dashboard");
-                        }}
-                        className="flex-1 bg-white/20 hover:bg-white/30 px-6 py-3 rounded-xl font-semibold transition-all"
-                      >
-                        View Dashboard
-                      </button>
-                      <button
-                        onClick={() => setShowRewards(false)}
-                        className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-black px-6 py-3 rounded-xl font-semibold transition-all"
-                      >
-                        Continue Studying
-                      </button>
-                    </div>
-                  </motion.div>
-                </motion.div>
-              );
-            }
-
-            if (reward.type === "XP_EARNED") {
-              return (
-                <XPGainAnimation
-                  key={reward.id}
-                  amount={reward.xp || 0}
-                  bonuses={reward.bonuses || {}}
-                  onComplete={() => setShowRewards(false)}
-                />
-              );
-            }
-
-            if (reward.type === "LEVEL_UP") {
-              return (
-                <LevelUpCelebration
-                  key={reward.id}
-                  newLevel={userStats.level}
-                  onComplete={() => setShowRewards(false)}
-                />
-              );
-            }
-
-            if (reward.type === "ACHIEVEMENT") {
-              return (
-                <AchievementUnlock
-                  key={reward.id}
-                  achievement={reward}
-                  onComplete={() => setShowRewards(false)}
-                />
-              );
-            }
-
-            return null;
-          })}
-      </AnimatePresence>
-    </div>
     </>
   );
 };
