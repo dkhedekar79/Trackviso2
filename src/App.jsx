@@ -37,6 +37,7 @@ import Unsupported from './pages/Unsupported';
 import NotFound from './pages/NotFound';
 import { isMobileDevice } from './utils/deviceDetection';
 import { useWebsiteTimeTracker } from './hooks/useWebsiteTimeTracker';
+import LoadingScreen from './components/LoadingScreen';
 import './styles/index.css';
 
 
@@ -99,14 +100,7 @@ function App() {
 
   // Show loading while checking
   if (isChecking) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
-          <p className="text-purple-300">Loading...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   // Show unsupported page for mobile devices

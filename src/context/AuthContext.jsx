@@ -14,15 +14,46 @@ export const AuthProvider = ({ children }) => {
   const [lastQuizResetDate, setLastQuizResetDate] = useState(null);
   const [onboardingCompleted, setOnboardingCompleted] = useState(true); // Default true to avoid flash
   const [displayName, setDisplayName] = useState('');
+  const [debugInfo, setDebugInfo] = useState({ step: 'Initializing...', details: '', progress: 0 });
 
   // Get initial session
   useEffect(() => {
+    let isMounted = true;
+    const timeoutId = setTimeout(() => {
+      if (isMounted) {
+        console.warn('Auth initialization timeout - setting loading to false');
+        setLoading(false);
+      }
+    }, 10000); // 10 second timeout
+
     const getInitialSession = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
+        setDebugInfo({ step: 'Fetching session...', details: 'Connecting to authentication service', progress: 10 });
+        
+        // Fetch session with timeout protection
+        const sessionResult = await Promise.race([
+          supabase.auth.getSession(),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Session fetch timeout')), 5000)
+          )
+        ]).catch(async () => {
+          // If timeout, try once more without timeout
+          setDebugInfo({ step: 'Session timeout, retrying...', details: 'Retrying connection', progress: 15 });
+          console.warn('Session fetch timed out, retrying...');
+          return await supabase.auth.getSession();
+        });
+
+        setDebugInfo({ step: 'Processing session...', details: 'Validating user data', progress: 40 });
+        const { data: { session }, error } = sessionResult || { data: { session: null }, error: null };
+
         if (error) {
           console.error('Error getting session:', error);
+          setDebugInfo({ step: 'Session error', details: error.message || 'Unknown error', progress: 50 });
         }
+
+        if (!isMounted) return;
+
+        setDebugInfo({ step: 'Loading user data...', details: 'Setting up user profile', progress: 60 });
         setUser(session?.user ?? null);
         setIsPremiumUser(session?.user?.user_metadata?.is_premium || false);
         setFreeQuizQuestionsUsed(session?.user?.user_metadata?.free_quiz_questions_used || 0);
@@ -30,21 +61,41 @@ export const AuthProvider = ({ children }) => {
         setOnboardingCompleted(session?.user?.user_metadata?.onboarding_completed || false);
         setDisplayName(session?.user?.user_metadata?.display_name || '');
 
-        // Client-side daily reset check
-        const today = new Date().toDateString();
-        const lastReset = session?.user?.user_metadata?.last_quiz_reset_date ? new Date(session.user.user_metadata.last_quiz_reset_date).toDateString() : null;
-
-        if (session?.user && lastReset !== today) {
-          await resetFreeQuizQuestions();
-        }
-
-        // Initialize database on first login
+        // Client-side daily reset check - don't block on this
         if (session?.user) {
-          await initializeDatabase();
+          setDebugInfo({ step: 'Checking daily reset...', details: 'Validating quiz question limits', progress: 70 });
+          const today = new Date().toDateString();
+          const lastReset = session.user.user_metadata?.last_quiz_reset_date 
+            ? new Date(session.user.user_metadata.last_quiz_reset_date).toDateString() 
+            : null;
+
+          if (lastReset !== today) {
+            // Don't await - let it run in background
+            resetFreeQuizQuestions().catch(err => {
+              console.error('Error resetting quiz questions:', err);
+            });
+          }
+
+          setDebugInfo({ step: 'Initializing database...', details: 'Setting up user statistics', progress: 80 });
+          // Initialize database - don't block on this either
+          // Use a timeout to ensure it doesn't hang forever
+          Promise.race([
+            initializeDatabase(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Database init timeout')), 8000))
+          ]).then(() => {
+            setDebugInfo({ step: 'Database ready', details: 'All systems initialized', progress: 95 });
+          }).catch(err => {
+            console.error('Error initializing database (non-blocking):', err);
+            setDebugInfo({ step: 'Database init warning', details: err.message || 'Non-critical error', progress: 90 });
+          });
+        } else {
+          setDebugInfo({ step: 'No session found', details: 'User not authenticated', progress: 100 });
         }
 
       } catch (error) {
         console.error('Error in getInitialSession:', error);
+        setDebugInfo({ step: 'Initialization error', details: error.message || 'Unknown error occurred', progress: 100 });
+        if (!isMounted) return;
         setUser(null);
         setIsPremiumUser(false);
         setFreeQuizQuestionsUsed(0);
@@ -52,7 +103,11 @@ export const AuthProvider = ({ children }) => {
         setOnboardingCompleted(true);
         setDisplayName('');
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          clearTimeout(timeoutId);
+          setDebugInfo({ step: 'Complete', details: 'Ready to proceed', progress: 100 });
+          setTimeout(() => setLoading(false), 300); // Small delay to show completion
+        }
       }
     };
 
@@ -60,6 +115,10 @@ export const AuthProvider = ({ children }) => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state change:', event, session?.user?.email);
+      
+      // Always set loading to false first to prevent infinite loading
+      setLoading(false);
+      
       setUser(session?.user ?? null);
       setIsPremiumUser(session?.user?.user_metadata?.is_premium || false);
       setFreeQuizQuestionsUsed(session?.user?.user_metadata?.free_quiz_questions_used || 0);
@@ -67,18 +126,27 @@ export const AuthProvider = ({ children }) => {
       setOnboardingCompleted(session?.user?.user_metadata?.onboarding_completed || false);
       setDisplayName(session?.user?.user_metadata?.display_name || '');
 
-      // Client-side daily reset check on auth state change
-      const today = new Date().toDateString();
-      const lastReset = session?.user?.user_metadata?.last_quiz_reset_date ? new Date(session.user.user_metadata.last_quiz_reset_date).toDateString() : null;
+      // Client-side daily reset check on auth state change - don't block
+      if (session?.user) {
+        const today = new Date().toDateString();
+        const lastReset = session.user.user_metadata?.last_quiz_reset_date 
+          ? new Date(session.user.user_metadata.last_quiz_reset_date).toDateString() 
+          : null;
 
-      if (session?.user && lastReset !== today) {
-        await resetFreeQuizQuestions();
+        if (lastReset !== today) {
+          // Don't await - let it run in background
+          resetFreeQuizQuestions().catch(err => {
+            console.error('Error resetting quiz questions:', err);
+          });
+        }
       }
-
-      setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email, password) => {
@@ -262,7 +330,8 @@ export const AuthProvider = ({ children }) => {
       onboardingCompleted,
       displayName,
       updateUserMetadata,
-      deleteUserAccount
+      deleteUserAccount,
+      debugInfo
     }}>
       {children}
     </AuthContext.Provider>

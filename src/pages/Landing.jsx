@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import MagneticParticles from "../components/MagneticParticles";
 import SEO from "../components/SEO";
+import LoadingScreen from "../components/LoadingScreen";
 import {
   BookOpen,
   Brain,
@@ -116,14 +117,7 @@ const Landing = () => {
 
   // Show loading while checking authentication
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
-          <p className="text-purple-300">Loading...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   const containerVariants = {

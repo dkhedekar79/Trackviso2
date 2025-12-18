@@ -112,13 +112,13 @@ const ambientImages = [
       {
         id: 'aurora-1',
         name: 'Aurora',
-        path: '/ambient-images/Aurora Borealis Stock Photo.jpg'
+        path: '/ambient-images/aurora.jpg'
       },
       {
         id: 'anime_cottage-3',
         name: 'Dreamy times',
-        path: 'ambient-images/Anime Girl Dreams Skyline 2560x1440.jpg'
-      }
+        path: '/ambient-images/daydream.jpg'
+      },
       
       
   // Add your ambient mode background images here
@@ -166,7 +166,7 @@ const ambientVideos = [
         id: 'anime_cottage-3',
         name: 'Sunset dock',
         path: '/ambient-images/videos/Evening Dock 4K Live Wallpaper.mp4'
-      }
+      },
   // Add your animated wallpapers (MP4 videos) here
   // 
   // Example entries (uncomment and modify):
