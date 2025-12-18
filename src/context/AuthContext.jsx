@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { initializeDatabase } from '../utils/supabaseDb';
+import logger from '../utils/logger';
+import { APP_CONFIG } from '../constants/appConfig';
 
 const AuthContext = createContext();
 
@@ -21,10 +23,10 @@ export const AuthProvider = ({ children }) => {
     let isMounted = true;
     const timeoutId = setTimeout(() => {
       if (isMounted) {
-        console.warn('Auth initialization timeout - setting loading to false');
+        logger.warn('Auth initialization timeout - setting loading to false');
         setLoading(false);
       }
-    }, 10000); // 10 second timeout
+    }, APP_CONFIG.SESSION_TIMEOUT);
 
     const getInitialSession = async () => {
       try {
@@ -34,12 +36,12 @@ export const AuthProvider = ({ children }) => {
         const sessionResult = await Promise.race([
           supabase.auth.getSession(),
           new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Session fetch timeout')), 5000)
+            setTimeout(() => reject(new Error('Session fetch timeout')), APP_CONFIG.SESSION_FETCH_TIMEOUT)
           )
         ]).catch(async () => {
           // If timeout, try once more without timeout
           setDebugInfo({ step: 'Session timeout, retrying...', details: 'Retrying connection', progress: 15 });
-          console.warn('Session fetch timed out, retrying...');
+          logger.warn('Session fetch timed out, retrying...');
           return await supabase.auth.getSession();
         });
 
@@ -47,7 +49,7 @@ export const AuthProvider = ({ children }) => {
         const { data: { session }, error } = sessionResult || { data: { session: null }, error: null };
 
         if (error) {
-          console.error('Error getting session:', error);
+          logger.error('Error getting session:', error);
           setDebugInfo({ step: 'Session error', details: error.message || 'Unknown error', progress: 50 });
         }
 
@@ -72,7 +74,7 @@ export const AuthProvider = ({ children }) => {
           if (lastReset !== today) {
             // Don't await - let it run in background
             resetFreeQuizQuestions().catch(err => {
-              console.error('Error resetting quiz questions:', err);
+              logger.error('Error resetting quiz questions:', err);
             });
           }
 
@@ -81,11 +83,11 @@ export const AuthProvider = ({ children }) => {
           // Use a timeout to ensure it doesn't hang forever
           Promise.race([
             initializeDatabase(),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Database init timeout')), 8000))
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Database init timeout')), APP_CONFIG.DB_INIT_TIMEOUT))
           ]).then(() => {
             setDebugInfo({ step: 'Database ready', details: 'All systems initialized', progress: 95 });
           }).catch(err => {
-            console.error('Error initializing database (non-blocking):', err);
+            logger.error('Error initializing database (non-blocking):', err);
             setDebugInfo({ step: 'Database init warning', details: err.message || 'Non-critical error', progress: 90 });
           });
         } else {
@@ -93,7 +95,7 @@ export const AuthProvider = ({ children }) => {
         }
 
       } catch (error) {
-        console.error('Error in getInitialSession:', error);
+        logger.error('Error in getInitialSession:', error);
         setDebugInfo({ step: 'Initialization error', details: error.message || 'Unknown error occurred', progress: 100 });
         if (!isMounted) return;
         setUser(null);
@@ -114,7 +116,7 @@ export const AuthProvider = ({ children }) => {
     getInitialSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state change:', event, session?.user?.email);
+      logger.log('Auth state change:', event, session?.user?.email);
       
       // Always set loading to false first to prevent infinite loading
       setLoading(false);

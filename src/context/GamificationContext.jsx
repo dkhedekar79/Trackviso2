@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import logger from '../utils/logger';
+import { APP_CONFIG } from '../constants/appConfig';
 
 const GamificationContext = createContext();
 
@@ -151,7 +153,7 @@ export const GamificationProvider = ({ children }) => {
 
   // Save stats to localStorage whenever they change (as backup)
   useEffect(() => {
-    console.log("💾 Saving userStats to localStorage:", userStats);
+    logger.log("💾 Saving userStats to localStorage:", userStats);
     localStorage.setItem("userStats", JSON.stringify(userStats));
   }, [userStats]);
 
@@ -784,7 +786,7 @@ export const GamificationProvider = ({ children }) => {
         },
       };
 
-      console.log("🎯 Awarding XP:", {
+      logger.log("🎯 Awarding XP:", {
         sessionDuration,
         subjectName,
         oldXP,
@@ -1207,7 +1209,7 @@ export const GamificationProvider = ({ children }) => {
           newlyUnlocked.push(achievement);
         }
       } catch (error) {
-        console.error(`Error checking achievement ${achievement.id}:`, error);
+        logger.error(`Error checking achievement ${achievement.id}:`, error);
       }
     });
     
@@ -1342,7 +1344,7 @@ export const GamificationProvider = ({ children }) => {
           });
         }
       } catch (error) {
-        console.error('Error saving study session to Supabase:', error);
+        logger.error('Error saving study session to Supabase:', error);
         // Continue with local storage even if Supabase fails
       }
     })();

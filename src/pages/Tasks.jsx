@@ -132,30 +132,33 @@ export default function Tasks() {
         break;
       case 'weekly':
         if (task.recurrenceDays && task.recurrenceDays.length > 0) {
-          // Find next occurrence based on selected days
+          // Improved weekly recurrence calculation
           const daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-          let daysToAdd = 0;
-          let found = false;
+          const currentDay = daysOfWeek[fromDate.getDay()];
+          const selectedDays = [...task.recurrenceDays].sort((a, b) => 
+            daysOfWeek.indexOf(a) - daysOfWeek.indexOf(b)
+          );
           
-          for (let i = 0; i < 14; i++) {
-            const checkDate = new Date(nextDate);
-            checkDate.setDate(nextDate.getDate() + i);
-            const dayName = daysOfWeek[checkDate.getDay()].toLowerCase();
-            
-            if (task.recurrenceDays.includes(dayName)) {
-              daysToAdd = i;
-              found = true;
-              break;
-            }
-          }
+          // Find next occurrence in current week
+          const remainingDays = selectedDays.filter(d => 
+            daysOfWeek.indexOf(d) > daysOfWeek.indexOf(currentDay)
+          );
           
-          if (found) {
+          if (remainingDays.length > 0) {
+            // Next occurrence is in current week
+            const daysToAdd = daysOfWeek.indexOf(remainingDays[0]) - daysOfWeek.indexOf(currentDay);
             nextDate.setDate(nextDate.getDate() + daysToAdd);
           } else {
-            // If no day found in next 2 weeks, add interval weeks
-            nextDate.setDate(nextDate.getDate() + (interval * 7));
+            // Next occurrence is next week
+            const daysToAdd = 7 - daysOfWeek.indexOf(currentDay) + daysOfWeek.indexOf(selectedDays[0]);
+            nextDate.setDate(nextDate.getDate() + daysToAdd);
+            // Apply interval if > 1
+            if (interval > 1) {
+              nextDate.setDate(nextDate.getDate() + (interval - 1) * 7);
+            }
           }
         } else {
+          // No specific days selected, just add interval weeks
           nextDate.setDate(nextDate.getDate() + (interval * 7));
         }
         break;
@@ -429,7 +432,7 @@ export default function Tasks() {
         setTasks(tasks.filter(t => t.id !== id));
       }
     } else {
-      setTasks(tasks.filter(t => t.id !== id));
+    setTasks(tasks.filter(t => t.id !== id));
     }
   };
 
@@ -796,7 +799,7 @@ export default function Tasks() {
                           <div className={`flex items-center gap-2 text-xs px-2 py-1 rounded-lg border ${scheduleStatus.color} inline-flex`}>
                             <CalendarIcon className="w-3 h-3" />
                             <span>{scheduleStatus.text}</span>
-                          </div>
+                    </div>
                         )}
                         
                         {task.recurrence && task.recurrence !== 'none' && (
@@ -806,9 +809,9 @@ export default function Tasks() {
                               {task.recurrence === 'daily' && `Every ${task.recurrenceInterval || 1} day(s)`}
                               {task.recurrence === 'weekly' && `Every ${task.recurrenceInterval || 1} week(s)`}
                               {task.recurrence === 'monthly' && `Every ${task.recurrenceInterval || 1} month(s)`}
-                            </span>
+                          </span>
                           </div>
-                        )}
+                      )}
                     </div>
 
                       {/* Priority Badge */}

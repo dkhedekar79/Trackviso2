@@ -6,29 +6,60 @@ import { motion } from "framer-motion";
 import MagneticParticles from "../components/MagneticParticles";
 import { ArrowRight, Sparkles } from "lucide-react";
 import SEO from "../components/SEO";
+import logger from "../utils/logger";
+import { validateEmail, validatePassword } from "../utils/validation";
+import { useToast } from "../context/ToastContext";
 
 export default function Signup() {
   const { signup } = useAuth();
+  const { error: showErrorToast, success: showSuccessToast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const handleEmailChange = (value) => {
+    setEmail(value);
+    const validation = validateEmail(value);
+    if (!validation.valid) {
+      setEmailError(validation.error);
+    } else {
+      setEmailError("");
+    }
+  };
+
+  const handlePasswordChange = (value) => {
+    setPassword(value);
+    const validation = validatePassword(value);
+    if (!validation.valid) {
+      setPasswordError(validation.error);
+    } else {
+      setPasswordError("");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setEmailError("");
+    setPasswordError("");
     setSuccess(false);
     
-    // Validate inputs
-    if (!email || !password) {
-      setError("Please fill in all fields.");
+    // Validate inputs with detailed feedback
+    const emailValidation = validateEmail(email);
+    const passwordValidation = validatePassword(password);
+
+    if (!emailValidation.valid) {
+      setEmailError(emailValidation.error);
       return;
     }
-    
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+
+    if (!passwordValidation.valid) {
+      setPasswordError(passwordValidation.error);
       return;
     }
     
@@ -36,13 +67,13 @@ export default function Signup() {
 
     try {
       const { data } = await signup(email, password);
-      console.log('Signup response:', data);
+      logger.log('Signup response:', data);
 
       // If signup is successful, show success message and redirect to login
       if (data?.user) {
         setLoading(false);
         setSuccess(true);
-        console.log('Success state set to true');
+        showSuccessToast("Account created! Redirecting to login...");
         // Show success notification for 2 seconds, then redirect
         setTimeout(() => {
           navigate("/login");
@@ -51,13 +82,16 @@ export default function Signup() {
         // Still show success if the signup call didn't error
         setLoading(false);
         setSuccess(true);
+        showSuccessToast("Account created! Redirecting to login...");
         setTimeout(() => {
           navigate("/login");
         }, 2000);
       }
     } catch (err) {
-      console.error('Signup error:', err);
-      setError("Failed to sign up. " + err.message);
+      logger.error('Signup error:', err);
+      const errorMessage = "Failed to sign up. " + (err.message || "Please try again.");
+      setError(errorMessage);
+      showErrorToast(errorMessage);
       setLoading(false);
     }
   };
@@ -169,26 +203,56 @@ export default function Signup() {
           <motion.div variants={itemVariants} className="mb-6">
             <label className="block text-sm font-medium text-purple-300 mb-2">Email</label>
             <input
-              className="w-full bg-purple-900/30 border border-purple-700/30 text-white placeholder-purple-300/50 px-4 py-3 rounded-xl focus:outline-none focus:border-purple-500/70 focus:ring-2 focus:ring-purple-500/20 transition-all backdrop-blur-sm"
+              className={`w-full bg-purple-900/30 border ${
+                emailError ? 'border-red-500/50' : 'border-purple-700/30'
+              } text-white placeholder-purple-300/50 px-4 py-3 rounded-xl focus:outline-none focus:border-purple-500/70 focus:ring-2 focus:ring-purple-500/20 transition-all backdrop-blur-sm`}
               type="email"
               placeholder="you@example.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => handleEmailChange(e.target.value)}
+              onBlur={() => {
+                if (email) {
+                  const validation = validateEmail(email);
+                  if (!validation.valid) {
+                    setEmailError(validation.error);
+                  }
+                }
+              }}
               required
+              aria-invalid={!!emailError}
+              aria-describedby={emailError ? "email-error" : undefined}
             />
+            {emailError && (
+              <p id="email-error" className="mt-1 text-sm text-red-400">{emailError}</p>
+            )}
           </motion.div>
 
           <motion.div variants={itemVariants} className="mb-8">
             <label className="block text-sm font-medium text-purple-300 mb-2">Password</label>
             <input
-              className="w-full bg-purple-900/30 border border-purple-700/30 text-white placeholder-purple-300/50 px-4 py-3 rounded-xl focus:outline-none focus:border-purple-500/70 focus:ring-2 focus:ring-purple-500/20 transition-all backdrop-blur-sm"
+              className={`w-full bg-purple-900/30 border ${
+                passwordError ? 'border-red-500/50' : 'border-purple-700/30'
+              } text-white placeholder-purple-300/50 px-4 py-3 rounded-xl focus:outline-none focus:border-purple-500/70 focus:ring-2 focus:ring-purple-500/20 transition-all backdrop-blur-sm`}
               type="password"
               placeholder="Min 6 characters"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => handlePasswordChange(e.target.value)}
+              onBlur={() => {
+                if (password) {
+                  const validation = validatePassword(password);
+                  if (!validation.valid) {
+                    setPasswordError(validation.error);
+                  }
+                }
+              }}
               minLength={6}
               required
+              aria-invalid={!!passwordError}
+              aria-describedby={passwordError ? "password-error" : undefined}
             />
+            {passwordError && (
+              <p id="password-error" className="mt-1 text-sm text-red-400">{passwordError}</p>
+            )}
           </motion.div>
 
           <motion.button

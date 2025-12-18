@@ -6,6 +6,7 @@ import {
   upsertUserSubject,
   upsertUserTask,
 } from './supabaseDb';
+import logger from './logger';
 
 export const migrateLegacyDataToSupabase = async () => {
   const { data: { session } } = await supabase.auth.getSession();
@@ -20,11 +21,11 @@ export const migrateLegacyDataToSupabase = async () => {
       .single();
 
     if (existingStats) {
-      console.log('✅ User already has Supabase data, skipping migration');
+      logger.log('✅ User already has Supabase data, skipping migration');
       return false;
     }
 
-    console.log('🔄 Starting migration of legacy data to Supabase...');
+    logger.log('🔄 Starting migration of legacy data to Supabase...');
 
     // Migrate user stats from localStorage
     const userStats = localStorage.getItem('userStats');
@@ -68,7 +69,7 @@ export const migrateLegacyDataToSupabase = async () => {
       };
 
       await updateUserStats(statsToSync);
-      console.log('✅ User stats migrated');
+      logger.log('✅ User stats migrated');
     }
 
     // Migrate study sessions
@@ -86,7 +87,7 @@ export const migrateLegacyDataToSupabase = async () => {
           timestamp: session.timestamp,
         });
       }
-      console.log(`✅ ${sessions.length} study sessions migrated`);
+      logger.log(`✅ ${sessions.length} study sessions migrated`);
     }
 
     // Migrate subjects
@@ -101,7 +102,7 @@ export const migrateLegacyDataToSupabase = async () => {
           color: subject.color,
         });
       }
-      console.log(`✅ ${subjectsArray.length} subjects migrated`);
+      logger.log(`✅ ${subjectsArray.length} subjects migrated`);
     }
 
     // Migrate tasks
@@ -120,7 +121,7 @@ export const migrateLegacyDataToSupabase = async () => {
           subject_id: task.subjectId,
         });
       }
-      console.log(`✅ ${tasksArray.length} tasks migrated`);
+      logger.log(`✅ ${tasksArray.length} tasks migrated`);
     }
 
     // Migrate mastery setup and progress for all subjects
@@ -132,7 +133,7 @@ export const migrateLegacyDataToSupabase = async () => {
       if (topicProgress) {
         const progress = JSON.parse(topicProgress);
         await updateTopicProgress(setup.subject, progress);
-        console.log(`✅ Mastery data for ${setup.subject} migrated`);
+        logger.log(`✅ Mastery data for ${setup.subject} migrated`);
       }
     }
 
@@ -145,15 +146,15 @@ export const migrateLegacyDataToSupabase = async () => {
         if (data) {
           const progress = JSON.parse(data);
           await updateTopicProgress(subject, progress);
-          console.log(`✅ Mastery data for ${subject} migrated`);
+          logger.log(`✅ Mastery data for ${subject} migrated`);
         }
       }
     }
 
-    console.log('✅ Migration completed successfully!');
+    logger.log('✅ Migration completed successfully!');
     return true;
   } catch (error) {
-    console.error('❌ Error during migration:', error);
+    logger.error('❌ Error during migration:', error);
     return false;
   }
 };

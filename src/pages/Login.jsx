@@ -6,26 +6,72 @@ import { motion } from "framer-motion";
 import MagneticParticles from "../components/MagneticParticles";
 import { ArrowRight, Sparkles } from "lucide-react";
 import SEO from "../components/SEO";
+import logger from "../utils/logger";
+import { validateEmail, validatePassword } from "../utils/validation";
+import { useToast } from "../context/ToastContext";
 
 export default function Login() {
   const { login } = useAuth();
+  const { error: showErrorToast, success } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const handleEmailChange = (value) => {
+    setEmail(value);
+    const validation = validateEmail(value);
+    if (!validation.valid) {
+      setEmailError(validation.error);
+    } else {
+      setEmailError("");
+    }
+  };
+
+  const handlePasswordChange = (value) => {
+    setPassword(value);
+    const validation = validatePassword(value);
+    if (!validation.valid) {
+      setPasswordError(validation.error);
+    } else {
+      setPasswordError("");
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setEmailError("");
+    setPasswordError("");
+
+    // Validate inputs
+    const emailValidation = validateEmail(email);
+    const passwordValidation = validatePassword(password);
+
+    if (!emailValidation.valid) {
+      setEmailError(emailValidation.error);
+      return;
+    }
+
+    if (!passwordValidation.valid) {
+      setPasswordError(passwordValidation.error);
+      return;
+    }
+
     setLoading(true);
 
     try {
       await login(email, password);
+      success("Welcome back! Redirecting...");
       navigate("/dashboard");
     } catch (err) {
-      console.error("Login error:", err);
-      setError("Failed to log in. Check your credentials and make sure your email is confirmed.");
+      logger.error("Login error:", err);
+      const errorMessage = err.message || "Failed to log in. Check your credentials and make sure your email is confirmed.";
+      setError(errorMessage);
+      showErrorToast(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -122,25 +168,55 @@ export default function Login() {
           <motion.div variants={itemVariants} className="mb-6">
             <label className="block text-sm font-medium text-purple-300 mb-2">Email</label>
             <input
-              className="w-full bg-purple-900/30 border border-purple-700/30 text-white placeholder-purple-300/50 px-4 py-3 rounded-xl focus:outline-none focus:border-purple-500/70 focus:ring-2 focus:ring-purple-500/20 transition-all backdrop-blur-sm"
+              className={`w-full bg-purple-900/30 border ${
+                emailError ? 'border-red-500/50' : 'border-purple-700/30'
+              } text-white placeholder-purple-300/50 px-4 py-3 rounded-xl focus:outline-none focus:border-purple-500/70 focus:ring-2 focus:ring-purple-500/20 transition-all backdrop-blur-sm`}
               type="email"
               placeholder="you@example.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => handleEmailChange(e.target.value)}
+              onBlur={() => {
+                if (email) {
+                  const validation = validateEmail(email);
+                  if (!validation.valid) {
+                    setEmailError(validation.error);
+                  }
+                }
+              }}
               required
+              aria-invalid={!!emailError}
+              aria-describedby={emailError ? "email-error" : undefined}
             />
+            {emailError && (
+              <p id="email-error" className="mt-1 text-sm text-red-400">{emailError}</p>
+            )}
           </motion.div>
 
           <motion.div variants={itemVariants} className="mb-8">
             <label className="block text-sm font-medium text-purple-300 mb-2">Password</label>
             <input
-              className="w-full bg-purple-900/30 border border-purple-700/30 text-white placeholder-purple-300/50 px-4 py-3 rounded-xl focus:outline-none focus:border-purple-500/70 focus:ring-2 focus:ring-purple-500/20 transition-all backdrop-blur-sm"
+              className={`w-full bg-purple-900/30 border ${
+                passwordError ? 'border-red-500/50' : 'border-purple-700/30'
+              } text-white placeholder-purple-300/50 px-4 py-3 rounded-xl focus:outline-none focus:border-purple-500/70 focus:ring-2 focus:ring-purple-500/20 transition-all backdrop-blur-sm`}
               type="password"
               placeholder="Enter your password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => handlePasswordChange(e.target.value)}
+              onBlur={() => {
+                if (password) {
+                  const validation = validatePassword(password);
+                  if (!validation.valid) {
+                    setPasswordError(validation.error);
+                  }
+                }
+              }}
               required
+              aria-invalid={!!passwordError}
+              aria-describedby={passwordError ? "password-error" : undefined}
             />
+            {passwordError && (
+              <p id="password-error" className="mt-1 text-sm text-red-400">{passwordError}</p>
+            )}
           </motion.div>
 
           <motion.button

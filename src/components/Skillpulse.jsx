@@ -23,6 +23,7 @@ import QuestSystem from "./QuestSystem";
 import AchievementSystem from "./AchievementSystem";
 import RewardSystem from "./RewardSystem";
 import MysteryBox from "./MysteryBox";
+import LeaderboardTab from "./LeaderboardTab";
 
 const formatHM = (totalMinutes) => {
   const m = Math.max(0, Math.round(totalMinutes || 0));
@@ -61,6 +62,7 @@ const Skillpulse = () => {
     { id: "quests", label: "Quests", icon: Target, color: "from-blue-500 to-cyan-500" },
     { id: "achievements", label: "Achievements", icon: Trophy, color: "from-yellow-500 to-orange-500" },
     { id: "streaks", label: "Streaks", icon: Flame, color: "from-orange-500 to-red-500" },
+    { id: "leaderboard", label: "Leaderboard", icon: Crown, color: "from-yellow-400 to-orange-500" },
   ];
 
   const userRank = getUserRank();
@@ -585,6 +587,12 @@ const Skillpulse = () => {
                   {activeTab === "streaks" && (
                     <div className="space-y-6">
                       <StreakTracker />
+                    </div>
+                  )}
+
+                  {activeTab === "leaderboard" && (
+                    <div className="space-y-6">
+                      <LeaderboardTab />
                     </div>
                   )}
                 </div>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
+import { AlertCircle } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { TimerProvider, useTimer } from './context/TimerContext';
 import { GamificationProvider } from './context/GamificationContext';
@@ -38,6 +39,10 @@ import NotFound from './pages/NotFound';
 import { isMobileDevice } from './utils/deviceDetection';
 import { useWebsiteTimeTracker } from './hooks/useWebsiteTimeTracker';
 import LoadingScreen from './components/LoadingScreen';
+import ErrorBoundary from './components/ErrorBoundary';
+import ToastProvider from './context/ToastContext';
+import { useOffline } from './hooks/useOffline';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import './styles/index.css';
 
 
@@ -56,6 +61,26 @@ const RouteCleanup = () => {
 // Component to track website time globally
 const WebsiteTimeTracker = () => {
   useWebsiteTimeTracker();
+  return null;
+};
+
+// Offline indicator component
+const OfflineIndicator = () => {
+  const { isOnline } = useOffline();
+  
+  if (isOnline) return null;
+  
+  return (
+    <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 bg-yellow-600 text-white rounded-lg shadow-lg flex items-center gap-2">
+      <AlertCircle className="w-4 h-4" />
+      <span className="text-sm font-medium">You are offline</span>
+    </div>
+  );
+};
+
+// Keyboard shortcuts handler
+const KeyboardShortcutsHandler = () => {
+  useKeyboardShortcuts();
   return null;
 };
 
@@ -110,17 +135,21 @@ function App() {
 
   return (
     <HelmetProvider>
-      <AuthProvider>
-        <AdminProvider>
-        <SubscriptionProvider>
-          <GamificationProvider>
-            <TimerProvider>
-              <ThemeProvider>
-                <DashboardProvider>
-                  <Router>
-                    <RouteCleanup />
-                      <WebsiteTimeTracker />
-                      <OnboardingWrapper>
+      <ErrorBoundary>
+        <ToastProvider>
+          <AuthProvider>
+            <AdminProvider>
+            <SubscriptionProvider>
+              <GamificationProvider>
+                <TimerProvider>
+                  <ThemeProvider>
+                    <DashboardProvider>
+                      <OfflineIndicator />
+                      <Router>
+                        <RouteCleanup />
+                          <WebsiteTimeTracker />
+                          <KeyboardShortcutsHandler />
+                          <OnboardingWrapper>
                     <Routes>
               {/* Public Routes */}
               <Route path="/" element={<div className="flex flex-col min-h-screen"><main className="flex-1"><Landing /><Footer /></main></div>} />
@@ -305,15 +334,17 @@ function App() {
               {/* 404 Route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-                      </OnboardingWrapper>
-                  </Router>
-                </DashboardProvider>
-              </ThemeProvider>
-            </TimerProvider>
-          </GamificationProvider>
-        </SubscriptionProvider>
-        </AdminProvider>
-      </AuthProvider>
+                          </OnboardingWrapper>
+                      </Router>
+                    </DashboardProvider>
+                  </ThemeProvider>
+                </TimerProvider>
+              </GamificationProvider>
+            </SubscriptionProvider>
+            </AdminProvider>
+          </AuthProvider>
+        </ToastProvider>
+      </ErrorBoundary>
     </HelmetProvider>
   );
 }

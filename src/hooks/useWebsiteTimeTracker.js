@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../supabaseClient';
+import logger from '../utils/logger';
 
 /**
  * Hook to track website time accurately using visibility API
@@ -25,20 +26,29 @@ export function useWebsiteTimeTracker() {
           .from('user_stats')
           .select('website_time_minutes, user_id')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle(); // Use maybeSingle to avoid errors if record doesn't exist
 
         // If column doesn't exist yet (PGRST204) or RLS blocks access (PGRST301), stop trying to persist
-        if (error?.code === 'PGRST204' || error?.code === 'PGRST301' || error?.code === 'PGRST116') {
+        if (error?.code === 'PGRST204' || error?.code === 'PGRST301' || error?.code === 'PGRST116' || error?.code === 'PGRST406') {
           canPersistRef.current = false;
-          console.warn('Website time tracking disabled:', error.message);
+          logger.warn('Website time tracking disabled:', error.message || 'Schema issue');
           return;
         }
 
         if (!error && data?.website_time_minutes) {
           accumulatedTimeRef.current = data.website_time_minutes * 60; // Convert to seconds
+        } else if (error) {
+          // Handle schema errors gracefully
+          if (error.code === 'PGRST204' || error.code === 'PGRST406') {
+            canPersistRef.current = false;
+            logger.warn('Website time column not available, tracking disabled');
+          }
         }
       } catch (error) {
-        console.error('Error loading website time:', error);
+        logger.error('Error loading website time:', error);
+        if (error.code === 'PGRST204' || error.code === 'PGRST406') {
+          canPersistRef.current = false;
+        }
       }
     };
 
@@ -115,16 +125,19 @@ export function useWebsiteTimeTracker() {
 
         if (error) {
           // Stop trying if column doesn't exist or RLS blocks access
-          if (error?.code === 'PGRST204' || error?.code === 'PGRST301' || error?.code === 'PGRST116') {
+          if (error?.code === 'PGRST204' || error?.code === 'PGRST301' || error?.code === 'PGRST116' || error?.code === 'PGRST406') {
             canPersistRef.current = false;
             return;
           }
-          console.error('Error saving website time:', error);
+          logger.error('Error saving website time:', error);
         } else {
           lastSaveTimeRef.current = currentTime;
         }
       } catch (error) {
-        console.error('Error saving website time:', error);
+        logger.error('Error saving website time:', error);
+        if (error.code === 'PGRST204' || error.code === 'PGRST406') {
+          canPersistRef.current = false;
+        }
       }
     };
 

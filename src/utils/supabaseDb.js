@@ -1,86 +1,110 @@
 import { supabase } from '../supabaseClient';
+import logger from './logger';
 
 export const initializeDatabase = async () => {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
-      console.warn('No session available for database initialization');
+      logger.warn('No session available for database initialization');
       return;
     }
 
     const userId = session.user.id;
 
     // Check if user_stats record exists
+    // Use minimal select to avoid schema issues
     const { data: userStatsData, error: selectError } = await supabase
       .from('user_stats')
-      .select('user_id')
+      .select('user_id, xp, level')
       .eq('user_id', userId)
-      .single();
+      .maybeSingle(); // Use maybeSingle instead of single to avoid errors
 
-    // If no record found, create one
-    if (selectError && selectError.code === 'PGRST116') {
-      const { data: insertData, error: insertError } = await supabase
+    // If no record found, create one with only essential columns
+    // This avoids schema mismatch errors
+    if ((selectError && selectError.code === 'PGRST116') || !userStatsData) {
+      // Start with minimal required fields
+      const minimalStats = {
+        user_id: userId,
+        xp: 0,
+        level: 1,
+        prestige_level: 0,
+        total_sessions: 0,
+        total_study_time: 0,
+        current_streak: 0,
+        longest_streak: 0,
+        last_study_date: null,
+        streak_savers: 3,
+        current_title: 'Rookie Scholar',
+        weekly_xp: 0,
+        weekly_rank: 0,
+        is_premium: false,
+        xp_multiplier: 1.0,
+        subject_mastery: {},
+        weekly_goal: 0,
+        weekly_progress: 0,
+        total_xp_earned: 0,
+        reward_streak: 0,
+        lucky_streak: 0,
+        jackpot_count: 0,
+        gems: 0,
+        completed_quests_today: 0,
+        website_time_minutes: 0,
+      };
+
+      // Try to insert minimal stats first
+      // If that fails due to missing columns, try with even fewer columns
+      let insertData, insertError;
+      
+      // First attempt: try with minimal stats
+      ({ data: insertData, error: insertError } = await supabase
         .from('user_stats')
-        .insert([{
+        .insert([minimalStats])
+        .select()
+        .single());
+
+      // If insert fails due to missing columns, try with absolute minimum
+      if (insertError && (insertError.code === 'PGRST204' || insertError.message?.includes('column'))) {
+        logger.warn('Some columns missing, trying with minimal set:', insertError.message);
+        const absoluteMinimal = {
           user_id: userId,
           xp: 0,
           level: 1,
-          prestige_level: 0,
           total_sessions: 0,
           total_study_time: 0,
-          current_streak: 0,
-          longest_streak: 0,
-          last_study_date: null,
-          streak_savers: 3,
-          badges: [],
-          achievements: [],
-          unlocked_titles: [],
-          current_title: 'Rookie Scholar',
-          weekly_xp: 0,
-          weekly_rank: 0,
-          friends: [],
-          challenges: [],
-          is_premium: false,
-          xp_multiplier: 1.0,
-          premium_skins: [],
-          current_skin: 'default',
-          subject_mastery: {},
-          weekly_goal: 0,
-          weekly_progress: 0,
-          total_xp_earned: 0,
-          last_reward_time: null,
-          reward_streak: 0,
-          lucky_streak: 0,
-          jackpot_count: 0,
-          gems: 0,
-          xp_events: [],
-        }])
-        .select()
-        .single();
+        };
+        
+        ({ data: insertData, error: insertError } = await supabase
+          .from('user_stats')
+          .insert([absoluteMinimal])
+          .select()
+          .single());
+      }
 
       if (insertError) {
-        console.error('Error creating user_stats record:', {
+        logger.error('Error creating user_stats record:', {
           message: insertError.message,
           code: insertError.code,
           details: insertError.details,
           hint: insertError.hint,
           status: insertError.status,
         });
+        // Don't return - let the app continue even if initialization fails
+        // The user can still use the app, and we'll retry on next load
         return;
       }
 
-      console.log('✅ User stats record created for user:', userId);
+      logger.log('✅ User stats record created for user:', userId);
     } else if (selectError) {
-      console.error('Error checking user_stats:', {
+      logger.error('Error checking user_stats:', {
         message: selectError.message,
         code: selectError.code,
       });
       return;
     } else {
-      console.log('✅ User stats already exists for user:', userId);
+      logger.log('✅ User stats already exists for user:', userId);
     }
   } catch (error) {
-    console.error('Exception initializing database:', {
+    logger.error('Exception initializing database:', {
       message: error.message,
       stack: error.stack,
     });
@@ -99,7 +123,7 @@ export const fetchUserStats = async () => {
     .single();
 
   if (error) {
-    console.error('Error fetching user stats:', error);
+    logger.error('Error fetching user stats:', error);
     return null;
   }
 
@@ -111,7 +135,7 @@ export const updateUserStats = async (updates) => {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
-      console.error('No active session when updating user stats');
+      logger.error('No active session when updating user stats');
       return null;
     }
 
@@ -123,7 +147,7 @@ export const updateUserStats = async (updates) => {
       .single();
 
     if (error) {
-      console.error('Error updating user stats:', {
+      logger.error('Error updating user stats:', {
         message: error.message,
         code: error.code,
         details: error.details,
@@ -136,7 +160,7 @@ export const updateUserStats = async (updates) => {
 
     return data;
   } catch (error) {
-    console.error('Exception updating user stats:', {
+    logger.error('Exception updating user stats:', {
       message: error.message,
       stack: error.stack,
       fullError: error
@@ -161,7 +185,7 @@ export const addStudySession = async (sessionData) => {
     .single();
 
   if (error) {
-    console.error('Error adding study session:', error);
+    logger.error('Error adding study session:', error);
     return null;
   }
 
@@ -180,7 +204,7 @@ export const fetchStudySessions = async () => {
     .order('timestamp', { ascending: false });
 
   if (error) {
-    console.error('Error fetching study sessions:', error);
+    logger.error('Error fetching study sessions:', error);
     return [];
   }
 
@@ -204,7 +228,7 @@ export const updateTopicProgress = async (subject, topicProgress) => {
     .single();
 
   if (error) {
-    console.error('Error updating topic progress:', error);
+    logger.error('Error updating topic progress:', error);
     return null;
   }
 
@@ -224,7 +248,7 @@ export const fetchTopicProgress = async (subject) => {
     .single();
 
   if (error && error.code !== 'PGRST116') {
-    console.error('Error fetching topic progress:', error);
+    logger.error('Error fetching topic progress:', error);
   }
 
   return data?.progress_data || null;
@@ -246,7 +270,7 @@ export const upsertUserSubject = async (subjectData) => {
     .single();
 
   if (error) {
-    console.error('Error upserting subject:', error);
+    logger.error('Error upserting subject:', error);
     return null;
   }
 
@@ -265,7 +289,7 @@ export const fetchUserSubjects = async () => {
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching subjects:', error);
+    logger.error('Error fetching subjects:', error);
     return [];
   }
 
@@ -284,7 +308,7 @@ export const deleteUserSubject = async (subjectId) => {
     .eq('id', subjectId);
 
   if (error) {
-    console.error('Error deleting subject:', error);
+    logger.error('Error deleting subject:', error);
     return null;
   }
 
@@ -303,7 +327,7 @@ export const fetchUserTasks = async () => {
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching tasks:', error);
+    logger.error('Error fetching tasks:', error);
     return [];
   }
 
@@ -326,7 +350,7 @@ export const upsertUserTask = async (taskData) => {
     .single();
 
   if (error) {
-    console.error('Error upserting task:', error);
+    logger.error('Error upserting task:', error);
     return null;
   }
 
