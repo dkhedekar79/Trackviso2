@@ -1919,36 +1919,66 @@ export const GamificationProvider = ({ children }) => {
         };
       });
 
-      // Grant XP for completed quests immediately (both daily and weekly)
-      completedQuests.forEach(({ quest, xp }) => {
-        grantXP(xp, "quest");
-        addReward({
-          type: "QUEST_COMPLETE",
-          title: `✅ ${quest.name}`,
-          description: quest.description,
-          tier: "uncommon",
-          xp: xp,
-        });
-      });
+      // Calculate total XP from completed quests
+      const totalDailyQuestXP = completedQuests.reduce((sum, { xp }) => sum + (xp || 0), 0);
+      const totalWeeklyQuestXP = completedWeeklyQuests.reduce((sum, { xp }) => sum + (xp || 0), 0);
+      const totalQuestXP = totalDailyQuestXP + totalWeeklyQuestXP;
 
-      // Grant XP for completed weekly quests immediately (same as daily)
-      completedWeeklyQuests.forEach(({ quest, xp }) => {
-        grantXP(xp, "quest");
-        addReward({
-          type: "QUEST_COMPLETE",
-          title: `🏆 ${quest.name}`,
-          description: quest.description,
-          tier: "epic",
-          xp: xp,
-        });
-      });
-
-      return {
+      // Update stats with quest completion and XP in one update
+      const updatedStats = {
         ...prev,
         dailyQuests: updatedDailyQuests,
         weeklyQuests: updatedWeeklyQuests,
         completedQuestsToday: updatedDailyQuests.filter((q) => q && q.completed).length,
+        // Update XP and totalXPEarned if any quests were completed
+        ...(totalQuestXP > 0 ? {
+          xp: (prev.xp || 0) + totalQuestXP,
+          totalXPEarned: (prev.totalXPEarned || 0) + totalQuestXP,
+          weeklyXP: (prev.weeklyXP || 0) + totalQuestXP,
+          xpEvents: [
+            ...(totalDailyQuestXP > 0 ? [{ amount: totalDailyQuestXP, source: "quest", timestamp: new Date().toISOString() }] : []),
+            ...(totalWeeklyQuestXP > 0 ? [{ amount: totalWeeklyQuestXP, source: "quest", timestamp: new Date().toISOString() }] : []),
+            ...(prev.xpEvents || []),
+          ].slice(0, 500),
+        } : {}),
       };
+
+      // Check for level up if XP was added
+      if (totalQuestXP > 0) {
+        const oldLevel = prev.level || 1;
+        const newLevel = getLevelFromXP(updatedStats.xp || 0);
+        if (newLevel > oldLevel) {
+          const levelsGained = newLevel - oldLevel;
+          for (let i = 1; i <= levelsGained; i++) {
+            setTimeout(() => handleLevelUp(oldLevel + i), 100 * i);
+          }
+        }
+      }
+
+      // Show rewards for completed quests (after state update)
+      setTimeout(() => {
+        completedQuests.forEach(({ quest, xp }) => {
+          addReward({
+            type: "QUEST_COMPLETE",
+            title: `✅ ${quest.name}`,
+            description: quest.description,
+            tier: "uncommon",
+            xp: xp,
+          });
+        });
+
+        completedWeeklyQuests.forEach(({ quest, xp }) => {
+          addReward({
+            type: "QUEST_COMPLETE",
+            title: `🏆 ${quest.name}`,
+            description: quest.description,
+            tier: "epic",
+            xp: xp,
+          });
+        });
+      }, 0);
+
+      return updatedStats;
     });
   };
 

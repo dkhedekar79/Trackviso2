@@ -27,7 +27,7 @@ const PREMIUM_PLANS = {
       { id: 'streak_savers', name: '5 Streak Savers/month', icon: Shield, premium: true },
       { id: 'exclusive_themes', name: '3 Exclusive Themes', icon: Sparkles, premium: true },
       { id: 'priority_support', name: 'Priority Support', icon: Heart, premium: true },
-      { id: 'advanced_stats', name: 'Advanced Analytics', icon: TrendingUp, premium: true }
+      { id: 'advanced_stats', name: 'Enhanced Analytics', icon: TrendingUp, premium: true }
     ],
     limits: {
       xpMultiplier: 1.5,
@@ -53,7 +53,7 @@ const PREMIUM_PLANS = {
       { id: 'streak_savers', name: '10 Streak Savers/month', icon: Shield, premium: true },
       { id: 'exclusive_themes', name: '10 Exclusive Themes', icon: Sparkles, premium: true },
       { id: 'priority_support', name: 'Priority Support', icon: Heart, premium: true },
-      { id: 'advanced_stats', name: 'Advanced Analytics', icon: TrendingUp, premium: true },
+      { id: 'advanced_stats', name: 'Enhanced Analytics', icon: TrendingUp, premium: true },
       { id: 'exclusive_quests', name: 'Elite Quests', icon: Target, premium: true },
       { id: 'custom_titles', name: 'Custom Titles', icon: Award, premium: true },
       { id: 'leaderboard_badge', name: 'Elite Badge', icon: Gem, premium: true }
@@ -81,7 +81,7 @@ const PREMIUM_PLANS = {
       { id: 'streak_savers', name: 'Unlimited Streak Savers', icon: Shield, premium: true },
       { id: 'exclusive_themes', name: 'All Exclusive Themes', icon: Sparkles, premium: true },
       { id: 'priority_support', name: '24/7 VIP Support', icon: Heart, premium: true },
-      { id: 'advanced_stats', name: 'Advanced Analytics', icon: TrendingUp, premium: true },
+      { id: 'advanced_stats', name: 'Enhanced Analytics', icon: TrendingUp, premium: true },
       { id: 'exclusive_quests', name: 'Legend Quests', icon: Target, premium: true },
       { id: 'custom_titles', name: 'Custom Titles', icon: Award, premium: true },
       { id: 'leaderboard_badge', name: 'Legend Badge', icon: Gem, premium: true },

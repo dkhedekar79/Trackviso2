@@ -75,6 +75,7 @@ const Study = () => {
   const intervalRef = useRef(null);
   const pausedAccumulatedRef = useRef(0);
   const pomodoroPhaseRef = useRef("work");
+  const totalPomodoroTimeRef = useRef(0); // Track total WORK time across all Pomodoro phases (breaks don't count)
 
   // Timer context (kept for global sync but display uses local timer)
   const {
@@ -269,6 +270,7 @@ const Study = () => {
     pausedAccumulatedRef.current = 0;
     setElapsedSeconds(0);
     phaseCompletedRef.current = false;
+    totalPomodoroTimeRef.current = 0; // Reset total Pomodoro time
   };
   
   // Auto-transition between Pomodoro work/break phases
@@ -286,6 +288,9 @@ const Study = () => {
         playNotificationSound?.("work");
         setPomodoroNotificationMessage("🌴 Great work! Time for a 5-minute break.");
         setShowPomodoroNotification(true);
+        
+        // Add completed work phase time to total (use actual elapsed time, which should be ~25 minutes)
+        totalPomodoroTimeRef.current += elapsedSeconds;
         
         // Reset local timer and switch to break phase
         if (intervalRef.current) clearInterval(intervalRef.current);
@@ -312,6 +317,8 @@ const Study = () => {
         setLocalPomodoroCount(newCycleCount);
         setPomodoroNotificationMessage(`🏆 Pomodoro #${newCycleCount} complete! +50 XP bonus. Back to work!`);
         setShowPomodoroNotification(true);
+        
+        // Don't add break time to total - only work time counts as study time
         
         // Award XP for completing a pomodoro cycle
         if (grantXP) {
@@ -408,6 +415,10 @@ const Study = () => {
       if (newMode === "pomodoro") {
         setLocalPomodoroPhase("work");
         setLocalPomodoroCount(0);
+        totalPomodoroTimeRef.current = 0;
+      } else {
+        // Reset total Pomodoro time when switching away from Pomodoro mode
+        totalPomodoroTimeRef.current = 0;
       }
     }
   };
@@ -676,10 +687,23 @@ const Study = () => {
   };
 
   const handleSaveSession = () => {
+    // For Pomodoro mode, calculate total time including all completed work phases and current phase
+    let totalSessionSeconds = elapsedSeconds;
+    if (mode === "pomodoro") {
+      // Add total accumulated WORK time from completed phases
+      totalSessionSeconds = totalPomodoroTimeRef.current;
+      
+      // Add current phase time only if it's a work phase (breaks don't count as study time)
+      if (localPomodoroPhase === "work") {
+        totalSessionSeconds += elapsedSeconds;
+      }
+      // If ending during break, don't add the break time to study time
+    }
+    
     // Ensure we have a valid duration - use minimum 1 minute if session was very short
     const sessionDurationMinutes = Math.max(
       1,
-      Math.round((elapsedSeconds / 60) * 100) / 100,
+      Math.round((totalSessionSeconds / 60) * 100) / 100,
     );
 
     // Save session data based on actual elapsedSeconds

@@ -756,7 +756,7 @@ const Landing = () => {
                 </li>
                 <li className="flex items-center space-x-3">
                   <TrendingUp className="w-5 h-5 text-yellow-300" />
-                  <span>Advanced analytics dashboard</span>
+                  <span>Enhanced Analytics</span>
                 </li>
               </ul>
               <Link

@@ -480,7 +480,7 @@ const OnboardingFlow = ({ onComplete }) => {
                       <Check className="w-4 h-4 text-yellow-400" /> Unlimited blurt tests
                     </li>
                     <li className="flex items-center gap-2">
-                      <Check className="w-4 h-4 text-yellow-400" /> Advanced analytics
+                      <Check className="w-4 h-4 text-yellow-400" /> Enhanced Analytics
                     </li>
                   </ul>
                 </motion.button>

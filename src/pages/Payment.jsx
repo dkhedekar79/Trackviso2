@@ -144,7 +144,7 @@ const Payment = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-yellow-400" />
-                <span className="text-white font-semibold">All Premium Features</span>
+                <span className="text-white font-semibold">Enhanced Analytics</span>
               </div>
             </div>
             <div className="text-3xl font-bold text-white">£4.99<span className="text-lg text-white/60">/month</span></div>
