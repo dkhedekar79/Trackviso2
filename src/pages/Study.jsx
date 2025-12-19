@@ -39,7 +39,11 @@ import {
   Image,
   X as XIcon,
   Settings,
+  Music,
+  Search,
+  LogOut,
 } from "lucide-react";
+import { useSpotify } from "../hooks/useSpotify";
 
 const Study = () => {
   const location = useLocation();
@@ -118,6 +122,25 @@ const Study = () => {
   // Subscription context
   const { subscriptionPlan } = useSubscription();
   const isPremium = subscriptionPlan === 'professor';
+
+  // Spotify integration
+  const {
+    isConnected: isSpotifyConnected,
+    isPlaying: isSpotifyPlaying,
+    currentTrack,
+    isLoading: isSpotifyLoading,
+    error: spotifyError,
+    handleLogin: handleSpotifyLogin,
+    handleLogout: handleSpotifyLogout,
+    playLofiPlaylist,
+    togglePlayback: toggleSpotifyPlayback,
+    searchAndPlay,
+  } = useSpotify();
+
+  // Spotify UI state
+  const [showSpotifyControls, setShowSpotifyControls] = useState(false);
+  const [showSpotifySearch, setShowSpotifySearch] = useState(false);
+  const [spotifySearchQuery, setSpotifySearchQuery] = useState('');
 
   // Sync local input with context value when it changes
   useEffect(() => {
@@ -973,6 +996,194 @@ const Study = () => {
               >
                 <Settings className="w-5 h-5 text-white" />
               </motion.button>
+
+              {/* Spotify Music Player */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ delay: 0.3 }}
+                className="absolute bottom-4 left-4 z-20 max-w-sm"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="bg-black/40 backdrop-blur-md rounded-xl p-4 border border-white/20">
+                  {!isSpotifyConnected ? (
+                    <motion.button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSpotifyLogin();
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 bg-[#1DB954] hover:bg-[#1ed760] text-white rounded-lg font-semibold transition-all shadow-lg"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Music className="w-4 h-4" />
+                      Connect Spotify
+                    </motion.button>
+                  ) : (
+                    <div className="space-y-3">
+                      {/* Current Track Info */}
+                      {currentTrack && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="flex items-center gap-3"
+                        >
+                          {currentTrack.album?.images?.[0]?.url && (
+                            <img
+                              src={currentTrack.album.images[0].url}
+                              alt={currentTrack.album.name}
+                              className="w-12 h-12 rounded-lg object-cover"
+                            />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm font-medium truncate ${isInBreakPhase ? 'text-green-400' : 'text-white'}`}>
+                              {currentTrack.name}
+                            </p>
+                            <p className="text-xs text-white/60 truncate">
+                              {currentTrack.artists.map(a => a.name).join(', ')}
+                            </p>
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {/* Controls */}
+                      <div className="flex items-center gap-2">
+                        {/* Play Lofi / Play/Pause */}
+                        {!currentTrack && !isSpotifyPlaying ? (
+                          <motion.button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              playLofiPlaylist();
+                            }}
+                            disabled={isSpotifyLoading}
+                            className="flex items-center gap-2 px-3 py-2 bg-purple-600/80 hover:bg-purple-600 text-white rounded-lg text-sm font-medium transition-all disabled:opacity-50"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            {isSpotifyLoading ? (
+                              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            ) : (
+                              <>
+                                <Play className="w-4 h-4" />
+                                <span>Lofi</span>
+                              </>
+                            )}
+                          </motion.button>
+                        ) : (
+                          <motion.button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleSpotifyPlayback();
+                            }}
+                            disabled={isSpotifyLoading}
+                            className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all disabled:opacity-50"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            {isSpotifyLoading ? (
+                              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            ) : isSpotifyPlaying ? (
+                              <Pause className="w-4 h-4" />
+                            ) : (
+                              <Play className="w-4 h-4" />
+                            )}
+                          </motion.button>
+                        )}
+
+                        {/* Search Button */}
+                        <motion.button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowSpotifySearch(!showSpotifySearch);
+                          }}
+                          className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          title="Search music"
+                        >
+                          <Search className="w-4 h-4" />
+                        </motion.button>
+
+                        {/* Disconnect Button */}
+                        <motion.button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSpotifyLogout();
+                          }}
+                          className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          title="Disconnect Spotify"
+                        >
+                          <LogOut className="w-4 h-4" />
+                        </motion.button>
+                      </div>
+
+                      {/* Error Message */}
+                      {spotifyError && (
+                        <motion.p
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="text-xs text-red-400 bg-red-900/30 px-2 py-1 rounded"
+                        >
+                          {spotifyError}
+                        </motion.p>
+                      )}
+
+                      {/* Search Input */}
+                      <AnimatePresence>
+                        {showSpotifySearch && (
+                          <motion.form
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            onSubmit={(e) => {
+                              e.preventDefault();
+                              if (spotifySearchQuery.trim()) {
+                                searchAndPlay(spotifySearchQuery);
+                                setShowSpotifySearch(false);
+                                setSpotifySearchQuery('');
+                              }
+                            }}
+                            className="flex items-center gap-2 overflow-hidden"
+                          >
+                            <input
+                              type="text"
+                              value={spotifySearchQuery}
+                              onChange={(e) => setSpotifySearchQuery(e.target.value)}
+                              placeholder="Search for a song..."
+                              className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                              autoFocus
+                            />
+                            <motion.button
+                              type="submit"
+                              disabled={!spotifySearchQuery.trim() || isSpotifyLoading}
+                              className="p-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all disabled:opacity-50"
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              <Play className="w-4 h-4" />
+                            </motion.button>
+                            <motion.button
+                              type="button"
+                              onClick={() => {
+                                setShowSpotifySearch(false);
+                                setSpotifySearchQuery('');
+                              }}
+                              className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all"
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              <XIcon className="w-4 h-4" />
+                            </motion.button>
+                          </motion.form>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
               
               <div className="text-center relative z-10">
                 <motion.div
@@ -980,14 +1191,14 @@ const Study = () => {
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.8, opacity: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="text-white drop-shadow-2xl"
+                  className={`${isInBreakPhase ? 'text-green-400' : 'text-white'} drop-shadow-2xl`}
                   style={{ fontFamily: 'Poppins, sans-serif' }}
                 >
-                  <div className="text-9xl font-bold tracking-wider mb-4" style={{ fontWeight: 900 }}>
+                  <div className={`text-9xl font-bold tracking-wider mb-4 ${isInBreakPhase ? 'text-green-400' : 'text-white'}`} style={{ fontWeight: 900 }}>
                     {getDisplayTime()}
                   </div>
                   {subject && (
-                    <div className="text-2xl text-white/90 mt-8 drop-shadow-lg font-bold" style={{ fontWeight: 700 }}>
+                    <div className={`text-2xl mt-8 drop-shadow-lg font-bold ${isInBreakPhase ? 'text-green-400/90' : 'text-white/90'}`} style={{ fontWeight: 700 }}>
                       {subject}
                     </div>
                   )}
