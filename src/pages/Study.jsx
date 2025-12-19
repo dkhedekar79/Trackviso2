@@ -1005,21 +1005,41 @@ const Study = () => {
                 transition={{ delay: 0.3 }}
                 className="absolute bottom-4 left-4 z-20 max-w-sm"
                 onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
               >
                 <div className="bg-black/40 backdrop-blur-md rounded-xl p-4 border border-white/20">
                   {!isSpotifyConnected ? (
-                    <motion.button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSpotifyLogin();
-                      }}
-                      className="flex items-center gap-2 px-4 py-2 bg-[#1DB954] hover:bg-[#1ed760] text-white rounded-lg font-semibold transition-all shadow-lg"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <Music className="w-4 h-4" />
-                      Connect Spotify
-                    </motion.button>
+                    <div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (e.nativeEvent) {
+                            e.nativeEvent.stopImmediatePropagation();
+                          }
+                          // Call handleSpotifyLogin directly - it will redirect
+                          handleSpotifyLogin();
+                        }}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 bg-[#1DB954] hover:bg-[#1ed760] text-white rounded-lg font-semibold transition-all shadow-lg w-full"
+                      >
+                        <Music className="w-4 h-4" />
+                        Connect Spotify
+                      </button>
+                      {spotifyError && (
+                        <motion.p
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="text-xs text-red-400 bg-red-900/30 px-2 py-1 rounded mt-2"
+                        >
+                          {spotifyError}
+                        </motion.p>
+                      )}
+                    </div>
                   ) : (
                     <div className="space-y-3">
                       {/* Current Track Info */}

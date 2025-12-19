@@ -28,10 +28,17 @@ const SpotifyCallback = () => {
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
       
+      // Trigger a storage event to notify other components
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'spotify_access_token',
+        newValue: hash.access_token,
+        storageArea: localStorage
+      }));
+      
       // Redirect after saving token
       setTimeout(() => {
         navigate('/study', { replace: true });
-      }, 500); // Give it a bit more time to ensure localStorage is saved
+      }, 200); // Reduced delay since we're dispatching storage event
     } else {
       // No token found, check for errors
       if (hash.error) {

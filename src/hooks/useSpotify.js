@@ -49,12 +49,13 @@ export const useSpotify = () => {
     window.addEventListener('storage', handleStorageChange);
     
     // Check periodically in case we're on the same page (storage events don't fire for same tab)
+    // More frequent checks right after page load to catch redirects
     const interval = setInterval(() => {
       const storedToken = localStorage.getItem('spotify_access_token');
       if (storedToken && !accessToken) {
         loadToken();
       }
-    }, 500);
+    }, 100); // Check every 100ms for faster detection after redirect
     
     return () => {
       window.removeEventListener('storage', handleStorageChange);
@@ -272,7 +273,8 @@ export const useSpotify = () => {
     }
   };
 
-  const isConnected = !!accessToken && !!deviceId;
+  // Consider connected if we have an access token (deviceId will be set when player is ready)
+  const isConnected = !!accessToken;
 
   return {
     accessToken,
