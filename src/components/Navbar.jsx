@@ -155,7 +155,7 @@ const Navbar = () => {
     const titles = {
       "/dashboard": "DASHBOARD",
       "/tasks": "TASKS",
-      "/schedule": "SCHEDULE",
+      "/schedule": "AI SCHEDULE",
       "/subjects": "SUBJECTS",
       "/study": "STUDY",
       "/settings": "SETTINGS",

@@ -57,7 +57,7 @@ export default function Signup() {
       setEmailError(emailValidation.error);
       return;
     }
-
+    
     if (!passwordValidation.valid) {
       setPasswordError(passwordValidation.error);
       return;

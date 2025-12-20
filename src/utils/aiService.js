@@ -8,13 +8,13 @@ import { GoogleGenAI } from "@google/genai";
 // Model configurations - all Google/Gemini models
 const MODEL_CONFIGS = [
   {
-    name: 'gemini-2.5-flash',
+    name: 'gemini-2.5-flash-lite',
   },
   {
-    name: 'gemini-1.5-pro',
+    name: 'gemini-2.5-pro',
   },
   {
-    name: 'gemini-1.5-flash',
+    name: 'gemini-3-flash-preview',
   },
   {
     name: 'gemini-pro',
@@ -135,9 +135,37 @@ export async function generateAIJSON(prompt, options = {}) {
   }
 
   try {
-    return JSON.parse(jsonMatch[0]);
+    let jsonStr = jsonMatch[0];
+    
+    // Basic repair for truncated JSON (common with large AI responses)
+    if (jsonStr.endsWith(',')) {
+      jsonStr = jsonStr.slice(0, -1);
+    }
+    
+    // Count opening and closing braces/brackets to see if it's truncated
+    const openBraces = (jsonStr.match(/\{/g) || []).length;
+    const closeBraces = (jsonStr.match(/\}/g) || []).length;
+    const openBrackets = (jsonStr.match(/\[/g) || []).length;
+    const closeBrackets = (jsonStr.match(/\]/g) || []).length;
+    
+    // Try to close hanging structures if they are obviously missing
+    if (openBraces > closeBraces) {
+      jsonStr += '}'.repeat(openBraces - closeBraces);
+    }
+    if (openBrackets > closeBrackets) {
+      jsonStr += ']'.repeat(openBrackets - closeBrackets);
+    }
+
+    try {
+      return JSON.parse(jsonStr);
+    } catch (innerError) {
+      // If basic repair failed, try a more aggressive one
+      // This is a last resort - just return what we have if it's a partial array
+      console.warn('Initial JSON parse failed, trying aggressive repair...', innerError.message);
+      return JSON.parse(jsonMatch[0]); // Fallback to original match if repair made it worse
+    }
   } catch (parseError) {
-    console.error('JSON parse error:', parseError, 'Content:', jsonMatch[0]);
+    console.error('JSON parse error:', parseError, 'Content length:', content.length);
     throw new Error('Could not parse JSON from AI response');
   }
 }

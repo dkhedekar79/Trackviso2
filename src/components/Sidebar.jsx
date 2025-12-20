@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   FlameIcon, BookIcon, CalendarIcon, ListChecksIcon, BrainIcon,
   BarChart2Icon, Settings2Icon, LayoutDashboardIcon, BarChart3, GraduationCap, BookOpen,
-  ChevronRight
+  ChevronRight, Sparkles
 } from "lucide-react";
 
 const navItems = [
@@ -14,6 +14,7 @@ const navItems = [
   { path: "/insights", icon: BarChart3, label: "Insights", color: "emerald" },
   { path: "/subjects", icon: BookIcon, label: "Subjects", color: "amber" },
   { path: "/tasks", icon: ListChecksIcon, label: "Tasks", color: "rose" },
+  { path: "/schedule", icon: Sparkles, label: "AI Schedule", color: "violet" },
   { path: "/resources", icon: GraduationCap, label: "Resources", color: "indigo" },
 ];
 
@@ -25,6 +26,7 @@ const colorVariants = {
   amber: { bg: "from-amber-500/30 to-amber-600/30", border: "border-amber-400/60", glow: "shadow-amber-500/40", text: "text-amber-300", icon: "text-amber-300" },
   rose: { bg: "from-rose-500/30 to-rose-600/30", border: "border-rose-400/60", glow: "shadow-rose-500/40", text: "text-rose-300", icon: "text-rose-300" },
   indigo: { bg: "from-indigo-500/30 to-indigo-600/30", border: "border-indigo-400/60", glow: "shadow-indigo-500/40", text: "text-indigo-300", icon: "text-indigo-300" },
+  violet: { bg: "from-violet-500/30 to-violet-600/30", border: "border-violet-400/60", glow: "shadow-violet-500/40", text: "text-violet-300", icon: "text-violet-300" },
   slate: { bg: "from-slate-500/30 to-slate-600/30", border: "border-slate-400/60", glow: "shadow-slate-500/40", text: "text-slate-300", icon: "text-slate-300" },
 };
 

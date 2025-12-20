@@ -2,7 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 
 // Spotify API Configuration
 const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID || '';
-const REDIRECT_URI = typeof window !== 'undefined' ? `${window.location.origin}/callback` : '';
+// Ensure redirect URI has no trailing slash and matches exactly what's in Spotify Dashboard
+const REDIRECT_URI = typeof window !== 'undefined' 
+  ? `${window.location.protocol}//${window.location.host}/callback`.replace(/\/$/, '')
+  : '';
 const SCOPES = 'user-read-playback-state user-modify-playback-state user-read-currently-playing streaming';
 
 // Lofi playlist ID (Chill Lofi Beats - a popular Spotify playlist)
@@ -140,16 +143,35 @@ export const useSpotify = () => {
       return;
     }
 
+    // Ensure redirect URI doesn't have trailing slash
+    const cleanRedirectUri = REDIRECT_URI.replace(/\/$/, '');
+    
     // Log the redirect URI for debugging
-    console.log('Spotify Redirect URI:', REDIRECT_URI);
-    console.log('Make sure this EXACT URL is added in your Spotify Dashboard:');
+    console.log('=== Spotify Authorization Debug ===');
+    console.log('Client ID:', CLIENT_ID ? `${CLIENT_ID.substring(0, 10)}...` : 'MISSING');
+    console.log('Redirect URI (clean):', cleanRedirectUri);
+    console.log('Redirect URI (encoded):', encodeURIComponent(cleanRedirectUri));
+    console.log('Scopes:', SCOPES);
+    console.log('Response Type: token (Implicit Grant Flow)');
+    console.log('');
+    console.log('⚠️ Make sure this EXACT URL is added in your Spotify Dashboard:');
+    console.log('   ', cleanRedirectUri);
+    console.log('');
+    console.log('Steps:');
     console.log('1. Go to https://developer.spotify.com/dashboard');
     console.log('2. Click on your app');
     console.log('3. Click "Edit Settings"');
-    console.log('4. Add this Redirect URI:', REDIRECT_URI);
-    console.log('5. Click "Add" and then "Save"');
+    console.log('4. Under "Redirect URIs", add:', cleanRedirectUri);
+    console.log('5. Make sure there are NO trailing slashes');
+    console.log('6. Click "Add" and then "Save"');
+    console.log('===================================');
 
-    const authUrl = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=token&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(SCOPES)}&show_dialog=true`;
+    // Construct the authorization URL
+    const authUrl = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=token&redirect_uri=${encodeURIComponent(cleanRedirectUri)}&scope=${encodeURIComponent(SCOPES)}&show_dialog=true`;
+    
+    console.log('Authorization URL:', authUrl);
+    console.log('Redirecting to Spotify...');
+    
     window.location.href = authUrl;
   };
 

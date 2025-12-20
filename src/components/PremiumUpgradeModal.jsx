@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Crown, Sparkles, Zap, CheckCircle, Lock, ArrowRight, Star } from 'lucide-react';
+import { X, Crown, Sparkles, Zap, CheckCircle, Lock, ArrowRight, Star, Brain } from 'lucide-react';
 import { useSubscription } from '../context/SubscriptionContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -12,10 +12,11 @@ const PremiumUpgradeModal = ({ isOpen, onClose, feature = null }) => {
   if (!isOpen) return null;
 
   const features = [
+    { icon: Brain, text: 'Unlimited AI Study Schedules', color: 'text-indigo-400' },
     { icon: Zap, text: 'Unlimited Mock Exams', color: 'text-red-400' },
     { icon: Sparkles, text: 'Unlimited Blurt Tests', color: 'text-amber-400' },
-    { icon: Star, text: 'Full access to 8K animated wallpapers', color: 'text-blue-400' },
     { icon: Crown, text: 'Enhanced Analytics', color: 'text-purple-400' },
+    { icon: Star, text: '8K Animated Wallpapers', color: 'text-blue-400' },
   ];
 
   const handleUpgrade = () => {

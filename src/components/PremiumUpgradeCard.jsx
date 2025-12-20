@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Crown, Sparkles, Zap, ArrowRight, Lock } from 'lucide-react';
+import { Crown, Sparkles, Zap, ArrowRight, Lock, Brain } from 'lucide-react';
 import { useSubscription } from '../context/SubscriptionContext';
 
 const PremiumUpgradeCard = ({ onUpgradeClick }) => {
@@ -106,8 +106,8 @@ const PremiumUpgradeCard = ({ onUpgradeClick }) => {
         {/* Features */}
         <div className="grid grid-cols-2 gap-3">
           <div className="flex items-center gap-2 bg-white/5 rounded-lg p-3 border border-white/10">
-            <Zap className="w-5 h-5 text-yellow-400" />
-            <span className="text-white text-sm font-medium">Unlimited access to 8K animated wallpapers</span>
+            <Brain className="w-5 h-5 text-indigo-400" />
+            <span className="text-white text-sm font-medium">Unlimited AI Schedules</span>
           </div>
           <div className="flex items-center gap-2 bg-white/5 rounded-lg p-3 border border-white/10">
             <Sparkles className="w-5 h-5 text-purple-400" />
@@ -118,8 +118,8 @@ const PremiumUpgradeCard = ({ onUpgradeClick }) => {
             <span className="text-white text-sm font-medium">Enhanced Analytics</span>
           </div>
           <div className="flex items-center gap-2 bg-white/5 rounded-lg p-3 border border-white/10">
-            <Crown className="w-5 h-5 text-yellow-400" />
-            <span className="text-white text-sm font-medium">£4.99/mo</span>
+            <Zap className="w-5 h-5 text-yellow-400" />
+            <span className="text-white text-sm font-medium">8K Wallpapers & More</span>
           </div>
         </div>
       </div>

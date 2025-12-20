@@ -42,8 +42,10 @@ import {
   Music,
   Search,
   LogOut,
+  ChevronDown,
+  ListMusic,
 } from "lucide-react";
-import { useSpotify } from "../hooks/useSpotify";
+import { useYouTubeMusic } from "../hooks/useYouTubeMusic";
 
 const Study = () => {
   const location = useLocation();
@@ -123,24 +125,54 @@ const Study = () => {
   const { subscriptionPlan } = useSubscription();
   const isPremium = subscriptionPlan === 'professor';
 
-  // Spotify integration
+  // YouTube Music integration
   const {
-    isConnected: isSpotifyConnected,
-    isPlaying: isSpotifyPlaying,
+    isConnected: isYouTubeMusicConnected,
+    isPlaying: isYouTubeMusicPlaying,
     currentTrack,
-    isLoading: isSpotifyLoading,
-    error: spotifyError,
-    handleLogin: handleSpotifyLogin,
-    handleLogout: handleSpotifyLogout,
+    isLoading: isYouTubeMusicLoading,
+    error: youtubeMusicError,
+    handleLogin: handleYouTubeMusicLogin,
+    handleLogout: handleYouTubeMusicLogout,
     playLofiPlaylist,
-    togglePlayback: toggleSpotifyPlayback,
+    togglePlayback: toggleYouTubeMusicPlayback,
     searchAndPlay,
-  } = useSpotify();
+    getMostPlayedPlaylists,
+    availablePlaylists,
+  } = useYouTubeMusic();
 
-  // Spotify UI state
-  const [showSpotifyControls, setShowSpotifyControls] = useState(false);
-  const [showSpotifySearch, setShowSpotifySearch] = useState(false);
-  const [spotifySearchQuery, setSpotifySearchQuery] = useState('');
+  // YouTube Music UI state
+  const [showYouTubeMusicControls, setShowYouTubeMusicControls] = useState(false);
+  const [showYouTubeMusicSearch, setShowYouTubeMusicSearch] = useState(false);
+  const [youtubeMusicSearchQuery, setYouTubeMusicSearchQuery] = useState('');
+  const [showPlaylistSelector, setShowPlaylistSelector] = useState(false);
+  const [mostPlayedPlaylists, setMostPlayedPlaylists] = useState([]);
+
+  // Load most played playlists
+  useEffect(() => {
+    if (isYouTubeMusicConnected && getMostPlayedPlaylists) {
+      const mostPlayed = getMostPlayedPlaylists();
+      setMostPlayedPlaylists(mostPlayed);
+    }
+  }, [isYouTubeMusicConnected, getMostPlayedPlaylists]);
+
+  // Close playlist selector when clicking outside or when ambient mode closes
+  useEffect(() => {
+    if (!isAmbientMode) {
+      setShowPlaylistSelector(false);
+    }
+  }, [isAmbientMode]);
+
+  // Close playlist selector on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (showPlaylistSelector && !e.target.closest('.playlist-selector-container')) {
+        setShowPlaylistSelector(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showPlaylistSelector]);
 
   // Sync local input with context value when it changes
   useEffect(() => {
@@ -387,6 +419,36 @@ const Study = () => {
   };
 
   const subject = getSubjectFromURL();
+
+  // Handle incoming state from AI Schedule
+  useEffect(() => {
+    if (location.state?.isFromSchedule) {
+      const { duration, subject: scheduleSubject, topic } = location.state;
+      
+      // Set the timer duration if provided
+      if (duration) {
+        setCustomMinutesInput(duration.toString());
+        // Use 'custom' mode to respect the specific duration from the AI schedule
+        setTimerMode('custom');
+        setCustomMinutes(duration);
+        // Reset local timer to ensure it starts from zero with the new duration
+        resetLocalTimer();
+      }
+
+      // Set the subject if provided
+      if (scheduleSubject) {
+        setTimerSubject(scheduleSubject);
+      }
+
+      // Pre-fill session notes with the topic
+      if (topic) {
+        setSessionNotes(`Focusing on: ${topic}\n`);
+      }
+
+      // Clear the state so it doesn't re-trigger on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, setTimerMode, setCustomMinutes, setTimerSubject]);
 
   // Load data from localStorage
   useEffect(() => {
@@ -997,18 +1059,22 @@ const Study = () => {
                 <Settings className="w-5 h-5 text-white" />
               </motion.button>
 
-              {/* Spotify Music Player */}
+              {/* YouTube Music Player */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
+                animate={{ 
+                  opacity: 1, 
+                  x: 0,
+                  y: showPlaylistSelector ? -400 : 0
+                }}
                 exit={{ opacity: 0, x: -20 }}
-                transition={{ delay: 0.3 }}
+                transition={{ delay: 0.3, type: 'spring', stiffness: 300, damping: 30 }}
                 className="absolute bottom-4 left-4 z-20 max-w-sm"
                 onClick={(e) => e.stopPropagation()}
                 onMouseDown={(e) => e.stopPropagation()}
               >
                 <div className="bg-black/40 backdrop-blur-md rounded-xl p-4 border border-white/20">
-                  {!isSpotifyConnected ? (
+                  {!isYouTubeMusicConnected ? (
                     <div>
                       <button
                         type="button"
@@ -1018,25 +1084,24 @@ const Study = () => {
                           if (e.nativeEvent) {
                             e.nativeEvent.stopImmediatePropagation();
                           }
-                          // Call handleSpotifyLogin directly - it will redirect
-                          handleSpotifyLogin();
+                          handleYouTubeMusicLogin();
                         }}
                         onMouseDown={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
                         }}
-                        className="flex items-center gap-2 px-4 py-2 bg-[#1DB954] hover:bg-[#1ed760] text-white rounded-lg font-semibold transition-all shadow-lg w-full"
+                        className="flex items-center gap-2 px-4 py-2 bg-[#FF0000] hover:bg-[#ff1a1a] text-white rounded-lg font-semibold transition-all shadow-lg w-full"
                       >
                         <Music className="w-4 h-4" />
-                        Connect Spotify
+                        Connect YouTube Music
                       </button>
-                      {spotifyError && (
+                      {youtubeMusicError && (
                         <motion.p
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           className="text-xs text-red-400 bg-red-900/30 px-2 py-1 rounded mt-2"
                         >
-                          {spotifyError}
+                          {youtubeMusicError}
                         </motion.p>
                       )}
                     </div>
@@ -1049,19 +1114,26 @@ const Study = () => {
                           animate={{ opacity: 1, y: 0 }}
                           className="flex items-center gap-3"
                         >
-                          {currentTrack.album?.images?.[0]?.url && (
+                          {currentTrack.thumbnail && typeof currentTrack.thumbnail === 'string' && currentTrack.thumbnail.trim() !== '' ? (
                             <img
-                              src={currentTrack.album.images[0].url}
-                              alt={currentTrack.album.name}
+                              src={currentTrack.thumbnail}
+                              alt={currentTrack.name || 'Track'}
                               className="w-12 h-12 rounded-lg object-cover"
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                              }}
                             />
+                          ) : (
+                            <div className="w-12 h-12 rounded-lg bg-purple-600/30 flex items-center justify-center">
+                              <Music className="w-6 h-6 text-white/60" />
+                            </div>
                           )}
                           <div className="flex-1 min-w-0">
                             <p className={`text-sm font-medium truncate ${isInBreakPhase ? 'text-green-400' : 'text-white'}`}>
-                              {currentTrack.name}
+                              {currentTrack.name || 'Unknown Track'}
                             </p>
                             <p className="text-xs text-white/60 truncate">
-                              {currentTrack.artists.map(a => a.name).join(', ')}
+                              {currentTrack.artist || 'Unknown Artist'}
                             </p>
                           </div>
                         </motion.div>
@@ -1069,41 +1141,140 @@ const Study = () => {
 
                       {/* Controls */}
                       <div className="flex items-center gap-2">
-                        {/* Play Lofi / Play/Pause */}
-                        {!currentTrack && !isSpotifyPlaying ? (
-                          <motion.button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              playLofiPlaylist();
-                            }}
-                            disabled={isSpotifyLoading}
-                            className="flex items-center gap-2 px-3 py-2 bg-purple-600/80 hover:bg-purple-600 text-white rounded-lg text-sm font-medium transition-all disabled:opacity-50"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            {isSpotifyLoading ? (
-                              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            ) : (
-                              <>
-                                <Play className="w-4 h-4" />
-                                <span>Lofi</span>
-                              </>
+                        {/* Playlist Selector - Always Available */}
+                        <div className="relative playlist-selector-container">
+                          {!currentTrack && !isYouTubeMusicPlaying ? (
+                            <motion.button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowPlaylistSelector(!showPlaylistSelector);
+                              }}
+                              disabled={isYouTubeMusicLoading}
+                              className="flex items-center gap-2 px-3 py-2 bg-purple-600/80 hover:bg-purple-600 text-white rounded-lg text-sm font-medium transition-all disabled:opacity-50"
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              {isYouTubeMusicLoading ? (
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                              ) : (
+                                <>
+                                  <ListMusic className="w-4 h-4" />
+                                  <span>Lofi Playlists</span>
+                                  <ChevronDown className={`w-3 h-3 transition-transform ${showPlaylistSelector ? 'rotate-180' : ''}`} />
+                                </>
+                              )}
+                            </motion.button>
+                          ) : (
+                            <motion.button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowPlaylistSelector(!showPlaylistSelector);
+                              }}
+                              className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all"
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              title="Change Playlist"
+                            >
+                              <ListMusic className="w-4 h-4" />
+                            </motion.button>
+                          )}
+
+                          {/* Playlist Selector Dropdown */}
+                          <AnimatePresence>
+                            {showPlaylistSelector && (
+                              <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 10 }}
+                                className="absolute bottom-full left-0 mb-2 w-64 bg-black/90 backdrop-blur-md rounded-lg border border-white/20 shadow-xl z-30 max-h-96 overflow-y-auto"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {/* Top 10 Most Played Section */}
+                                {mostPlayedPlaylists.length > 0 && (
+                                  <div className="p-2 border-b border-white/10">
+                                    <p className="text-xs font-semibold text-purple-400 mb-2 px-2 flex items-center gap-1">
+                                      <Trophy className="w-3 h-3" />
+                                      Top 10 Most Played
+                                    </p>
+                                    {mostPlayedPlaylists.map((playlist) => (
+                                      <motion.button
+                                        key={playlist.id}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          playLofiPlaylist(playlist.id);
+                                          setShowPlaylistSelector(false);
+                                        }}
+                                        className={`w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 transition-colors flex items-center justify-between group ${
+                                          currentTrack?.playlistId === playlist.id ? 'bg-purple-500/20 border border-purple-500/30' : ''
+                                        }`}
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                      >
+                                        <div className="flex-1 min-w-0">
+                                          <p className="text-sm text-white truncate flex items-center gap-2">
+                                            {currentTrack?.playlistId === playlist.id && (
+                                              <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" />
+                                            )}
+                                            {playlist.name}
+                                          </p>
+                                          <p className="text-xs text-white/50">Played {playlist.playCount} {playlist.playCount === 1 ? 'time' : 'times'}</p>
+                                        </div>
+                                        <Play className="w-3 h-3 text-white/50 group-hover:text-white/80 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                      </motion.button>
+                                    ))}
+                                  </div>
+                                )}
+
+                                {/* All Playlists Section */}
+                                <div className="p-2">
+                                  <p className="text-xs font-semibold text-purple-400 mb-2 px-2 flex items-center gap-1">
+                                    <ListMusic className="w-3 h-3" />
+                                    All Playlists
+                                  </p>
+                                  {availablePlaylists.map((playlist) => (
+                                    <motion.button
+                                      key={playlist.id}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        playLofiPlaylist(playlist.id);
+                                        setShowPlaylistSelector(false);
+                                      }}
+                                      className={`w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 transition-colors flex items-center justify-between group ${
+                                        currentTrack?.playlistId === playlist.id ? 'bg-purple-500/20 border border-purple-500/30' : ''
+                                      }`}
+                                      whileHover={{ scale: 1.02 }}
+                                      whileTap={{ scale: 0.98 }}
+                                    >
+                                      <span className="text-sm text-white flex items-center gap-2">
+                                        {currentTrack?.playlistId === playlist.id && (
+                                          <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" />
+                                        )}
+                                        {playlist.name}
+                                      </span>
+                                      <Play className="w-3 h-3 text-white/50 group-hover:text-white/80 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    </motion.button>
+                                  ))}
+                                </div>
+                              </motion.div>
                             )}
-                          </motion.button>
-                        ) : (
+                          </AnimatePresence>
+                        </div>
+
+                        {/* Play/Pause Button - Only show when track is playing */}
+                        {currentTrack && (
                           <motion.button
                             onClick={(e) => {
                               e.stopPropagation();
-                              toggleSpotifyPlayback();
+                              toggleYouTubeMusicPlayback();
                             }}
-                            disabled={isSpotifyLoading}
+                            disabled={isYouTubeMusicLoading}
                             className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all disabled:opacity-50"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                           >
-                            {isSpotifyLoading ? (
+                            {isYouTubeMusicLoading ? (
                               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            ) : isSpotifyPlaying ? (
+                            ) : isYouTubeMusicPlaying ? (
                               <Pause className="w-4 h-4" />
                             ) : (
                               <Play className="w-4 h-4" />
@@ -1115,7 +1286,7 @@ const Study = () => {
                         <motion.button
                           onClick={(e) => {
                             e.stopPropagation();
-                            setShowSpotifySearch(!showSpotifySearch);
+                            setShowYouTubeMusicSearch(!showYouTubeMusicSearch);
                           }}
                           className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all"
                           whileHover={{ scale: 1.05 }}
@@ -1129,56 +1300,56 @@ const Study = () => {
                         <motion.button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleSpotifyLogout();
+                            handleYouTubeMusicLogout();
                           }}
                           className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
-                          title="Disconnect Spotify"
+                          title="Disconnect YouTube Music"
                         >
                           <LogOut className="w-4 h-4" />
                         </motion.button>
                       </div>
 
                       {/* Error Message */}
-                      {spotifyError && (
+                      {youtubeMusicError && (
                         <motion.p
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           className="text-xs text-red-400 bg-red-900/30 px-2 py-1 rounded"
                         >
-                          {spotifyError}
+                          {youtubeMusicError}
                         </motion.p>
                       )}
 
                       {/* Search Input */}
                       <AnimatePresence>
-                        {showSpotifySearch && (
+                        {showYouTubeMusicSearch && (
                           <motion.form
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
                             onSubmit={(e) => {
                               e.preventDefault();
-                              if (spotifySearchQuery.trim()) {
-                                searchAndPlay(spotifySearchQuery);
-                                setShowSpotifySearch(false);
-                                setSpotifySearchQuery('');
+                              if (youtubeMusicSearchQuery.trim()) {
+                                searchAndPlay(youtubeMusicSearchQuery);
+                                setShowYouTubeMusicSearch(false);
+                                setYouTubeMusicSearchQuery('');
                               }
                             }}
                             className="flex items-center gap-2 overflow-hidden"
                           >
                             <input
                               type="text"
-                              value={spotifySearchQuery}
-                              onChange={(e) => setSpotifySearchQuery(e.target.value)}
+                              value={youtubeMusicSearchQuery}
+                              onChange={(e) => setYouTubeMusicSearchQuery(e.target.value)}
                               placeholder="Search for a song..."
                               className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                               autoFocus
                             />
                             <motion.button
                               type="submit"
-                              disabled={!spotifySearchQuery.trim() || isSpotifyLoading}
+                              disabled={!youtubeMusicSearchQuery.trim() || isYouTubeMusicLoading}
                               className="p-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all disabled:opacity-50"
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
@@ -1188,8 +1359,8 @@ const Study = () => {
                             <motion.button
                               type="button"
                               onClick={() => {
-                                setShowSpotifySearch(false);
-                                setSpotifySearchQuery('');
+                                setShowYouTubeMusicSearch(false);
+                                setYouTubeMusicSearchQuery('');
                               }}
                               className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all"
                               whileHover={{ scale: 1.05 }}

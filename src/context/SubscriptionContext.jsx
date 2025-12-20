@@ -12,6 +12,7 @@ export const SubscriptionProvider = ({ children }) => {
   const [usage, setUsage] = useState({
     mockExamsUsed: 0,
     blurtTestsUsed: 0,
+    aiSchedulesGenerated: 0,
     lastResetDate: null
   });
   const [loading, setLoading] = useState(true);
@@ -63,11 +64,13 @@ export const SubscriptionProvider = ({ children }) => {
           // Get usage data
           const mockExamsUsed = currentUser.user_metadata?.mock_exams_used || 0;
           const blurtTestsUsed = currentUser.user_metadata?.blurt_tests_used || 0;
+          const aiSchedulesGenerated = currentUser.user_metadata?.ai_schedules_generated || 0;
           const lastResetDate = currentUser.user_metadata?.usage_reset_date || null;
 
           setUsage({
             mockExamsUsed,
             blurtTestsUsed,
+            aiSchedulesGenerated,
             lastResetDate
           });
 
@@ -190,6 +193,29 @@ export const SubscriptionProvider = ({ children }) => {
     }
   };
 
+  const incrementAIScheduleUsage = async () => {
+    const newCount = (usage.aiSchedulesGenerated || 0) + 1;
+    
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        data: { ai_schedules_generated: newCount }
+      });
+      
+      if (error) throw error;
+      
+      setUsage(prev => ({ ...prev, aiSchedulesGenerated: newCount }));
+      return true;
+    } catch (error) {
+      console.error('Error incrementing AI schedule usage:', error);
+      return false;
+    }
+  };
+
+  const canGenerateAISchedule = () => {
+    if (subscriptionPlan === 'professor') return true;
+    return (usage.aiSchedulesGenerated || 0) < 1;
+  };
+
   const canUseMockExam = () => {
     if (subscriptionPlan === 'professor') return true;
     return usage.mockExamsUsed < 1;
@@ -249,8 +275,10 @@ export const SubscriptionProvider = ({ children }) => {
         loading,
         canUseMockExam,
         canUseBlurtTest,
+        canGenerateAISchedule,
         incrementMockExamUsage,
         incrementBlurtTestUsage,
+        incrementAIScheduleUsage,
         updateSubscriptionPlan,
         getRemainingMockExams,
         getRemainingBlurtTests,

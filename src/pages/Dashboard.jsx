@@ -5,6 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "../components/Sidebar";
 import Skillpulse from "../components/Skillpulse";
+import DashboardSchedule from "../components/DashboardSchedule";
 import { FlameIcon, Zap, ArrowRight } from "lucide-react";
 import { applyMemoryDeterioration } from "../utils/memoryDeterioration";
 import PremiumUpgradeModal from "../components/PremiumUpgradeModal";
@@ -495,26 +496,26 @@ export default function Dashboard() {
             )}
           </Card>
 
-          {/* Exam Readiness Card - Combined Streak and Tasks */}
+          {/* Mastery Progress Card */}
           <motion.div
             variants={itemVariants}
-            className="md:col-span-2 rounded-2xl p-6 border backdrop-blur-md shadow-xl transition-all bg-gradient-to-br from-purple-900/40 to-slate-900/40 border-purple-700/30"
+            className="rounded-2xl p-6 border backdrop-blur-md shadow-xl transition-all bg-gradient-to-br from-purple-900/40 to-slate-900/40 border-purple-700/30 flex flex-col"
             whileHover={{ y: -5, scale: 1.02 }}
           >
-            <div className="flex items-center gap-3 mb-4">
-              <h2 className="text-lg font-semibold text-white">Your mastery progress</h2>
+            <div className="flex items-center gap-3 mb-3">
+              <h2 className="text-lg font-semibold text-white">Mastery</h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Left: Circular Progress */}
-              <div className="flex flex-col items-center justify-center">
-                <div className="relative w-32 h-32">
-                  <svg className="transform -rotate-90 w-32 h-32" viewBox="0 0 128 128">
+            
+            <div className="flex items-center gap-6">
+              <div className="flex-shrink-0">
+                <div className="relative w-20 h-20">
+                  <svg className="transform -rotate-90 w-20 h-20" viewBox="0 0 128 128">
                     <circle
                       cx="64"
                       cy="64"
                       r="56"
                       stroke="rgba(255, 255, 255, 0.1)"
-                      strokeWidth="12"
+                      strokeWidth="14"
                       fill="none"
                     />
                     <motion.circle
@@ -522,7 +523,7 @@ export default function Dashboard() {
                       cy="64"
                       r="56"
                       stroke={getProgressColor(examReadiness)}
-                      strokeWidth="12"
+                      strokeWidth="14"
                       fill="none"
                       strokeLinecap="round"
                       initial={{ pathLength: 0 }}
@@ -532,46 +533,39 @@ export default function Dashboard() {
                     />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-3xl font-bold text-white">{examReadiness}%</span>
+                    <span className="text-xl font-bold text-white">{examReadiness}%</span>
                   </div>
                 </div>
-                <p className="text-sm text-gray-300 mt-4 text-center">Overall progress</p>
               </div>
 
-              {/* Right: Subject Leaderboard */}
-              <div className="flex flex-col">
-                <h3 className="text-sm font-semibold text-white mb-3">Subject Mastery</h3>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {subjectLeaderboard.length > 0 ? (
-                    subjectLeaderboard.map((subject, index) => (
-                      <div key={subject.id || index} className="flex items-center gap-3">
-                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-600/30 flex items-center justify-center text-xs font-semibold text-white">
-                          {index + 1}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-sm font-medium text-white truncate">{subject.name}</span>
-                            <span className="text-xs font-semibold text-gray-300 ml-2">{Math.round(subject.progress)}%</span>
-                          </div>
-                          <div className="w-full bg-white/10 rounded-full h-1.5">
-                            <motion.div
-                              initial={{ width: 0 }}
-                              animate={{ width: `${subject.progress}%` }}
-                              transition={{ duration: 0.8, delay: index * 0.1 }}
-                              className="h-1.5 rounded-full"
-                              style={{ backgroundColor: getProgressColor(subject.progress) }}
-                            />
-                          </div>
-                        </div>
+              <div className="flex-1 space-y-2 max-h-24 overflow-y-auto custom-scrollbar pr-1">
+                {subjectLeaderboard.length > 0 ? (
+                  subjectLeaderboard.slice(0, 3).map((subject, index) => (
+                    <div key={subject.id || index} className="space-y-1">
+                      <div className="flex items-center justify-between text-[10px] font-medium">
+                        <span className="text-white truncate max-w-[80px]">{subject.name}</span>
+                        <span className="text-gray-400">{Math.round(subject.progress)}%</span>
                       </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-gray-400 text-center py-4">No subjects yet. Add subjects to track your progress!</p>
-                  )}
-                </div>
+                      <div className="w-full bg-white/5 rounded-full h-1">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${subject.progress}%` }}
+                          transition={{ duration: 0.8, delay: index * 0.1 }}
+                          className="h-1 rounded-full"
+                          style={{ backgroundColor: getProgressColor(subject.progress) }}
+                        />
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-[10px] text-gray-500 py-1">No subjects yet.</p>
+                )}
               </div>
             </div>
           </motion.div>
+
+          {/* Live Schedule Card */}
+          <DashboardSchedule />
         </section>
         
         {/* Skillpulse */}

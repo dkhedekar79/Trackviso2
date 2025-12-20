@@ -12,7 +12,7 @@ import Dashboard from './pages/Dashboard';
 import Subjects from './pages/Subjects';
 import Study from './pages/Study';
 import Tasks from './pages/Tasks';
-import Schedule from './pages/Schedule';
+import AISchedule from './pages/Schedule';
 import Insights from './pages/Insights';
 import Mastery from './pages/Mastery';
 
@@ -24,7 +24,6 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Payment from './pages/Payment';
 import PaymentSuccess from './pages/PaymentSuccess';
-import SpotifyCallback from './pages/SpotifyCallback';
 import OnboardingFlow from "./components/OnboardingFlow";
 import Footer from './components/Footer';
 import Blog from './pages/Blog';
@@ -230,7 +229,7 @@ function App() {
                     <div className="flex-1 flex flex-col">
                       <Navbar />
                       <main className="flex-1 overflow-auto">
-                        <Schedule />
+                        <AISchedule />
                         <Footer withSidebar />
                       </main>
                     </div>
@@ -325,7 +324,6 @@ function App() {
                 </ProtectedRoute>
               } />
 
-              <Route path="/callback" element={<SpotifyCallback />} />
 
               {/* Blog Routes - Not in navigation, SEO only */}
               <Route path="/blog" element={<div className="flex flex-col min-h-screen"><main className="flex-1"><Blog /></main></div>} />

@@ -600,7 +600,7 @@ export default function Resources() {
                   return (
                     <motion.a
                       key={`${r.board}-${r.level}-${r.subject}-${r.type}-${r.year ?? "any"}-${r.url}-${index}`}
-                      href={r.url}
+                href={r.url}
                       target={r.url !== "#" ? "_blank" : undefined}
                       rel={r.url !== "#" ? "noopener noreferrer" : undefined}
                       initial={{ opacity: 0, x: -20 }}
@@ -688,7 +688,7 @@ export default function Resources() {
                 Reset Filters
               </motion.button>
             </motion.div>
-          )}
+        )}
         </div>
       </div>
     </div>

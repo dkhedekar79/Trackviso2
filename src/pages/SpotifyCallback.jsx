@@ -6,14 +6,22 @@ const SpotifyCallback = () => {
 
   useEffect(() => {
     // Extract token from URL hash
+    console.log('=== Spotify Callback Debug ===');
+    console.log('Full URL:', window.location.href);
+    console.log('URL Hash:', window.location.hash);
+    
     const hash = window.location.hash
       .substring(1)
       .split('&')
       .reduce((acc, item) => {
         const parts = item.split('=');
-        acc[parts[0]] = decodeURIComponent(parts[1]);
+        if (parts.length === 2) {
+          acc[parts[0]] = decodeURIComponent(parts[1]);
+        }
         return acc;
       }, {});
+    
+    console.log('Parsed hash:', hash);
 
     if (hash.access_token) {
       const expiresIn = parseInt(hash.expires_in) * 1000; // Convert to milliseconds
@@ -42,9 +50,28 @@ const SpotifyCallback = () => {
     } else {
       // No token found, check for errors
       if (hash.error) {
+        const errorDescription = hash.error_description 
+          ? decodeURIComponent(hash.error_description) 
+          : 'Unknown error';
+        
         console.error('Spotify auth error:', hash.error);
-        if (hash.error_description) {
-          console.error('Error description:', decodeURIComponent(hash.error_description));
+        console.error('Error description:', errorDescription);
+        
+        // Store error in localStorage so Study page can display it
+        localStorage.setItem('spotify_auth_error', JSON.stringify({
+          error: hash.error,
+          description: errorDescription,
+          timestamp: Date.now()
+        }));
+        
+        // If it's unsupported_response_type, provide helpful message
+        if (hash.error === 'unsupported_response_type') {
+          console.error('⚠️ This usually means:');
+          console.error('1. The redirect URI is not configured in Spotify Dashboard');
+          console.error('2. Go to https://developer.spotify.com/dashboard');
+          console.error('3. Select your app → Edit Settings');
+          console.error(`4. Add this EXACT redirect URI: ${window.location.origin}/callback`);
+          console.error('5. Make sure there are no trailing slashes or differences');
         }
       } else {
         console.error('No access token in callback');

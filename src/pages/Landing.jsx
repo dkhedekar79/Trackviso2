@@ -42,17 +42,64 @@ import {
   Play,
   Pause,
   Square,
-  X
+  X,
+  Coffee,
+  ChevronDown,
+  ExternalLink,
+  Calendar,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import ImageCarousel from '../components/ImageCarousel';
-import { ChevronDown } from "lucide-react";
 import Skillpulse from '../components/Skillpulse';
 import ambientImages, { ambientVideos } from '../data/ambientImages';
 
 const Landing = () => {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [activeSection, setActiveSection] = useState('hero');
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+
+  const sections = [
+    { id: 'hero', label: 'Top' },
+    { id: 'features', label: 'Features' },
+    { id: 'study-modes', label: 'Study Modes' },
+    { id: 'ambient-mode', label: 'Ambient' },
+    { id: 'ai-timetable', label: 'AI Schedule' },
+    { id: 'how-it-works', label: 'How It Works' },
+    { id: 'introducing-skillpulse', label: 'Skillpulse' },
+    { id: 'demo', label: 'Demo' },
+    { id: 'pricing', label: 'Pricing' },
+    { id: 'testimonials', label: 'Reviews' },
+    { id: 'faq', label: 'FAQ' }
+  ];
+
+  useEffect(() => {
+    const observerOptions = {
+      root: null,
+      rootMargin: '-20% 0px -20% 0px', // More sensitive for smaller sections
+      threshold: [0, 0.25, 0.5, 0.75, 1]
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      // Filter only intersecting entries and sort by intersection ratio
+      const visibleEntries = entries.filter(e => e.isIntersecting);
+      if (visibleEntries.length > 0) {
+        // Find the entry with the highest intersection ratio
+        const bestEntry = visibleEntries.reduce((prev, curr) => 
+          curr.intersectionRatio > prev.intersectionRatio ? curr : prev
+        );
+        setActiveSection(bestEntry.target.id);
+      }
+    }, observerOptions);
+
+    sections.forEach(section => {
+      const element = document.getElementById(section.id);
+      if (element) observer.observe(element);
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   const rotatingTexts = [
     {
@@ -199,6 +246,72 @@ const Landing = () => {
         url="/"
       />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      
+      {/* Mini Side Progress Bar */}
+      <motion.div 
+        className="fixed left-4 top-[20%] -translate-y-1/2 z-[100] hidden lg:flex flex-col items-center py-6 px-2 group rounded-2xl transition-all duration-500 hover:px-4"
+        initial={{ x: -50, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ type: "spring", damping: 20, stiffness: 100, delay: 1 }}
+      >
+        {/* Glass Background that expands */}
+        <div className="absolute inset-0 bg-slate-950/20 backdrop-blur-sm border border-white/5 rounded-3xl group-hover:bg-slate-950/60 group-hover:backdrop-blur-xl group-hover:border-purple-500/30 group-hover:shadow-[0_0_40px_rgba(0,0,0,0.5)] transition-all duration-500" />
+        
+        {/* Background Line */}
+        <div className="absolute left-1/2 -translate-x-1/2 top-10 bottom-10 w-px bg-gradient-to-b from-transparent via-white/10 to-transparent group-hover:via-purple-500/40 transition-colors duration-500" />
+        
+        <div className="relative flex flex-col gap-4 py-2">
+          {sections.map((section) => (
+            <button
+              key={section.id}
+              onClick={() => scrollToSection(section.id)}
+              className="relative flex items-center justify-center w-8 h-8 group/item"
+            >
+              {/* Label that slides out */}
+              <div
+                className="absolute left-10 px-3 py-1.5 rounded-xl bg-purple-600 border border-purple-400/50 text-white text-[10px] font-black uppercase tracking-widest whitespace-nowrap opacity-0 -translate-x-4 pointer-events-none group-hover/item:opacity-100 group-hover/item:translate-x-0 transition-all duration-300 shadow-[0_0_20px_rgba(168,85,247,0.4)] z-50"
+              >
+                {section.label}
+                <div className="absolute left-[-4px] top-1/2 -translate-y-1/2 w-2 h-2 bg-purple-600 border-l border-b border-purple-400/50 rotate-45" />
+              </div>
+
+              {/* Indicator Dot */}
+              <div className="relative flex items-center justify-center">
+                <motion.div
+                  className={`relative z-10 w-2 h-2 rounded-full border-2 transition-all duration-500 ${
+                    activeSection === section.id
+                      ? 'bg-white border-purple-400 scale-150 shadow-[0_0_15px_rgba(168,85,247,1)]'
+                      : 'bg-slate-900 border-white/20 group-hover/item:border-purple-400 group-hover/item:scale-125'
+                  }`}
+                  animate={activeSection === section.id ? { 
+                    scale: [1.2, 1.5, 1.2],
+                    backgroundColor: "#ffffff"
+                  } : { 
+                    scale: 1,
+                    backgroundColor: "transparent"
+                  }}
+                  transition={activeSection === section.id ? { 
+                    duration: 2, 
+                    repeat: Infinity,
+                    ease: "easeInOut" 
+                  } : {}}
+                />
+                
+                {/* Glow for Active Section */}
+                {activeSection === section.id && (
+                  <motion.div 
+                    className="absolute inset-0 bg-purple-500 rounded-full blur-sm"
+                    initial={{ opacity: 0, scale: 1 }}
+                    animate={{ opacity: [0.2, 0.5, 0.2], scale: [1, 2, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
+                )}
+              </div>
+            </button>
+          ))}
+        </div>
+      </motion.div>
+
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
         {/* Navigation */}
         <nav className="fixed top-0 w-full bg-slate-950/80 backdrop-blur-xl z-50 border-b border-purple-900/50">
@@ -250,7 +363,7 @@ const Landing = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 px-4 overflow-hidden">
+      <section id="hero" className="relative pt-32 pb-20 px-4 overflow-hidden">
         <div className="absolute inset-0 h-96 bg-gradient-to-b from-purple-600/20 to-transparent pointer-events-none"></div>
         <div className="absolute inset-0 h-full overflow-hidden">
           <MagneticParticles />
@@ -509,6 +622,8 @@ const Landing = () => {
 
       <AmbientModeSection />
 
+      <AITimetableSection />
+
       {/* How It Works Section */}
       <section id="how-it-works" className="py-32 px-4 bg-gradient-to-b from-purple-900/50 via-slate-900 to-slate-900 relative overflow-hidden">
         <div className="absolute top-0 left-1/3 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -686,12 +801,12 @@ const Landing = () => {
                   <span>Unlimited subjects</span>
                 </li>
                 <li className="flex items-center space-x-3">
-                  <CheckCircle className="w-5 h-5 text-pink-300" />
+                  <CheckCircle className="w-5 h-5 text-purple-300" />
                   <span>Unlimited logging</span>
                 </li>
                 <li className="flex items-center space-x-3">
-                  <CheckCircle className="w-5 h-5 text-purple-300" />
-                  <span>Full insight access</span>
+                  <Sparkles className="w-5 h-5 text-yellow-300" />
+                  <span>1 AI Study Schedule</span>
                 </li>
                 <li className="flex items-center space-x-3">
                   <CheckCircle className="w-5 h-5 text-pink-300" />
@@ -699,7 +814,7 @@ const Landing = () => {
                 </li>
                 <li className="flex items-center space-x-3">
                   <Sparkles className="w-5 h-5 text-yellow-300" />
-                  <span>1 AI feature per day</span>
+                  <span>Daily AI revision trial</span>
                 </li>
               </ul>
               <Link
@@ -740,23 +855,23 @@ const Landing = () => {
                 </li>
                 <li className="flex items-center space-x-3">
                   <Sparkles className="w-5 h-5 text-yellow-300" />
-                  <span>Unlimited AI features</span>
+                  <span>Unlimited AI Study Schedules</span>
                 </li>
                 <li className="flex items-center space-x-3">
                   <Brain className="w-5 h-5 text-amber-300" />
-                  <span>Advanced personalized insights</span>
+                  <span>Advanced cognitive engine</span>
                 </li>
                 <li className="flex items-center space-x-3">
-                  <Zap className="w-5 h-5 text-yellow-300" />
-                  <span>Priority support</span>
-                </li>
-                <li className="flex items-center space-x-3">
-                  <Trophy className="w-5 h-5 text-amber-300" />
-                  <span>Exclusive Professor badge</span>
+                  <Sparkles className="w-5 h-5 text-yellow-300" />
+                  <span>Unlimited AI revision</span>
                 </li>
                 <li className="flex items-center space-x-3">
                   <TrendingUp className="w-5 h-5 text-yellow-300" />
                   <span>Enhanced Analytics</span>
+                </li>
+                <li className="flex items-center space-x-3">
+                  <Zap className="w-5 h-5 text-yellow-300" />
+                  <span>8K Animated Wallpapers</span>
                 </li>
               </ul>
               <Link
@@ -1219,6 +1334,262 @@ const StudyModesSection = () => {
   );
 };
 
+// AI Timetable Generator Section Component
+const AITimetableSection = () => {
+  const [activeStep, setActiveStep] = useState(0);
+  
+  const engineeringPrinciples = [
+    {
+      title: "Spaced Repetition",
+      desc: "Optimized intervals (1, 3, 7 days) to lock knowledge into long-term memory.",
+      icon: RefreshCw,
+      color: "from-blue-400 to-cyan-400"
+    },
+    {
+      title: "Subject Interleaving",
+      desc: "Smart mixing of topics to improve pattern recognition and problem-solving.",
+      icon: Zap,
+      color: "from-purple-400 to-pink-400"
+    },
+    {
+      title: "Cognitive Load Balancing",
+      desc: "Adjusts session intensity based on your biological peak energy windows.",
+      icon: Brain,
+      color: "from-amber-400 to-orange-400"
+    },
+    {
+      title: "Active Recovery",
+      desc: "Engineered micro & macro breaks to prevent burnout and maintain focus.",
+      icon: Coffee,
+      color: "from-emerald-400 to-teal-400"
+    }
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveStep((prev) => (prev + 1) % engineeringPrinciples.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <section id="ai-timetable" className="py-32 px-4 bg-[#050505] relative overflow-hidden">
+      {/* High-tech Grid Background */}
+      <div className="absolute inset-0 opacity-20 pointer-events-none" 
+           style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #3b82f6 1px, transparent 0)', backgroundSize: '40px 40px' }}></div>
+      
+      {/* Glowing Orbs */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none animate-pulse"></div>
+      <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-blue-600/5 rounded-full blur-[100px] pointer-events-none"></div>
+
+      <div className="max-w-7xl mx-auto relative z-10">
+        <div className="flex flex-col lg:flex-row gap-16 items-center">
+          {/* Left: Dummy Timetable Visual */}
+          <div className="flex-1 w-full order-2 lg:order-1">
+            <div className="relative w-full max-w-[600px] mx-auto p-4 lg:p-0">
+              {/* Background Glass Panel */}
+              <div className="absolute -inset-4 bg-indigo-500/5 rounded-[40px] blur-3xl -z-10" />
+              
+              <motion.div 
+                className="bg-slate-900/80 backdrop-blur-xl border border-indigo-500/30 rounded-3xl overflow-hidden shadow-2xl"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                viewport={{ once: true }}
+              >
+                {/* Timetable Header */}
+                <div className="p-6 border-b border-indigo-500/20 bg-indigo-500/5 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-indigo-500/20 rounded-lg">
+                      <Calendar className="w-5 h-5 text-indigo-400" />
+                    </div>
+                    <div>
+                      <h4 className="text-white font-bold">Week 1: Focus Cycle</h4>
+                      <p className="text-indigo-300/60 text-xs font-medium">Monday, Dec 22 - Sunday, Dec 28</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+                      <ChevronLeft className="w-4 h-4 text-white/40" />
+                    </div>
+                    <div className="w-8 h-8 rounded-lg bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center">
+                      <ChevronRight className="w-4 h-4 text-indigo-400" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-6 space-y-4">
+                  {/* Closed Block 1 */}
+                  <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between opacity-60">
+                    <div className="flex items-center gap-4">
+                      <div className="p-2 bg-emerald-500/20 rounded-xl text-emerald-400">
+                        <Zap className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="text-white font-bold text-sm">Photosynthesis Deep Dive</p>
+                        <p className="text-white/40 text-xs">Biology • 09:00 - 10:30</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-white/60 font-bold text-xs">90m</p>
+                    </div>
+                  </div>
+
+                  {/* Expanded Block (The Star) */}
+                  <motion.div 
+                    className="bg-gradient-to-br from-indigo-600/20 to-purple-600/20 border border-indigo-400/50 rounded-2xl overflow-hidden shadow-lg shadow-indigo-500/10"
+                    initial={{ scale: 0.95 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.5, repeat: Infinity, repeatType: 'reverse', repeatDelay: 3 }}
+                  >
+                    <div className="p-5 flex items-center justify-between border-b border-indigo-400/20">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-indigo-500/30 rounded-xl text-indigo-300 animate-pulse">
+                          <Brain className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <h5 className="text-white font-black text-lg">Organic Chemistry II</h5>
+                          <div className="flex items-center gap-2">
+                            <span className="text-indigo-300 text-xs font-bold uppercase tracking-widest">Chemistry</span>
+                            <span className="w-1 h-1 bg-white/20 rounded-full" />
+                            <span className="text-red-400 text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-red-500/10 rounded border border-red-500/20">High Priority</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-white font-black text-xl">11:00</p>
+                        <p className="text-indigo-300/60 text-xs">120m Session</p>
+                      </div>
+                    </div>
+                    
+                    <div className="p-5 space-y-6">
+                      <div className="space-y-3">
+                        <h6 className="text-white/40 text-[10px] font-bold uppercase tracking-[0.2em]">Engineered Plan</h6>
+                        <div className="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
+                          <p className="text-indigo-100 text-sm leading-relaxed italic">
+                            "Focus on Nucleophilic Substitution mechanisms. Use the Feynman technique for SN1 vs SN2 differences, then attempt 3 past paper questions."
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="p-3 bg-white/5 border border-white/10 rounded-xl flex items-center gap-3 group cursor-pointer hover:bg-indigo-500/10 hover:border-indigo-500/30 transition-all">
+                          <div className="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center text-emerald-400">
+                            <span className="text-xs">📚</span>
+                          </div>
+                          <span className="text-white/70 text-xs font-bold truncate">SaveMyExams</span>
+                          <ExternalLink className="w-3 h-3 ml-auto opacity-0 group-hover:opacity-100" />
+                        </div>
+                        <div className="p-3 bg-white/5 border border-white/10 rounded-xl flex items-center gap-3 group cursor-pointer hover:bg-indigo-500/10 hover:border-indigo-500/30 transition-all">
+                          <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center text-blue-400">
+                            <span className="text-xs">⚛️</span>
+                          </div>
+                          <span className="text-white/70 text-xs font-bold truncate">PMT Notes</span>
+                          <ExternalLink className="w-3 h-3 ml-auto opacity-0 group-hover:opacity-100" />
+                        </div>
+                      </div>
+
+                      <button className="w-full py-4 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-black text-sm uppercase tracking-[0.15em] rounded-xl shadow-lg shadow-indigo-500/30 flex items-center justify-center gap-2 group transition-all">
+                        Start Studying Now
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </button>
+                    </div>
+                  </motion.div>
+
+                  {/* Closed Block 2 (Break) */}
+                  <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between opacity-60">
+                    <div className="flex items-center gap-4">
+                      <div className="p-2 bg-blue-500/20 rounded-xl text-blue-400">
+                        <Coffee className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="text-white font-bold text-sm">Engineered Recovery</p>
+                        <p className="text-white/40 text-xs">Active Break • 13:00 - 13:30</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-white/60 font-bold text-xs">30m</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+              
+              {/* Floating Accents */}
+              <motion.div 
+                className="absolute -top-10 -right-10 w-32 h-32 bg-indigo-500/20 rounded-full blur-3xl"
+                animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
+                transition={{ duration: 4, repeat: Infinity }}
+              />
+              <motion.div 
+                className="absolute -bottom-10 -left-10 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl"
+                animate={{ scale: [1.2, 1, 1.2], opacity: [0.3, 0.6, 0.3] }}
+                transition={{ duration: 5, repeat: Infinity }}
+              />
+            </div>
+          </div>
+
+          {/* Right: Text and Features */}
+          <div className="flex-1 order-1 lg:order-2">
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.7 }}
+              viewport={{ once: true }}
+            >
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-bold mb-6">
+                <Sparkles className="w-4 h-4" />
+                The Professor's Engine
+              </div>
+              <h2 className="text-4xl lg:text-6xl font-black text-white mb-8 leading-[1.1]">
+                Perfectly Engineered <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-cyan-400">
+                  Study Timetables
+                </span>
+              </h2>
+              <p className="text-xl text-slate-400 mb-12 leading-relaxed">
+                Our AI doesn't just list tasks. It applies world-class educational psychology to engineer your cognitive performance.
+              </p>
+
+              <div className="space-y-6">
+                {engineeringPrinciples.map((p, i) => (
+                  <motion.div
+                    key={i}
+                    className={`p-6 rounded-2xl border transition-all cursor-pointer ${
+                      activeStep === i 
+                        ? 'bg-indigo-500/10 border-indigo-500/50 translate-x-4' 
+                        : 'bg-white/5 border-white/10 opacity-60 hover:opacity-100 hover:bg-white/[0.07]'
+                    }`}
+                    onClick={() => setActiveStep(i)}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`p-3 rounded-xl bg-gradient-to-br ${p.color} bg-opacity-20`}>
+                        <p.icon className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-bold text-white mb-1">{p.title}</h4>
+                        <p className="text-sm text-slate-400">{p.desc}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              <motion.div className="mt-12" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Link
+                  to="/signup"
+                  className="px-10 py-5 bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-600 text-white rounded-2xl font-black text-xl shadow-[0_0_40px_rgba(79,70,229,0.4)] flex items-center justify-center gap-3 transition-all"
+                >
+                  Generate Your Engine <ArrowRight className="w-6 h-6" />
+                </Link>
+              </motion.div>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
 // Ambient Mode Section Component
 const AmbientModeSection = () => {
   const [isHovered, setIsHovered] = useState(false);
@@ -1244,8 +1615,8 @@ const AmbientModeSection = () => {
     },
     {
       icon: Music,
-      title: "Spotify Integration",
-      description: "Connect your Spotify account and play your favorite study playlists directly in ambient mode"
+      title: "Music Integration",
+      description: "Select from a curated list of background music to enhance your study sessions, or search your own songs."
     },
     {
       icon: Moon,
@@ -1640,6 +2011,36 @@ const AmbientModeSection = () => {
                     </motion.button>
                   </motion.div>
 
+                  {/* YouTube Music Widget Preview */}
+                  <motion.div
+                    className="absolute top-20 right-4 w-48 bg-black/40 backdrop-blur-md border border-white/20 rounded-2xl p-3 shadow-xl"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.6 }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-red-600 to-red-900 rounded-lg flex items-center justify-center relative overflow-hidden group">
+                        <Music className="w-5 h-5 text-white animate-pulse" />
+                        <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] font-bold text-white truncate">Lofi Girl - Study Beats</p>
+                        <p className="text-[8px] text-white/60 truncate">YouTube Music</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex items-center justify-between">
+                      <div className="flex gap-2">
+                        <div className="w-1 h-3 bg-white/40 rounded-full animate-[bounce_1s_infinite]" />
+                        <div className="w-1 h-3 bg-white/60 rounded-full animate-[bounce_1.2s_infinite]" />
+                        <div className="w-1 h-3 bg-white/40 rounded-full animate-[bounce_0.8s_infinite]" />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <PauseCircle className="w-4 h-4 text-white/80" />
+                        <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
+                      </div>
+                    </div>
+                  </motion.div>
+
                   {/* Settings Button */}
                   <motion.button
                     className="absolute top-4 right-4 p-3 rounded-lg bg-black/30 backdrop-blur-sm border border-white/20 hover:bg-black/50 transition-all"
@@ -1748,24 +2149,56 @@ const AmbientModeSection = () => {
             <div className="absolute inset-0" />
             
             {/* Settings Button in Corner */}
-            <motion.button
-              className="absolute top-6 right-6 z-20 px-6 py-3 rounded-xl bg-black/40 backdrop-blur-md border border-white/30 hover:bg-black/60 transition-all flex items-center gap-2 shadow-lg"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ delay: 0.2 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowSettings(true);
-              }}
-            >
-              <Settings className="w-5 h-5 text-white" />
-              <span className="text-white font-semibold text-base">Change Background</span>
-            </motion.button>
-            
-            <div className="text-center relative z-10">
+              <motion.button
+                className="absolute top-6 right-6 z-20 px-6 py-3 rounded-xl bg-black/40 backdrop-blur-md border border-white/30 hover:bg-black/60 transition-all flex items-center gap-2 shadow-lg"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ delay: 0.2 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowSettings(true);
+                }}
+              >
+                <Settings className="w-5 h-5 text-white" />
+                <span className="text-white font-semibold text-base">Change Background</span>
+              </motion.button>
+
+              {/* YouTube Music Widget Preview (Fullscreen) */}
+              <motion.div
+                className="absolute bottom-32 right-12 w-64 bg-black/40 backdrop-blur-md border border-white/20 rounded-3xl p-4 shadow-2xl z-20"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ delay: 0.5 }}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-gradient-to-br from-red-600 to-red-900 rounded-xl flex items-center justify-center relative overflow-hidden group shadow-lg">
+                    <Music className="w-8 h-8 text-white animate-pulse" />
+                    <div className="absolute inset-0 bg-black/20" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-white truncate">Lofi Girl - Study Beats</p>
+                    <p className="text-xs text-white/60 truncate">YouTube Music</p>
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center justify-between">
+                  <div className="flex gap-1.5 items-end h-4">
+                    <motion.div className="w-1 bg-white/40 rounded-full" animate={{ height: [8, 16, 8] }} transition={{ duration: 1, repeat: Infinity }} />
+                    <motion.div className="w-1 bg-white/60 rounded-full" animate={{ height: [12, 6, 12] }} transition={{ duration: 1.2, repeat: Infinity }} />
+                    <motion.div className="w-1 bg-white/40 rounded-full" animate={{ height: [6, 14, 6] }} transition={{ duration: 0.8, repeat: Infinity }} />
+                    <motion.div className="w-1 bg-white/50 rounded-full" animate={{ height: [10, 4, 10] }} transition={{ duration: 1.5, repeat: Infinity }} />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <PauseCircle className="w-6 h-6 text-white/80 cursor-pointer hover:text-white transition-colors" />
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+                  </div>
+                </div>
+              </motion.div>
+              
+              <div className="text-center relative z-10">
               <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}

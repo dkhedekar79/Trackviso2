@@ -1195,32 +1195,32 @@ export const GamificationProvider = ({ children }) => {
   const checkAchievements = () => {
     // Check which achievements should be unlocked using current stats
     const currentStats = userStats;
-    const newlyUnlocked = [];
-    
+      const newlyUnlocked = [];
+      
     Object.values(achievements).forEach((achievement) => {
-      // Check if already unlocked
+        // Check if already unlocked
       if (currentStats.achievements.includes(achievement.id)) {
-        return;
-      }
-      
-      // Check condition with current stats
-      try {
-        if (achievement.condition(currentStats)) {
-          newlyUnlocked.push(achievement);
+          return;
         }
-      } catch (error) {
+        
+        // Check condition with current stats
+        try {
+        if (achievement.condition(currentStats)) {
+            newlyUnlocked.push(achievement);
+          }
+        } catch (error) {
         logger.error(`Error checking achievement ${achievement.id}:`, error);
-      }
-    });
-    
-    // If any achievements were unlocked, update state and grant XP
-    if (newlyUnlocked.length > 0) {
-      const newAchievementIds = newlyUnlocked.map(a => a.id);
-      let totalXP = 0;
+        }
+      });
       
+      // If any achievements were unlocked, update state and grant XP
+      if (newlyUnlocked.length > 0) {
+        const newAchievementIds = newlyUnlocked.map(a => a.id);
+        let totalXP = 0;
+        
       // Calculate total XP
-      newlyUnlocked.forEach((achievement) => {
-        totalXP += achievement.xp || 0;
+        newlyUnlocked.forEach((achievement) => {
+          totalXP += achievement.xp || 0;
       });
       
       // Update achievements list
@@ -1233,27 +1233,27 @@ export const GamificationProvider = ({ children }) => {
       if (totalXP > 0) {
         grantXP(totalXP, "achievement");
       }
-      
+          
       // Show reward notifications
       newlyUnlocked.forEach((achievement) => {
-        setTimeout(() => {
-          addReward({
-            type: "ACHIEVEMENT",
-            title: `🏆 ${achievement.name}`,
-            description: achievement.description,
-            tier: achievement.tier,
-            xp: achievement.xp,
-            icon: achievement.icon,
-            animation: "achievement",
-          });
-        }, 50);
-      });
-      
-      // Track weekly achievement quest
-      setTimeout(() => {
-        updateQuestProgress("achievement", newlyUnlocked.length);
-      }, 100);
-    }
+          setTimeout(() => {
+            addReward({
+              type: "ACHIEVEMENT",
+              title: `🏆 ${achievement.name}`,
+              description: achievement.description,
+              tier: achievement.tier,
+              xp: achievement.xp,
+              icon: achievement.icon,
+              animation: "achievement",
+            });
+          }, 50);
+        });
+        
+        // Track weekly achievement quest
+          setTimeout(() => {
+            updateQuestProgress("achievement", newlyUnlocked.length);
+          }, 100);
+        }
   };
 
   // Unlock achievement - DEPRECATED, use checkAchievements instead
@@ -1957,22 +1957,22 @@ export const GamificationProvider = ({ children }) => {
 
       // Show rewards for completed quests (after state update)
       setTimeout(() => {
-        completedQuests.forEach(({ quest, xp }) => {
-          addReward({
-            type: "QUEST_COMPLETE",
-            title: `✅ ${quest.name}`,
-            description: quest.description,
-            tier: "uncommon",
-            xp: xp,
-          });
+      completedQuests.forEach(({ quest, xp }) => {
+        addReward({
+          type: "QUEST_COMPLETE",
+          title: `✅ ${quest.name}`,
+          description: quest.description,
+          tier: "uncommon",
+          xp: xp,
         });
+      });
 
         completedWeeklyQuests.forEach(({ quest, xp }) => {
-          addReward({
+            addReward({
             type: "QUEST_COMPLETE",
-            title: `🏆 ${quest.name}`,
+              title: `🏆 ${quest.name}`,
             description: quest.description,
-            tier: "epic",
+              tier: "epic",
             xp: xp,
           });
         });
