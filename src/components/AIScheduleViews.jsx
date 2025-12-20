@@ -1,7 +1,11 @@
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Calendar, List, Clock, BookOpen, Coffee, Zap, ChevronLeft, ChevronRight, PieChart, Info, Sparkles, X, ArrowRight, ExternalLink } from "lucide-react";
+import { 
+  Calendar, List, Clock, BookOpen, Coffee, Zap, 
+  ChevronLeft, ChevronRight, PieChart, Info, 
+  Sparkles, X, ArrowRight, ExternalLink, Check, RotateCcw 
+} from "lucide-react";
 
 // Helper functions defined before component to avoid ReferenceErrors
 const timeToMinutes = (timeStr) => {
@@ -31,11 +35,21 @@ const formatDate = (dateStr) => {
   return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 };
 
-export default function AIScheduleViews({ schedule }) {
+export default function AIScheduleViews({ schedule, onToggleComplete }) {
   const [viewMode, setViewMode] = useState('hour'); // 'hour', 'topics', or 'overview'
   const [currentWeekIndex, setCurrentWeekIndex] = useState(0);
   const [selectedBlock, setSelectedBlock] = useState(null);
   const navigate = useNavigate();
+
+  const handleToggleComplete = (block) => {
+    if (onToggleComplete) {
+      onToggleComplete(block.id);
+      // Update selectedBlock if it's the one being toggled
+      if (selectedBlock?.id === block.id) {
+        setSelectedBlock({ ...selectedBlock, completed: !selectedBlock.completed });
+      }
+    }
+  };
 
   const handleStartStudying = (block) => {
     // Navigate to study page with subject in URL and other details in state
@@ -160,6 +174,18 @@ export default function AIScheduleViews({ schedule }) {
 
   // Generate hours array (6 AM to 11 PM)
   const hours = Array.from({ length: 18 }, (_, i) => i + 6); // 6 to 23
+
+  const adherenceStats = useMemo(() => {
+    if (!schedule?.blocks) return { completed: 0, total: 0, percent: 0 };
+    const studyBlocks = schedule.blocks.filter(b => b.type?.toLowerCase() !== 'break');
+    const completed = studyBlocks.filter(b => b.completed).length;
+    const total = studyBlocks.length;
+    return {
+      completed,
+      total,
+      percent: total > 0 ? Math.round((completed / total) * 100) : 0
+    };
+  }, [schedule]);
 
   return (
     <div className="space-y-6">
@@ -289,7 +315,9 @@ export default function AIScheduleViews({ schedule }) {
                                       whileTap={{ scale: 0.98 }}
                                       onClick={() => setSelectedBlock(block)}
                                       className={`p-3 rounded-lg border text-xs shadow-md cursor-pointer transition-all ${
-                                        isLargeBreak
+                                        block.completed 
+                                          ? 'bg-slate-800/50 border-slate-700 opacity-50' 
+                                          : isLargeBreak
                                           ? 'bg-blue-600/20 border-blue-400/50 text-blue-100'
                                           : isBreak
                                           ? 'bg-slate-700/40 border-slate-500/30 text-slate-200'
@@ -300,8 +328,8 @@ export default function AIScheduleViews({ schedule }) {
                                           : 'bg-emerald-600/20 border-emerald-500/50 text-emerald-200'
                                       }`}
                                     >
-                                      <div className="font-semibold mb-1 truncate flex items-center gap-1">
-                                        {isBreak ? <Coffee className="w-3 h-3" /> : <Zap className="w-3 h-3 text-yellow-400" />}
+                                      <div className={`font-semibold mb-1 truncate flex items-center gap-1 ${block.completed ? 'line-through text-white/40' : ''}`}>
+                                        {block.completed ? <Check className="w-3 h-3 text-emerald-400" /> : isBreak ? <Coffee className="w-3 h-3" /> : <Zap className="w-3 h-3 text-yellow-400" />}
                                         {displayName}
                                       </div>
                                       {!isBreak && (
@@ -392,12 +420,24 @@ export default function AIScheduleViews({ schedule }) {
                             <div className="flex flex-col gap-2 items-center">
                               {sessions.map((session, sIdx) => {
                                 const durationHours = Math.round((session.duration / 60) * 10) / 10;
+                                const sessionBlock = schedule.blocks.find(b => b.day === date && b.startTime === session.startTime);
+                                const isCompleted = sessionBlock?.completed;
+
                                 return (
-                                  <div key={sIdx} className="w-full inline-flex flex-col items-center gap-1 p-2 bg-emerald-600/20 border border-emerald-500/30 rounded-lg">
-                                    <span className="text-emerald-300 text-xs font-semibold">
+                                  <div 
+                                    key={sIdx} 
+                                    onClick={() => setSelectedBlock(sessionBlock)}
+                                    className={`w-full inline-flex flex-col items-center gap-1 p-2 rounded-lg cursor-pointer transition-all ${
+                                      isCompleted 
+                                        ? 'bg-slate-800/50 border border-slate-700 opacity-50' 
+                                        : 'bg-emerald-600/20 border border-emerald-500/30 hover:border-emerald-400/50'
+                                    }`}
+                                  >
+                                    <span className={`text-xs font-semibold flex items-center gap-1 ${isCompleted ? 'text-white/40 line-through' : 'text-emerald-300'}`}>
+                                      {isCompleted && <Check className="w-3 h-3 text-emerald-400" />}
                                       {formatTime(session.startTime)} - {formatTime(session.endTime)}
                                     </span>
-                                    <span className="text-emerald-400 text-[10px]">
+                                    <span className={isCompleted ? 'text-white/20' : 'text-emerald-400 text-[10px]'}>
                                       {durationHours}h
                                     </span>
                                   </div>
@@ -452,6 +492,33 @@ export default function AIScheduleViews({ schedule }) {
                     {Math.round((schedule.aiSummary?.totalBreakHours || 0) * 10) / 10}h
                   </span>
                 </div>
+                <div className="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/10">
+                  <div className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-purple-400" />
+                    <span className="text-white/80">Adherence Rate</span>
+                  </div>
+                  <span className="text-lg font-bold text-purple-400">
+                    {adherenceStats.percent}%
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-6 space-y-2">
+                <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-white/40 px-1">
+                  <span>Execution Score</span>
+                  <span>{adherenceStats.completed} / {adherenceStats.total} Blocks</span>
+                </div>
+                <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/10 p-0.5">
+                  <motion.div
+                    className="h-full bg-gradient-to-r from-violet-500 to-emerald-500 rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${adherenceStats.percent}%` }}
+                    transition={{ duration: 1, ease: "easeOut" }}
+                  />
+                </div>
+                <p className="text-[10px] text-white/30 italic text-center">
+                  "Finish blocks to earn extra XP and boost your score!"
+                </p>
               </div>
 
               {schedule.aiSummary?.aiStrategyNote && (
@@ -646,7 +713,27 @@ export default function AIScheduleViews({ schedule }) {
                 >
                   Close
                 </button>
-                {selectedBlock.type?.toLowerCase() !== 'break' && (
+                <button
+                  onClick={() => handleToggleComplete(selectedBlock)}
+                  className={`px-6 py-3 rounded-xl font-semibold transition-all flex-1 flex items-center justify-center gap-2 ${
+                    selectedBlock.completed 
+                      ? 'bg-slate-700 text-white/60 hover:bg-slate-600' 
+                      : 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-600/30'
+                  }`}
+                >
+                  {selectedBlock.completed ? (
+                    <>
+                      <RotateCcw className="w-4 h-4" />
+                      Mark Incomplete
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4" />
+                      Mark as Done
+                    </>
+                  )}
+                </button>
+                {selectedBlock.type?.toLowerCase() !== 'break' && !selectedBlock.completed && (
                   <button
                     onClick={() => handleStartStudying(selectedBlock)}
                     className="px-8 py-3 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-violet-500/30 flex items-center justify-center gap-2 flex-[2] group"

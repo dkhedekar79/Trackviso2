@@ -1052,6 +1052,36 @@ export const GamificationProvider = ({ children }) => {
     };
   };
 
+  // Award XP for adhering to the AI Schedule
+  const awardScheduleCompletionXP = (block) => {
+    const isBreak = block.type?.toLowerCase() === 'break';
+    if (isBreak) return;
+
+    // Base adherence reward: 50 XP
+    const baseReward = 50;
+    
+    // Bonus for high priority tasks
+    const priorityBonus = block.priority === 'high' ? 30 : block.priority === 'medium' ? 15 : 0;
+    
+    // Bonus for longer sessions (extra discipline)
+    const durationBonus = Math.floor((block.duration || 0) / 30) * 10;
+
+    const totalReward = baseReward + priorityBonus + durationBonus;
+    
+    grantXP(totalReward, "schedule_adherence");
+
+    addReward({
+      type: "SCHEDULE_COMPLETE",
+      title: "📅 Schedule Adherence!",
+      description: `+${totalReward} XP for staying on track with ${block.topic || block.name}`,
+      tier: "uncommon",
+      xp: totalReward,
+      animation: "achievement",
+    });
+
+    return totalReward;
+  };
+
   // Add reward to queue
   const addReward = (reward) => {
     const rewardWithId = {
@@ -2275,6 +2305,7 @@ export const GamificationProvider = ({ children }) => {
     getXPForLevel,
     getLevelFromXP,
     awardMasteryXP,
+    awardScheduleCompletionXP,
     checkSubjectMasteryMilestones,
     // Legacy time-based functions (now XP-based internally)
     getTotalStudyTimeForLevel,

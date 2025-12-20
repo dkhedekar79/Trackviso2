@@ -11,13 +11,49 @@ import SEO from "../components/SEO";
 import AIScheduleSetup from "../components/AIScheduleSetup";
 import AIScheduleViews from "../components/AIScheduleViews";
 import { useSubscription } from "../context/SubscriptionContext";
+import { useGamification } from "../context/GamificationContext";
 import PremiumUpgradeModal from "../components/PremiumUpgradeModal";
 
 export default function AISchedule() {
   const { canGenerateAISchedule, subscriptionPlan } = useSubscription();
+  const { awardScheduleCompletionXP } = useGamification();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [schedules, setSchedules] = useState([]);
   const [currentSchedule, setCurrentSchedule] = useState(null);
+
+  const handleToggleComplete = (blockId) => {
+    setSchedules(prevSchedules => {
+      const updatedSchedules = prevSchedules.map(schedule => {
+        const block = schedule.blocks?.find(b => b.id === blockId);
+        if (block) {
+          const newCompletedStatus = !block.completed;
+          
+          // Award XP only if marking as completed (not reverting)
+          if (newCompletedStatus) {
+            awardScheduleCompletionXP(block);
+          }
+
+          return {
+            ...schedule,
+            blocks: schedule.blocks.map(b => 
+              b.id === blockId ? { ...b, completed: newCompletedStatus, completedAt: newCompletedStatus ? new Date().toISOString() : null } : b
+            )
+          };
+        }
+        return schedule;
+      });
+
+      // Update current schedule if it's the one being modified
+      if (currentSchedule) {
+        const updatedCurrent = updatedSchedules.find(s => s.id === currentSchedule.id);
+        if (updatedCurrent) {
+          setCurrentSchedule(updatedCurrent);
+        }
+      }
+
+      return updatedSchedules;
+    });
+  };
 
   // Calendar view states (when viewing a specific schedule)
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
@@ -522,7 +558,7 @@ export default function AISchedule() {
 
         {/* AI Schedule Views (only for AI-generated schedules) */}
         {currentSchedule?.isAIGenerated ? (
-          <AIScheduleViews schedule={currentSchedule} />
+          <AIScheduleViews schedule={currentSchedule} onToggleComplete={handleToggleComplete} />
         ) : (
           // Fallback for non-AI schedules (shouldn't happen, but just in case)
           <div className="text-center py-12 text-white/50">

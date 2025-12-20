@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, BookOpen, Coffee, Zap, ChevronRight, Brain } from 'lucide-react';
+import { Clock, BookOpen, Coffee, Zap, ChevronRight, Brain, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useGamification } from '../context/GamificationContext';
 
 const timeToMinutes = (timeStr) => {
   if (!timeStr) return 0;
@@ -21,13 +22,10 @@ const formatTime = (timeStr) => {
 export default function DashboardSchedule() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [activeSchedule, setActiveSchedule] = useState(null);
+  const { awardScheduleCompletionXP } = useGamification();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // Update time every minute
-    const interval = setInterval(() => setCurrentTime(new Date()), 60000);
-    
-    // Load active schedule
+  const loadSchedules = () => {
     const savedSchedules = localStorage.getItem("aiSchedules");
     if (savedSchedules) {
       const schedules = JSON.parse(savedSchedules);
@@ -40,9 +38,44 @@ export default function DashboardSchedule() {
       
       setActiveSchedule(current);
     }
+  };
+
+  useEffect(() => {
+    // Update time every minute
+    const interval = setInterval(() => setCurrentTime(new Date()), 60000);
+    
+    loadSchedules();
 
     return () => clearInterval(interval);
   }, []);
+
+  const handleToggleComplete = (e, block) => {
+    e.stopPropagation();
+    if (!activeSchedule) return;
+
+    const newCompletedStatus = !block.completed;
+    
+    // Award XP only if marking as completed
+    if (newCompletedStatus) {
+      awardScheduleCompletionXP(block);
+    }
+
+    const savedSchedules = JSON.parse(localStorage.getItem("aiSchedules") || "[]");
+    const updatedSchedules = savedSchedules.map(s => {
+      if (s.id === activeSchedule.id) {
+        return {
+          ...s,
+          blocks: s.blocks.map(b => 
+            b.id === block.id ? { ...b, completed: newCompletedStatus, completedAt: newCompletedStatus ? new Date().toISOString() : null } : b
+          )
+        };
+      }
+      return s;
+    });
+
+    localStorage.setItem("aiSchedules", JSON.stringify(updatedSchedules));
+    loadSchedules(); // Reload local state
+  };
 
   const relevantBlocks = useMemo(() => {
     if (!activeSchedule?.blocks) return [];
@@ -81,13 +114,11 @@ export default function DashboardSchedule() {
     });
   };
 
-  if (!activeSchedule) return null;
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-gradient-to-br from-indigo-900/40 to-slate-900/40 border border-indigo-700/30 rounded-2xl p-5 backdrop-blur-md shadow-xl h-full flex flex-col"
+      className="bg-gradient-to-br from-indigo-900/40 to-slate-900/40 border border-indigo-700/30 rounded-2xl p-5 backdrop-blur-md shadow-xl h-full flex flex-col min-h-[160px]"
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -100,7 +131,18 @@ export default function DashboardSchedule() {
       </div>
 
       <div className="flex-1 space-y-2 relative overflow-hidden">
-        {relevantBlocks.length === 0 ? (
+        {!activeSchedule ? (
+          <div className="h-full flex flex-col items-center justify-center text-center py-2">
+            <Brain className="w-8 h-8 text-indigo-400 mb-2 opacity-50" />
+            <p className="text-slate-300 text-[10px] mb-3">No study engine active.</p>
+            <button 
+              onClick={() => navigate('/schedule')}
+              className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold rounded-lg transition-all"
+            >
+              Start Engineering
+            </button>
+          </div>
+        ) : relevantBlocks.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center py-2">
             <Brain className="w-8 h-8 text-slate-600 mb-1 opacity-50" />
             <p className="text-slate-400 text-[10px] italic">No active schedule.</p>
@@ -116,54 +158,73 @@ export default function DashboardSchedule() {
             const isTopicIdLeaked = block.topic?.startsWith('topic-');
             const displayName = isTopicIdLeaked ? block.name?.split(' - ')[1] || block.name : block.topic || block.name;
             
-            return (
-              <motion.div
-                key={block.id || index}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                onClick={() => !isBreak && handleBlockClick(block)}
-                className={`relative group p-2.5 rounded-xl border transition-all cursor-pointer ${
-                  isCurrent 
-                    ? 'bg-indigo-600/20 border-indigo-500/50 shadow-lg shadow-indigo-500/10' 
-                    : 'bg-white/5 border-white/10 opacity-60 hover:opacity-100'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className={`p-1.5 rounded-lg ${
-                      isBreak ? 'bg-slate-700/50 text-slate-400' : 'bg-emerald-500/20 text-emerald-400'
-                    }`}>
-                      {isBreak ? <Coffee className="w-3.5 h-3.5" /> : <Zap className="w-3.5 h-3.5" />}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className={`font-bold text-xs truncate max-w-[100px] ${isCurrent ? 'text-white' : 'text-slate-300'}`}>
-                          {displayName}
-                        </span>
-                        {isCurrent && (
-                          <span className="flex h-1.5 w-1.5">
-                            <span className="animate-ping absolute inline-flex h-1.5 w-1.5 rounded-full bg-indigo-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-indigo-500"></span>
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-[9px] text-slate-400 font-medium uppercase tracking-wider truncate">
-                        {isBreak ? 'Recovery' : block.subject}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <div className="text-[10px] font-bold text-white/80">
-                      {formatTime(block.startTime)}
-                    </div>
-                    <div className="text-[9px] text-slate-500">
-                      {block.duration}m
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            );
+                    return (
+                      <motion.div
+                        key={block.id || index}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        onClick={() => !isBreak && !block.completed && handleBlockClick(block)}
+                        className={`relative group p-2.5 rounded-xl border transition-all cursor-pointer ${
+                          block.completed
+                            ? 'bg-slate-800/40 border-slate-700 opacity-50'
+                            : isCurrent 
+                            ? 'bg-indigo-600/20 border-indigo-500/50 shadow-lg shadow-indigo-500/10' 
+                            : 'bg-white/5 border-white/10 opacity-60 hover:opacity-100'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className={`p-1.5 rounded-lg ${
+                              block.completed ? 'bg-emerald-500/20 text-emerald-400' :
+                              isBreak ? 'bg-slate-700/50 text-slate-400' : 'bg-emerald-500/20 text-emerald-400'
+                            }`}>
+                              {block.completed ? <Check className="w-3.5 h-3.5" /> : isBreak ? <Coffee className="w-3.5 h-3.5" /> : <Zap className="w-3.5 h-3.5" />}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <span className={`font-bold text-xs truncate max-w-[80px] ${block.completed ? 'line-through text-white/40' : isCurrent ? 'text-white' : 'text-slate-300'}`}>
+                                  {displayName}
+                                </span>
+                                {isCurrent && !block.completed && (
+                                  <span className="flex h-1.5 w-1.5">
+                                    <span className="animate-ping absolute inline-flex h-1.5 w-1.5 rounded-full bg-indigo-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-indigo-500"></span>
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[9px] text-slate-400 font-medium uppercase tracking-wider truncate">
+                                {isBreak ? 'Recovery' : block.subject}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-3">
+                            {!isBreak && (
+                              <button
+                                onClick={(e) => handleToggleComplete(e, block)}
+                                className={`p-1.5 rounded-lg transition-all ${
+                                  block.completed 
+                                    ? 'bg-emerald-500/20 text-emerald-400' 
+                                    : 'bg-white/5 text-white/20 hover:bg-white/10 hover:text-white/60 opacity-0 group-hover:opacity-100'
+                                }`}
+                                title={block.completed ? "Mark as Incomplete" : "Mark as Done"}
+                              >
+                                <Check className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                            <div className="text-right flex-shrink-0">
+                              <div className="text-[10px] font-bold text-white/80">
+                                {formatTime(block.startTime)}
+                              </div>
+                              <div className="text-[9px] text-slate-500">
+                                {block.duration}m
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
           })
         )}
       </div>

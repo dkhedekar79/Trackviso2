@@ -480,7 +480,7 @@ export default function Dashboard() {
         </div>
 
         {/* Summary & Exam Readiness */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 px-6 py-8 bg-#F8F9FC">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 px-6 py-8">
           <Card title="This Week's Study">
             <span className="text-3xl font-bold text-white">{studyStats.hoursThisWeek.toFixed(1)} <small className="text-base font-normal text-gray-300">hrs</small></span>
             <div className="w-full bg-white/10 rounded-full h-3 my-3 overflow-hidden">
