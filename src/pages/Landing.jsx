@@ -21,6 +21,8 @@ import {
   Target,
   Clock,
   BarChart3,
+  BarChart2,
+  PieChart,
   GraduationCap,
   Award,
   Lightbulb,
@@ -424,188 +426,266 @@ const Landing = () => {
             </Link>
           </motion.div>
 
-          {/* Floating Insight Dashboard Visual (Premium Redesign) */}
+          {/* COMPREHENSIVE FLOATING DASHBOARD VISUAL (Using All App Aspects) */}
           <motion.div
-            className="mt-24 relative z-10 w-full max-w-5xl mx-auto px-4"
+            className="mt-32 relative z-10 w-full max-w-6xl mx-auto px-4 perspective-1000"
             variants={itemVariants}
           >
-            <div className="relative group">
-              {/* Main Dashboard Card */}
-              <motion.div
-                className="relative bg-gradient-to-br from-slate-900/90 via-purple-900/40 to-slate-950/90 backdrop-blur-2xl border-2 border-purple-500/20 rounded-[2.5rem] sm:rounded-[4rem] p-8 sm:p-16 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)] overflow-hidden"
-                initial={{ y: 40, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                transition={{ duration: 1, ease: "easeOut" }}
-                animate={{ y: [0, -15, 0] }}
-                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-              >
-                {/* Dashboard Header */}
-                <div className="flex flex-col sm:flex-row items-center gap-6 mb-12 sm:mb-20">
-                  <div className="relative">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center text-white text-3xl font-black shadow-2xl rotate-3 transform group-hover:rotate-6 transition-transform">
-                      A
-                    </div>
-                    <div className="absolute -bottom-2 -right-2 bg-emerald-500 w-6 h-6 rounded-full border-4 border-slate-900 shadow-lg" />
-                  </div>
-                  <div className="text-center sm:text-left">
-                    <h3 className="text-2xl sm:text-4xl font-black text-white tracking-tight mb-1">Alex's Dashboard</h3>
-                    <div className="flex items-center justify-center sm:justify-start gap-3">
-                      <span className="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-xs font-black uppercase tracking-widest border border-purple-500/30">Level 12 Scholar</span>
-                      <div className="flex items-center gap-1.5 text-orange-400 font-bold">
-                        <Flame className="w-5 h-5" />
-                        <span className="text-lg">12</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="sm:ml-auto flex gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:bg-white/10 transition-colors">
-                      <Calendar className="w-6 h-6" />
-                    </div>
-                    <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:bg-white/10 transition-colors">
-                      <Settings className="w-6 h-6" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Main Progress Engine */}
-                <div className="grid lg:grid-cols-12 gap-12 items-center mb-16">
-                  <div className="lg:col-span-7 space-y-8">
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-end">
-                        <div>
-                          <div className="text-purple-300/60 text-sm font-black uppercase tracking-[0.2em] mb-1">Global Adherence</div>
-                          <div className="text-2xl sm:text-4xl font-black text-white">Exam Readiness</div>
-                        </div>
-                        <div className="text-3xl sm:text-5xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">84%</div>
-                      </div>
-                      <div className="h-5 sm:h-10 w-full bg-slate-800/50 rounded-2xl sm:rounded-3xl overflow-hidden border border-white/5 p-1 relative shadow-inner">
-                        <motion.div 
-                          className="h-full bg-gradient-to-r from-indigo-600 via-purple-500 to-pink-500 rounded-xl sm:rounded-2xl relative shadow-[0_0_20px_rgba(168,85,247,0.4)]"
-                          initial={{ width: 0 }}
-                          whileInView={{ width: '84%' }}
-                          transition={{ duration: 2, ease: [0.34, 1.56, 0.64, 1], delay: 0.5 }}
-                        >
-                          <motion.div 
-                            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent w-full"
-                            animate={{ x: ['-100%', '100%'] }}
-                            transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
-                          />
-                        </motion.div>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-4 sm:gap-6">
-                      <div className="px-6 py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-bold flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4" /> +12% Efficiency
-                      </div>
-                      <div className="px-6 py-3 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-400 text-sm font-bold flex items-center gap-2">
-                        <Zap className="w-4 h-4" /> 2.4k XP Gained
-                      </div>
-                    </div>
-                  </div>
-                  <div className="lg:col-span-5 flex justify-center">
-                    <div className="grid grid-cols-2 gap-4 w-full">
-                      {[
-                        { label: "Questions", val: "847", color: "from-blue-500/20 to-indigo-500/20", icon: BookOpen },
-                        { label: "Accuracy", val: "92%", color: "from-emerald-500/20 to-teal-500/20", icon: Target },
-                        { label: "Hours", val: "24h", color: "from-purple-500/20 to-pink-500/20", icon: Clock },
-                        { label: "Rank", val: "#1", color: "from-yellow-500/20 to-orange-500/20", icon: Award }
-                      ].map((item, i) => (
-                        <div key={i} className={`p-6 rounded-[2rem] bg-gradient-to-br ${item.color} border border-white/5 flex flex-col items-center text-center group/card hover:scale-105 transition-transform`}>
-                          <item.icon className="w-6 h-6 text-white/40 mb-3 group-hover/card:scale-110 transition-transform" />
-                          <div className="text-2xl font-black text-white mb-1">{item.val}</div>
-                          <div className="text-[10px] uppercase font-bold tracking-widest text-white/30">{item.label}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Decorative Inside Element */}
-                <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] bg-purple-600/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
-                <div className="absolute bottom-[-20%] left-[-10%] w-[60%] h-[60%] bg-pink-600/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
-              </motion.div>
-
-              {/* FLOATING ELEMENTS - Layered Overlap */}
+            <div className="relative h-[600px] sm:h-[700px] w-full">
               
-              {/* Floating Insight 1: Recommendation */}
+              {/* 1. MAIN CENTERPIECE: Mastery Dashboard (From Dashboard page) */}
               <motion.div
-                className="absolute -left-4 sm:-left-20 top-1/3 bg-white/5 backdrop-blur-2xl border border-white/20 p-6 rounded-[2rem] shadow-2xl max-w-[220px] sm:max-w-[280px] z-30 hidden md:block"
-                initial={{ x: -50, opacity: 0 }}
-                whileInView={{ x: 0, opacity: 1 }}
-                transition={{ delay: 0.8, duration: 1 }}
-                animate={{ y: [0, 20, 0] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] sm:w-[70%] z-10 bg-slate-900/80 backdrop-blur-3xl border-2 border-purple-500/20 rounded-[3rem] p-8 sm:p-12 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.7)]"
+                initial={{ opacity: 0, scale: 0.9, y: 50 }}
+                whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 1 }}
+                animate={{ y: [0, -15, 0] }}
+                transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
               >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2.5 bg-purple-500/20 rounded-xl">
-                    <Sparkles className="w-6 h-6 text-purple-400" />
+                <div className="flex flex-col md:flex-row gap-12 items-center">
+                  {/* Left: Mastery Circle */}
+                  <div className="relative w-48 h-48 sm:w-64 sm:h-64 flex-shrink-0">
+                    <svg className="transform -rotate-90 w-full h-full" viewBox="0 0 128 128">
+                      <circle cx="64" cy="64" r="56" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="12" fill="none" />
+                      <motion.circle
+                        cx="64" cy="64" r="56"
+                        stroke="#10b981" strokeWidth="12" fill="none" strokeLinecap="round"
+                        initial={{ pathLength: 0 }}
+                        whileInView={{ pathLength: 0.84 }}
+                        transition={{ duration: 2, delay: 0.5 }}
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                      <span className="text-4xl sm:text-6xl font-black text-white">84%</span>
+                      <span className="text-[10px] sm:text-xs uppercase font-bold tracking-[0.2em] text-emerald-400">Mastery</span>
+                    </div>
                   </div>
-                  <span className="text-xs font-black uppercase tracking-widest text-purple-200">AI Rec</span>
+
+                  {/* Right: Subject Breakdown */}
+                  <div className="flex-1 space-y-6 w-full">
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm font-bold text-white/70">
+                        <span>Mathematics</span>
+                        <span>92%</span>
+                      </div>
+                      <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                        <motion.div className="h-full bg-emerald-500" initial={{ width: 0 }} whileInView={{ width: '92%' }} transition={{ duration: 1.5, delay: 0.8 }} />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm font-bold text-white/70">
+                        <span>Physics</span>
+                        <span>78%</span>
+                      </div>
+                      <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                        <motion.div className="h-full bg-blue-500" initial={{ width: 0 }} whileInView={{ width: '78%' }} transition={{ duration: 1.5, delay: 1 }} />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm font-bold text-white/70">
+                        <span>Biology</span>
+                        <span>65%</span>
+                      </div>
+                      <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                        <motion.div className="h-full bg-purple-500" initial={{ width: 0 }} whileInView={{ width: '65%' }} transition={{ duration: 1.5, delay: 1.2 }} />
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-sm sm:text-base text-white/90 leading-relaxed font-bold italic">
-                  "You're peaking! Study <span className="text-pink-400">Quantum Physics</span> now for <span className="text-emerald-400 font-black">23% better</span> retention."
-                </p>
               </motion.div>
 
-              {/* Floating Insight 2: Global Rank */}
+              {/* 2. TOP RIGHT: Performance Prediction (From Insights page) */}
               <motion.div
-                className="absolute -right-4 sm:-right-16 top-[-10%] sm:top-[-5%] bg-gradient-to-br from-indigo-600/90 to-purple-700/90 backdrop-blur-xl border border-white/20 p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-30"
-                initial={{ y: -50, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                transition={{ delay: 1, duration: 1 }}
-                animate={{ y: [0, -25, 0] }}
-                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-              >
-                <div className="flex items-center gap-4 sm:gap-6">
-                  <div className="w-12 h-12 sm:w-20 sm:h-20 rounded-2xl sm:rounded-[2rem] bg-gradient-to-br from-yellow-300 via-orange-400 to-red-500 flex items-center justify-center shadow-2xl">
-                    <Trophy className="w-6 h-6 sm:w-10 sm:h-10 text-yellow-950" />
-                  </div>
-                  <div>
-                    <div className="text-[10px] sm:text-sm font-black text-yellow-300 uppercase tracking-[0.3em] mb-1">Global Ranking</div>
-                    <div className="text-xl sm:text-4xl font-black text-white tracking-tighter">Top 1% This Week</div>
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Floating Insight 3: Study Streak */}
-              <motion.div
-                className="absolute -bottom-10 sm:-bottom-16 right-10 sm:right-32 bg-white/10 backdrop-blur-2xl border border-white/20 p-5 sm:p-8 rounded-[2rem] shadow-2xl z-30 flex items-center gap-4"
-                initial={{ y: 50, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                transition={{ delay: 1.2, duration: 1 }}
-                animate={{ x: [0, 15, 0] }}
+                className="absolute top-0 right-0 sm:right-[-5%] w-[180px] sm:w-[260px] z-30 bg-gradient-to-br from-blue-600/90 to-indigo-700/90 backdrop-blur-xl border border-white/20 p-6 rounded-[2.5rem] shadow-2xl rotate-6"
+                initial={{ opacity: 0, x: 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4, duration: 0.8 }}
+                animate={{ y: [0, -20, 0], rotate: [6, 8, 6] }}
                 transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
               >
-                <div className="relative">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-orange-500/20 flex items-center justify-center">
-                    <Flame className="w-6 h-6 sm:w-10 sm:h-10 text-orange-500 animate-pulse" />
-                  </div>
-                  <div className="absolute -top-2 -right-2 bg-red-500 text-[10px] font-black px-2 py-0.5 rounded-full text-white border-2 border-slate-900">HOT</div>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-white/20 rounded-xl"><Target className="w-5 h-5 text-white" /></div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-white/80">AI Prediction</span>
                 </div>
-                <div>
-                  <div className="text-2xl sm:text-4xl font-black text-white">12 Days</div>
-                  <div className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-orange-400/70">Unstoppable Streak</div>
-                </div>
+                <div className="text-4xl font-black text-white mb-1">94%</div>
+                <p className="text-xs text-white/70 font-bold mb-4">Predicted Exam Score</p>
+                <div className="px-3 py-1.5 bg-green-400/20 text-green-300 rounded-full text-[10px] font-black uppercase tracking-tighter inline-block">High Confidence</div>
               </motion.div>
 
-              {/* Floating Insight 4: Focus Score */}
+              {/* 3. TOP LEFT: Study Pattern Intelligence (From Insights page) */}
               <motion.div
-                className="absolute left-1/4 -bottom-12 bg-emerald-500/10 backdrop-blur-2xl border border-emerald-500/20 p-4 rounded-2xl shadow-2xl z-20 hidden lg:flex items-center gap-3"
-                initial={{ scale: 0.8, opacity: 0 }}
-                whileInView={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 1.4, duration: 0.8 }}
-                animate={{ scale: [1, 1.05, 1] }}
-                transition={{ duration: 4, repeat: Infinity }}
+                className="absolute top-[-10%] left-0 sm:left-[-10%] w-[200px] sm:w-[300px] z-20 bg-slate-800/60 backdrop-blur-xl border border-purple-500/30 p-6 rounded-[3rem] shadow-2xl -rotate-3"
+                initial={{ opacity: 0, x: -50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.6, duration: 0.8 }}
+                animate={{ y: [0, 25, 0], rotate: [-3, -5, -3] }}
+                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
               >
-                <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-slate-900">
-                  <Activity className="w-4 h-4" />
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-purple-500/20 rounded-xl"><BarChart2 className="w-5 h-5 text-purple-400" /></div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-purple-300">Study Patterns</span>
                 </div>
-                <div className="text-sm font-black text-emerald-400">98 Focus Score</div>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-white/60 font-bold">Peak Time</span>
+                    <span className="text-sm text-white font-black">14:00 - 16:00</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-white/60 font-bold">Subject Balance</span>
+                    <span className="text-sm text-white font-black">Balanced (82%)</span>
+                  </div>
+                  <div className="pt-2 border-t border-white/5">
+                    <p className="text-[10px] text-purple-300 font-black italic">"You learn 23% faster during your peak hours."</p>
+                  </div>
+                </div>
               </motion.div>
 
-              {/* Particles */}
-              <div className="absolute -top-10 -left-10 w-24 h-24 bg-purple-500/20 rounded-full blur-[60px] animate-pulse" />
-              <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-pink-500/20 rounded-full blur-[80px] animate-pulse delay-1000" />
+              {/* 4. BOTTOM RIGHT: Live Schedule (From Schedule/Dashboard page) */}
+              <motion.div
+                className="absolute bottom-[-10%] right-0 sm:right-[5%] w-[220px] sm:w-[320px] z-30 bg-gradient-to-br from-slate-900 to-purple-950 border border-purple-500/20 rounded-[3rem] p-6 shadow-2xl overflow-hidden"
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8, duration: 0.8 }}
+                animate={{ y: [0, -15, 0] }}
+                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-pink-400" />
+                    <span className="text-xs font-black uppercase tracking-widest text-white/60">Upcoming</span>
+                  </div>
+                  <span className="text-[10px] font-black text-pink-400 px-2 py-1 bg-pink-400/10 rounded-lg">LIVE</span>
+                </div>
+                <div className="space-y-3">
+                  <div className="p-4 bg-white/5 rounded-2xl border border-white/5 flex items-center gap-4">
+                    <div className="w-2 h-10 bg-emerald-500 rounded-full" />
+                    <div>
+                      <div className="text-xs font-black text-white">Advanced Algebra</div>
+                      <div className="text-[10px] font-bold text-white/40">14:00 - 15:30</div>
+                    </div>
+                    <CheckCircle className="ml-auto w-5 h-5 text-emerald-500/50" />
+                  </div>
+                  <div className="p-4 bg-white/5 rounded-2xl border border-white/5 flex items-center gap-4 opacity-50">
+                    <div className="w-2 h-10 bg-blue-500 rounded-full" />
+                    <div>
+                      <div className="text-xs font-black text-white">Quantum Mechanics</div>
+                      <div className="text-[10px] font-bold text-white/40">16:00 - 17:30</div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* 5. BOTTOM LEFT: Skillpulse Quests (From Skillpulse component) */}
+              <motion.div
+                className="absolute bottom-[-5%] left-0 sm:left-[2%] w-[180px] sm:w-[240px] z-20 bg-white/10 backdrop-blur-2xl border border-white/20 p-6 rounded-[2.5rem] shadow-2xl"
+                initial={{ opacity: 0, x: -50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ delay: 1, duration: 0.8 }}
+                animate={{ x: [0, 15, 0] }}
+                transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-yellow-400/20 rounded-xl"><Trophy className="w-5 h-5 text-yellow-400" /></div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-white/60">Active Quests</span>
+                </div>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-[10px] font-black text-white/80">
+                      <span>Daily Focus</span>
+                      <span>2/3h</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-full bg-yellow-400 w-[66%]" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-[10px] font-black text-white/80">
+                      <span>Subject Master</span>
+                      <span>1/2</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-full bg-orange-500 w-[50%]" />
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* 6. CENTER TOP: XP & Level Bar (Gamification aspect) */}
+              <motion.div
+                className="absolute top-[10%] sm:top-[15%] left-1/2 -translate-x-1/2 w-[240px] sm:w-[340px] z-40 bg-gradient-to-r from-purple-600 to-pink-600 p-1 rounded-full shadow-2xl"
+                initial={{ opacity: 0, y: -20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.2, duration: 0.8 }}
+              >
+                <div className="bg-slate-900 rounded-full px-6 py-3 flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-black text-lg shadow-lg">12</div>
+                  <div className="flex-1 space-y-1">
+                    <div className="flex justify-between text-[10px] font-black text-white/60 uppercase tracking-widest">
+                      <span>Pro Scholar</span>
+                      <span>1,240 / 2,000 XP</span>
+                    </div>
+                    <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+                      <motion.div className="h-full bg-gradient-to-r from-purple-500 to-pink-500" initial={{ width: 0 }} whileInView={{ width: '62%' }} transition={{ duration: 1.5, delay: 1.5 }} />
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* 7. OVERLAPPING FLOATING ELEMENTS (Requested: "more overlapping floating boxes") */}
+              
+              {/* Floating Achievement */}
+              <motion.div
+                className="absolute top-[5%] right-[10%] sm:right-[15%] z-50 bg-white/10 backdrop-blur-md border border-yellow-400/30 p-3 rounded-2xl shadow-xl flex items-center gap-3"
+                animate={{ y: [0, 15, 0], x: [0, 5, 0] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <div className="w-8 h-8 rounded-full bg-yellow-400 flex items-center justify-center shadow-lg shadow-yellow-400/20">
+                  <Award className="w-4 h-4 text-yellow-900" />
+                </div>
+                <div className="text-[10px] font-black text-white uppercase tracking-tighter">New Badge: Consistency King</div>
+              </motion.div>
+
+              {/* Floating Focus Score */}
+              <motion.div
+                className="absolute bottom-[5%] left-[20%] z-50 bg-emerald-500/20 backdrop-blur-md border border-emerald-500/30 px-4 py-2 rounded-2xl shadow-xl flex items-center gap-3"
+                animate={{ y: [0, -12, 0], scale: [1, 1.05, 1] }}
+                transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <Activity className="w-4 h-4 text-emerald-400" />
+                <div className="flex flex-col">
+                  <span className="text-[8px] font-black text-emerald-400/60 uppercase">Focus Score</span>
+                  <span className="text-sm font-black text-white">98 / 100</span>
+                </div>
+              </motion.div>
+
+              {/* Mini XP Gain Bubble */}
+              <motion.div
+                className="absolute top-[40%] right-[5%] z-50 bg-purple-500 text-white px-3 py-1 rounded-full text-[10px] font-black shadow-lg"
+                animate={{ y: [-20, -60], opacity: [0, 1, 0], scale: [0.8, 1.2] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeOut" }}
+              >
+                +50 XP
+              </motion.div>
+
+              {/* Small Floating Details (Aspects like Gems, Streaks, Icons) */}
+              <motion.div 
+                className="absolute top-[25%] left-[15%] z-50 flex items-center gap-2 bg-orange-500/20 backdrop-blur-md border border-orange-500/30 px-4 py-2 rounded-full shadow-xl"
+                animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity }}
+              >
+                <Flame className="w-4 h-4 text-orange-500" /><span className="text-sm font-black text-white">12 Day Streak</span>
+              </motion.div>
+
+              <motion.div 
+                className="absolute bottom-[20%] right-[10%] z-50 flex items-center gap-2 bg-blue-500/20 backdrop-blur-md border border-blue-500/30 px-4 py-2 rounded-full shadow-xl"
+                animate={{ y: [0, 10, 0] }} transition={{ duration: 5, repeat: Infinity }}
+              >
+                <Gem className="w-4 h-4 text-blue-400" /><span className="text-sm font-black text-white">450 Gems</span>
+              </motion.div>
+
+              {/* Decorative Glows */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-purple-600/10 rounded-full blur-[150px] pointer-events-none -z-10" />
+              <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none -z-10" />
+              <div className="absolute bottom-0 left-0 w-64 h-64 bg-pink-600/10 rounded-full blur-[100px] pointer-events-none -z-10" />
             </div>
           </motion.div>
         </motion.div>
