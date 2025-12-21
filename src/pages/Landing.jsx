@@ -172,9 +172,9 @@ const Landing = () => {
   }
 
   const containerVariants = {
-    hidden: { opacity: 0 },
+    hidden: { scale: 1 },
     visible: {
-      opacity: 1,
+      scale: 1,
       transition: {
         staggerChildren: 0.15,
         delayChildren: 0.1
@@ -183,10 +183,9 @@ const Landing = () => {
   };
 
   const itemVariants = {
-    hidden: { y: 30, opacity: 0 },
+    hidden: { y: 30 },
     visible: {
       y: 0,
-      opacity: 1,
       transition: {
         duration: 0.7,
         ease: "easeOut"
@@ -195,10 +194,9 @@ const Landing = () => {
   };
 
   const floatingVariants = {
-    hidden: { y: 0, opacity: 0 },
+    hidden: { y: 0 },
     visible: {
       y: [-10, 10, -10],
-      opacity: 1,
       transition: {
         duration: 3,
         repeat: Infinity,
@@ -208,10 +206,9 @@ const Landing = () => {
   };
 
   const rotateVariants = {
-    hidden: { rotateX: 0, opacity: 0 },
+    hidden: { rotateX: 0 },
     visible: {
       rotateX: [0, 360],
-      opacity: 1,
       transition: {
         duration: 4,
         repeat: Infinity,
@@ -254,8 +251,8 @@ const Landing = () => {
       {/* Mini Side Progress Bar */}
       <motion.div 
         className="fixed left-4 top-[20%] -translate-y-1/2 z-[100] hidden lg:flex flex-col items-center py-6 px-2 group rounded-2xl transition-all duration-500 hover:px-4"
-        initial={{ x: -50, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
+        initial={{ x: -50 }}
+        animate={{ x: 0 }}
         transition={{ type: "spring", damping: 20, stiffness: 100, delay: 1 }}
       >
         {/* Glass Background that expands */}
@@ -305,7 +302,7 @@ const Landing = () => {
                 {activeSection === section.id && (
                   <motion.div 
                     className="absolute inset-0 bg-purple-500 rounded-full blur-sm"
-                    initial={{ opacity: 0, scale: 1 }}
+                    initial={{ scale: 1 }}
                     animate={{ opacity: [0.2, 0.5, 0.2], scale: [1, 2, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   />
@@ -391,9 +388,9 @@ const Landing = () => {
               key={currentTextIndex}
               className="text-5xl lg:text-7xl font-bold leading-tight mb-8 text-white"
               variants={itemVariants}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
+              initial={{ y: 20 }}
+              animate={{ y: 0 }}
+              exit={{ y: -20 }}
               transition={{ duration: 0.5 }}
               style={{ perspective: "1000px" }}
             >
@@ -406,9 +403,9 @@ const Landing = () => {
               key={currentTextIndex + "p"}
               className="text-xl lg:text-2xl text-purple-200/80 mb-12 max-w-4xl mx-auto"
               variants={itemVariants}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
+              initial={{ y: 20 }}
+              animate={{ y: 0 }}
+              exit={{ y: -20 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
               {rotatingTexts[currentTextIndex].subtitle}
@@ -437,8 +434,8 @@ const Landing = () => {
               {/* 1. MAIN CENTERPIECE: Insights Hub (Centralized) */}
                   <motion.div
                 className="relative w-[95%] sm:w-[85%] lg:w-[75%] z-10 bg-slate-900/80 backdrop-blur-3xl border-2 border-purple-500/20 rounded-[3rem] p-8 sm:p-12 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] overflow-hidden"
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
+                initial={{ scale: 0.9 }}
+                whileInView={{ scale: 1 }}
                 transition={{ duration: 1 }}
                 animate={{ y: [0, -10, 0] }}
                 transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
@@ -539,8 +536,8 @@ const Landing = () => {
               {/* Top Center: XP & Level Bar (The "Crown") */}
                   <motion.div
                 className="absolute top-[5%] sm:top-[8%] left-1/2 -translate-x-1/2 w-[280px] sm:w-[400px] z-40 bg-gradient-to-r from-purple-600 to-pink-600 p-0.5 rounded-full shadow-2xl"
-                initial={{ opacity: 0, y: -50 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ y: -50 }}
+                whileInView={{ y: 0 }}
                 transition={{ delay: 0.2, duration: 0.8 }}
                 animate={{ y: [0, -5, 0] }}
                 transition={{ duration: 4, repeat: Infinity }}
@@ -562,8 +559,8 @@ const Landing = () => {
               {/* Top Right: Performance Prediction */}
                   <motion.div
                 className="absolute top-[12%] right-[2%] sm:right-[5%] w-[180px] sm:w-[240px] z-30 bg-gradient-to-br from-blue-600/90 to-indigo-700/90 backdrop-blur-xl border border-white/20 p-5 rounded-[2rem] shadow-2xl rotate-6"
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
+                initial={{ scale: 0.8 }}
+                whileInView={{ scale: 1 }}
                 transition={{ delay: 0.4, duration: 0.6 }}
                 animate={{ y: [0, -15, 0], rotate: [6, 9, 6] }}
                 transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
@@ -579,8 +576,8 @@ const Landing = () => {
               {/* Top Left: Study Patterns */}
               <motion.div
                 className="absolute top-[15%] left-[2%] sm:left-[5%] w-[180px] sm:w-[240px] z-30 bg-slate-800/80 backdrop-blur-xl border border-purple-500/30 p-5 rounded-[2rem] shadow-2xl -rotate-6"
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
+                initial={{ scale: 0.8 }}
+                whileInView={{ scale: 1 }}
                 transition={{ delay: 0.5, duration: 0.6 }}
                 animate={{ y: [0, 15, 0], rotate: [-6, -9, -6] }}
                 transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
@@ -603,8 +600,8 @@ const Landing = () => {
               {/* Bottom Right: Live Schedule */}
               <motion.div
                 className="absolute bottom-[10%] right-[2%] sm:right-[5%] w-[200px] sm:w-[280px] z-30 bg-slate-900/90 border border-white/10 p-5 rounded-[2rem] shadow-2xl"
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ y: 50 }}
+                whileInView={{ y: 0 }}
                 transition={{ delay: 0.6, duration: 0.6 }}
                 animate={{ x: [0, 10, 0] }}
                 transition={{ duration: 9, repeat: Infinity }}
@@ -622,8 +619,8 @@ const Landing = () => {
               {/* Bottom Left: Quests */}
               <motion.div
                 className="absolute bottom-[12%] left-[2%] sm:left-[5%] w-[180px] sm:w-[220px] z-30 bg-white/5 backdrop-blur-xl border border-white/10 p-5 rounded-[2rem] shadow-2xl"
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ y: 50 }}
+                whileInView={{ y: 0 }}
                 transition={{ delay: 0.7, duration: 0.6 }}
                 animate={{ x: [0, -10, 0] }}
                 transition={{ duration: 8, repeat: Infinity }}
@@ -692,8 +689,8 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto relative z-10">
           <motion.div
             className="text-center mb-20"
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ y: 50 }}
+            whileInView={{ y: 0 }}
             transition={{ duration: 0.7 }}
             viewport={{ once: true }}
           >
@@ -712,8 +709,8 @@ const Landing = () => {
             {/* Smart Analytics */}
             <motion.div
               className="bg-gradient-to-br from-purple-600/40 to-purple-700/40 border border-purple-500/30 rounded-3xl p-8 text-white backdrop-blur-md hover:border-purple-500/60 transition-all group cursor-pointer"
-              initial={{ opacity: 0, y: 50, rotateY: 20 }}
-              whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
+              initial={{ y: 50, rotateY: 20 }}
+              whileInView={{ y: 0, rotateY: 0 }}
               transition={{ duration: 0.7 }}
               viewport={{ once: true }}
               whileHover={{ y: -10, scale: 1.02 }}
@@ -744,8 +741,8 @@ const Landing = () => {
             {/* Goal Tracking */}
             <motion.div
               className="bg-gradient-to-br from-pink-600/40 to-purple-600/40 border border-pink-500/30 rounded-3xl p-8 text-white backdrop-blur-md hover:border-pink-500/60 transition-all group cursor-pointer"
-              initial={{ opacity: 0, y: 50, rotateY: -20 }}
-              whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
+              initial={{ y: 50, rotateY: -20 }}
+              whileInView={{ y: 0, rotateY: 0 }}
               transition={{ duration: 0.7, delay: 0.1 }}
               viewport={{ once: true }}
               whileHover={{ y: -10, scale: 1.02 }}
@@ -776,8 +773,8 @@ const Landing = () => {
             {/* AI Insights */}
             <motion.div
               className="bg-gradient-to-br from-purple-600/40 to-pink-600/40 border border-purple-500/30 rounded-3xl p-8 text-white backdrop-blur-md hover:border-purple-500/60 transition-all group cursor-pointer"
-              initial={{ opacity: 0, y: 50, rotateY: 20 }}
-              whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
+              initial={{ y: 50, rotateY: 20 }}
+              whileInView={{ y: 0, rotateY: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
               viewport={{ once: true }}
               whileHover={{ y: -10, scale: 1.02 }}
@@ -812,8 +809,8 @@ const Landing = () => {
               <motion.div
                 key={index}
                 className="bg-purple-900/30 border border-purple-700/30 rounded-2xl p-6 hover:bg-purple-800/40 hover:border-purple-600/50 transition-all duration-300 backdrop-blur-sm group"
-                initial={{ opacity: 0, y: 30, rotateX: 45 }}
-                whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
+                initial={{ y: 30, rotateX: 45 }}
+                whileInView={{ y: 0, rotateX: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
                 whileHover={{ y: -5 }}
@@ -843,8 +840,8 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto relative z-10">
           <motion.div
             className="text-center mb-20"
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ y: 50 }}
+            whileInView={{ y: 0 }}
             transition={{ duration: 0.7 }}
             viewport={{ once: true }}
           >
@@ -894,8 +891,8 @@ const Landing = () => {
               <motion.div
                 key={index}
                 className="text-center"
-                initial={{ opacity: 0, y: 50, rotateZ: index === 1 ? -5 : 5 }}
-                whileInView={{ opacity: 1, y: 0, rotateZ: 0 }}
+                initial={{ y: 50, rotateZ: index === 1 ? -5 : 5 }}
+                whileInView={{ y: 0, rotateZ: 0 }}
                 transition={{ duration: 0.7, delay: index * 0.2 }}
                 viewport={{ once: true }}
               >
@@ -917,8 +914,8 @@ const Landing = () => {
       <div className="max-w-7xl mx-auto relative z-10">
       <motion.div
       className="text-center mb-16"
-      initial={{ opacity: 0, y: 50 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={{ y: 50 }}
+      whileInView={{ y: 0 }}
       transition={{ duration: 0.7 }}
       viewport={{ once: true }}
       >
@@ -945,8 +942,8 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto relative z-10">
           <motion.div
             className="text-center mb-20"
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ y: 50 }}
+            whileInView={{ y: 0 }}
             transition={{ duration: 0.7 }}
             viewport={{ once: true }}
           >
@@ -975,8 +972,8 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto relative z-10">
           <motion.div
             className="text-center mb-20"
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ y: 50 }}
+            whileInView={{ y: 0 }}
             transition={{ duration: 0.7 }}
             viewport={{ once: true }}
           >
@@ -995,8 +992,8 @@ const Landing = () => {
             {/* The Scholar - Free Plan */}
             <motion.div
               className="bg-gradient-to-br from-purple-600/40 to-pink-600/40 border border-purple-500/30 rounded-3xl shadow-2xl shadow-purple-500/20 text-white relative px-8 py-12 backdrop-blur-md"
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
+              initial={{ scale: 0.95 }}
+              whileInView={{ scale: 1 }}
               transition={{ duration: 0.7 }}
               viewport={{ once: true }}
               whileHover={{ scale: 1.02 }}
@@ -1039,8 +1036,8 @@ const Landing = () => {
             {/* The Professor - Premium Plan */}
             <motion.div
               className="bg-gradient-to-br from-amber-600/40 to-orange-600/40 border border-amber-500/30 rounded-3xl shadow-2xl shadow-amber-500/20 text-white relative px-8 py-12 backdrop-blur-md"
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
+              initial={{ scale: 0.95 }}
+              whileInView={{ scale: 1 }}
               transition={{ duration: 0.7, delay: 0.1 }}
               viewport={{ once: true }}
               whileHover={{ scale: 1.02 }}
@@ -1104,8 +1101,8 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto relative z-10">
           <motion.div
             className="text-center mb-20"
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ y: 50 }}
+            whileInView={{ y: 0 }}
             transition={{ duration: 0.7 }}
             viewport={{ once: true }}
           >
@@ -1144,8 +1141,8 @@ const Landing = () => {
               <motion.div
                 key={index}
                 className="bg-purple-900/30 border border-purple-700/30 p-8 rounded-2xl hover:border-purple-600/50 transition-all duration-300 backdrop-blur-sm group"
-                initial={{ opacity: 0, y: 50, rotateY: 30 }}
-                whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
+                initial={{ y: 50, rotateY: 30 }}
+                whileInView={{ y: 0, rotateY: 0 }}
                 transition={{ duration: 0.7, delay: index * 0.1 }}
                 viewport={{ once: true }}
                 whileHover={{ y: -5, scale: 1.02 }}
@@ -1180,8 +1177,8 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto relative z-10">
           <motion.div
             className="text-center mb-20"
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ y: 50 }}
+            whileInView={{ y: 0 }}
             transition={{ duration: 0.7 }}
             viewport={{ once: true }}
           >
@@ -1201,8 +1198,8 @@ const Landing = () => {
                 <motion.div
                   key={index}
                   className="bg-purple-900/30 border border-purple-700/30 p-6 rounded-2xl hover:border-purple-600/50 transition-all duration-300 backdrop-blur-sm"
-                  initial={{ opacity: 0, y: 50 }}
-                  whileInView={{ opacity: 1, y: 0 }}
+                  initial={{ y: 50 }}
+                  whileInView={{ y: 0 }}
                   transition={{ duration: 0.6, delay: index * 0.05 }}
                   viewport={{ once: true }}
                 >
@@ -1244,8 +1241,8 @@ const Landing = () => {
 
         <motion.div
           className="max-w-4xl mx-auto text-center text-white relative z-10"
-          initial={{ opacity: 0, y: 50, scale: 0.95 }}
-          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+          initial={{ y: 50, scale: 0.95 }}
+          whileInView={{ y: 0, scale: 1 }}
           transition={{ duration: 0.7 }}
           viewport={{ once: true }}
         >
@@ -1362,9 +1359,9 @@ const StudyModesSection = () => {
           {/* Left Side - Description */}
           <motion.div
             key={activeMode}
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 50 }}
+            initial={{ x: -50 }}
+            animate={{ x: 0 }}
+            exit={{ x: 50 }}
             transition={{ duration: 0.5 }}
             className="space-y-6"
           >
@@ -1430,8 +1427,8 @@ const StudyModesSection = () => {
               {currentMode.features.map((feature, index) => (
                 <motion.div
                   key={index}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
+                  initial={{ x: -20 }}
+                  animate={{ x: 0 }}
                   transition={{ delay: index * 0.1 }}
                   className="flex items-start gap-3"
                 >
@@ -1450,8 +1447,8 @@ const StudyModesSection = () => {
             {/* Work in Progress Badge */}
             {!currentMode.isAvailable && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
+                initial={{ scale: 0.9 }}
+                animate={{ scale: 1 }}
                   className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
                     currentMode.color === 'amber'
                       ? 'bg-amber-900/30 border border-amber-700/50 text-amber-300'
@@ -1469,9 +1466,9 @@ const StudyModesSection = () => {
           {/* Right Side - Image Carousel */}
           <motion.div
             key={`mockup-${activeMode}`}
-            initial={{ opacity: 0, x: 50, scale: 0.95 }}
-            animate={{ opacity: 1, x: 0, scale:1.25 }}
-            exit={{ opacity: 0, x: -50, scale: 0.95 }}
+            initial={{ x: 50, scale: 0.95 }}
+            animate={{ x: 0, scale:1.25 }}
+            exit={{ x: -50, scale: 0.95 }}
             transition={{ duration: 0.5 }}
             className="w-full relative"
           >
@@ -1480,9 +1477,9 @@ const StudyModesSection = () => {
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={currentImageIndex}
-                    initial={{ opacity: 0, x: 50 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -50 }}
+                    initial={{ x: 50 }}
+                    animate={{ x: 0 }}
+                    exit={{ x: -50 }}
                     transition={{ duration: 0.5 }}
                     className="relative"
                   >
@@ -1603,8 +1600,8 @@ const AITimetableSection = () => {
               
               <motion.div 
                 className="bg-slate-900/80 backdrop-blur-xl border border-indigo-500/30 rounded-3xl overflow-hidden shadow-2xl"
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ y: 30 }}
+                whileInView={{ y: 0 }}
                 transition={{ duration: 0.8 }}
                 viewport={{ once: true }}
               >
@@ -1631,7 +1628,7 @@ const AITimetableSection = () => {
 
                 <div className="p-6 space-y-4">
                   {/* Closed Block 1 */}
-                  <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between opacity-60">
+                  <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div className="p-2 bg-emerald-500/20 rounded-xl text-emerald-400">
                         <Zap className="w-4 h-4" />
@@ -1742,8 +1739,8 @@ const AITimetableSection = () => {
           {/* Right: Text and Features */}
           <div className="flex-1 order-1 lg:order-2">
             <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              initial={{ x: 50 }}
+              whileInView={{ x: 0 }}
               transition={{ duration: 0.7 }}
               viewport={{ once: true }}
             >
@@ -1768,7 +1765,7 @@ const AITimetableSection = () => {
                     className={`p-6 rounded-2xl border transition-all cursor-pointer ${
                       activeStep === i 
                         ? 'bg-indigo-500/10 border-indigo-500/50 translate-x-4' 
-                        : 'bg-white/5 border-white/10 opacity-60 hover:opacity-100 hover:bg-white/[0.07]'
+                        : 'bg-white/5 border-white/10 hover:bg-white/[0.07]'
                     }`}
                     onClick={() => setActiveStep(i)}
                   >
@@ -1975,8 +1972,8 @@ const AmbientModeSection = () => {
         {/* Header */}
         <motion.div
           className="text-center mb-16"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ y: 50 }}
+          whileInView={{ y: 0 }}
           transition={{ duration: 0.7 }}
           viewport={{ once: true }}
         >
@@ -2016,8 +2013,8 @@ const AmbientModeSection = () => {
                       ? 'from-purple-600/40 to-pink-600/40 border-purple-500/60' 
                       : 'from-purple-900/30 to-slate-900/30 border-purple-700/30'
                   } border rounded-2xl p-6 backdrop-blur-md transition-all duration-500 cursor-pointer group`}
-                  initial={{ opacity: 0, x: -50 }}
-                  whileInView={{ opacity: 1, x: 0 }}
+                  initial={{ x: -50 }}
+                  whileInView={{ x: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   viewport={{ once: true }}
                   onHoverStart={() => setActiveFeature(index)}
@@ -2075,8 +2072,8 @@ const AmbientModeSection = () => {
           {/* Right Side - Visual Demo */}
           <motion.div
             className="relative"
-            initial={{ opacity: 0, x: 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ x: 50 }}
+            whileInView={{ x: 0 }}
             transition={{ duration: 0.7 }}
             viewport={{ once: true }}
             onMouseEnter={() => {
@@ -2174,7 +2171,7 @@ const AmbientModeSection = () => {
                   {/* Floating Controls */}
                   <motion.div
                     className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center justify-center gap-4"
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
                     onClick={(e) => e.stopPropagation()}
@@ -2225,7 +2222,7 @@ const AmbientModeSection = () => {
                   {/* YouTube Music Widget Preview */}
                   <motion.div
                     className="absolute top-20 right-4 w-48 bg-black/40 backdrop-blur-md border border-white/20 rounded-2xl p-3 shadow-xl"
-                    initial={{ opacity: 0, x: 20 }}
+                    initial={{ x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.6 }}
                   >
@@ -2257,7 +2254,7 @@ const AmbientModeSection = () => {
                     className="absolute top-4 right-4 p-3 rounded-lg bg-black/30 backdrop-blur-sm border border-white/20 hover:bg-black/50 transition-all"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
-                    initial={{ opacity: 0, scale: 0.8 }}
+                    initial={{ scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.2 }}
                     title="Manage Background Images"
@@ -2288,7 +2285,7 @@ const AmbientModeSection = () => {
         {/* Bottom CTA */}
         <motion.div
           className="text-center"
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.3 }}
           viewport={{ once: true }}
@@ -2314,7 +2311,7 @@ const AmbientModeSection = () => {
       <AnimatePresence>
         {isFullscreenHover && (
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={{ scale: 1 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden pointer-events-auto"
@@ -2364,7 +2361,7 @@ const AmbientModeSection = () => {
               className="absolute top-6 right-6 z-20 px-6 py-3 rounded-xl bg-black/40 backdrop-blur-md border border-white/30 hover:bg-black/60 transition-all flex items-center gap-2 shadow-lg"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, scale: 0.8 }}
+              initial={{ scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ delay: 0.2 }}
@@ -2380,7 +2377,7 @@ const AmbientModeSection = () => {
               {/* YouTube Music Widget Preview (Fullscreen) */}
               <motion.div
                 className="absolute bottom-32 right-12 w-64 bg-black/40 backdrop-blur-md border border-white/20 rounded-3xl p-4 shadow-2xl z-20"
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
                 transition={{ delay: 0.5 }}
@@ -2428,7 +2425,7 @@ const AmbientModeSection = () => {
               
               {/* Minimal Control Buttons */}
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
                 className="mt-12 flex items-center justify-center gap-4"
@@ -2486,14 +2483,14 @@ const AmbientModeSection = () => {
       <AnimatePresence>
         {showSettings && (
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={{ scale: 1 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[10000] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
             onClick={() => setShowSettings(false)}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.9 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               className="bg-gradient-to-br from-purple-900/95 to-slate-900/95 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 max-w-4xl w-full max-h-[90vh] overflow-y-auto"

@@ -35,9 +35,9 @@ const RewardSystem = () => {
             case 'SESSION_COMPLETE':
               return (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.8, y: 50 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.8, y: -50 }}
+                  initial={{ scale: 0.8, y: 50 }}
+                  animate={{ scale: 1, y: 0 }}
+                  exit={{ scale: 0.8, y: -50 }}
                   className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100]"
                 >
                   <motion.div

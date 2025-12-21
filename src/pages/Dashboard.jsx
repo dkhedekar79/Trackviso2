@@ -206,9 +206,9 @@ export default function Dashboard() {
   };
 
   const containerVariants = {
-    hidden: { opacity: 0 },
+    hidden: { scale: 1 },
     visible: {
-      opacity: 1,
+      scale: 1,
       transition: {
         staggerChildren: 0.1,
         delayChildren: 0.2
@@ -217,10 +217,9 @@ export default function Dashboard() {
   };
 
   const itemVariants = {
-    hidden: { y: 30, opacity: 0 },
+    hidden: { y: 30 },
     visible: {
       y: 0,
-      opacity: 1,
       transition: {
         duration: 0.6,
         ease: "easeOut"
@@ -401,8 +400,8 @@ export default function Dashboard() {
         {/* Welcome Card */}
         <div className="px-6 pt-24 pb-6">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ y: 20 }}
+            animate={{ y: 0 }}
             transition={{ duration: 0.6 }}
             className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-600 p-8 shadow-2xl"
           >
@@ -423,9 +422,9 @@ export default function Dashboard() {
                   <AnimatePresence mode="wait">
                     <motion.p
                       key={quoteIndex}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
+                      initial={{ y: 20 }}
+                      animate={{ y: 0 }}
+                      exit={{ y: -20 }}
                       transition={{ duration: 0.5 }}
                       className="text-purple-100/80 text-sm md:text-base max-w-xl"
                     >
