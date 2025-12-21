@@ -312,61 +312,37 @@ export default function Dashboard() {
     return baseScore;
   };
 
-  // Calculate subject mastery progress (combines study time progress and mastery progress)
+  // Calculate subject mastery progress (linked to mastery page data)
   const calculateSubjectProgress = useCallback(async (subject) => {
     // Normalize subject to ensure consistent format
     const normalizedSubject = normalizeSubject(subject);
     
-    // Get study time progress
-    const subjectSessions = studySessions.filter(s => s.subjectName === normalizedSubject.name || s.subject_name === normalizedSubject.name);
-    const studyTimeMinutes = subjectSessions.reduce((sum, s) => sum + (Number(s.durationMinutes) || 0), 0);
-    const goalMinutes = (Number(normalizedSubject.goalHours) || 0) * 60;
-    const studyTimeProgress = goalMinutes > 0 ? Math.min(100, (studyTimeMinutes / goalMinutes) * 100) : 0;
-
-    // Get mastery progress if available
+    // Get mastery progress from masteryData_ storage
     let masteryProgress = 0;
     try {
-      const masterySetup = JSON.parse(localStorage.getItem('masterySetup') || 'null');
-      if (masterySetup && masterySetup.subject === normalizedSubject.name) {
-        let topicProgressData = null;
-        
-        // Try to load from Supabase first
-        if (user) {
-          try {
-            topicProgressData = await fetchTopicProgress(normalizedSubject.name);
-          } catch (error) {
-            console.error('Error loading topic progress from Supabase:', error);
-          }
-        }
-        
-        // Fallback to localStorage
-        if (!topicProgressData) {
-          const storageKey = `masteryData_${normalizedSubject.name}`;
-          const savedProgress = localStorage.getItem(storageKey);
-          if (savedProgress) {
-            topicProgressData = JSON.parse(savedProgress);
-          }
-        }
+      const storageKey = `masteryData_${normalizedSubject.name}`;
+      const savedProgress = localStorage.getItem(storageKey);
+      
+      if (savedProgress) {
+        const topicProgressData = JSON.parse(savedProgress);
+        const topicScores = Object.values(topicProgressData)
+          .map(tp => calculateCompletionScore(tp, true))
+          .filter(score => score !== undefined);
 
-        if (topicProgressData && masterySetup.topics && masterySetup.topics.length > 0) {
-          const completionScores = masterySetup.topics.map(topic => {
-            const topicProgress = topicProgressData[topic.id];
-            return topicProgress ? calculateCompletionScore(topicProgress, true) : 0;
-          });
-          masteryProgress = completionScores.reduce((acc, score) => acc + score, 0) / completionScores.length;
+        if (topicScores.length > 0) {
+          masteryProgress = topicScores.reduce((acc, score) => acc + score, 0) / topicScores.length;
         }
+      } else {
+        // If no mastery data, check if we have any study sessions just to show minimal progress
+        // but user wants it "completely irrelevant", so we'll stay closer to 0
+        masteryProgress = 0;
       }
     } catch (error) {
       console.error('Error calculating mastery progress:', error);
     }
 
-    // Combine both progress metrics (weighted average: 40% study time, 60% mastery)
-    // If no mastery data, use only study time progress
-    if (masteryProgress === 0) {
-      return studyTimeProgress;
-    }
-    return (studyTimeProgress * 0.4) + (masteryProgress * 0.6);
-  }, [studySessions, user]);
+    return masteryProgress;
+  }, [user]);
 
   // Calculate overall exam readiness and subject leaderboard
   useEffect(() => {
@@ -397,7 +373,7 @@ export default function Dashboard() {
     };
 
     calculateExamReadiness();
-  }, [subjects, studySessions, user, calculateSubjectProgress]);
+  }, [subjects, user, calculateSubjectProgress]);
 
   // Get color for circular progress based on percentage
   const getProgressColor = (percentage) => {
