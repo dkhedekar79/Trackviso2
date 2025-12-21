@@ -11,6 +11,7 @@ import {
   Trophy,
   Zap,
   Users,
+  Activity,
   Star,
   ArrowRight,
   CheckCircle,
