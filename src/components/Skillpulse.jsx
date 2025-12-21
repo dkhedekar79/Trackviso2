@@ -32,6 +32,13 @@ const formatHM = (totalMinutes) => {
   return `${h}h ${rem}m`;
 };
 
+function getStartOfWeek(date) {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday as first day
+  return new Date(d.setDate(diff));
+}
+
 const Skillpulse = () => {
   const {
     userStats,
@@ -89,27 +96,26 @@ const Skillpulse = () => {
   // Overview Tab Component
   const OverviewTab = ({ userStats, xpProgress }) => {
     const getWeeklyStats = () => {
-      const oneWeekAgo = new Date();
-      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      const weekStart = getStartOfWeek(new Date());
 
       const thisWeekSessions =
         userStats.sessionHistory?.filter(
-          (session) => new Date(session.timestamp) > oneWeekAgo,
+          (session) => new Date(session.timestamp) >= weekStart,
         ) || [];
 
       const xpEventsThisWeek = (userStats.xpEvents || [])
-        .filter((e) => new Date(e.timestamp) > oneWeekAgo)
-        .reduce((sum, e) => sum + (e.amount || 0), 0);
+        .filter((e) => new Date(e.timestamp) >= weekStart)
+        .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
 
       const thisWeekXPFromSessions = thisWeekSessions.reduce(
-        (total, session) => total + (session.xpEarned || 0),
+        (total, session) => total + (Number(session.xpEarned) || 0),
         0,
       );
 
       const thisWeekXP = xpEventsThisWeek > 0 ? xpEventsThisWeek : thisWeekXPFromSessions;
 
       const thisWeekTime = thisWeekSessions.reduce(
-        (total, session) => total + (session.durationMinutes || 0),
+        (total, session) => total + (Number(session.durationMinutes) || 0),
         0,
       );
 

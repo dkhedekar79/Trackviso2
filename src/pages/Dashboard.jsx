@@ -171,14 +171,9 @@ export default function Dashboard() {
     const weekStart = getStartOfWeek(now);
     
     // Calculate total goal from all subjects
-    const totalGoal = subjects.reduce((sum, subject) => sum + (subject.goalHours || 0), 0);
+    const totalGoal = subjects.reduce((sum, subject) => sum + (Number(subject.goalHours) || 0), 0);
 
-    // Calculate actual hours studied this week
-    const weekSessions = studySessions.filter(s => new Date(s.timestamp) >= weekStart);
-    const minutesThisWeek = weekSessions.reduce((sum, s) => sum + (s.durationMinutes || 0), 0);
-    const hoursThisWeek = minutesThisWeek / 60;
-
-    // Get accurate weekly statistics
+    // Get accurate weekly statistics using the helper
     const accurateStats = getAccurateWeeklyStats(totalGoal);
 
     // Calculate streak
@@ -268,15 +263,14 @@ export default function Dashboard() {
 
   // Calculate accurate weekly study statistics
   const getAccurateWeeklyStats = (goal) => {
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    const weekStart = getStartOfWeek(new Date());
 
     const thisWeekSessions = studySessions.filter(session =>
-      new Date(session.timestamp) > oneWeekAgo
+      new Date(session.timestamp) >= weekStart
     );
 
     const thisWeekMinutes = thisWeekSessions.reduce((total, session) =>
-      total + (session.durationMinutes || 0), 0
+      total + Number(session.durationMinutes || 0), 0
     );
 
     return {
@@ -313,8 +307,8 @@ export default function Dashboard() {
     
     // Get study time progress
     const subjectSessions = studySessions.filter(s => s.subjectName === normalizedSubject.name || s.subject_name === normalizedSubject.name);
-    const studyTimeMinutes = subjectSessions.reduce((sum, s) => sum + (s.durationMinutes || 0), 0);
-    const goalMinutes = (normalizedSubject.goalHours || 0) * 60;
+    const studyTimeMinutes = subjectSessions.reduce((sum, s) => sum + (Number(s.durationMinutes) || 0), 0);
+    const goalMinutes = (Number(normalizedSubject.goalHours) || 0) * 60;
     const studyTimeProgress = goalMinutes > 0 ? Math.min(100, (studyTimeMinutes / goalMinutes) * 100) : 0;
 
     // Get mastery progress if available

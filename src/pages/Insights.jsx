@@ -107,7 +107,7 @@ export default function Insights() {
   const filteredSessions = getFilteredSessions();
 
   // Calculate overall stats
-  const totalStudyTime = filteredSessions.reduce((sum, session) => sum + session.durationMinutes, 0);
+  const totalStudyTime = filteredSessions.reduce((sum, session) => sum + (Number(session.durationMinutes) || 0), 0);
   const totalSessions = filteredSessions.length;
   const averageSessionLength = totalSessions > 0 ? totalStudyTime / totalSessions : 0;
 
@@ -125,7 +125,7 @@ export default function Insights() {
       if (!distribution[session.subjectName]) {
         distribution[session.subjectName] = 0;
       }
-      distribution[session.subjectName] += session.durationMinutes;
+      distribution[session.subjectName] += (Number(session.durationMinutes) || 0);
     });
     return distribution;
   };
@@ -168,8 +168,9 @@ export default function Insights() {
         if (!dayData[mondayBasedDay].subjects[subjectName]) {
           dayData[mondayBasedDay].subjects[subjectName] = 0;
         }
-        dayData[mondayBasedDay].subjects[subjectName] += session.durationMinutes || 0;
-        dayData[mondayBasedDay].totalMinutes += session.durationMinutes || 0;
+        const sessionMinutes = Number(session.durationMinutes) || 0;
+        dayData[mondayBasedDay].subjects[subjectName] += sessionMinutes;
+        dayData[mondayBasedDay].totalMinutes += sessionMinutes;
       }
     });
 
@@ -222,8 +223,9 @@ export default function Insights() {
         if (!dayData[dayOfMonth].subjects[subjectName]) {
           dayData[dayOfMonth].subjects[subjectName] = 0;
         }
-        dayData[dayOfMonth].subjects[subjectName] += session.durationMinutes || 0;
-        dayData[dayOfMonth].totalMinutes += session.durationMinutes || 0;
+        const sessionMinutes = Number(session.durationMinutes) || 0;
+        dayData[dayOfMonth].subjects[subjectName] += sessionMinutes;
+        dayData[dayOfMonth].totalMinutes += sessionMinutes;
       }
     });
 
@@ -279,8 +281,9 @@ export default function Insights() {
         if (!dayData[dayOfMonth].subjects[subjectName]) {
           dayData[dayOfMonth].subjects[subjectName] = 0;
         }
-        dayData[dayOfMonth].subjects[subjectName] += session.durationMinutes || 0;
-        dayData[dayOfMonth].totalMinutes += session.durationMinutes || 0;
+        const sessionMinutes = Number(session.durationMinutes) || 0;
+        dayData[dayOfMonth].subjects[subjectName] += sessionMinutes;
+        dayData[dayOfMonth].totalMinutes += sessionMinutes;
       }
     });
 
@@ -324,7 +327,7 @@ export default function Insights() {
       if (!leaderboard[session.subjectName]) {
         leaderboard[session.subjectName] = 0;
       }
-      leaderboard[session.subjectName] += session.durationMinutes;
+      leaderboard[session.subjectName] += (Number(session.durationMinutes) || 0);
     });
     
     // Convert to array and sort by total time (descending)
