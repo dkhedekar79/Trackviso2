@@ -20,6 +20,7 @@ import {
   Tablet,
   Target,
   Clock,
+  Clock3,
   BarChart3,
   BarChart2,
   PieChart,
