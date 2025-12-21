@@ -157,6 +157,18 @@ export const GamificationProvider = ({ children }) => {
     localStorage.setItem("userStats", JSON.stringify(userStats));
   }, [userStats]);
 
+  // AUTO-FIX: Ensure level is always synced with XP
+  useEffect(() => {
+    const calculatedLevel = getLevelFromXP(userStats.xp || 0);
+    if (calculatedLevel !== userStats.level) {
+      logger.warn(`🛠️ XP/Level mismatch detected! Fixing: ${userStats.level} -> ${calculatedLevel}`);
+      setUserStats(prev => ({
+        ...prev,
+        level: calculatedLevel
+      }));
+    }
+  }, [userStats.xp, userStats.level]);
+
   // Advanced XP calculation with variable rewards
   // Base rate: 10 XP per minute (600 XP per hour)
   // With bonuses, typical session can give 15-30 XP/min (900-1800 XP/hour)
@@ -759,13 +771,14 @@ export const GamificationProvider = ({ children }) => {
   // Award XP for study session with enhanced rewards
   const awardXP = (sessionDuration, subjectName, difficulty = 1.0) => {
     const xpData = calculateXP(sessionDuration, subjectName, difficulty);
-    const oldLevel = userStats.level || 1;
-    const oldXP = userStats.xp || 0;
-    const newXP = oldXP + xpData.totalXP;
-    const newLevel = getLevelFromXP(newXP);
-
-    // Update user stats
+    
+    // Update user stats using functional update to prevent stale data issues
     setUserStats((prev) => {
+      const oldLevel = prev.level || 1;
+      const oldXP = prev.xp || 0;
+      const newXP = oldXP + xpData.totalXP;
+      const newLevel = getLevelFromXP(newXP);
+      
       const updatedStudyTime = (prev.totalStudyTime || 0) + sessionDuration;
       const newStats = {
         ...prev,
@@ -794,9 +807,15 @@ export const GamificationProvider = ({ children }) => {
         xpGained: xpData.totalXP,
         oldLevel,
         newLevel,
-        oldTotalXPEarned: prev.totalXPEarned || 0,
-        newTotalXPEarned: newStats.totalXPEarned,
       });
+
+      // Check for level up rewards within the same update flow
+      if (newLevel > oldLevel) {
+        const levelsGained = newLevel - oldLevel;
+        for (let i = 1; i <= levelsGained; i++) {
+          setTimeout(() => handleLevelUp(oldLevel + i), 100 * i);
+        }
+      }
 
       return newStats;
     });
@@ -815,21 +834,13 @@ export const GamificationProvider = ({ children }) => {
       addReward(xpData.reward);
     }
 
-    // Check for level up (based on XP now, not time)
-    if (newLevel > oldLevel) {
-      const levelsGained = newLevel - oldLevel;
-      for (let i = 1; i <= levelsGained; i++) {
-        handleLevelUp(oldLevel + i);
-      }
-    }
-
     // Update streak
-    const streakResult = updateStreak();
+    updateStreak();
 
     // Check achievements after XP is awarded
     setTimeout(() => {
-    checkAchievements();
-    }, 50);
+      checkAchievements();
+    }, 200);
 
     return xpData;
   };

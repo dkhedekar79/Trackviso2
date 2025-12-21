@@ -275,9 +275,9 @@ const GamifiedDashboard = () => {
                   )}
                 </p>
                 <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-yellow-300" />
+                  <Star className="w-4 h-4 text-yellow-300" />
                   <span className="text-sm font-medium">
-                    {Math.floor(xpProgress.current || 0)} / {Math.floor(xpProgress.needed || 0)} min to next level
+                    {Math.floor(xpProgress.current || 0)} / {Math.floor(xpProgress.needed || 0)} XP to next level
                   </span>
                 </div>
               </div>
