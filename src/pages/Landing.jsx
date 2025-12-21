@@ -673,8 +673,6 @@ const Landing = () => {
               <motion.div className="absolute top-1/4 left-1/3 w-3 h-3 bg-purple-400 rounded-full blur-sm" animate={{ y: [0, -40], opacity: [0, 1, 0] }} transition={{ duration: 4, repeat: Infinity }} />
               <motion.div className="absolute bottom-1/4 right-1/3 w-2 h-2 bg-pink-400 rounded-full blur-sm" animate={{ y: [0, -60], opacity: [0, 1, 0] }} transition={{ duration: 5, repeat: Infinity, delay: 1 }} />
               <motion.div className="absolute top-1/2 right-1/4 w-4 h-4 bg-yellow-400/20 rounded-full blur-md" animate={{ scale: [1, 1.5, 1] }} transition={{ duration: 6, repeat: Infinity }} />
-            </div>
-          </motion.div>
 
               {/* Decorative Glows */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-purple-600/10 rounded-full blur-[150px] pointer-events-none -z-10" />
