@@ -423,51 +423,188 @@ const Landing = () => {
             </Link>
           </motion.div>
 
-          {/* Hero Visual */}
+          {/* Floating Insight Dashboard Visual (Premium Redesign) */}
           <motion.div
-            className="mt-20 relative"
+            className="mt-24 relative z-10 w-full max-w-5xl mx-auto px-4"
             variants={itemVariants}
-            whileInView={{ scale: 1.05 }}
-            transition={{ duration: 0.3 }}
           >
-            <div className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 border border-purple-700/30 rounded-3xl shadow-2xl shadow-purple-500/20 p-8 max-w-4xl mx-auto backdrop-blur-md">
-              <div className="bg-gradient-to-br from-purple-800/20 to-slate-800/20 rounded-2xl p-6 border border-purple-700/20">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <motion.div
-                    className="bg-gradient-to-br from-purple-800/40 to-slate-800/40 rounded-xl p-4 border border-purple-700/30 backdrop-blur-sm hover:border-purple-600/50 transition-all"
-                    whileHover={{ y: -5, scale: 1.02 }}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <Clock className="w-6 h-6 text-purple-400" />
-                      <span className="text-sm text-purple-300/70">This Week</span>
+            <div className="relative group">
+              {/* Main Dashboard Card */}
+              <motion.div
+                className="relative bg-gradient-to-br from-slate-900/90 via-purple-900/40 to-slate-950/90 backdrop-blur-2xl border-2 border-purple-500/20 rounded-[2.5rem] sm:rounded-[4rem] p-8 sm:p-16 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)] overflow-hidden"
+                initial={{ y: 40, opacity: 0 }}
+                whileInView={{ y: 0, opacity: 1 }}
+                transition={{ duration: 1, ease: "easeOut" }}
+                animate={{ y: [0, -15, 0] }}
+                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+              >
+                {/* Dashboard Header */}
+                <div className="flex flex-col sm:flex-row items-center gap-6 mb-12 sm:mb-20">
+                  <div className="relative">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center text-white text-3xl font-black shadow-2xl rotate-3 transform group-hover:rotate-6 transition-transform">
+                      A
                     </div>
-                    <div className="text-2xl font-bold text-white">32.5h</div>
-                    <div className="text-sm text-purple-300">+18% from last week</div>
-                  </motion.div>
-                  <motion.div
-                    className="bg-gradient-to-br from-pink-800/40 to-slate-800/40 rounded-xl p-4 border border-pink-700/30 backdrop-blur-sm hover:border-pink-600/50 transition-all"
-                    whileHover={{ y: -5, scale: 1.02 }}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <Trophy className="w-6 h-6 text-pink-400" />
-                      <span className="text-sm text-pink-300/70">Goals</span>
+                    <div className="absolute -bottom-2 -right-2 bg-emerald-500 w-6 h-6 rounded-full border-4 border-slate-900 shadow-lg" />
+                  </div>
+                  <div className="text-center sm:text-left">
+                    <h3 className="text-2xl sm:text-4xl font-black text-white tracking-tight mb-1">Alex's Dashboard</h3>
+                    <div className="flex items-center justify-center sm:justify-start gap-3">
+                      <span className="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-xs font-black uppercase tracking-widest border border-purple-500/30">Level 12 Scholar</span>
+                      <div className="flex items-center gap-1.5 text-orange-400 font-bold">
+                        <Flame className="w-5 h-5" />
+                        <span className="text-lg">12</span>
+                      </div>
                     </div>
-                    <div className="text-2xl font-bold text-white">8/10</div>
-                    <div className="text-sm text-pink-300">Completed</div>
-                  </motion.div>
-                  <motion.div
-                    className="bg-gradient-to-br from-purple-800/40 to-pink-800/40 rounded-xl p-4 border border-purple-700/30 backdrop-blur-sm hover:border-purple-600/50 transition-all"
-                    whileHover={{ y: -5, scale: 1.02 }}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <TrendingUp className="w-6 h-6 text-purple-400" />
-                      <span className="text-sm text-purple-300/70">Progress</span>
+                  </div>
+                  <div className="sm:ml-auto flex gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:bg-white/10 transition-colors">
+                      <Calendar className="w-6 h-6" />
                     </div>
-                    <div className="text-2xl font-bold text-white">94%</div>
-                    <div className="text-sm text-purple-300">On track</div>
-                  </motion.div>
+                    <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:bg-white/10 transition-colors">
+                      <Settings className="w-6 h-6" />
+                    </div>
+                  </div>
                 </div>
-              </div>
+
+                {/* Main Progress Engine */}
+                <div className="grid lg:grid-cols-12 gap-12 items-center mb-16">
+                  <div className="lg:col-span-7 space-y-8">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-end">
+                        <div>
+                          <div className="text-purple-300/60 text-sm font-black uppercase tracking-[0.2em] mb-1">Global Adherence</div>
+                          <div className="text-2xl sm:text-4xl font-black text-white">Exam Readiness</div>
+                        </div>
+                        <div className="text-3xl sm:text-5xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">84%</div>
+                      </div>
+                      <div className="h-5 sm:h-10 w-full bg-slate-800/50 rounded-2xl sm:rounded-3xl overflow-hidden border border-white/5 p-1 relative shadow-inner">
+                        <motion.div 
+                          className="h-full bg-gradient-to-r from-indigo-600 via-purple-500 to-pink-500 rounded-xl sm:rounded-2xl relative shadow-[0_0_20px_rgba(168,85,247,0.4)]"
+                          initial={{ width: 0 }}
+                          whileInView={{ width: '84%' }}
+                          transition={{ duration: 2, ease: [0.34, 1.56, 0.64, 1], delay: 0.5 }}
+                        >
+                          <motion.div 
+                            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent w-full"
+                            animate={{ x: ['-100%', '100%'] }}
+                            transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+                          />
+                        </motion.div>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-4 sm:gap-6">
+                      <div className="px-6 py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-bold flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4" /> +12% Efficiency
+                      </div>
+                      <div className="px-6 py-3 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-400 text-sm font-bold flex items-center gap-2">
+                        <Zap className="w-4 h-4" /> 2.4k XP Gained
+                      </div>
+                    </div>
+                  </div>
+                  <div className="lg:col-span-5 flex justify-center">
+                    <div className="grid grid-cols-2 gap-4 w-full">
+                      {[
+                        { label: "Questions", val: "847", color: "from-blue-500/20 to-indigo-500/20", icon: BookOpen },
+                        { label: "Accuracy", val: "92%", color: "from-emerald-500/20 to-teal-500/20", icon: Target },
+                        { label: "Hours", val: "24h", color: "from-purple-500/20 to-pink-500/20", icon: Clock },
+                        { label: "Rank", val: "#1", color: "from-yellow-500/20 to-orange-500/20", icon: Award }
+                      ].map((item, i) => (
+                        <div key={i} className={`p-6 rounded-[2rem] bg-gradient-to-br ${item.color} border border-white/5 flex flex-col items-center text-center group/card hover:scale-105 transition-transform`}>
+                          <item.icon className="w-6 h-6 text-white/40 mb-3 group-hover/card:scale-110 transition-transform" />
+                          <div className="text-2xl font-black text-white mb-1">{item.val}</div>
+                          <div className="text-[10px] uppercase font-bold tracking-widest text-white/30">{item.label}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Decorative Inside Element */}
+                <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] bg-purple-600/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
+                <div className="absolute bottom-[-20%] left-[-10%] w-[60%] h-[60%] bg-pink-600/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
+              </motion.div>
+
+              {/* FLOATING ELEMENTS - Layered Overlap */}
+              
+              {/* Floating Insight 1: Recommendation */}
+              <motion.div
+                className="absolute -left-4 sm:-left-20 top-1/3 bg-white/5 backdrop-blur-2xl border border-white/20 p-6 rounded-[2rem] shadow-2xl max-w-[220px] sm:max-w-[280px] z-30 hidden md:block"
+                initial={{ x: -50, opacity: 0 }}
+                whileInView={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.8, duration: 1 }}
+                animate={{ y: [0, 20, 0] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2.5 bg-purple-500/20 rounded-xl">
+                    <Sparkles className="w-6 h-6 text-purple-400" />
+                  </div>
+                  <span className="text-xs font-black uppercase tracking-widest text-purple-200">AI Rec</span>
+                </div>
+                <p className="text-sm sm:text-base text-white/90 leading-relaxed font-bold italic">
+                  "You're peaking! Study <span className="text-pink-400">Quantum Physics</span> now for <span className="text-emerald-400 font-black">23% better</span> retention."
+                </p>
+              </motion.div>
+
+              {/* Floating Insight 2: Global Rank */}
+              <motion.div
+                className="absolute -right-4 sm:-right-16 top-[-10%] sm:top-[-5%] bg-gradient-to-br from-indigo-600/90 to-purple-700/90 backdrop-blur-xl border border-white/20 p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-30"
+                initial={{ y: -50, opacity: 0 }}
+                whileInView={{ y: 0, opacity: 1 }}
+                transition={{ delay: 1, duration: 1 }}
+                animate={{ y: [0, -25, 0] }}
+                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <div className="flex items-center gap-4 sm:gap-6">
+                  <div className="w-12 h-12 sm:w-20 sm:h-20 rounded-2xl sm:rounded-[2rem] bg-gradient-to-br from-yellow-300 via-orange-400 to-red-500 flex items-center justify-center shadow-2xl">
+                    <Trophy className="w-6 h-6 sm:w-10 sm:h-10 text-yellow-950" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] sm:text-sm font-black text-yellow-300 uppercase tracking-[0.3em] mb-1">Global Ranking</div>
+                    <div className="text-xl sm:text-4xl font-black text-white tracking-tighter">Top 1% This Week</div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Floating Insight 3: Study Streak */}
+              <motion.div
+                className="absolute -bottom-10 sm:-bottom-16 right-10 sm:right-32 bg-white/10 backdrop-blur-2xl border border-white/20 p-5 sm:p-8 rounded-[2rem] shadow-2xl z-30 flex items-center gap-4"
+                initial={{ y: 50, opacity: 0 }}
+                whileInView={{ y: 0, opacity: 1 }}
+                transition={{ delay: 1.2, duration: 1 }}
+                animate={{ x: [0, 15, 0] }}
+                transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <div className="relative">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-orange-500/20 flex items-center justify-center">
+                    <Flame className="w-6 h-6 sm:w-10 sm:h-10 text-orange-500 animate-pulse" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 bg-red-500 text-[10px] font-black px-2 py-0.5 rounded-full text-white border-2 border-slate-900">HOT</div>
+                </div>
+                <div>
+                  <div className="text-2xl sm:text-4xl font-black text-white">12 Days</div>
+                  <div className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-orange-400/70">Unstoppable Streak</div>
+                </div>
+              </motion.div>
+
+              {/* Floating Insight 4: Focus Score */}
+              <motion.div
+                className="absolute left-1/4 -bottom-12 bg-emerald-500/10 backdrop-blur-2xl border border-emerald-500/20 p-4 rounded-2xl shadow-2xl z-20 hidden lg:flex items-center gap-3"
+                initial={{ scale: 0.8, opacity: 0 }}
+                whileInView={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 1.4, duration: 0.8 }}
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 4, repeat: Infinity }}
+              >
+                <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-slate-900">
+                  <Activity className="w-4 h-4" />
+                </div>
+                <div className="text-sm font-black text-emerald-400">98 Focus Score</div>
+              </motion.div>
+
+              {/* Particles */}
+              <div className="absolute -top-10 -left-10 w-24 h-24 bg-purple-500/20 rounded-full blur-[60px] animate-pulse" />
+              <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-pink-500/20 rounded-full blur-[80px] animate-pulse delay-1000" />
             </div>
           </motion.div>
         </motion.div>
