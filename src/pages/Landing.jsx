@@ -426,245 +426,255 @@ const Landing = () => {
             </Link>
           </motion.div>
 
-          {/* COMPREHENSIVE FLOATING DASHBOARD VISUAL (Using All App Aspects) */}
+          {/* REORGANIZED HERO DASHBOARD CLUSTER (Mainpiece: Study Time + Distribution) */}
           <motion.div
             className="mt-32 relative z-10 w-full max-w-6xl mx-auto px-4 perspective-1000"
             variants={itemVariants}
           >
-            <div className="relative h-[600px] sm:h-[700px] w-full">
+            <div className="relative h-[800px] sm:h-[900px] w-full flex items-center justify-center">
               
-              {/* 1. MAIN CENTERPIECE: Mastery Dashboard (From Dashboard page) */}
-              <motion.div
-                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] sm:w-[60%] z-10 bg-slate-900/80 backdrop-blur-3xl border-2 border-purple-500/20 rounded-[3rem] p-8 sm:p-12 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.7)]"
-                initial={{ opacity: 0, scale: 0.9, y: 50 }}
-                whileInView={{ opacity: 1, scale: 1, y: 0 }}
+              {/* 1. MAIN CENTERPIECE: Insights Hub (Centralized) */}
+                  <motion.div
+                className="relative w-[95%] sm:w-[85%] lg:w-[75%] z-10 bg-slate-900/80 backdrop-blur-3xl border-2 border-purple-500/20 rounded-[3rem] p-8 sm:p-12 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] overflow-hidden"
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 1 }}
-                animate={{ y: [0, -15, 0] }}
-                transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+                animate={{ y: [0, -10, 0] }}
+                transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
               >
-                <div className="flex flex-col md:flex-row gap-12 items-center">
-                  {/* Left: Mastery Circle */}
-                  <div className="relative w-48 h-48 sm:w-64 sm:h-64 flex-shrink-0">
-                    <svg className="transform -rotate-90 w-full h-full" viewBox="0 0 128 128">
-                      <circle cx="64" cy="64" r="56" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="12" fill="none" />
-                      <motion.circle
-                        cx="64" cy="64" r="56"
-                        stroke="#10b981" strokeWidth="12" fill="none" strokeLinecap="round"
-                        initial={{ pathLength: 0 }}
-                        whileInView={{ pathLength: 0.84 }}
-                        transition={{ duration: 2, delay: 0.5 }}
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                      <span className="text-4xl sm:text-6xl font-black text-white">84%</span>
-                      <span className="text-[10px] sm:text-xs uppercase font-bold tracking-[0.2em] text-emerald-400">Mastery</span>
+                <div className="relative z-10">
+                  <div className="flex flex-col lg:flex-row gap-12">
+                    {/* Left Side: Total Study Time & Major Stat */}
+                    <div className="flex-1 space-y-8 text-center lg:text-left">
+                      <div>
+                        <div className="flex items-center justify-center lg:justify-start gap-3 mb-4">
+                          <div className="p-2 bg-purple-500/20 rounded-xl">
+                            <Clock3 className="w-6 h-6 text-purple-400" />
                     </div>
-                  </div>
+                          <h3 className="text-xl font-black text-white uppercase tracking-widest">Global Insights</h3>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="text-5xl sm:text-7xl font-black text-white tracking-tighter">
+                            24h <span className="text-3xl sm:text-4xl text-purple-400/50">39m</span>
+                          </div>
+                          <p className="text-purple-300/60 font-bold uppercase tracking-widest text-sm">Total Study Time This Week</p>
+                        </div>
+                      </div>
 
-                  {/* Right: Subject Breakdown */}
-                  <div className="flex-1 space-y-6 w-full">
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm font-bold text-white/70">
-                        <span>Mathematics</span>
-                        <span>92%</span>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                          <div className="text-2xl font-black text-emerald-400">92%</div>
+                          <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Avg Accuracy</div>
+                        </div>
+                        <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                          <div className="text-2xl font-black text-purple-400">42</div>
+                          <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Sessions done</div>
+                        </div>
                       </div>
-                      <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                        <motion.div className="h-full bg-emerald-500" initial={{ width: 0 }} whileInView={{ width: '92%' }} transition={{ duration: 1.5, delay: 0.8 }} />
+
+                      <div className="pt-6 border-t border-white/5">
+                        <div className="flex items-center justify-center lg:justify-start gap-2 text-emerald-400 mb-2">
+                          <TrendingUp className="w-4 h-4" />
+                          <span className="text-xs font-black uppercase tracking-widest">+18% vs last week</span>
+                        </div>
+                        <p className="text-sm text-white/60 leading-relaxed font-medium">
+                          Your focus is 12% higher during afternoon sessions. Keep it up!
+                        </p>
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm font-bold text-white/70">
-                        <span>Physics</span>
-                        <span>78%</span>
+
+                    {/* Right Side: Subject Distribution (Pie Chart Style) */}
+                    <div className="flex-1 flex flex-col items-center justify-center py-4 bg-white/5 rounded-[2.5rem] border border-white/5">
+                      <div className="text-center mb-6">
+                        <h4 className="text-sm font-black text-white/40 uppercase tracking-[0.3em]">Subject Distribution</h4>
                       </div>
-                      <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                        <motion.div className="h-full bg-blue-500" initial={{ width: 0 }} whileInView={{ width: '78%' }} transition={{ duration: 1.5, delay: 1 }} />
+                      
+                      <div className="relative w-48 h-48 sm:w-64 sm:h-64">
+                        {/* Circular Progress Rings (Mocking the Distribution) */}
+                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                          {/* Background Circle */}
+                          <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="8" />
+                          {/* Math Ring */}
+                          <motion.circle cx="50" cy="50" r="40" fill="none" stroke="#10b981" strokeWidth="8" strokeDasharray="251.2"
+                            initial={{ strokeDashoffset: 251.2 }} whileInView={{ strokeDashoffset: 251.2 * (1 - 0.45) }} transition={{ duration: 2, delay: 0.5 }} strokeLinecap="round" />
+                          {/* Physics Ring */}
+                          <motion.circle cx="50" cy="50" r="30" fill="none" stroke="#3b82f6" strokeWidth="8" strokeDasharray="188.4"
+                            initial={{ strokeDashoffset: 188.4 }} whileInView={{ strokeDashoffset: 188.4 * (1 - 0.30) }} transition={{ duration: 2, delay: 0.7 }} strokeLinecap="round" />
+                          {/* Bio Ring */}
+                          <motion.circle cx="50" cy="50" r="20" fill="none" stroke="#a855f7" strokeWidth="8" strokeDasharray="125.6"
+                            initial={{ strokeDashoffset: 125.6 }} whileInView={{ strokeDashoffset: 125.6 * (1 - 0.25) }} transition={{ duration: 2, delay: 0.9 }} strokeLinecap="round" />
+                        </svg>
+                        
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                          <PieChart className="w-8 h-8 text-white/20 mb-1" />
+                        </div>
                       </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm font-bold text-white/70">
-                        <span>Biology</span>
-                        <span>65%</span>
-                      </div>
-                      <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                        <motion.div className="h-full bg-purple-500" initial={{ width: 0 }} whileInView={{ width: '65%' }} transition={{ duration: 1.5, delay: 1.2 }} />
+
+                      <div className="mt-8 flex flex-wrap justify-center gap-4 px-6">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                          <span className="text-[10px] font-black text-white/60">Math (45%)</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-blue-500" />
+                          <span className="text-[10px] font-black text-white/60">Physics (30%)</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-purple-500" />
+                          <span className="text-[10px] font-black text-white/60">Bio (25%)</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </motion.div>
 
-              {/* 2. TOP RIGHT: Performance Prediction (From Insights page) */}
-              <motion.div
-                className="absolute top-[10%] right-[2%] sm:right-[10%] w-[180px] sm:w-[260px] z-30 bg-gradient-to-br from-blue-600/90 to-indigo-700/90 backdrop-blur-xl border border-white/20 p-6 rounded-[2.5rem] shadow-2xl rotate-6"
-                initial={{ opacity: 0, x: 50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4, duration: 0.8 }}
-                animate={{ y: [0, -20, 0], rotate: [6, 8, 6] }}
-                transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-white/20 rounded-xl"><Target className="w-5 h-5 text-white" /></div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-white/80">AI Prediction</span>
-                </div>
-                <div className="text-4xl font-black text-white mb-1">94%</div>
-                <p className="text-xs text-white/70 font-bold mb-4">Predicted Exam Score</p>
-                <div className="px-3 py-1.5 bg-green-400/20 text-green-300 rounded-full text-[10px] font-black uppercase tracking-tighter inline-block">High Confidence</div>
-              </motion.div>
+                {/* Decorative BG for Centerpiece */}
+                <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-purple-600/5 to-transparent pointer-events-none" />
+                <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px] pointer-events-none" />
+                  </motion.div>
 
-              {/* 3. TOP LEFT: Study Pattern Intelligence (From Insights page) */}
-              <motion.div
-                className="absolute top-[5%] left-[2%] sm:left-[8%] w-[200px] sm:w-[300px] z-20 bg-slate-800/60 backdrop-blur-xl border border-purple-500/30 p-6 rounded-[3rem] shadow-2xl -rotate-3"
-                initial={{ opacity: 0, x: -50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.6, duration: 0.8 }}
-                animate={{ y: [0, 25, 0], rotate: [-3, -5, -3] }}
-                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-              >
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-purple-500/20 rounded-xl"><BarChart2 className="w-5 h-5 text-purple-400" /></div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-purple-300">Study Patterns</span>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-white/60 font-bold">Peak Time</span>
-                    <span className="text-sm text-white font-black">14:00 - 16:00</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-white/60 font-bold">Subject Balance</span>
-                    <span className="text-sm text-white font-black">Balanced (82%)</span>
-                  </div>
-                  <div className="pt-2 border-t border-white/5">
-                    <p className="text-[10px] text-purple-300 font-black italic">"You learn 23% faster during your peak hours."</p>
-                  </div>
-                </div>
-              </motion.div>
+              {/* SATELLITE CARDS (Organized around the center) */}
 
-              {/* 4. BOTTOM RIGHT: Live Schedule (From Schedule/Dashboard page) */}
-              <motion.div
-                className="absolute bottom-[5%] right-[2%] sm:right-[12%] w-[220px] sm:w-[320px] z-30 bg-gradient-to-br from-slate-900 to-purple-950 border border-purple-500/20 rounded-[3rem] p-6 shadow-2xl overflow-hidden"
-                initial={{ opacity: 0, y: 50 }}
+              {/* Top Center: XP & Level Bar (The "Crown") */}
+                  <motion.div
+                className="absolute top-[5%] sm:top-[8%] left-1/2 -translate-x-1/2 w-[280px] sm:w-[400px] z-40 bg-gradient-to-r from-purple-600 to-pink-600 p-0.5 rounded-full shadow-2xl"
+                initial={{ opacity: 0, y: -50 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.8, duration: 0.8 }}
-                animate={{ y: [0, -15, 0] }}
-                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                transition={{ delay: 0.2, duration: 0.8 }}
+                animate={{ y: [0, -5, 0] }}
+                transition={{ duration: 4, repeat: Infinity }}
               >
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-pink-400" />
-                    <span className="text-xs font-black uppercase tracking-widest text-white/60">Upcoming</span>
-                  </div>
-                  <span className="text-[10px] font-black text-pink-400 px-2 py-1 bg-pink-400/10 rounded-lg">LIVE</span>
-                </div>
-                <div className="space-y-3">
-                  <div className="p-4 bg-white/5 rounded-2xl border border-white/5 flex items-center gap-4">
-                    <div className="w-2 h-10 bg-emerald-500 rounded-full" />
-                    <div>
-                      <div className="text-xs font-black text-white">Advanced Algebra</div>
-                      <div className="text-[10px] font-bold text-white/40">14:00 - 15:30</div>
-                    </div>
-                    <CheckCircle className="ml-auto w-5 h-5 text-emerald-500/50" />
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* 5. BOTTOM LEFT: Skillpulse Quests (From Skillpulse component) */}
-              <motion.div
-                className="absolute bottom-[10%] left-[5%] sm:left-[15%] w-[180px] sm:w-[240px] z-20 bg-white/10 backdrop-blur-2xl border border-white/20 p-6 rounded-[2.5rem] shadow-2xl"
-                initial={{ opacity: 0, x: -50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ delay: 1, duration: 0.8 }}
-                animate={{ x: [0, 15, 0] }}
-                transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
-              >
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-yellow-400/20 rounded-xl"><Trophy className="w-5 h-5 text-yellow-400" /></div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-white/60">Active Quests</span>
-                </div>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-[10px] font-black text-white/80">
-                      <span>Daily Focus</span>
-                      <span>2/3h</span>
-                    </div>
-                    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                      <div className="h-full bg-yellow-400 w-[66%]" />
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* 6. CENTER TOP: XP & Level Bar (Gamification aspect) */}
-              <motion.div
-                className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[240px] sm:w-[340px] z-40 bg-gradient-to-r from-purple-600 to-pink-600 p-1 rounded-full shadow-2xl"
-                initial={{ opacity: 0, y: -20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.2, duration: 0.8 }}
-              >
-                <div className="bg-slate-900 rounded-full px-6 py-3 flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-black text-lg shadow-lg">12</div>
+                <div className="bg-slate-900/90 backdrop-blur-md rounded-full px-6 py-3 flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-black text-lg shadow-lg">12</div>
                   <div className="flex-1 space-y-1">
                     <div className="flex justify-between text-[10px] font-black text-white/60 uppercase tracking-widest">
                       <span>Pro Scholar</span>
-                      <span>1,240 XP</span>
+                      <span className="text-purple-400">1,240 XP</span>
                     </div>
                     <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
-                      <motion.div className="h-full bg-gradient-to-r from-purple-500 to-pink-500" initial={{ width: 0 }} whileInView={{ width: '62%' }} transition={{ duration: 1.5, delay: 1.5 }} />
+                      <motion.div className="h-full bg-gradient-to-r from-purple-500 to-pink-500" initial={{ width: 0 }} whileInView={{ width: '62%' }} transition={{ duration: 1.5, delay: 0.5 }} />
                     </div>
                   </div>
                 </div>
-              </motion.div>
+                  </motion.div>
 
-              {/* 7. OVERLAPPING FLOATING ELEMENTS */}
-              
-              {/* Floating Achievement */}
-              <motion.div
-                className="absolute top-[15%] right-[15%] sm:right-[25%] z-50 bg-white/10 backdrop-blur-md border border-yellow-400/30 p-3 rounded-2xl shadow-xl flex items-center gap-3"
-                animate={{ y: [0, 15, 0], x: [0, 5, 0] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+              {/* Top Right: Performance Prediction */}
+                  <motion.div
+                className="absolute top-[12%] right-[2%] sm:right-[5%] w-[180px] sm:w-[240px] z-30 bg-gradient-to-br from-blue-600/90 to-indigo-700/90 backdrop-blur-xl border border-white/20 p-5 rounded-[2rem] shadow-2xl rotate-6"
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.4, duration: 0.6 }}
+                animate={{ y: [0, -15, 0], rotate: [6, 9, 6] }}
+                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
               >
-                <div className="w-8 h-8 rounded-full bg-yellow-400 flex items-center justify-center shadow-lg shadow-yellow-400/20">
-                  <Award className="w-4 h-4 text-yellow-900" />
+                <div className="flex items-center gap-2 mb-3">
+                  <Target className="w-4 h-4 text-white/60" />
+                  <span className="text-[9px] font-black uppercase tracking-widest text-white/80">AI Forecast</span>
+                    </div>
+                <div className="text-4xl font-black text-white">94%</div>
+                <p className="text-[10px] text-white/70 font-bold">Predicted Exam Score</p>
+                  </motion.div>
+
+              {/* Top Left: Study Patterns */}
+              <motion.div
+                className="absolute top-[15%] left-[2%] sm:left-[5%] w-[180px] sm:w-[240px] z-30 bg-slate-800/80 backdrop-blur-xl border border-purple-500/30 p-5 rounded-[2rem] shadow-2xl -rotate-6"
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5, duration: 0.6 }}
+                animate={{ y: [0, 15, 0], rotate: [-6, -9, -6] }}
+                transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <BarChart2 className="w-4 h-4 text-purple-400" />
+                  <span className="text-[9px] font-black uppercase tracking-widest text-purple-300">Patterns</span>
                 </div>
-                <div className="text-[10px] font-black text-white uppercase tracking-tighter">Consistency King</div>
-              </motion.div>
-
-              {/* Floating Focus Score */}
-              <motion.div
-                className="absolute bottom-[15%] left-[25%] sm:left-[35%] z-50 bg-emerald-500/20 backdrop-blur-md border border-emerald-500/30 px-4 py-2 rounded-2xl shadow-xl flex items-center gap-3"
-                animate={{ y: [0, -12, 0], scale: [1, 1.05, 1] }}
-                transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
-              >
-                <Activity className="w-4 h-4 text-emerald-400" />
-                <div className="flex flex-col">
-                  <span className="text-[8px] font-black text-emerald-400/60 uppercase">Focus Score</span>
-                  <span className="text-sm font-black text-white">98%</span>
+                <div className="space-y-3">
+                  <div className="flex justify-between text-[10px]">
+                    <span className="text-white/40 font-bold">Peak</span>
+                    <span className="text-white font-black">14:00</span>
+                  </div>
+                  <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full bg-purple-500 w-[80%]" />
+              </div>
                 </div>
               </motion.div>
 
-              {/* Mini XP Gain Bubble */}
+              {/* Bottom Right: Live Schedule */}
               <motion.div
-                className="absolute top-[40%] right-[5%] z-50 bg-purple-500 text-white px-3 py-1 rounded-full text-[10px] font-black shadow-lg"
-                animate={{ y: [-20, -60], opacity: [0, 1, 0], scale: [0.8, 1.2] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeOut" }}
+                className="absolute bottom-[10%] right-[2%] sm:right-[5%] w-[200px] sm:w-[280px] z-30 bg-slate-900/90 border border-white/10 p-5 rounded-[2rem] shadow-2xl"
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6, duration: 0.6 }}
+                animate={{ x: [0, 10, 0] }}
+                transition={{ duration: 9, repeat: Infinity }}
               >
-                +50 XP
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-white/40">Next Up</span>
+                  <div className="w-2 h-2 rounded-full bg-pink-500 animate-ping" />
+                </div>
+                <div className="p-3 bg-white/5 rounded-xl border border-white/5">
+                  <div className="text-xs font-black text-white mb-1">Advanced Algebra</div>
+                  <div className="text-[9px] font-bold text-white/30">14:00 - 15:30</div>
+                </div>
               </motion.div>
 
-              {/* Small Floating Details (Aspects like Gems, Streaks, Icons) */}
-              <motion.div 
-                className="absolute top-[25%] left-[15%] z-50 flex items-center gap-2 bg-orange-500/20 backdrop-blur-md border border-orange-500/30 px-4 py-2 rounded-full shadow-xl"
-                animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity }}
+              {/* Bottom Left: Quests */}
+              <motion.div
+                className="absolute bottom-[12%] left-[2%] sm:left-[5%] w-[180px] sm:w-[220px] z-30 bg-white/5 backdrop-blur-xl border border-white/10 p-5 rounded-[2rem] shadow-2xl"
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7, duration: 0.6 }}
+                animate={{ x: [0, -10, 0] }}
+                transition={{ duration: 8, repeat: Infinity }}
               >
-                <Flame className="w-4 h-4 text-orange-500" /><span className="text-sm font-black text-white">12 Day Streak</span>
+                <div className="flex items-center gap-2 mb-4">
+                  <Trophy className="w-4 h-4 text-yellow-400" />
+                  <span className="text-[9px] font-black uppercase tracking-widest text-white/40">Quests</span>
+                </div>
+                <div className="space-y-3">
+                  <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full bg-yellow-400 w-[66%]" />
+                  </div>
+                  <div className="text-[9px] font-black text-white/60 text-center uppercase tracking-tighter">Daily Focus: 2/3h</div>
+                </div>
               </motion.div>
 
-              <motion.div 
-                className="absolute bottom-[20%] right-[10%] z-50 flex items-center gap-2 bg-blue-500/20 backdrop-blur-md border border-blue-500/30 px-4 py-2 rounded-full shadow-xl"
-                animate={{ y: [0, 10, 0] }} transition={{ duration: 5, repeat: Infinity }}
+              {/* Small Floating Overlap Detail: Streak */}
+              <motion.div
+                className="absolute top-[45%] left-[5%] sm:left-[10%] z-50 bg-orange-500 text-white px-4 py-2 rounded-full shadow-2xl flex items-center gap-2"
+                animate={{ y: [0, -10, 0], rotate: [-2, 2, -2] }}
+                transition={{ duration: 4, repeat: Infinity }}
               >
-                <Gem className="w-4 h-4 text-blue-400" /><span className="text-sm font-black text-white">450 Gems</span>
+                <Flame className="w-4 h-4" />
+                <span className="text-xs font-black">12 Day Streak</span>
               </motion.div>
+
+              {/* Small Floating Overlap Detail: Gems */}
+              <motion.div
+                className="absolute top-[40%] right-[5%] sm:right-[10%] z-50 bg-blue-600 text-white px-4 py-2 rounded-full shadow-2xl flex items-center gap-2"
+                animate={{ y: [0, 10, 0], rotate: [2, -2, 2] }}
+                transition={{ duration: 5, repeat: Infinity }}
+              >
+                <Gem className="w-4 h-4 text-blue-200" />
+                <span className="text-xs font-black">450 Gems</span>
+              </motion.div>
+
+              {/* Small Floating Overlap Detail: Accuracy */}
+              <motion.div
+                className="absolute bottom-[25%] right-[15%] z-50 bg-emerald-500/20 backdrop-blur-md border border-emerald-500/40 px-4 py-2 rounded-2xl shadow-xl flex items-center gap-2 text-emerald-400"
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 3, repeat: Infinity }}
+              >
+                <Activity className="w-4 h-4" />
+                <span className="text-xs font-black">98% Focus</span>
+              </motion.div>
+
+              {/* Floating Particles/Bubbles */}
+              <motion.div className="absolute top-1/4 left-1/3 w-3 h-3 bg-purple-400 rounded-full blur-sm" animate={{ y: [0, -40], opacity: [0, 1, 0] }} transition={{ duration: 4, repeat: Infinity }} />
+              <motion.div className="absolute bottom-1/4 right-1/3 w-2 h-2 bg-pink-400 rounded-full blur-sm" animate={{ y: [0, -60], opacity: [0, 1, 0] }} transition={{ duration: 5, repeat: Infinity, delay: 1 }} />
+              <motion.div className="absolute top-1/2 right-1/4 w-4 h-4 bg-yellow-400/20 rounded-full blur-md" animate={{ scale: [1, 1.5, 1] }} transition={{ duration: 6, repeat: Infinity }} />
+            </div>
+          </motion.div>
 
               {/* Decorative Glows */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-purple-600/10 rounded-full blur-[150px] pointer-events-none -z-10" />
@@ -2351,22 +2361,22 @@ const AmbientModeSection = () => {
             <div className="absolute inset-0" />
             
             {/* Settings Button in Corner */}
-              <motion.button
-                className="absolute top-6 right-6 z-20 px-6 py-3 rounded-xl bg-black/40 backdrop-blur-md border border-white/30 hover:bg-black/60 transition-all flex items-center gap-2 shadow-lg"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ delay: 0.2 }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowSettings(true);
-                }}
-              >
-                <Settings className="w-5 h-5 text-white" />
-                <span className="text-white font-semibold text-base">Change Background</span>
-              </motion.button>
+            <motion.button
+              className="absolute top-6 right-6 z-20 px-6 py-3 rounded-xl bg-black/40 backdrop-blur-md border border-white/30 hover:bg-black/60 transition-all flex items-center gap-2 shadow-lg"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ delay: 0.2 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowSettings(true);
+              }}
+            >
+              <Settings className="w-5 h-5 text-white" />
+              <span className="text-white font-semibold text-base">Change Background</span>
+            </motion.button>
 
               {/* YouTube Music Widget Preview (Fullscreen) */}
               <motion.div
@@ -2399,8 +2409,8 @@ const AmbientModeSection = () => {
                   </div>
                 </div>
               </motion.div>
-              
-              <div className="text-center relative z-10">
+            
+            <div className="text-center relative z-10">
               <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
