@@ -6,17 +6,25 @@ const YOUTUBE_IFRAME_API_URL = 'https://www.youtube.com/iframe_api';
 
 // Predefined Lofi Playlist Queries
 const LOFI_PLAYLISTS = [
-  { id: 'lofi-hip-hop', name: 'Lofi Hip Hop', query: 'lofi hip hop music' },
-  { id: 'lofi-study', name: 'Lofi Study Beats', query: 'lofi study beats' },
-  { id: 'lofi-chill', name: 'Lofi Chill', query: 'lofi chill music' },
-  { id: 'lofi-sleep', name: 'Lofi Sleep', query: 'lofi sleep music' },
-  { id: 'lofi-jazz', name: 'Lofi Jazz', query: 'lofi jazz music' },
-  { id: 'lofi-rain', name: 'Lofi Rain', query: 'lofi rain sounds' },
-  { id: 'lofi-anime', name: 'Lofi Anime', query: 'lofi anime music' },
-  { id: 'lofi-coffee', name: 'Lofi Coffee Shop', query: 'lofi coffee shop music' },
-  { id: 'lofi-focus', name: 'Lofi Focus', query: 'lofi focus music' },
-  { id: 'lofi-relax', name: 'Lofi Relax', query: 'lofi relax music' },
+  { id: 'lofi-hip-hop', name: 'Lofi Hip Hop', query: 'lofi hip hop music', fallbackId: 'jfKfPfyJRdk' },
+  { id: 'lofi-study', name: 'Lofi Study Beats', query: 'lofi study beats', fallbackId: '5qap5aO4i9A' },
+  { id: 'lofi-chill', name: 'Lofi Chill', query: 'lofi chill music', fallbackId: 'DWcUYKoZBD0' },
+  { id: 'lofi-sleep', name: 'Lofi Sleep', query: 'lofi sleep music', fallbackId: 'nMfPqeZ42gs' },
+  { id: 'lofi-jazz', name: 'Lofi Jazz', query: 'lofi jazz music', fallbackId: 'HuH6Xh20hAs' },
+  { id: 'lofi-rain', name: 'Lofi Rain', query: 'lofi rain sounds', fallbackId: '5_mN_p0_FfE' },
+  { id: 'lofi-anime', name: 'Lofi Anime', query: 'lofi anime music', fallbackId: 'f5f0_Hh6T5M' },
+  { id: 'lofi-coffee', name: 'Lofi Coffee Shop', query: 'lofi coffee shop music', fallbackId: 'hS5CfP8n_nM' },
+  { id: 'lofi-focus', name: 'Lofi Focus', query: 'lofi focus music', fallbackId: '7NOSDKb0HlU' },
+  { id: 'lofi-relax', name: 'Lofi Relax', query: 'lofi relax music', fallbackId: 'TURbeW9sn-8' },
 ];
+
+// Fallback track info for when API fails entirely
+const FALLBACK_TRACK = {
+  videoId: 'jfKfPfyJRdk', // Lofi Girl
+  title: 'lofi hip hop radio - beats to relax/study to',
+  channel: 'Lofi Girl',
+  thumbnail: 'https://i.ytimg.com/vi/jfKfPfyJRdk/default.jpg'
+};
 
 // Get most played playlists from localStorage
 const getMostPlayedPlaylists = () => {
@@ -164,10 +172,33 @@ export const useYouTubeMusic = () => {
     }
 
     try {
-      const response = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&videoCategoryId=10&maxResults=1&key=${YOUTUBE_API_KEY}`
-      );
-      const data = await response.json();
+      // First try with music category for better results
+      let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&videoCategoryId=10&maxResults=1&key=${YOUTUBE_API_KEY}`;
+      
+      let response = await fetch(url);
+      let data = await response.json();
+
+      // If no results or error, try without category restriction
+      if (data.error || !data.items || data.items.length === 0) {
+        if (data.error) {
+          console.warn('YouTube API Error (with category):', data.error.message);
+          // If it's a quota or key error, don't retry as it will fail too
+          if (data.error.errors?.[0]?.reason === 'quotaExceeded' || data.error.code === 403) {
+            setError(`YouTube API Error: ${data.error.message}`);
+            return null;
+          }
+        }
+
+        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=1&key=${YOUTUBE_API_KEY}`;
+        response = await fetch(url);
+        data = await response.json();
+      }
+
+      if (data.error) {
+        console.error('YouTube API Error:', data.error.message);
+        setError(`YouTube API Error: ${data.error.message}`);
+        return null;
+      }
 
       if (data.items && data.items.length > 0) {
         const video = data.items[0];
@@ -203,7 +234,19 @@ export const useYouTubeMusic = () => {
       const playlist = LOFI_PLAYLISTS.find(p => p.id === playlistId) || LOFI_PLAYLISTS[0];
       
       // Search for a lofi music video
-      const video = await searchVideo(playlist.query);
+      let video = await searchVideo(playlist.query);
+      
+      // If search fails, use fallbackId for this playlist
+      if (!video && playlist.fallbackId) {
+        console.warn('YouTube search failed, using playlist fallbackId:', playlist.fallbackId);
+        video = {
+          videoId: playlist.fallbackId,
+          title: playlist.name,
+          channel: 'YouTube Music',
+          thumbnail: `https://i.ytimg.com/vi/${playlist.fallbackId}/default.jpg`
+        };
+      }
+
       if (video) {
         player.loadVideoById(video.videoId);
         setCurrentTrack({
@@ -218,7 +261,7 @@ export const useYouTubeMusic = () => {
         // Track this playlist play
         trackPlaylistPlay(playlist.id);
       } else {
-        throw new Error('No lofi music found');
+        throw new Error('No lofi music found and no fallback available');
       }
     } catch (err) {
       console.error('Error playing lofi:', err);
@@ -242,7 +285,14 @@ export const useYouTubeMusic = () => {
     setError(null);
 
     try {
-      const video = await searchVideo(query);
+      let video = await searchVideo(query);
+      
+      // If search fails and it's a generic lofi query, try FALLBACK_TRACK
+      if (!video && (query.toLowerCase().includes('lofi') || query.toLowerCase().includes('study'))) {
+        console.warn('YouTube search failed for lofi query, using global fallback');
+        video = FALLBACK_TRACK;
+      }
+
       if (video) {
         player.loadVideoById(video.videoId);
         setCurrentTrack({
@@ -252,7 +302,7 @@ export const useYouTubeMusic = () => {
         });
         setIsPlaying(true);
       } else {
-        throw new Error('No results found');
+        throw new Error('No results found and no fallback available');
       }
     } catch (err) {
       console.error('Error searching and playing:', err);
