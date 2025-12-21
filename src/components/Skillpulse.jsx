@@ -21,7 +21,6 @@ import { useGamification } from "../context/GamificationContext";
 import StreakTracker from "./StreakTracker";
 import QuestSystem from "./QuestSystem";
 import AchievementSystem from "./AchievementSystem";
-import RewardSystem from "./RewardSystem";
 import MysteryBox from "./MysteryBox";
 import LeaderboardTab from "./LeaderboardTab";
 
@@ -329,9 +328,6 @@ const Skillpulse = () => {
 
   return (
     <>
-      {/* Reward System - Always Active */}
-      <RewardSystem userStats={userStats} />
-
       {/* Settings Popup */}
       <AnimatePresence>
         {showSettingsPopup && (

@@ -145,8 +145,8 @@ function App() {
                   <ThemeProvider>
                     <DashboardProvider>
                       <OfflineIndicator />
-                      <RewardSystem />
                       <Router>
+                        <RewardSystem />
                         <RouteCleanup />
                           <WebsiteTimeTracker />
                           <KeyboardShortcutsHandler />

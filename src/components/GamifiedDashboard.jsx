@@ -32,7 +32,6 @@ import StreakTracker from "./StreakTracker";
 import QuestSystem from "./QuestSystem";
 import AchievementSystem from "./AchievementSystem";
 
-import RewardSystem from "./RewardSystem";
 import MysteryBox from "./MysteryBox";
 import OnboardingModal from "./OnboardingModal";
 import DashboardViewToggle from "./DashboardViewToggle";
@@ -131,8 +130,6 @@ const GamifiedDashboard = () => {
   return (
     <div className="min-h-screen mt-20 pl-10" style={{ backgroundColor: "var(--app-bg)" }}>
       <OnboardingModal userId={user?.id} />
-      {/* Reward System - Always Active */}
-      <RewardSystem userStats={userStats} />
 
       {/* Settings Popup */}
       <AnimatePresence>
