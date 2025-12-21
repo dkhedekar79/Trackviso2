@@ -1199,8 +1199,6 @@ export const GamificationProvider = ({ children }) => {
 
   // Check and unlock achievements - ROBUST FUNCTIONAL VERSION
   const checkAchievements = () => {
-    let unlockedThisTurn = [];
-
     setUserStats((prev) => {
       const newlyUnlocked = [];
       
@@ -1224,37 +1222,35 @@ export const GamificationProvider = ({ children }) => {
       
       if (newlyUnlocked.length === 0) return prev;
 
-      unlockedThisTurn = newlyUnlocked;
+      // Handle side effects in a timeout to avoid recursive state updates
+      setTimeout(() => {
+        let totalXPToGrant = 0;
+        newlyUnlocked.forEach((achievement) => {
+          totalXPToGrant += achievement.xp || 0;
+          
+          addReward({
+            type: "ACHIEVEMENT",
+            title: `🏆 ${achievement.name}`,
+            description: achievement.description,
+            tier: achievement.tier,
+            xp: achievement.xp,
+            icon: achievement.icon,
+            animation: "achievement",
+          });
+        });
+
+        if (totalXPToGrant > 0) {
+          grantXP(totalXPToGrant, "achievement");
+        }
+
+        updateQuestProgress("achievement", newlyUnlocked.length);
+      }, 100);
 
       return {
         ...prev,
         achievements: [...prev.achievements, ...newlyUnlocked.map(a => a.id)],
       };
     });
-
-    // Handle side effects outside of the update
-    if (unlockedThisTurn.length > 0) {
-      let totalXPToGrant = 0;
-      unlockedThisTurn.forEach((achievement) => {
-        totalXPToGrant += achievement.xp || 0;
-        
-        addReward({
-          type: "ACHIEVEMENT",
-          title: `🏆 ${achievement.name}`,
-          description: achievement.description,
-          tier: achievement.tier,
-          xp: achievement.xp,
-          icon: achievement.icon,
-          animation: "achievement",
-        });
-      });
-
-      if (totalXPToGrant > 0) {
-        grantXP(totalXPToGrant, "achievement");
-      }
-
-      updateQuestProgress("achievement", unlockedThisTurn.length);
-    }
   };
 
   // Unlock achievement - DEPRECATED, use checkAchievements instead
@@ -1727,10 +1723,6 @@ export const GamificationProvider = ({ children }) => {
 
   // Update quest progress for both daily and weekly quests - COMPLETELY REVAMPED
   const updateQuestProgress = (type, amount = 1, subjectName = null) => {
-    let completedDailyToReward = [];
-    let completedWeeklyToReward = [];
-    let totalXPToGrant = 0;
-
     setUserStats((prev) => {
       const todayStr = new Date().toDateString();
       const oneWeekAgo = new Date();
@@ -1878,10 +1870,36 @@ export const GamificationProvider = ({ children }) => {
         return { ...quest, progress: newProgress, completed };
       });
 
-      // Capture completions for side effects
-      completedDailyToReward = dailyCompletions;
-      completedWeeklyToReward = weeklyCompletions;
-      totalXPToGrant = dailyCompletions.reduce((sum, c) => sum + c.xp, 0) + weeklyCompletions.reduce((sum, c) => sum + c.xp, 0);
+      // Handle side effects in a timeout to avoid recursive state updates
+      if (dailyCompletions.length > 0 || weeklyCompletions.length > 0) {
+        setTimeout(() => {
+          const totalXP = dailyCompletions.reduce((sum, c) => sum + c.xp, 0) + weeklyCompletions.reduce((sum, c) => sum + c.xp, 0);
+          
+          if (totalXP > 0) {
+            grantXP(totalXP, "quest");
+          }
+
+          dailyCompletions.forEach(({ quest, xp }) => {
+            addReward({
+              type: "QUEST_COMPLETE",
+              title: `✅ ${quest.name}`,
+              description: quest.description,
+              tier: "uncommon",
+              xp: xp,
+            });
+          });
+
+          weeklyCompletions.forEach(({ quest, xp }) => {
+            addReward({
+              type: "QUEST_COMPLETE",
+              title: `🏆 ${quest.name}`,
+              description: quest.description,
+              tier: "epic",
+              xp: xp,
+            });
+          });
+        }, 150);
+      }
 
       return {
         ...prev,
@@ -1889,31 +1907,6 @@ export const GamificationProvider = ({ children }) => {
         weeklyQuests: updatedWeeklyQuests,
         completedQuestsToday: updatedDailyQuests.filter(q => q.completed).length,
       };
-    });
-
-    // Run side effects OUTSIDE of setUserStats
-    if (totalXPToGrant > 0) {
-      grantXP(totalXPToGrant, "quest");
-    }
-
-    completedDailyToReward.forEach(({ quest, xp }) => {
-      addReward({
-        type: "QUEST_COMPLETE",
-        title: `✅ ${quest.name}`,
-        description: quest.description,
-        tier: "uncommon",
-        xp: xp,
-      });
-    });
-
-    completedWeeklyToReward.forEach(({ quest, xp }) => {
-      addReward({
-        type: "QUEST_COMPLETE",
-        title: `🏆 ${quest.name}`,
-        description: quest.description,
-        tier: "epic",
-        xp: xp,
-      });
     });
   };
 
