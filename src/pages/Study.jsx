@@ -1817,17 +1817,17 @@ const Study = () => {
                     ))}
                   </div>
 
-{/* Mode Status */}
-                    {mode === "pomodoro" && (
-                      <div className="text-center mb-8">
+                  {/* Mode Status */}
+                  {mode === "pomodoro" && (
+                    <div className="text-center mb-8">
                         <div className={`text-xl font-medium ${isInBreakPhase ? 'text-green-400' : 'text-white'}`}>
                           {isInBreakPhase ? "🌴 Break Time" : "📚 Work Time"}
-                        </div>
-                        <div className="text-gray-300 text-lg">
-                          {localPomodoroCount} pomodoros completed
-                        </div>
                       </div>
-                    )}
+                      <div className="text-gray-300 text-lg">
+                          {localPomodoroCount} pomodoros completed
+                      </div>
+                    </div>
+                  )}
 
                   {/* Large Timer Display */}
                   <div className="relative mb-12 w-[320px] h-[320px]">
@@ -1845,29 +1845,29 @@ const Study = () => {
                           strokeWidth="12"
                           fill="none"
                         />
-<circle
-                            cx="160"
-                            cy="160"
-                            r="144"
-                            stroke={
+                        <circle
+                          cx="160"
+                          cy="160"
+                          r="144"
+                          stroke={
                               isInBreakPhase
-                                ? "#4ADE80"
-                                : mode === "pomodoro" &&
-                                  elapsedSeconds > getTotalDuration() &&
+                              ? "#4ADE80"
+                              : mode === "pomodoro" &&
+                                elapsedSeconds > getTotalDuration() &&
                                   localPomodoroPhase === "work"
-                                  ? "#EF4444"
-                                  : "var(--primary)"
-                            }
-                            strokeWidth="12"
-                            fill="none"
-                            strokeDasharray={2 * Math.PI * 144}
-                            strokeDashoffset={
-                              2 * Math.PI * 144 * (1 - getProgress() / 100)
-                            }
-                            style={{
-                              transition: "stroke-dashoffset 0.5s, stroke 0.2s",
-                            }}
-                          />
+                                ? "#EF4444"
+                                : "var(--primary)"
+                          }
+                          strokeWidth="12"
+                          fill="none"
+                          strokeDasharray={2 * Math.PI * 144}
+                          strokeDashoffset={
+                            2 * Math.PI * 144 * (1 - getProgress() / 100)
+                          }
+                          style={{
+                            transition: "stroke-dashoffset 0.5s, stroke 0.2s",
+                          }}
+                        />
                       </svg>
                     )}
                     <div
@@ -2034,8 +2034,8 @@ const Study = () => {
                 <div className="text-right mr-4">
                   <div className="text-sm text-purple-300">Weekly Progress</div>
                   <div className="text-lg font-bold text-white">
-                    {Math.round(weeklyProgress.studied / 60)}h /{" "}
-                    {Math.round(weeklyProgress.goal / 60)}h
+                    {Math.floor(weeklyProgress.studied / 60)}h /{" "}
+                    {Math.floor(weeklyProgress.goal / 60)}h
                   </div>
                   <div className="text-xs text-purple-300/70">
                     {weeklyProgress.percentage}% complete
@@ -2157,10 +2157,10 @@ const Study = () => {
                               isInBreakPhase
                                 ? "#4ADE80"
                                 : mode === "pomodoro" &&
-                                  elapsedSeconds > getTotalDuration() &&
+                              elapsedSeconds > getTotalDuration() &&
                                   localPomodoroPhase === "work"
-                                  ? "#EF4444"
-                                  : "var(--primary)"
+                                ? "#EF4444"
+                                : "var(--primary)"
                             }
                             strokeWidth="8"
                             fill="none"
@@ -2403,13 +2403,13 @@ const Study = () => {
                     <div className="flex justify-between items-center">
                       <span className="text-pink-200/80">Studied</span>
                       <span className="text-white font-bold">
-                        {Math.round(weeklyProgress.studied / 60)}h
+                        {Math.floor(weeklyProgress.studied / 60)}h
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-pink-200/80">Goal</span>
                       <span className="text-white font-bold">
-                        {Math.round(weeklyProgress.goal / 60)}h
+                        {Math.floor(weeklyProgress.goal / 60)}h
                       </span>
                     </div>
                     <div className="w-full bg-pink-500/20 rounded-full h-2">

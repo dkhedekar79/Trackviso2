@@ -419,7 +419,7 @@ const Subjects = () => {
                   <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-300">Total Studied</span>
                   <span className="font-semibold text-white">
-                      {Math.round(studyTime / 60)}h {Math.round(studyTime % 60)}m
+                      {Math.floor(studyTime / 60)}h {Math.round(studyTime % 60)}m
                     </span>
                   </div>
                   

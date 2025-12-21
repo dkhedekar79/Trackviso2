@@ -342,7 +342,7 @@ const Admin = () => {
                       )}
                     </div>
                     <p className="text-sm text-purple-300/60">
-                      Level {u.level} • {Math.round(u.total_study_time / 60)}h {u.total_study_time % 60}m studied
+                      Level {u.level} • {Math.floor(u.total_study_time / 60)}h {u.total_study_time % 60}m studied
                     </p>
                   </div>
 

@@ -332,7 +332,7 @@ export default function Insights() {
       .map(([subjectName, totalMinutes]) => ({
         subjectName,
         totalMinutes,
-        totalHours: Math.round(totalMinutes / 60),
+        totalHours: Math.floor(totalMinutes / 60),
         totalMinutesRemaining: Math.round(totalMinutes % 60)
       }))
       .sort((a, b) => b.totalMinutes - a.totalMinutes);
@@ -1186,7 +1186,7 @@ export default function Insights() {
                 <h3 className="text-lg font-semibold text-white">Total Study Time</h3>
               </div>
               <div className="text-3xl font-bold text-white mb-2">
-                {Math.round(totalStudyTime / 60)}h {Math.round(totalStudyTime % 60)}m
+                {Math.floor(totalStudyTime / 60)}h {Math.round(totalStudyTime % 60)}m
               </div>
               <p className="text-purple-200/80 text-sm">{totalSessions} sessions</p>
               {comparison.studyTimeChange !== 0 && (
@@ -1365,7 +1365,7 @@ export default function Insights() {
                                     >
                                       {/* Tooltip on hover */}
                                       <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-purple-900/95 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
-                                        {segment.subjectName}: {Math.round(segment.minutes / 60)}h {Math.round(segment.minutes % 60)}m
+                                        {segment.subjectName}: {Math.floor(segment.minutes / 60)}h {Math.round(segment.minutes % 60)}m
                                       </div>
             </motion.div>
                                   ))}
@@ -1381,7 +1381,7 @@ export default function Insights() {
                             <div className="w-20 text-sm text-purple-300 text-right font-medium">
                               {day.totalMinutes > 0 ? (
                                 <>
-                                  {Math.round(day.totalMinutes / 60)}h {Math.round(day.totalMinutes % 60)}m
+                                  {Math.floor(day.totalMinutes / 60)}h {Math.round(day.totalMinutes % 60)}m
                                 </>
                               ) : (
                                 <span className="text-purple-400/50">—</span>
@@ -1425,7 +1425,7 @@ export default function Insights() {
                             <div className="flex-1 min-w-0">
                               <div className="text-white text-sm font-medium truncate">{subjectName}</div>
                               <div className="text-purple-300/70 text-xs">
-                                {Math.round(totalMinutes / 60)}h {Math.round(totalMinutes % 60)}m total
+                                {Math.floor(totalMinutes / 60)}h {Math.round(totalMinutes % 60)}m total
                               </div>
                             </div>
                           </motion.div>
@@ -1556,7 +1556,7 @@ export default function Insights() {
                                       >
                                         {/* Tooltip on hover */}
                                         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 bg-purple-900/95 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
-                                          {segment.subjectName}: {Math.round(segment.minutes / 60)}h {Math.round(segment.minutes % 60)}m
+                                          {segment.subjectName}: {Math.floor(segment.minutes / 60)}h {Math.round(segment.minutes % 60)}m
                                         </div>
                                       </motion.div>
                                     ))}
@@ -1572,7 +1572,7 @@ export default function Insights() {
                               <div className="w-16 text-xs text-purple-300 text-right">
                                 {day.totalMinutes > 0 ? (
                                   <>
-                                    {Math.round(day.totalMinutes / 60)}h {Math.round(day.totalMinutes % 60)}m
+                                    {Math.floor(day.totalMinutes / 60)}h {Math.round(day.totalMinutes % 60)}m
                                   </>
                                 ) : (
                                   <span className="text-purple-400/50">—</span>
@@ -1617,7 +1617,7 @@ export default function Insights() {
                             <div className="flex-1 min-w-0">
                               <div className="text-white text-sm font-medium truncate">{subjectName}</div>
                               <div className="text-purple-300/70 text-xs">
-                                {Math.round(totalMinutes / 60)}h {Math.round(totalMinutes % 60)}m total
+                                {Math.floor(totalMinutes / 60)}h {Math.round(totalMinutes % 60)}m total
                               </div>
                             </div>
                           </motion.div>
@@ -1771,7 +1771,7 @@ export default function Insights() {
                                       >
                                         {/* Tooltip on hover */}
                                         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 bg-purple-900/95 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
-                                          {segment.subjectName}: {Math.round(segment.minutes / 60)}h {Math.round(segment.minutes % 60)}m
+                                          {segment.subjectName}: {Math.floor(segment.minutes / 60)}h {Math.round(segment.minutes % 60)}m
                                         </div>
                                       </motion.div>
                                     ))}
@@ -1787,7 +1787,7 @@ export default function Insights() {
                               <div className="w-16 text-xs text-purple-300 text-right">
                                 {day.totalMinutes > 0 ? (
                                   <>
-                                    {Math.round(day.totalMinutes / 60)}h {Math.round(day.totalMinutes % 60)}m
+                                    {Math.floor(day.totalMinutes / 60)}h {Math.round(day.totalMinutes % 60)}m
                                   </>
                                 ) : (
                                   <span className="text-purple-400/50">—</span>
@@ -1832,7 +1832,7 @@ export default function Insights() {
                             <div className="flex-1 min-w-0">
                               <div className="text-white text-sm font-medium truncate">{subjectName}</div>
                               <div className="text-purple-300/70 text-xs">
-                                {Math.round(totalMinutes / 60)}h {Math.round(totalMinutes % 60)}m total
+                                {Math.floor(totalMinutes / 60)}h {Math.round(totalMinutes % 60)}m total
                               </div>
                             </div>
                           </motion.div>
@@ -2042,7 +2042,7 @@ export default function Insights() {
                           <div className="flex-1 min-w-0">
                             <div className="text-white font-medium text-sm truncate">{subject}</div>
                             <div className="text-purple-200/80 text-xs">
-                              {Math.round(time / 60)}h {Math.round(time % 60)}m ({percentage.toFixed(1)}%)
+                              {Math.floor(time / 60)}h {Math.round(time % 60)}m ({percentage.toFixed(1)}%)
                         </div>
                     </div>
                   </motion.div>
@@ -2123,7 +2123,7 @@ export default function Insights() {
                             >
                               {/* Tooltip */}
                               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-purple-900/95 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
-                                {day}: {Math.round(value / 60)}h {Math.round(value % 60)}m
+                                {day}: {Math.floor(value / 60)}h {Math.round(value % 60)}m
                     </div>
                   </motion.div>
                           );
@@ -2251,7 +2251,7 @@ export default function Insights() {
                 />
               </div>
               <div className="text-purple-200/80 text-sm">
-                {Math.round(goalProgress.current / 60)}h / {Math.round(goalProgress.goal / 60)}h
+                {Math.floor(goalProgress.current / 60)}h / {Math.floor(goalProgress.goal / 60)}h
               </div>
             </div>
           </motion.div>
