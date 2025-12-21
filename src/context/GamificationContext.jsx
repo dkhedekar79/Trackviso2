@@ -1068,14 +1068,17 @@ export const GamificationProvider = ({ children }) => {
 
     setRewardQueue((prev) => [...prev, rewardWithId]);
     setShowRewards(true);
+  };
 
-    // Auto-remove after delay
-    setTimeout(
-      () => {
-        setRewardQueue((prev) => prev.filter((r) => r.id !== rewardWithId.id));
-      },
-      reward.tier === "legendary" ? 5000 : 3000,
-    );
+  // Dismiss the current reward and move to next in queue
+  const dismissReward = (rewardId) => {
+    setRewardQueue((prev) => {
+      const newQueue = prev.filter((r) => r.id !== rewardId);
+      if (newQueue.length === 0) {
+        setShowRewards(false);
+      }
+      return newQueue;
+    });
   };
 
   // Enhanced achievement system - FIXED to accept stats parameter
@@ -2196,6 +2199,7 @@ export const GamificationProvider = ({ children }) => {
     updateQuestProgress,
     checkAchievements,
     unlockAchievement,
+    dismissReward,
     prestige,
     setShowRewards,
     calculateXP,

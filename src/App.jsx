@@ -42,6 +42,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import ToastProvider from './context/ToastContext';
 import { useOffline } from './hooks/useOffline';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import RewardSystem from './components/RewardSystem';
 import './styles/index.css';
 
 
@@ -144,6 +145,7 @@ function App() {
                   <ThemeProvider>
                     <DashboardProvider>
                       <OfflineIndicator />
+                      <RewardSystem />
                       <Router>
                         <RouteCleanup />
                           <WebsiteTimeTracker />

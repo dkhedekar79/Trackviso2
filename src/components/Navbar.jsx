@@ -399,32 +399,6 @@ const Navbar = () => {
             : "via-white/50"
         } to-transparent`} />
       </motion.nav>
-
-      {/* Gamification Notifications */}
-      <AnimatePresence>
-      {showRewards && rewardQueue && Array.isArray(rewardQueue) && rewardQueue.length > 0 && (
-          <motion.div 
-            initial={{ opacity: 0, x: 100, scale: 0.8 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: 100, scale: 0.8 }}
-            className="fixed top-28 right-6 bg-gradient-to-r from-emerald-500 to-green-600 text-white p-5 rounded-2xl shadow-2xl shadow-emerald-500/40 z-50 max-w-sm border border-emerald-300/30"
-          >
-            <div className="flex items-center gap-4">
-              <motion.div 
-                className="text-3xl"
-                animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 0.5 }}
-              >
-                🎉
-              </motion.div>
-            <div>
-              <h4 className="font-bold text-lg">{rewardQueue[rewardQueue.length - 1]?.title || "Session Complete!"}</h4>
-              <p className="text-sm opacity-90">{rewardQueue[rewardQueue.length - 1]?.description || "Great work!"}</p>
-            </div>
-          </div>
-          </motion.div>
-      )}
-      </AnimatePresence>
     </>
   );
 };
