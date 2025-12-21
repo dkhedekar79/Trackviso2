@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useGamification } from "../context/GamificationContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, User, LogOut, Menu, X, Star, Trophy, Flame, Zap } from 'lucide-react';
+import { Bell, User, LogOut, Menu, X, Star, Trophy, Flame, Zap, Target } from 'lucide-react';
 import ProfileDropdown from "./ProfileDropdown";
 
 // Custom 4-pointed star logo SVG component
@@ -253,20 +253,11 @@ const Navbar = () => {
           >
             <Link to="/dashboard" className="group flex items-center gap-3">
               <motion.div
-                className="relative"
-                whileHover={{ rotate: 180 }}
+                className="relative w-9 h-9 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-lg shadow-purple-500/30"
+                whileHover={{ rotate: 180, scale: 1.05 }}
                 transition={{ duration: 0.6, ease: "easeInOut" }}
               >
-                <StarLogo className="w-11 h-11 drop-shadow-lg" />
-                {/* Animated glow behind logo */}
-                <motion.div 
-                  className="absolute inset-0 bg-indigo-500/50 blur-xl rounded-full -z-10"
-                  animate={{ 
-                    scale: [1, 1.4, 1], 
-                    opacity: [0.5, 0.8, 0.5] 
-                  }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                />
+                <Target className="w-5 h-5 text-white" />
               </motion.div>
               <span className="text-2xl font-black text-white drop-shadow-lg group-hover:drop-shadow-xl transition-all duration-300 tracking-tight">
                 Trackviso

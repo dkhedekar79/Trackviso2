@@ -379,7 +379,7 @@ const Landing = () => {
           <motion.div variants={itemVariants} className="mb-8">
             <div className="inline-flex items-center bg-purple-900/50 border border-purple-700/50 text-purple-300 px-4 py-2 rounded-full text-sm font-medium mb-6 backdrop-blur-sm">
               <Sparkles className="w-4 h-4 mr-2" />
-              Track your academic journey like never before
+              Track your academic journey like never before - The world's most advanced study tracker
             </div>
           </motion.div>
 
@@ -562,7 +562,7 @@ const Landing = () => {
                 initial={{ scale: 0.8 }}
                 whileInView={{ scale: 1 }}
                 transition={{ delay: 0.4, duration: 0.6 }}
-                animate={{ y: [0, -15, 0], rotate: [6, 9, 6] }}
+                animate={{ y: [0, 0, 0], rotate: [6, 9, 6] }}
                 transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
               >
                 <div className="flex items-center gap-2 mb-3">
@@ -579,7 +579,7 @@ const Landing = () => {
                 initial={{ scale: 0.8 }}
                 whileInView={{ scale: 1 }}
                 transition={{ delay: 0.5, duration: 0.6 }}
-                animate={{ y: [0, 15, 0], rotate: [-6, -9, -6] }}
+                animate={{ y: [0, 0, 0], rotate: [-6, -9, -6] }}
                 transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
               >
                 <div className="flex items-center gap-2 mb-4">
