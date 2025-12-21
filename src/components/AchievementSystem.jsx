@@ -577,12 +577,12 @@ const AchievementSystem = () => {
   const [showModal, setShowModal] = useState(false);
   const [filter, setFilter] = useState('all');
   
-  // Check achievements on mount and when stats change
+  // Check achievements on mount
   useEffect(() => {
     if (checkAchievements) {
       checkAchievements();
     }
-  }, [userStats.totalSessions, userStats.level, userStats.totalStudyTime, userStats.currentStreak]);
+  }, []); // Only on mount, as context handles triggers on stats change
   
   // Get all achievements with unlock status - FIXED to use both context and component achievements
   const getAllAchievements = () => {

@@ -164,7 +164,15 @@ export default function Dashboard() {
   };
 
   // Load subjects, study sessions, and tasks from Supabase (with localStorage fallback)
-  
+  useEffect(() => {
+    const savedSubjects = localStorage.getItem('subjects');
+    const savedSessions = localStorage.getItem('studySessions');
+    const savedTasks = localStorage.getItem('tasks');
+    
+    if (savedSubjects) setSubjects(JSON.parse(savedSubjects));
+    if (savedSessions) setStudySessions(JSON.parse(savedSessions));
+    if (savedTasks) setTasks(JSON.parse(savedTasks));
+  }, []);
   // Calculate study statistics, streak, and completed tasks
   useEffect(() => {
     const now = new Date();
@@ -183,7 +191,7 @@ export default function Dashboard() {
     const completedTasks = getCompletedTasksThisWeek(tasks);
 
     setStudyStats({
-      hoursThisWeek: accurateStats.hoursThisWeek,
+      timeDisplay: accurateStats.timeDisplay,
       totalGoal,
       progress: accurateStats.progress
     });
@@ -273,9 +281,13 @@ export default function Dashboard() {
       total + Number(session.durationMinutes || 0), 0
     );
 
+    const h = Math.floor(thisWeekMinutes / 60);
+    const m = Math.round(thisWeekMinutes % 60);
+    const timeDisplay = h > 0 ? `${h}h ${m}m` : `${m}m`;
+
     return {
       sessionsThisWeek: thisWeekSessions.length,
-      hoursThisWeek: thisWeekMinutes / 60,
+      timeDisplay,
       progress: goal > 0 ? Math.min((thisWeekMinutes / 60 / goal) * 100, 100) : 0
     };
   };
@@ -476,7 +488,7 @@ export default function Dashboard() {
         {/* Summary & Exam Readiness */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-6 px-6 py-8">
           <Card title="This Week's Study">
-            <span className="text-3xl font-bold text-white">{studyStats.hoursThisWeek.toFixed(1)} <small className="text-base font-normal text-gray-300">hrs</small></span>
+            <span className="text-3xl font-bold text-white">{studyStats.timeDisplay}</span>
             <div className="w-full bg-white/10 rounded-full h-3 my-3 overflow-hidden">
               <div className="bg-[#6C5DD3] h-3 rounded-full transition-all duration-300" style={{ width: `${studyStats.progress}%` }} />
             </div>
