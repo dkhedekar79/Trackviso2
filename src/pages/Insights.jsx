@@ -671,7 +671,7 @@ export default function Insights() {
 
   // 1. Learning Velocity Tracker (FREE) - Calculate growth rate over time
   const getLearningVelocity = () => {
-    if (studySessions.length < 4) return null;
+    if (studySessions.length < 3) return null;
     
     // Group sessions by week
     const sessionsByWeek = {};
@@ -688,13 +688,20 @@ export default function Insights() {
           avgSessionLength: 0
         };
       }
-      sessionsByWeek[weekKey].totalMinutes += session.durationMinutes || 0;
+      sessionsByWeek[weekKey].totalMinutes += Number(session.durationMinutes) || 0;
       sessionsByWeek[weekKey].sessions += 1;
-      sessionsByWeek[weekKey].totalXP += session.xpEarned || (session.durationMinutes || 0) * 10; // Estimate XP if not available
+      sessionsByWeek[weekKey].totalXP += Number(session.xpEarned) || (Number(session.durationMinutes) || 0) * 10;
     });
     
     const weeks = Object.keys(sessionsByWeek).sort();
-    if (weeks.length < 2) return null;
+    
+    // If only one week of data, we can't show velocity but we can show stats
+    if (weeks.length < 2) return {
+      velocities: [],
+      avgVelocity: 0,
+      trend: 'stable',
+      currentWeek: weeks[0]
+    };
     
     // Calculate velocity between consecutive weeks
     const velocities = [];
@@ -737,19 +744,19 @@ export default function Insights() {
 
   // 2. Optimal Study Time Predictor (PREMIUM) - Find best hours to study
   const getOptimalStudyTimes = () => {
-    if (!isPremium || filteredSessions.length < 3) return null;
+    if (!isPremium || studySessions.length < 3) return null;
     
     const hourPerformance = Array(24).fill(0).map((_, hour) => {
-      const hourSessions = filteredSessions.filter(s => {
+      const hourSessions = studySessions.filter(s => {
         const sessionHour = new Date(s.timestamp).getHours();
         return sessionHour === hour;
       });
       
       if (hourSessions.length === 0) return { hour, score: 0, sessions: 0, avgDuration: 0, avgXP: 0 };
       
-      const avgDuration = hourSessions.reduce((sum, s) => sum + (s.durationMinutes || 0), 0) / hourSessions.length;
-      const avgXP = hourSessions.reduce((sum, s) => sum + (s.xpEarned || (s.durationMinutes || 0) * 10), 0) / hourSessions.length;
-      const consistency = hourSessions.length / Math.max(1, filteredSessions.length / 24);
+      const avgDuration = hourSessions.reduce((sum, s) => sum + (Number(s.durationMinutes) || 0), 0) / hourSessions.length;
+      const avgXP = hourSessions.reduce((sum, s) => sum + (Number(s.xpEarned) || (Number(s.durationMinutes) || 0) * 10), 0) / hourSessions.length;
+      const consistency = hourSessions.length / Math.max(1, studySessions.length / 24);
       const moodScore = hourSessions.filter(s => s.mood === 'great' || s.mood === 'good').length / hourSessions.length;
       
       // Score calculation: duration (40%), XP efficiency (30%), consistency (20%), mood (10%)
@@ -773,17 +780,31 @@ export default function Insights() {
 
   // 3. Performance Prediction Engine (PREMIUM) - Predict exam scores
   const getPerformancePrediction = () => {
-    if (!isPremium || filteredSessions.length < 3) return null;
+    if (!isPremium || studySessions.length < 3) return null;
     
     // Use recent sessions for prediction
-    const recentSessions = filteredSessions.slice(0, Math.min(20, filteredSessions.length));
+    const recentSessions = studySessions.slice(-20);
     
-    const avgSessionLength = recentSessions.reduce((sum, s) => sum + (s.durationMinutes || 0), 0) / recentSessions.length;
-    const avgXP = recentSessions.reduce((sum, s) => sum + (s.xpEarned || (s.durationMinutes || 0) * 10), 0) / recentSessions.length;
-    const consistency = consistencyScore / 100;
+    const avgSessionLength = recentSessions.reduce((sum, s) => sum + (Number(s.durationMinutes) || 0), 0) / recentSessions.length;
+    const avgXP = recentSessions.reduce((sum, s) => sum + (Number(s.xpEarned) || (Number(s.durationMinutes) || 0) * 10), 0) / recentSessions.length;
+    
+    // Calculate consistency based on last 14 days
+    const studyDates = [...new Set(studySessions.map(s => new Date(s.timestamp).toDateString()))];
+    const last14Days = Array.from({length: 14}, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      return d.toDateString();
+    });
+    const daysStudied = last14Days.filter(d => studyDates.includes(d)).length;
+    const consistency = daysStudied / 14;
+
     const streakBonus = Math.min((streakHistory.currentStreak || 0) / 30, 1);
-    const subjectDiversity = Object.keys(subjectTimeDistribution).length;
-    const diversityScore = Math.min(subjectDiversity / 5, 1); // Max 5 subjects = 100%
+    
+    // Calculate subject diversity across all time
+    const subjectsStudiedCount = Object.keys(
+      studySessions.reduce((acc, s) => ({ ...acc, [s.subjectName]: true }), {})
+    ).length;
+    const diversityScore = Math.min(subjectsStudiedCount / 5, 1); // Max 5 subjects = 100%
     
     // Predict exam performance (0-100 scale)
     const baseScore = 50;
@@ -797,8 +818,8 @@ export default function Insights() {
     
     // Calculate confidence based on data quality
     let confidence = 'low';
-    if (recentSessions.length >= 10 && consistency > 0.7) confidence = 'high';
-    else if (recentSessions.length >= 5 && consistency > 0.5) confidence = 'medium';
+    if (studySessions.length >= 10 && consistency > 0.7) confidence = 'high';
+    else if (studySessions.length >= 5 && consistency > 0.5) confidence = 'medium';
     
     return {
       predictedScore: Math.round(predictedScore),
@@ -815,7 +836,7 @@ export default function Insights() {
         avgXP: Math.round(avgXP),
         consistencyPercent: Math.round(consistency * 100),
         streakDays: streakHistory.currentStreak || 0,
-        subjectsStudied: subjectDiversity
+        subjectsStudied: subjectsStudiedCount
       }
     };
   };
@@ -824,7 +845,7 @@ export default function Insights() {
 
   // 4. Retention Rate Analyzer (PREMIUM) - Analyze memory retention patterns
   const getRetentionRate = () => {
-    if (!isPremium || studySessions.length < 5) return null;
+    if (!isPremium || studySessions.length < 3) return null;
     
     // Group sessions by subject
     const sessionsBySubject = {};
@@ -834,11 +855,10 @@ export default function Insights() {
         sessionsBySubject[subject] = { sessions: [], totalTime: 0 };
       }
       sessionsBySubject[subject].sessions.push(session);
-      sessionsBySubject[subject].totalTime += session.durationMinutes || 0;
+      sessionsBySubject[subject].totalTime += Number(session.durationMinutes) || 0;
     });
     
     const retentionData = Object.entries(sessionsBySubject)
-      .filter(([_, data]) => data.sessions.length >= 2) // Need at least 2 sessions
       .map(([subject, data]) => {
         // Sort sessions by date
         const sortedSessions = data.sessions.sort((a, b) => 
@@ -868,6 +888,9 @@ export default function Insights() {
           else if (avgSpacing > 0 && avgSpacing < 1) spacingScore = 60; // Too frequent
           else if (avgSpacing > 7 && avgSpacing <= 14) spacingScore = 50; // Fair
           else spacingScore = 30; // Poor (too spaced out)
+        } else {
+          // Single session: lower baseline retention score
+          spacingScore = 40;
         }
         
         // Frequency score (more sessions = better, but with diminishing returns)
@@ -899,7 +922,7 @@ export default function Insights() {
 
   // 5. Study Pattern Intelligence (PREMIUM) - Identify patterns and suggest improvements
   const getStudyPatterns = () => {
-    if (!isPremium || filteredSessions.length < 3) return null;
+    if (!isPremium || studySessions.length < 3) return null;
     
     const patterns = {
       peakDays: [],
@@ -913,10 +936,10 @@ export default function Insights() {
     // Find peak study days (0 = Sunday, 6 = Saturday)
     const dayCounts = Array(7).fill(0);
     const dayMinutes = Array(7).fill(0);
-    filteredSessions.forEach(session => {
+    studySessions.forEach(session => {
       const day = new Date(session.timestamp).getDay();
       dayCounts[day]++;
-      dayMinutes[day] += session.durationMinutes || 0;
+      dayMinutes[day] += Number(session.durationMinutes) || 0;
     });
     const maxDayMinutes = Math.max(...dayMinutes);
     patterns.peakDays = dayCounts.map((count, day) => ({
@@ -930,10 +953,10 @@ export default function Insights() {
     // Find peak hours
     const hourCounts = Array(24).fill(0);
     const hourMinutes = Array(24).fill(0);
-    filteredSessions.forEach(session => {
+    studySessions.forEach(session => {
       const hour = new Date(session.timestamp).getHours();
       hourCounts[hour]++;
-      hourMinutes[hour] += session.durationMinutes || 0;
+      hourMinutes[hour] += Number(session.durationMinutes) || 0;
     });
     const topHours = hourMinutes.map((minutes, hour) => ({ hour, minutes, count: hourCounts[hour] }))
       .sort((a, b) => b.minutes - a.minutes)
@@ -942,7 +965,12 @@ export default function Insights() {
     patterns.peakHours = topHours;
     
     // Calculate subject balance (0-100, higher = more balanced)
-    const subjectCounts = Object.values(subjectTimeDistribution);
+    const subjectTimeAllTime = studySessions.reduce((acc, s) => {
+      acc[s.subjectName] = (acc[s.subjectName] || 0) + (Number(s.durationMinutes) || 0);
+      return acc;
+    }, {});
+    
+    const subjectCounts = Object.values(subjectTimeAllTime);
     if (subjectCounts.length > 1) {
       const total = subjectCounts.reduce((sum, t) => sum + t, 0);
       const avg = total / subjectCounts.length;
@@ -957,9 +985,9 @@ export default function Insights() {
     }
     
     // Session length trend
-    if (filteredSessions.length >= 6) {
-      const recent = filteredSessions.slice(0, 3).reduce((sum, s) => sum + (s.durationMinutes || 0), 0) / 3;
-      const older = filteredSessions.slice(3, 6).reduce((sum, s) => sum + (s.durationMinutes || 0), 0) / 3;
+    if (studySessions.length >= 6) {
+      const recent = studySessions.slice(-3).reduce((sum, s) => sum + (Number(s.durationMinutes) || 0), 0) / 3;
+      const older = studySessions.slice(-6, -3).reduce((sum, s) => sum + (Number(s.durationMinutes) || 0), 0) / 3;
       if (recent > older * 1.15) patterns.sessionLengthTrend = 'increasing';
       else if (recent < older * 0.85) patterns.sessionLengthTrend = 'decreasing';
       else patterns.sessionLengthTrend = 'stable';
@@ -967,9 +995,9 @@ export default function Insights() {
     
     // Time distribution (morning, afternoon, evening, night)
     const timeSlots = { morning: 0, afternoon: 0, evening: 0, night: 0 };
-    filteredSessions.forEach(session => {
+    studySessions.forEach(session => {
       const hour = new Date(session.timestamp).getHours();
-      const minutes = session.durationMinutes || 0;
+      const minutes = Number(session.durationMinutes) || 0;
       if (hour >= 6 && hour < 12) timeSlots.morning += minutes;
       else if (hour >= 12 && hour < 18) timeSlots.afternoon += minutes;
       else if (hour >= 18 && hour < 22) timeSlots.evening += minutes;
@@ -978,10 +1006,10 @@ export default function Insights() {
     patterns.timeDistribution = timeSlots;
     
     // Generate intelligent recommendations
-    if (patterns.subjectBalance < 50 && Object.keys(subjectTimeDistribution).length > 1) {
+    if (patterns.subjectBalance < 50 && Object.keys(subjectTimeAllTime).length > 1) {
       patterns.recommendations.push('Focus on balancing time across all subjects for better overall performance');
     }
-    if (averageSessionLength < 30 && filteredSessions.length > 0) {
+    if (averageSessionLength < 30 && studySessions.length > 0) {
       patterns.recommendations.push('Try longer study sessions (30+ min) for deeper learning and better retention');
     }
     if (consistencyScore < 60) {
@@ -2351,7 +2379,7 @@ export default function Insights() {
                   <div className="text-center py-8 text-green-200/60">
                     <TrendingUp className="w-12 h-12 mx-auto mb-3 opacity-50" />
                     <p>Complete more study sessions to track learning velocity</p>
-                    <p className="text-xs mt-2">Need at least 4 sessions across 2+ weeks</p>
+                    <p className="text-xs mt-2">Need at least 3 sessions total</p>
                   </div>
                 )}
               </motion.div>
@@ -2433,7 +2461,7 @@ export default function Insights() {
                   <div className="text-center py-8 text-purple-200/60">
                     <Clock className="w-12 h-12 mx-auto mb-3 opacity-50" />
                     <p>Complete more sessions to predict optimal times</p>
-                    <p className="text-xs mt-2">Need at least 3 sessions</p>
+                    <p className="text-xs mt-2">Need at least 3 sessions total</p>
                   </div>
                 ) : null}
               </motion.div>
@@ -2516,7 +2544,7 @@ export default function Insights() {
                   <div className="text-center py-8 text-blue-200/60">
                     <Target className="w-12 h-12 mx-auto mb-3 opacity-50" />
                     <p>Complete more sessions for accurate predictions</p>
-                    <p className="text-xs mt-2">Need at least 3 sessions</p>
+                    <p className="text-xs mt-2">Need at least 3 sessions total</p>
                   </div>
                 ) : null}
               </motion.div>
@@ -2591,8 +2619,8 @@ export default function Insights() {
                 ) : isPremium ? (
                   <div className="text-center py-8 text-pink-200/60">
                     <Brain className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                    <p>Study multiple subjects to analyze retention</p>
-                    <p className="text-xs mt-2">Need at least 2 sessions per subject</p>
+                    <p>Study more to analyze retention</p>
+                    <p className="text-xs mt-2">Need at least 3 sessions total</p>
                   </div>
                 ) : null}
               </motion.div>
@@ -2676,7 +2704,7 @@ export default function Insights() {
                   <div className="text-center py-8 text-amber-200/60">
                     <BarChart2 className="w-12 h-12 mx-auto mb-3 opacity-50" />
                     <p>Complete more sessions to analyze patterns</p>
-                    <p className="text-xs mt-2">Need at least 3 sessions</p>
+                    <p className="text-xs mt-2">Need at least 3 sessions total</p>
                   </div>
                 ) : null}
               </motion.div>
