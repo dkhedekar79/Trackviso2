@@ -69,6 +69,7 @@ export default function AIScheduleSetup({ onComplete, onCancel, availableSubject
 
   // Step 5: Advanced Parameters (Optional)
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+  const [timetableMode, setTimetableMode] = useState('balanced'); // short-term-exam, long-term-exam, balanced
   const [peakEnergy, setPeakEnergy] = useState('morning'); // morning, afternoon, evening, night
   const [examDates, setExamDates] = useState({}); // { subjectId: date }
   const [studyRhythm, setStudyRhythm] = useState('balanced'); // pomodoro, deepwork, balanced, block
@@ -188,6 +189,7 @@ export default function AIScheduleSetup({ onComplete, onCancel, availableSubject
         confidenceRatings,
         topicTimes,
         advanced: {
+          timetableMode,
           peakEnergy,
           examDates,
           studyRhythm,
@@ -683,6 +685,37 @@ export default function AIScheduleSetup({ onComplete, onCancel, availableSubject
                       exit={{ height: 0, opacity: 0 }}
                       className="space-y-8 overflow-hidden"
                     >
+                      {/* 0. Timetable Mode */}
+                      <div className="p-5 bg-slate-800/50 rounded-2xl border border-violet-500/20">
+                        <label className="block text-violet-300 text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
+                          <Trophy className="w-4 h-4" />
+                          Timetable Strategy
+                        </label>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          {[
+                            { id: 'short-term-exam', label: 'Intensive Prep', desc: 'Final weeks before exams', icon: Zap },
+                            { id: 'balanced', label: 'Balanced', desc: 'Standard weekly study', icon: Sparkles },
+                            { id: 'long-term-exam', label: 'Steady Progress', desc: 'Early learning & foundation', icon: Clock }
+                          ].map(mode => (
+                            <button
+                              key={mode.id}
+                              onClick={() => setTimetableMode(mode.id)}
+                              className={`p-4 rounded-xl border-2 text-left transition-all flex flex-col gap-2 ${
+                                timetableMode === mode.id
+                                  ? 'bg-violet-500/20 border-violet-500 text-violet-300'
+                                  : 'bg-white/5 border-white/10 text-white/40 hover:bg-white/10'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-sm">{mode.label}</span>
+                                <mode.icon className="w-4 h-4" />
+                              </div>
+                              <span className="text-[10px] opacity-70 leading-tight">{mode.desc}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
                       {/* 1. Biological Prime Time */}
                       <div className="p-5 bg-slate-800/50 rounded-2xl border border-amber-500/20">
                         <label className="block text-amber-300 text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2">

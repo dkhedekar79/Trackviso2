@@ -120,6 +120,37 @@ export async function generateAIContent(prompt, options = {}) {
 }
 
 /**
+ * JSON repair helper function to fix truncated or malformed JSON
+ */
+function attemptJsonRepair(jsonString) {
+  let repaired = jsonString.trim();
+  
+  // Count opening and closing braces/brackets
+  const openBraces = (repaired.match(/\{/g) || []).length;
+  const closeBraces = (repaired.match(/\}/g) || []).length;
+  const openBrackets = (repaired.match(/\[/g) || []).length;
+  const closeBrackets = (repaired.match(/\]/g) || []).length;
+  
+  // Remove trailing incomplete data after last complete object
+  // Look for patterns like incomplete strings or values
+  const lastCompletePattern = /,\s*"[^"]*$|,\s*$/;
+  repaired = repaired.replace(lastCompletePattern, '');
+  
+  // Add missing closing brackets/braces
+  for (let i = 0; i < openBrackets - closeBrackets; i++) {
+    repaired += ']';
+  }
+  for (let i = 0; i < openBraces - closeBraces; i++) {
+    repaired += '}';
+  }
+  
+  // Remove trailing commas before closing brackets/braces
+  repaired = repaired.replace(/,(\s*[}\]])/g, '$1');
+  
+  return repaired;
+}
+
+/**
  * Generate content with JSON response (extracts JSON from response)
  * @param {string} prompt - The prompt to send to the AI
  * @param {Object} options - Optional configuration
@@ -128,45 +159,39 @@ export async function generateAIContent(prompt, options = {}) {
 export async function generateAIJSON(prompt, options = {}) {
   const content = await generateAIContent(prompt, options);
   
-  // Try to extract JSON from response
-  const jsonMatch = content.match(/(\[[\s\S]*\]|\{[\s\S]*\})/);
-  if (!jsonMatch) {
+  // Try to extract JSON from markdown code blocks if present
+  let jsonString = content.trim();
+  const fenceMatch = jsonString.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenceMatch) {
+    jsonString = fenceMatch[1].trim();
+  } else {
+    // Try to extract JSON from response using standard regex as fallback
+    const jsonMatch = content.match(/(\[[\s\S]*\]|\{[\s\S]*\})/);
+    if (jsonMatch) {
+      jsonString = jsonMatch[0];
+    }
+  }
+
+  if (!jsonString || jsonString.length < 2) {
     throw new Error('Could not find JSON in AI response');
   }
 
+  // First attempt: parse as-is
   try {
-    let jsonStr = jsonMatch[0];
+    return JSON.parse(jsonString);
+  } catch (firstParseError) {
+    console.warn('Initial JSON parse failed, attempting repair...', firstParseError.message);
     
-    // Basic repair for truncated JSON (common with large AI responses)
-    if (jsonStr.endsWith(',')) {
-      jsonStr = jsonStr.slice(0, -1);
-    }
+    // Second attempt: try to repair the JSON
+    const repairedJson = attemptJsonRepair(jsonString);
     
-    // Count opening and closing braces/brackets to see if it's truncated
-    const openBraces = (jsonStr.match(/\{/g) || []).length;
-    const closeBraces = (jsonStr.match(/\}/g) || []).length;
-    const openBrackets = (jsonStr.match(/\[/g) || []).length;
-    const closeBrackets = (jsonStr.match(/\]/g) || []).length;
-    
-    // Try to close hanging structures if they are obviously missing
-    if (openBraces > closeBraces) {
-      jsonStr += '}'.repeat(openBraces - closeBraces);
-    }
-    if (openBrackets > closeBrackets) {
-      jsonStr += ']'.repeat(openBrackets - closeBrackets);
-    }
-
     try {
-      return JSON.parse(jsonStr);
-    } catch (innerError) {
-      // If basic repair failed, try a more aggressive one
-      // This is a last resort - just return what we have if it's a partial array
-      console.warn('Initial JSON parse failed, trying aggressive repair...', innerError.message);
-      return JSON.parse(jsonMatch[0]); // Fallback to original match if repair made it worse
+      return JSON.parse(repairedJson);
+    } catch (repairError) {
+      console.error('JSON repair also failed:', repairError);
+      console.error('Original JSON length:', jsonString.length);
+      throw new Error('The AI generated an incomplete response. Please try again with fewer topics.');
     }
-  } catch (parseError) {
-    console.error('JSON parse error:', parseError, 'Content length:', content.length);
-    throw new Error('Could not parse JSON from AI response');
   }
 }
 
