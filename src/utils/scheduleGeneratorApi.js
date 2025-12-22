@@ -126,7 +126,15 @@ The "tid" field MUST contain the exact original ID string provided.
 
 ENGINEERING RULES:
 1. 🧠 BIOLOGICAL PRIME TIME: Schedule the highest "Diff" (Difficulty) and "Red" (Low Confidence) topics during the Peak Energy Window (${advanced?.peakEnergy}).
-2. ⚡ STUDY RHYTHM: Adhere to the ${advanced?.studyRhythm} style.
+2. ⚡ STUDY RHYTHM & BREAK BALANCING: Adhere strictly to the ${advanced?.studyRhythm} style. 
+   - Mandatory: EVERY study session MUST be followed by a break.
+   - Pomodoro: 25-30m study → 5m break.
+   - Deep Work: 90m study → 15-20m break.
+   - Balanced: 45-60m study → 10-15m break.
+   - Subject Block: 120m study → 20-30m total break time (can be split).
+   - 🚨 RECHARGE RULE: If a study window exceeds 4 hours, include ONE "Long Break" (45-60m) for lunch/dinner/rest.
+   - 🚨 NO BACK-TO-BACK: Never schedule two study sessions without a break in between.
+   - 🚨 DURATION COMPLIANCE: Break duration must scale with the session length. Longer sessions = longer breaks.
 3. 🏫 SCHOOL BLOCKING: On weekdays, do NOT schedule revision during ${schoolSchedule.start || '08:30'}-${schoolSchedule.end || '15:30'} unless explicitly enabled (e.g. Lunch/Free periods).
 4. 📝 HOMEWORK DEADLINES: Homework MUST be scheduled BEFORE its due date. Never on the due date. Prioritize homework with sooner deadlines.
 5. 📏 VARIABLE DURATION: Calculate session duration based on priority: Duration = 30 + (priority_score × 6) minutes. High priority (Red/Difficulty 7+) topics get 60-90m.
@@ -135,7 +143,8 @@ ENGINEERING RULES:
    - long-term-exam: Balanced (45-60m sessions), spaced repetition (every 4-6 days).
    - no-exam: Light reinforcement, homework takes priority.
 7. 🧬 SPACED REPETITION: Mix subjects daily (Interleaving) to prevent cognitive overload.
-8. 🕐 FILL THE TIME: Fill the available study window for each day completely.
+8. 🕐 FILL THE TIME: Fill the available study window for each day completely with a realistic mix of study sessions and mandatory breaks as defined in Rule #2. DO NOT skip breaks to fit more study; cognitive rest is mandatory for memory retention.
+9. 🚫 NO UNNECESSARY GAPS: Do not leave unexplained gaps (> 20 mins) in the schedule. Every minute of the study window should be accounted for as either 'study', 'practice', 'review', or 'break'.
 
 OUTPUT JSON FORMAT (STRICT):
 {
