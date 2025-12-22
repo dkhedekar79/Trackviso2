@@ -38,9 +38,11 @@ import PremiumUpgradeModal from '../components/PremiumUpgradeModal';
 
 function getStartOfWeek(date) {
   const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
   const day = d.getDay();
   const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday as first day
-  return new Date(d.setDate(diff));
+  d.setDate(diff);
+  return d;
 }
 
 function getStartOfMonth(date) {
@@ -1940,145 +1942,144 @@ export default function Insights() {
           {/* Subject Time Distribution with Pie Chart and Time of Day Heatmap */}
           <div className="mb-8 flex gap-8 flex-wrap lg:flex-nowrap">
           <motion.div
-              className="bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-purple-700/30 hover:border-purple-600/50 transition-all flex-1 min-w-[300px]"
+              className="bg-gradient-to-br from-slate-900/90 to-purple-900/40 backdrop-blur-xl rounded-3xl p-8 border border-purple-500/20 hover:border-purple-500/40 transition-all flex-1 min-w-[350px] shadow-2xl overflow-hidden relative"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
             whileHover={{ y: -5 }}
           >
-            <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-              <PieChart className="w-5 h-5 text-purple-400" />
+            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 rounded-full blur-3xl -mr-16 -mt-16" />
+            
+            <h3 className="text-xl font-bold text-white mb-8 flex items-center gap-3 relative z-10">
+              <div className="p-2 bg-purple-500/20 rounded-lg">
+                <PieChart className="w-5 h-5 text-purple-400" />
+              </div>
               Subject Time Distribution
             </h3>
             
             {Object.keys(subjectTimeDistribution).length > 0 ? (
-              <div className="flex gap-6 items-center">
-                {/* Pie Chart */}
-                <div className="flex-shrink-0">
-                  <svg width="200" height="200" viewBox="0 0 200 200">
+              <div className="flex flex-col gap-8 items-center relative z-10">
+                {/* Multi-Ring Concentric Chart - Slightly Smaller */}
+                <div className="relative w-full max-w-[300px] aspect-square flex-shrink-0">
+                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
                     {(() => {
-                      const entries = Object.entries(subjectTimeDistribution);
+                      const entries = Object.entries(subjectTimeDistribution)
+                        .sort(([, a], [, b]) => b - a);
+                      const topEntries = entries.slice(0, 5);
                       const total = entries.reduce((sum, [, time]) => sum + time, 0);
                       
-                      if (total === 0) {
-                        return (
-                          <circle
-                            cx="100"
-                            cy="100"
-                            r="80"
-                            fill="none"
-                            stroke="rgba(255, 255, 255, 0.1)"
-                            strokeWidth="40"
-                          />
-                        );
-                      }
-                      
-                      let currentAngle = -90; // Start from top (12 o'clock)
-                      const angles = entries.map(([, time]) => {
-                        const percentage = (time / total) * 100;
-                        return percentage * 3.6; // Convert to degrees (percentage * 360 / 100)
-                      });
-                      
-                      // Ensure angles sum to exactly 360 by adjusting the last one
-                      const sumAngles = angles.reduce((sum, angle) => sum + angle, 0);
-                      if (angles.length > 0) {
-                        angles[angles.length - 1] += (360 - sumAngles);
-                      }
-                      
+                      const radii = [42, 34, 26, 18, 10];
+                      const strokeWidth = 6;
+
                       return (
                         <>
-                          {/* Background circle */}
-                          <circle
-                            cx="100"
-                            cy="100"
-                            r="80"
-                            fill="none"
-                            stroke="rgba(255, 255, 255, 0.1)"
-                            strokeWidth="40"
-                          />
-                          {/* Pie slices */}
-                          {entries.map(([subject, time], index) => {
-                const subjectData = subjects.find(s => s.name === subject);
+                          {/* Background Rings */}
+                          {radii.map((r, i) => (
+                            <circle
+                              key={`bg-${i}`}
+                              cx="50"
+                              cy="50"
+                              r={r}
+                              fill="none"
+                              stroke="rgba(255, 255, 255, 0.03)"
+                              strokeWidth={strokeWidth}
+                            />
+                          ))}
+                          
+                          {/* Progress Rings */}
+                          {topEntries.map(([subject, time], index) => {
+                            const subjectData = subjects.find(s => s.name === subject);
                             const color = subjectData?.color || '#6C5DD3';
-                            const angle = angles[index];
+                            const percentage = (time / total);
+                            const r = radii[index];
+                            const circumference = 2 * Math.PI * r;
                             
-                            // Calculate path for pie slice
-                            const startAngle = currentAngle;
-                            const endAngle = currentAngle + angle;
-                            
-                            const startAngleRad = (startAngle * Math.PI) / 180;
-                            const endAngleRad = (endAngle * Math.PI) / 180;
-                            
-                            const x1 = 100 + 80 * Math.cos(startAngleRad);
-                            const y1 = 100 + 80 * Math.sin(startAngleRad);
-                            const x2 = 100 + 80 * Math.cos(endAngleRad);
-                            const y2 = 100 + 80 * Math.sin(endAngleRad);
-                            
-                            const largeArcFlag = angle > 180 ? 1 : 0;
-                            
-                            const pathData = [
-                              `M 100 100`,
-                              `L ${x1} ${y1}`,
-                              `A 80 80 0 ${largeArcFlag} 1 ${x2} ${y2}`,
-                              `Z`
-                            ].join(' ');
-                            
-                            currentAngle += angle;
-
-                return (
-                              <motion.path
-                    key={subject}
-                                d={pathData}
-                                fill={color}
-                                initial={{ opacity: 0 }}
-                                whileInView={{ opacity: 1 }}
-                                transition={{ delay: index * 0.1 }}
-                    viewport={{ once: true }}
+                            return (
+                              <motion.circle
+                                key={subject}
+                                cx="50"
+                                cy="50"
+                                r={r}
+                                fill="none"
+                                stroke={color}
+                                strokeWidth={strokeWidth}
+                                strokeDasharray={circumference}
+                                initial={{ strokeDashoffset: circumference }}
+                                whileInView={{ strokeDashoffset: circumference * (1 - percentage) }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 1.5, delay: index * 0.2, ease: "easeOut" }}
+                                strokeLinecap="round"
                                 className="cursor-pointer hover:opacity-80 transition-opacity"
-                                style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}
+                                style={{ filter: `drop-shadow(0 0 12px ${color}40)` }}
                               />
-                );
-              })}
+                            );
+                          })}
                         </>
                       );
                     })()}
                   </svg>
-            </div>
+                  
+                  {/* Center Content - Scaled for smaller size */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <div className="bg-slate-900/50 backdrop-blur-md p-4 sm:p-5 rounded-full border border-white/10 flex flex-col items-center shadow-inner">
+                      <div className="text-2xl sm:text-3xl font-black text-white leading-none">
+                        {Math.floor(totalStudyTime / 60)}h
+                      </div>
+                      <div className="text-[10px] font-black text-purple-300/60 uppercase tracking-[0.3em] mt-1">
+                        Total
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 
-                {/* Legend */}
-                <div className="flex-1 space-y-2 max-h-[200px] overflow-y-auto">
+                {/* Legend with Enhanced Info - Grid Layout Below */}
+                <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {Object.entries(subjectTimeDistribution)
                     .sort(([, a], [, b]) => b - a)
                     .map(([subject, time], index) => {
-                const percentage = totalStudyTime > 0 ? (time / totalStudyTime) * 100 : 0;
-                const subjectData = subjects.find(s => s.name === subject);
+                      const percentage = totalStudyTime > 0 ? (time / totalStudyTime) * 100 : 0;
+                      const subjectData = subjects.find(s => s.name === subject);
                       const color = subjectData?.color || '#6C5DD3';
 
-                return (
-                  <motion.div
-                    key={subject}
-                          className="flex items-center gap-3 p-2 rounded-lg bg-purple-800/20 border border-purple-700/30 hover:bg-purple-800/40 transition-all group"
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    viewport={{ once: true }}
-                    whileHover={{ x: 5 }}
-                  >
-                    <div
-                            className="w-4 h-4 rounded flex-shrink-0"
+                      return (
+                        <motion.div
+                          key={subject}
+                          className="flex items-center gap-4 p-4 rounded-3xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all group relative overflow-hidden"
+                          initial={{ opacity: 0, y: 20 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          viewport={{ once: true }}
+                          whileHover={{ scale: 1.02 }}
+                        >
+                          <div 
+                            className="w-1.5 h-12 rounded-full"
                             style={{ backgroundColor: color }}
                           />
                           <div className="flex-1 min-w-0">
-                            <div className="text-white font-medium text-sm truncate">{subject}</div>
-                            <div className="text-purple-200/80 text-xs">
-                              {Math.floor(time / 60)}h {Math.round(time % 60)}m ({percentage.toFixed(1)}%)
-                        </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-white font-bold text-sm truncate uppercase tracking-tight">{subject}</span>
+                              <span className="text-white font-black text-xs">{percentage.toFixed(1)}%</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
+                                <motion.div 
+                                  className="h-full rounded-full"
+                                  style={{ backgroundColor: color }}
+                                  initial={{ width: 0 }}
+                                  whileInView={{ width: `${percentage}%` }}
+                                  transition={{ duration: 1, delay: 0.5 }}
+                                />
+                              </div>
+                              <span className="text-purple-200/40 text-[10px] font-bold whitespace-nowrap">
+                                {Math.floor(time / 60)}h {Math.round(time % 60)}m
+                              </span>
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                </div>
               </div>
             ) : (
               <div className="text-center py-8">

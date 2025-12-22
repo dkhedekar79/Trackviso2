@@ -47,6 +47,9 @@ import {
   Pause,
   Square,
   X,
+  XCircle,
+  AlertCircle,
+  AlertTriangle,
   Coffee,
   ChevronDown,
   ExternalLink,
@@ -436,7 +439,7 @@ const Landing = () => {
             <div className="relative h-[800px] sm:h-[900px] w-full flex items-center justify-center">
               
               {/* 1. MAIN CENTERPIECE: Insights Hub (Centralized) */}
-              <motion.div
+                  <motion.div
                 className="relative w-[95%] sm:w-[85%] lg:w-[75%] z-10 bg-slate-900/80 backdrop-blur-3xl border-2 border-purple-500/20 rounded-[3rem] p-8 sm:p-12 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] overflow-hidden"
                 initial={{ scale: 0.9 }}
                 whileInView={{ scale: 1 }}
@@ -541,7 +544,7 @@ const Landing = () => {
               {/* SATELLITE CARDS (Organized around the center) */}
 
               {/* Top Center: XP & Level Bar (The "Crown") */}
-              <motion.div
+                  <motion.div
                 className="absolute top-[5%] sm:top-[8%] left-1/2 -translate-x-1/2 w-[280px] sm:w-[400px] z-40 bg-gradient-to-r from-purple-600 to-pink-600 p-0.5 rounded-full shadow-2xl"
                 initial={{ y: -50 }}
                 whileInView={{ y: 0 }}
@@ -569,7 +572,7 @@ const Landing = () => {
                   </motion.div>
 
               {/* Top Right: Performance Prediction */}
-              <motion.div
+                  <motion.div
                 className="absolute top-[12%] right-[2%] sm:right-[5%] w-[180px] sm:w-[240px] z-30 bg-gradient-to-br from-blue-600/90 to-indigo-700/90 backdrop-blur-xl border border-white/20 p-5 rounded-[2rem] shadow-2xl rotate-6"
                 initial={{ scale: 0.8 }}
                 whileInView={{ scale: 1 }}
@@ -621,9 +624,8 @@ const Landing = () => {
                 initial={{ y: 50 }}
                 whileInView={{ y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: 0.6, duration: 0.6 }}
+                transition={{ delay: 0.6, duration: 9, repeat: Infinity }}
                 animate={{ x: [0, 10, 0] }}
-                transition={{ duration: 9, repeat: Infinity }}
               >
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-[9px] font-black uppercase tracking-widest text-white/40">Next Up</span>
@@ -641,9 +643,8 @@ const Landing = () => {
                 initial={{ y: 50 }}
                 whileInView={{ y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: 0.7, duration: 0.6 }}
+                transition={{ delay: 0.7, duration: 8, repeat: Infinity }}
                 animate={{ x: [0, -10, 0] }}
-                transition={{ duration: 8, repeat: Infinity }}
               >
                 <div className="flex items-center gap-2 mb-4">
                   <Trophy className="w-4 h-4 text-yellow-400" />
@@ -1280,6 +1281,8 @@ const Landing = () => {
 // Study Modes Section Component
 const StudyModesSection = () => {
   const [activeMode, setActiveMode] = useState(0); // 0: Blurt, 1: Mock Exam
+  const [showBlurtFeedback, setShowBlurtFeedback] = useState(false);
+  const [showMockExamFeedback, setShowMockExamFeedback] = useState(false);
 
   const modes = [
     {
@@ -1342,6 +1345,8 @@ const StudyModesSection = () => {
                     key={index}
                     onClick={() => {
                       setActiveMode(index);
+                      setShowBlurtFeedback(false);
+                      setShowMockExamFeedback(false);
                     }}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
                       activeMode === index
@@ -1441,7 +1446,7 @@ const StudyModesSection = () => {
           >
             {activeMode === 0 ? (
               /* Blurt Mode Dummy UI */
-              <div className="bg-slate-900/90 backdrop-blur-xl border-2 border-amber-500/20 rounded-[2.5rem] overflow-hidden shadow-2xl max-w-xl mx-auto">
+              <div className="bg-slate-900/90 backdrop-blur-xl border-2 border-amber-500/20 rounded-[2.5rem] overflow-hidden shadow-2xl max-w-xl mx-auto min-h-[600px] flex flex-col">
                 <div className="p-6 border-b border-amber-500/10 bg-amber-500/5 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-amber-500/20 rounded-lg text-amber-400">
@@ -1449,42 +1454,137 @@ const StudyModesSection = () => {
                     </div>
                     <div>
                       <h4 className="text-white font-bold text-left">GCSE Biology: Cell Division</h4>
-                      <p className="text-amber-300/60 text-[10px] font-black uppercase tracking-widest text-left">Active Recall Session</p>
+                      <p className="text-amber-300/60 text-[10px] font-black uppercase tracking-widest text-left">
+                        {showBlurtFeedback ? 'Analysis Results' : 'Active Recall Session'}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[10px] font-black uppercase tracking-widest">
-                      Timer: 04:12
-                    </div>
+                    {!showBlurtFeedback && (
+                      <div className="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[10px] font-black uppercase tracking-widest">
+                        Timer: 04:12
+                      </div>
+                    )}
+                    {showBlurtFeedback && (
+                      <div className="px-3 py-1 rounded-full bg-green-500/20 border border-green-500/30 text-green-400 text-[10px] font-black uppercase tracking-widest">
+                        Score: 88%
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div className="p-8">
-                  <div className="relative min-h-[350px] bg-black/20 rounded-2xl p-6 border border-white/5 font-mono text-sm text-amber-100/90 leading-relaxed text-left">
-                    <p>The cell cycle has three main stages.</p>
-                    <p className="mt-4">Stage 1: The cell grows and increases the number of sub-cellular structures like ribosomes and mitochondria. The DNA replicates to form two copies of each chromosome.</p>
-                    <p className="mt-4">Stage 2: Mitosis. One set of chromosomes is pulled to each end of the cell and the nucleus divides.</p>
-                    <p className="mt-4">Stage 3: The cytoplasm and cell membranes divide to form two identical daughter cells.</p>
-                    <p className="mt-4">Mitosis is important for growth and development of multicellular organisms.</p>
-                    <motion.div 
-                      className="inline-block w-1 h-5 bg-amber-400 align-middle ml-1"
-                      animate={{ opacity: [1, 0] }}
-                      transition={{ duration: 0.8, repeat: Infinity }}
-                    />
-                  </div>
-                  
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full mt-8 py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-black uppercase tracking-[0.2em] rounded-2xl shadow-lg shadow-amber-500/20 flex items-center justify-center gap-3 group"
-                  >
-                    Click for detailed feedback 
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </motion.button>
+
+                <div className="p-8 flex-1">
+                  <AnimatePresence mode="wait">
+                    {!showBlurtFeedback ? (
+                      <motion.div
+                        key="input"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="space-y-6"
+                      >
+                        <div className="relative min-h-[350px] bg-black/20 rounded-2xl p-6 border border-white/5 font-mono text-sm text-amber-100/90 leading-relaxed text-left">
+                          <p>The cell cycle has three main stages.</p>
+                          <p className="mt-4">Stage 1: The cell grows and increases the number of sub-cellular structures like ribosomes and mitochondria. The DNA replicates to form two copies of each chromosome.</p>
+                          <p className="mt-4">Stage 2: Mitosis. One set of chromosomes is pulled to each end of the cell and the nucleus divides.</p>
+                          <p className="mt-4">Stage 3: The cytoplasm and cell membranes divide to form two identical daughter cells.</p>
+                          <p className="mt-4">Mitosis is important for growth and development of multicellular organisms.</p>
+                          <motion.div 
+                            className="inline-block w-1 h-5 bg-amber-400 align-middle ml-1"
+                            animate={{ opacity: [1, 0] }}
+                            transition={{ duration: 0.8, repeat: Infinity }}
+                          />
+                        </div>
+                        
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setShowBlurtFeedback(true)}
+                          className="w-full py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-black uppercase tracking-[0.2em] rounded-2xl shadow-lg shadow-amber-500/20 flex items-center justify-center gap-3 group"
+                        >
+                          Click for detailed feedback 
+                          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        </motion.button>
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="feedback"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="space-y-6 text-left"
+                      >
+                        {/* Score Section */}
+                        <div className="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-white/10">
+                          <div>
+                            <p className="text-white/40 text-[10px] font-black uppercase tracking-widest mb-1">Overall Accuracy</p>
+                            <h5 className="text-2xl font-black text-white">88% Captured</h5>
+                          </div>
+                          <div className="h-12 w-12 rounded-full border-4 border-green-500/30 border-t-green-500 flex items-center justify-center">
+                            <CheckCircle className="w-6 h-6 text-green-400" />
+                          </div>
+                        </div>
+
+                        {/* Analysis Grid */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-3">
+                            <p className="text-green-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                              <CheckCircle className="w-3 h-3" /> Captured Points
+                            </p>
+                            <ul className="text-xs text-white/70 space-y-2">
+                              <li>• 3 Main stages of cycle</li>
+                              <li>• DNA Replication</li>
+                              <li>• Organelle growth</li>
+                              <li>• Nucleus division</li>
+                            </ul>
+                          </div>
+                          <div className="space-y-3">
+                            <p className="text-red-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                              <XCircle className="w-3 h-3" /> Missed Concepts
+                            </p>
+                            <ul className="text-xs text-white/70 space-y-2">
+                              <li>• Prophase/Metaphase/etc</li>
+                              <li>• Role in repair</li>
+                              <li>• Stem cell connection</li>
+                            </ul>
+                          </div>
+                        </div>
+
+                        {/* AI Insight */}
+                        <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl">
+                          <p className="text-amber-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 mb-2">
+                            <Brain className="w-3 h-3" /> AI Insight
+                          </p>
+                          <p className="text-xs text-amber-100/80 leading-relaxed">
+                            Excellent recall on the mechanics of mitosis. To reach Grade 9, ensure you can name the individual phases and explain their role in tissue repair.
+                          </p>
+                        </div>
+
+                        <div className="flex gap-3 mt-4">
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => setShowBlurtFeedback(false)}
+                            className="flex-1 py-3 bg-white/5 border border-white/10 text-white font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-white/10 transition-colors"
+                          >
+                            Back to session
+                          </motion.button>
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-amber-500/20"
+                          >
+                            Save Analysis
+                          </motion.button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
             ) : (
               /* Mock Exam Dummy UI */
-              <div className="bg-slate-900/90 backdrop-blur-xl border-2 border-red-500/20 rounded-[2.5rem] overflow-hidden shadow-2xl max-w-xl mx-auto">
+              <div className="bg-slate-900/90 backdrop-blur-xl border-2 border-red-500/20 rounded-[2.5rem] overflow-hidden shadow-2xl max-w-xl mx-auto min-h-[600px] flex flex-col">
                 <div className="p-6 border-b border-red-500/10 bg-red-500/5 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-red-500/20 rounded-lg text-red-400">
@@ -1492,52 +1592,160 @@ const StudyModesSection = () => {
                     </div>
                     <div>
                       <h4 className="text-white font-bold text-left">AQA Biology Paper 1</h4>
-                      <p className="text-red-300/60 text-[10px] font-black uppercase tracking-widest text-left">Realistic Simulation</p>
+                      <p className="text-red-300/60 text-[10px] font-black uppercase tracking-widest text-left">
+                        {showMockExamFeedback ? 'Exam Grading Result' : 'Realistic Simulation'}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="px-3 py-1 rounded-full bg-red-500/20 border border-red-500/30 text-red-400 text-[10px] font-black uppercase tracking-widest text-left">
-                      1h 45m left
-                    </div>
+                    {!showMockExamFeedback && (
+                      <div className="px-3 py-1 rounded-full bg-red-500/20 border border-red-500/30 text-red-400 text-[10px] font-black uppercase tracking-widest text-left">
+                        1h 45m left
+                      </div>
+                    )}
+                    {showMockExamFeedback && (
+                      <div className="px-3 py-1 rounded-full bg-red-500/20 border border-red-500/30 text-red-400 text-[10px] font-black uppercase tracking-widest text-left">
+                        Grade: 9 (High)
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div className="p-8 space-y-6">
-                  <div className="p-6 bg-white/5 rounded-2xl border border-white/10 text-left">
-                    <h5 className="text-red-400 font-black text-[10px] uppercase tracking-widest mb-3">Question 1.1</h5>
-                    <p className="text-white font-bold text-lg mb-4">Explain how the structure of a root hair cell is adapted to its function. [3 marks]</p>
-                    <div className="bg-black/20 rounded-xl p-4 min-h-[120px] border border-white/5 font-mono text-sm text-red-100/80">
-                      Root hair cells have a large surface area...
-                      <motion.div 
-                        className="inline-block w-1 h-4 bg-red-400 align-middle ml-1"
-                        animate={{ opacity: [1, 0] }}
-                        transition={{ duration: 0.8, repeat: Infinity }}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-white/5 rounded-xl border border-white/5 text-center">
-                      <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1">Mark Scheme</p>
-                      <p className="text-white font-black">AI Grade 9</p>
-                    </div>
-                    <div className="p-4 bg-white/5 rounded-xl border border-white/5 text-center">
-                      <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1">Accuracy</p>
-                      <p className="text-white font-black">94% Target</p>
-                    </div>
-                  </div>
+                
+                <div className="p-8 flex-1">
+                  <AnimatePresence mode="wait">
+                    {!showMockExamFeedback ? (
+                      <motion.div
+                        key="exam-input"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="space-y-6"
+                      >
+                        <div className="p-6 bg-white/5 rounded-2xl border border-white/10 text-left">
+                          <h5 className="text-red-400 font-black text-[10px] uppercase tracking-widest mb-3">Question 1.1</h5>
+                          <p className="text-white font-bold text-lg mb-4">Explain how the structure of a root hair cell is adapted to its function. [3 marks]</p>
+                          <div className="bg-black/20 rounded-xl p-4 min-h-[120px] border border-white/5 font-mono text-sm text-red-100/80">
+                            Root hair cells have a large surface area...
+                            <motion.div 
+                              className="inline-block w-1 h-4 bg-red-400 align-middle ml-1"
+                              animate={{ opacity: [1, 0] }}
+                              transition={{ duration: 0.8, repeat: Infinity }}
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="p-4 bg-white/5 rounded-xl border border-white/5 text-center">
+                            <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1">Mark Scheme</p>
+                            <p className="text-white font-black">AI Grade 9</p>
+                          </div>
+                          <div className="p-4 bg-white/5 rounded-xl border border-white/5 text-center">
+                            <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1">Accuracy</p>
+                            <p className="text-white font-black">94% Target</p>
+                          </div>
+                        </div>
 
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full py-4 bg-gradient-to-r from-red-500 to-rose-600 text-white font-black uppercase tracking-[0.2em] rounded-2xl shadow-lg shadow-red-500/20 flex items-center justify-center gap-3 group"
-                  >
-                    Finish and Grade
-                    <CheckCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                  </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setShowMockExamFeedback(true)}
+                          className="w-full py-4 bg-gradient-to-r from-red-500 to-rose-600 text-white font-black uppercase tracking-[0.2em] rounded-2xl shadow-lg shadow-red-500/20 flex items-center justify-center gap-3 group"
+                        >
+                          Finish and Grade
+                          <CheckCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                        </motion.button>
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="exam-results"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="space-y-6 text-left"
+                      >
+                        {/* Grade Card */}
+                        <div className="flex items-center justify-between bg-red-500/10 p-6 rounded-2xl border border-red-500/20 relative overflow-hidden">
+                          <div className="absolute top-0 right-0 p-4 opacity-10">
+                            <Award className="w-24 h-24 text-red-400" />
+                          </div>
+                          <div className="relative z-10">
+                            <p className="text-red-400 text-[10px] font-black uppercase tracking-widest mb-1">Mock Exam Grade</p>
+                            <h5 className="text-4xl font-black text-white">Grade 9</h5>
+                            <p className="text-white/60 text-xs mt-1">Exceptional performance (92/100 marks)</p>
+                          </div>
+                        </div>
+
+                        {/* Marking Feedback */}
+                        <div className="space-y-4">
+                          <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                            <div className="flex justify-between items-center mb-2">
+                              <p className="text-white font-bold text-sm">Question 1.1: Root Hair Cells</p>
+                              <span className="text-green-400 font-black text-xs">3/3 Marks</span>
+                            </div>
+                            <p className="text-xs text-white/60 leading-relaxed">
+                              Correctly identified large surface area and thin cell wall. Perfect technical explanation of osmosis potential.
+                            </p>
+                          </div>
+
+                          <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                            <div className="flex justify-between items-center mb-2">
+                              <p className="text-white font-bold text-sm">Question 1.2: Active Transport</p>
+                              <span className="text-amber-400 font-black text-xs">2/3 Marks</span>
+                            </div>
+                            <p className="text-xs text-white/60 leading-relaxed">
+                              Good mention of mitochondria and energy. Missed the keyword "against the concentration gradient" for full marks.
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Performance Insights */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="p-4 bg-red-500/5 border border-red-500/10 rounded-xl">
+                            <p className="text-red-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 mb-2">
+                              <TrendingUp className="w-3 h-3" /> Strengths
+                            </p>
+                            <ul className="text-[10px] text-white/70 space-y-1">
+                              <li>• Technical terminology</li>
+                              <li>• Data analysis (Q4.2)</li>
+                              <li>• Time management</li>
+                            </ul>
+                          </div>
+                          <div className="p-4 bg-amber-500/5 border border-amber-500/10 rounded-xl">
+                            <p className="text-amber-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 mb-2">
+                              <AlertTriangle className="w-3 h-3" /> Focus Areas
+                            </p>
+                            <ul className="text-[10px] text-white/70 space-y-1">
+                              <li>• Calculation precision</li>
+                              <li>• Link to stem cells</li>
+                              <li>• Practical methods</li>
+                            </ul>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-3 mt-4">
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => setShowMockExamFeedback(false)}
+                            className="flex-1 py-3 bg-white/5 border border-white/10 text-white font-bold text-xs uppercase tracking-widest rounded-xl"
+                          >
+                            Retake Paper
+                          </motion.button>
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="flex-1 py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white font-bold text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-red-500/20"
+                          >
+                            View Mark Scheme
+                          </motion.button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
             )}
-          </motion.div>
+                  </motion.div>
         </div>
       </div>
     </section>
@@ -1735,8 +1943,8 @@ const AITimetableSection = () => {
                 animate={{ scale: [1.2, 1, 1.2], opacity: [0.3, 0.6, 0.3] }}
                 transition={{ duration: 5, repeat: Infinity }}
               />
-            </div>
-          </div>
+                </div>
+              </div>
 
           {/* Right: Text and Features */}
           <div className="flex-1 order-1 lg:order-2">
@@ -1749,7 +1957,7 @@ const AITimetableSection = () => {
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-bold mb-6">
                 <Sparkles className="w-4 h-4" />
                 The Professor's Engine
-              </div>
+                  </div>
               <h2 className="text-4xl lg:text-6xl font-black text-white mb-8 leading-[1.1]">
                 Perfectly Engineered <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-cyan-400">
@@ -1774,13 +1982,13 @@ const AITimetableSection = () => {
                     <div className="flex items-center gap-4">
                       <div className={`p-3 rounded-xl bg-gradient-to-br ${p.color} bg-opacity-20`}>
                         <p.icon className="w-6 h-6 text-white" />
-                      </div>
+                </div>
                       <div>
                         <h4 className="text-lg font-bold text-white mb-1">{p.title}</h4>
                         <p className="text-sm text-slate-400">{p.desc}</p>
-                      </div>
+              </div>
                     </div>
-                  </motion.div>
+          </motion.div>
                 ))}
               </div>
 
