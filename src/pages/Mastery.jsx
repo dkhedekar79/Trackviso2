@@ -63,6 +63,7 @@ const Mastery = () => {
     const mode = params.get('mode');
     const subjectName = params.get('subject');
     const topicsString = params.get('topics');
+    const sessionId = params.get('sessionId');
 
     if (mode === 'summaryExam' && subjectName) {
       // Find subject metadata
@@ -119,7 +120,8 @@ const Mastery = () => {
         topicIds: selectedTopicIds,
         qualification,
         examBoard,
-        isSummaryExam: true
+        isSummaryExam: true,
+        linkedSessionId: sessionId
       });
       setIsMockExamModeActive(true);
       
@@ -511,6 +513,25 @@ const Mastery = () => {
 
                   localStorage.setItem(storageKey, JSON.stringify(progress));
                   checkSubjectMasteryMilestones(currentSession.subject, progress);
+
+                  // Update linked study session with the score for insights
+                  if (currentSession.linkedSessionId) {
+                    try {
+                      const studySessions = JSON.parse(localStorage.getItem('studySessions') || '[]');
+                      const updatedStudySessions = studySessions.map(s => 
+                        s.id === currentSession.linkedSessionId 
+                          ? { 
+                              ...s, 
+                              mockExamScore: mockExamData.percentage,
+                              verificationStatus: mockExamData.percentage >= 70 ? 'verified' : 'unverified'
+                            } 
+                          : s
+                      );
+                      localStorage.setItem('studySessions', JSON.stringify(updatedStudySessions));
+                    } catch (e) {
+                      console.error('Error updating linked study session:', e);
+                    }
+                  }
                   }
                 } catch (error) {
                   console.error('Error processing mock exam results:', error);

@@ -1043,15 +1043,25 @@ export default function Insights() {
       const mood = session.mood || 'neutral';
       
       // Calculate focus score (0-100)
-      // Factors: duration (30%), XP efficiency (25%), difficulty (20%), mood (15%), consistency bonus (10%)
+      // Factors: duration (30%), XP efficiency (20%), difficulty (15%), mood (15%), consistency bonus (10%), exam verification (10%)
       const durationScore = Math.min((duration / 60) * 30, 30); // Up to 30 points (2 hours = max)
-      const efficiencyScore = duration > 0 ? Math.min((xp / duration) * 2.5, 25) : 0; // Up to 25 points
-      const difficultyScore = (difficulty - 1) * 10; // Up to 20 points (difficulty 1-3)
+      const efficiencyScore = duration > 0 ? Math.min((xp / duration) * 2.0, 20) : 0; // Up to 20 points
+      const difficultyScore = (difficulty - 1) * 7.5; // Up to 15 points
       const moodScores = { great: 15, good: 12, okay: 8, struggled: 5, neutral: 10 };
       const moodScore = moodScores[mood] || 10;
       const consistencyBonus = consistencyScore > 70 ? 10 : consistencyScore > 50 ? 5 : 0;
       
-      const focusScore = Math.min(100, durationScore + efficiencyScore + difficultyScore + moodScore + consistencyBonus);
+      // AI Verification Bonus - Based on linked mock exam score
+      let verificationBonus = 0;
+      if (session.mockExamScore !== undefined) {
+        // Linear scale: 0 score = 0 bonus, 100 score = 10 bonus
+        verificationBonus = (session.mockExamScore / 100) * 10;
+      } else {
+        // Small default if no exam taken, to not penalize
+        verificationBonus = 5;
+      }
+      
+      const focusScore = Math.min(100, durationScore + efficiencyScore + difficultyScore + moodScore + consistencyBonus + verificationBonus);
       
       return {
         timestamp: session.timestamp,
@@ -1060,7 +1070,9 @@ export default function Insights() {
         xp,
         subject: session.subjectName,
         mood,
-        difficulty
+        difficulty,
+        verified: session.mockExamScore !== undefined,
+        examScore: session.mockExamScore
       };
     });
     
@@ -2759,6 +2771,7 @@ export default function Insights() {
                       {focusScore.bestSession && (
                         <div className="text-xs text-cyan-200/70 mt-2">
                           Best: {focusScore.bestSession.focusScore} ({focusScore.bestSession.subject})
+                          {focusScore.bestSession.verified && <span className="ml-1 text-cyan-400">✓ AI Verified</span>}
                         </div>
                       )}
                     </div>
@@ -2779,13 +2792,24 @@ export default function Insights() {
                       ))}
                     </div>
                     
-                    {focusScore.improvement !== 0 && (
-                      <div className={`text-center text-sm ${
-                        focusScore.improvement > 0 ? 'text-green-300' : 'text-red-300'
-                      }`}>
-                        {focusScore.improvement > 0 ? '+' : ''}{focusScore.improvement} points vs first session
+                    <div className="space-y-2 mt-4">
+                      <div className="flex items-center justify-between text-xs text-cyan-200/60 border-b border-cyan-700/20 pb-1">
+                        <span>Recent AI Validations</span>
+                        <span>Score</span>
                       </div>
-                    )}
+                      {focusScore.sessions.filter(s => s.verified).slice(0, 3).map((s, i) => (
+                        <div key={i} className="flex items-center justify-between text-[10px]">
+                          <span className="text-white/80">
+                            <span className="text-cyan-400 mr-1">✓</span>
+                            {s.subject}
+                          </span>
+                          <span className="text-cyan-300 font-bold">{s.examScore}%</span>
+                        </div>
+                      ))}
+                      {focusScore.sessions.filter(s => s.verified).length === 0 && (
+                        <p className="text-[9px] text-white/30 italic text-center">No verified sessions yet</p>
+                      )}
+                    </div>
                   </div>
                 ) : isPremium ? (
                   <div className="text-center py-8 text-cyan-200/60">

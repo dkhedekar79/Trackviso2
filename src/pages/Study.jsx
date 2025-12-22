@@ -796,7 +796,9 @@ const Study = () => {
     );
 
     // Save session data based on actual elapsedSeconds
+    const sessionId = `session-${Date.now()}`;
     const sessionData = {
+      id: sessionId,
       subjectName: subject,
       durationMinutes: sessionDurationMinutes,
       timestamp: new Date().toISOString(),
@@ -878,16 +880,43 @@ const Study = () => {
     // Capture values before reset
     const currentSubject = subject || "";
     const currentTopics = topicsStudied || sessionReflection || "";
+    const sessionId = `session-${Date.now()}`;
 
     // Save the session
-    handleSaveSession();
+    const sessionData = {
+      id: sessionId,
+      subjectName: currentSubject,
+      durationMinutes: Math.max(1, Math.round((totalPomodoroTimeRef.current / 60) * 100) / 100),
+      timestamp: new Date().toISOString(),
+      notes: sessionNotes,
+      task: currentTask,
+      mood: sessionMood,
+      reflection: sessionReflection,
+      difficulty: sessionDifficulty,
+      topicsStudied: topicsStudied,
+      isTaskComplete,
+    };
+
+    const sessionResult = addStudySession(sessionData);
+    const updatedSessions = [...studySessions, sessionResult];
+    localStorage.setItem("studySessions", JSON.stringify(updatedSessions));
+    setStudySessions(updatedSessions);
+
+    // Show completion success with rewards
+    addReward({
+      type: "SESSION_COMPLETE",
+      title: `🎉 Session Saved!`,
+      description: `Preparing your summary exam...`,
+      tier: "uncommon",
+      xp: sessionResult.xpEarned,
+    });
     
     // Construct Mastery URL with params
     const subjectParam = encodeURIComponent(currentSubject);
     const topicsParam = encodeURIComponent(currentTopics);
     
-    // Redirect to Mastery page with special mode
-    navigate(`/mastery?mode=summaryExam&subject=${subjectParam}&topics=${topicsParam}`);
+    // Redirect to Mastery page with special mode and session ID
+    navigate(`/mastery?mode=summaryExam&subject=${subjectParam}&topics=${topicsParam}&sessionId=${sessionId}`);
   };
 
   const MODES = [
