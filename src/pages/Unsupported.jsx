@@ -15,17 +15,33 @@ const Unsupported = () => {
 
     setStatus('submitting');
     try {
-      const { error } = await supabase
+      // 1. Save to database for tracking
+      const { error: dbError } = await supabase
         .from('desktop_access_requests')
         .insert([{ email }]);
 
-      if (error) throw error;
+      if (dbError) throw dbError;
+
+      // 2. Call the API to actually send the email
+      const response = await fetch('/api/send-desktop-link', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to send email');
+      }
+
       setStatus('success');
       setEmail('');
     } catch (err) {
-      console.error('Error submitting email:', err);
+      console.error('Error in email system:', err);
       setStatus('error');
-      setErrorMessage('Something went wrong. Please try again.');
+      setErrorMessage(err.message || 'Something went wrong. Please try again.');
     }
   };
 
