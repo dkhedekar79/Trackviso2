@@ -43,15 +43,14 @@ const Unsupported = () => {
       });
 
       if (!response.ok) {
-        let errorMessage = 'Failed to send email';
+        let errorMsg = 'Failed to send email';
         try {
           const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
+          errorMsg = errorData.error || errorMsg;
         } catch (e) {
-          // If not JSON, use status text
-          errorMessage = `Server error: ${response.statusText || response.status}`;
+          errorMsg = `Server error: ${response.statusText || response.status}`;
         }
-        throw new Error(errorMessage);
+        throw new Error(errorMsg);
       }
 
       setStatus('success');

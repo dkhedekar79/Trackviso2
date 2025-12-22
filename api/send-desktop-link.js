@@ -14,8 +14,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    const data = await resend.emails.send({
-      from: 'Trackviso <onboarding@resend.dev>', // You can update this once you have a domain
+    console.log('Attempting to send email to:', email);
+    const { data, error } = await resend.emails.send({
+      from: 'Trackviso <onboarding@resend.dev>',
       to: email,
       subject: 'Your Trackviso Desktop Link 💻',
       html: `
@@ -24,7 +25,7 @@ export default async function handler(req, res) {
           <p>You requested a link to open Trackviso on your desktop. Click the button below to get started:</p>
           <div style="text-align: center; margin: 30px 0;">
             <a href="https://trackviso-beta.vercel.app" 
-               style="background-color: #6366f1; color: white; padding: 14px 28px; text-decoration: none; borderRadius: 12px; fontWeight: bold; display: inline-block;">
+               style="background-color: #6366f1; color: white; padding: 14px 28px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block;">
               Open Trackviso on Desktop
             </a>
           </div>
@@ -39,10 +40,16 @@ export default async function handler(req, res) {
       `,
     });
 
+    if (error) {
+      console.error('Resend Error:', error);
+      return res.status(400).json({ error: error.message || 'Resend failed to send email' });
+    }
+
+    console.log('Email sent successfully:', data);
     return res.status(200).json({ success: true, data });
   } catch (error) {
-    console.error('Error sending email:', error);
-    return res.status(500).json({ error: 'Failed to send email' });
+    console.error('Catch Error sending email:', error);
+    return res.status(500).json({ error: error.message || 'Failed to send email' });
   }
 }
 
