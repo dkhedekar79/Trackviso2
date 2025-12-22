@@ -19,10 +19,13 @@ export default function AIScheduleSetup({ onComplete, onCancel, availableSubject
   const generationStages = [
     "Initializing Engineered Engine...",
     "Analyzing Cognitive Profiles...",
+    "Mapping Peak Performance Windows...",
+    "Calculating School Hours Blocking...",
+    "Prioritizing Homework Deadlines...",
     "Optimizing Subject Interleaving...",
     "Engineering Micro & Macro Breaks...",
     "Calibrating Spaced Repetition Cycles...",
-    "Mapping Peak Performance Windows...",
+    "Applying Variable Duration Formulas...",
     "Finalizing Perfectly Engineered Timetable..."
   ];
 
@@ -59,13 +62,22 @@ export default function AIScheduleSetup({ onComplete, onCancel, availableSubject
 
   // Step 2: Subjects and Topics
   const [selectedSubjects, setSelectedSubjects] = useState([]);
+  const [subjectModes, setSubjectModes] = useState({}); // { subjectId: mode }
   const [topics, setTopics] = useState([]); // Array of { id, name, subjectId, subjectName }
 
   // Step 3: Confidence Ratings
   const [confidenceRatings, setConfidenceRatings] = useState({}); // { topicId: 'red' | 'yellow' | 'green' }
+  const [topicReasoning, setTopicReasoning] = useState({}); // { topicId: reasoning }
 
-  // Step 4: Time Allocation
-  const [topicTimes, setTopicTimes] = useState({}); // { topicId: minutes }
+  // Step 4: School & Homework (New)
+  const [homeworks, setHomeworks] = useState([]);
+  const [schoolSchedule, setSchoolSchedule] = useState({
+    start: '08:30',
+    end: '15:30',
+    studyBefore: false,
+    studyLunch: false,
+    studyFree: false
+  });
 
   // Step 5: Advanced Parameters (Optional)
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
@@ -75,6 +87,7 @@ export default function AIScheduleSetup({ onComplete, onCancel, availableSubject
   const [studyRhythm, setStudyRhythm] = useState('balanced'); // pomodoro, deepwork, balanced, block
   const [subjectDifficulty, setSubjectDifficulty] = useState({}); // { subjectId: 1-10 }
   const [noGoZones, setNoGoZones] = useState([]); // Array of hours (0-23) representing typical "busy" daily hours
+  const [topicTimes, setTopicTimes] = useState({}); // { topicId: minutes } (Moved from Step 4 state)
 
   // Step 6: Busy Times and Instructions
   const [busyTimes, setBusyTimes] = useState('');
@@ -154,7 +167,8 @@ export default function AIScheduleSetup({ onComplete, onCancel, availableSubject
       case 3:
         return topics.every(t => confidenceRatings[t.id]);
       case 4:
-        return true; // Time allocation is optional
+        // Homework is optional, but if present must have title and date
+        return homeworks.every(hw => hw.title.trim() !== '' && hw.dueDate !== '');
       case 5:
         return true; // Advanced parameters are optional
       case 6:
@@ -185,9 +199,13 @@ export default function AIScheduleSetup({ onComplete, onCancel, availableSubject
       const scheduleData = {
         duration,
         subjects: selectedSubjects,
+        subjectModes,
         topics: topics.filter(t => t.name.trim() !== ''),
         confidenceRatings,
+        topicReasoning,
         topicTimes,
+        homeworks,
+        schoolSchedule,
         advanced: {
           timetableMode,
           peakEnergy,
@@ -482,7 +500,24 @@ export default function AIScheduleSetup({ onComplete, onCancel, availableSubject
                       return (
                         <div key={subject.id} className="p-4 bg-slate-800/50 rounded-lg border border-purple-500/30">
                           <div className="flex items-center justify-between mb-3">
-                            <h4 className="text-lg font-semibold text-white">{subject.name}</h4>
+                            <div className="flex flex-col">
+                              <h4 className="text-lg font-semibold text-white">{subject.name}</h4>
+                              <div className="flex gap-2 mt-1">
+                                {['short-term-exam', 'long-term-exam', 'no-exam'].map(mode => (
+                                  <button
+                                    key={mode}
+                                    onClick={() => setSubjectModes({ ...subjectModes, [subject.id]: mode })}
+                                    className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase transition-all ${
+                                      (subjectModes[subject.id] || 'no-exam') === mode
+                                        ? 'bg-violet-500 text-white'
+                                        : 'bg-slate-700/50 text-white/40 hover:text-white/60'
+                                    }`}
+                                  >
+                                    {mode.split('-').join(' ')}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
                             <div className="flex gap-2">
                               <button
                                 onClick={() => handleAddTopic(subject.id, subject.name)}
@@ -558,30 +593,43 @@ export default function AIScheduleSetup({ onComplete, onCancel, availableSubject
                           {subjectTopics.map(topic => {
                             const rating = confidenceRatings[topic.id] || null;
                             return (
-                              <div key={topic.id} className="flex items-center justify-between p-3 bg-slate-700/30 rounded-lg">
-                                <span className="text-white font-medium">{topic.name}</span>
-                                <div className="flex gap-2">
-                                  {['red', 'yellow', 'green'].map(color => (
-                                    <button
-                                      key={color}
-                                      onClick={() => handleSetConfidence(topic.id, color)}
-                                      className={`w-10 h-10 rounded-lg border-2 transition-all ${
-                                        rating === color
-                                          ? color === 'red'
-                                            ? 'bg-red-600 border-red-400 scale-110'
+                              <div key={topic.id} className="p-3 bg-slate-700/30 rounded-lg space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-white font-medium">{topic.name}</span>
+                                  <div className="flex gap-2">
+                                    {['red', 'yellow', 'green'].map(color => (
+                                      <button
+                                        key={color}
+                                        onClick={() => handleSetConfidence(topic.id, color)}
+                                        className={`w-10 h-10 rounded-lg border-2 transition-all ${
+                                          rating === color
+                                            ? color === 'red'
+                                              ? 'bg-red-600 border-red-400 scale-110'
+                                              : color === 'yellow'
+                                              ? 'bg-yellow-600 border-yellow-400 scale-110'
+                                              : 'bg-green-600 border-green-400 scale-110'
+                                            : color === 'red'
+                                            ? 'bg-red-600/20 border-red-600/50 hover:bg-red-600/40'
                                             : color === 'yellow'
-                                            ? 'bg-yellow-600 border-yellow-400 scale-110'
-                                            : 'bg-green-600 border-green-400 scale-110'
-                                          : color === 'red'
-                                          ? 'bg-red-600/20 border-red-600/50 hover:bg-red-600/40'
-                                          : color === 'yellow'
-                                          ? 'bg-yellow-600/20 border-yellow-600/50 hover:bg-yellow-600/40'
-                                          : 'bg-green-600/20 border-green-600/50 hover:bg-green-600/40'
-                                      }`}
-                                      title={color === 'red' ? 'Low Confidence' : color === 'yellow' ? 'Medium Confidence' : 'High Confidence'}
-                                    />
-                                  ))}
+                                            ? 'bg-yellow-600/20 border-yellow-600/50 hover:bg-yellow-600/40'
+                                            : 'bg-green-600/20 border-green-600/50 hover:bg-green-600/40'
+                                        }`}
+                                        title={color === 'red' ? 'Low Confidence' : color === 'yellow' ? 'Medium Confidence' : 'High Confidence'}
+                                      />
+                                    ))}
+                                  </div>
                                 </div>
+                                {(rating === 'red' || rating === 'yellow') && (
+                                  <div className="animate-in slide-in-from-top-2 duration-200">
+                                    <textarea
+                                      className="w-full bg-slate-800/50 border border-purple-500/30 rounded-lg py-2 px-3 text-white text-xs focus:outline-none focus:ring-1 focus:ring-purple-500/50 resize-none"
+                                      placeholder="Why do you struggle with this? (e.g., 'don't understand algebra', 'forget formulas')"
+                                      value={topicReasoning[topic.id] || ''}
+                                      onChange={(e) => setTopicReasoning({ ...topicReasoning, [topic.id]: e.target.value })}
+                                      rows={2}
+                                    />
+                                  </div>
+                                )}
                               </div>
                             );
                           })}
@@ -601,52 +649,139 @@ export default function AIScheduleSetup({ onComplete, onCancel, availableSubject
               </motion.div>
             )}
 
-            {/* Step 4: Time Allocation */}
+            {/* Step 4: School & Homework */}
             {currentStep === 4 && (
               <motion.div
                 key="step4"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-6"
+                className="space-y-8"
               >
-                <div>
-                  <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-violet-400" />
-                    Time Allocation (Optional)
-                  </h3>
-                  <p className="text-white/70 mb-6">How much time (in minutes) would you like to spend on each topic? Leave blank to let AI decide.</p>
+                {/* School Schedule */}
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                      <Sun className="w-5 h-5 text-amber-400" />
+                      School Schedule
+                    </h3>
+                    <p className="text-white/70 mb-4">When are you at school? (Mon-Fri only)</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-slate-800/50 rounded-xl border border-purple-500/20">
+                      <label className="text-xs text-white/40 block mb-1 uppercase font-bold">Start Time</label>
+                      <input
+                        type="time"
+                        value={schoolSchedule.start}
+                        onChange={(e) => setSchoolSchedule({ ...schoolSchedule, start: e.target.value })}
+                        className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-white"
+                      />
+                    </div>
+                    <div className="p-4 bg-slate-800/50 rounded-xl border border-purple-500/20">
+                      <label className="text-xs text-white/40 block mb-1 uppercase font-bold">End Time</label>
+                      <input
+                        type="time"
+                        value={schoolSchedule.end}
+                        onChange={(e) => setSchoolSchedule({ ...schoolSchedule, end: e.target.value })}
+                        className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-3">
+                    {[
+                      { id: 'studyBefore', label: 'Study Before School', icon: Sun },
+                      { id: 'studyLunch', label: 'Study During Lunch', icon: Zap },
+                      { id: 'studyFree', label: 'Study During Free Periods', icon: BookOpen }
+                    ].map(opt => (
+                      <button
+                        key={opt.id}
+                        onClick={() => setSchoolSchedule({ ...schoolSchedule, [opt.id]: !schoolSchedule[opt.id] })}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all ${
+                          schoolSchedule[opt.id]
+                            ? 'bg-amber-500/20 border-amber-500 text-amber-300'
+                            : 'bg-white/5 border-white/10 text-white/40 hover:bg-white/10'
+                        }`}
+                      >
+                        <opt.icon className="w-4 h-4" />
+                        <span className="text-xs font-bold">{opt.label}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
+                {/* Homework Manager */}
                 <div className="space-y-4">
-                  {selectedSubjects.map(subject => {
-                    const subjectTopics = topics.filter(t => t.subjectId === subject.id && t.name.trim() !== '');
-                    if (subjectTopics.length === 0) return null;
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                        <FileText className="w-5 h-5 text-blue-400" />
+                        Homework Manager
+                      </h3>
+                      <p className="text-white/70">Add specific assignments with hard deadlines</p>
+                    </div>
+                    <button
+                      onClick={() => setHomeworks([...homeworks, { id: Date.now(), title: '', subjectId: selectedSubjects[0]?.id || '', dueDate: '', duration: 60 }])}
+                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold flex items-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Homework
+                    </button>
+                  </div>
 
-                    return (
-                      <div key={subject.id} className="p-4 bg-slate-800/50 rounded-lg border border-purple-500/30">
-                        <h4 className="text-lg font-semibold text-white mb-4">{subject.name}</h4>
-                        <div className="space-y-3">
-                          {subjectTopics.map(topic => (
-                            <div key={topic.id} className="flex items-center justify-between p-3 bg-slate-700/30 rounded-lg">
-                              <span className="text-white font-medium">{topic.name}</span>
-                              <div className="flex items-center gap-3">
-                                <input
-                                  type="number"
-                                  className="w-24 bg-slate-800/50 border border-purple-500/30 rounded-lg py-1.5 px-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50"
-                                  placeholder="Auto"
-                                  value={topicTimes[topic.id] || ''}
-                                  onChange={(e) => handleSetTopicTime(topic.id, e.target.value)}
-                                  min="0"
-                                />
-                                <span className="text-white/40 text-xs font-medium uppercase">min</span>
-                              </div>
-                            </div>
-                          ))}
+                  <div className="space-y-3">
+                    {homeworks.map(hw => (
+                      <div key={hw.id} className="p-4 bg-slate-800/50 rounded-xl border border-blue-500/20 space-y-3">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="Homework title (e.g., 'Essay on Macbeth')"
+                            value={hw.title}
+                            onChange={(e) => setHomeworks(homeworks.map(h => h.id === hw.id ? { ...h, title: e.target.value } : h))}
+                            className="flex-1 bg-white/5 border border-white/10 rounded-lg p-2 text-sm text-white"
+                          />
+                          <button
+                            onClick={() => setHomeworks(homeworks.filter(h => h.id !== hw.id))}
+                            className="p-2 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/30"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2">
+                          <select
+                            value={hw.subjectId}
+                            onChange={(e) => setHomeworks(homeworks.map(h => h.id === hw.id ? { ...h, subjectId: e.target.value } : h))}
+                            className="bg-white/5 border border-white/10 rounded-lg p-2 text-xs text-white"
+                          >
+                            {selectedSubjects.map(s => (
+                              <option key={s.id} value={s.id}>{s.name}</option>
+                            ))}
+                          </select>
+                          <input
+                            type="date"
+                            value={hw.dueDate}
+                            onChange={(e) => setHomeworks(homeworks.map(h => h.id === hw.id ? { ...h, dueDate: e.target.value } : h))}
+                            className="bg-white/5 border border-white/10 rounded-lg p-2 text-xs text-white"
+                          />
+                          <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg px-2">
+                            <input
+                              type="number"
+                              value={hw.duration}
+                              onChange={(e) => setHomeworks(homeworks.map(h => h.id === hw.id ? { ...h, duration: parseInt(e.target.value) } : h))}
+                              className="w-full bg-transparent p-1 text-xs text-white"
+                            />
+                            <span className="text-[10px] text-white/30">min</span>
+                          </div>
                         </div>
                       </div>
-                    );
-                  })}
+                    ))}
+                    {homeworks.length === 0 && (
+                      <div className="text-center py-6 bg-slate-800/20 rounded-xl border border-dashed border-white/10">
+                        <p className="text-white/30 text-xs italic">No homework added yet</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -849,6 +984,39 @@ export default function AIScheduleSetup({ onComplete, onCancel, availableSubject
                           ))}
                         </div>
                         <p className="text-[9px] text-white/30 mt-2 italic text-center">Tap hours you are typically asleep or at school/work every day.</p>
+                      </div>
+
+                      {/* 6. Custom Time Allocation */}
+                      <div className="p-5 bg-slate-800/50 rounded-2xl border border-violet-500/20">
+                        <label className="block text-violet-300 text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
+                          <Clock className="w-4 h-4" />
+                          Custom Time Allocation (Minutes)
+                        </label>
+                        <div className="space-y-4">
+                          {selectedSubjects.map(subject => {
+                            const subjectTopics = topics.filter(t => t.subjectId === subject.id && t.name.trim() !== '');
+                            if (subjectTopics.length === 0) return null;
+                            return (
+                              <div key={subject.id} className="space-y-2">
+                                <span className="text-[10px] text-white/40 uppercase font-bold">{subject.name}</span>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                  {subjectTopics.map(topic => (
+                                    <div key={topic.id} className="flex items-center justify-between p-2 bg-white/5 rounded-lg border border-white/10">
+                                      <span className="text-xs text-white/70 truncate mr-2">{topic.name}</span>
+                                      <input
+                                        type="number"
+                                        className="w-16 bg-slate-800/50 border border-white/10 rounded-md py-1 px-2 text-white text-[10px] focus:outline-none"
+                                        placeholder="Auto"
+                                        value={topicTimes[topic.id] || ''}
+                                        onChange={(e) => handleSetTopicTime(topic.id, e.target.value)}
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     </motion.div>
                   ) : (

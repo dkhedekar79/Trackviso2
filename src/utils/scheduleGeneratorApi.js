@@ -46,9 +46,13 @@ export async function generateAISchedule(scheduleData) {
   const {
     duration,
     subjects,
+    subjectModes = {},
     topics,
     confidenceRatings,
+    topicReasoning = {},
     topicTimes,
+    homeworks = [],
+    schoolSchedule = {},
     advanced,
     busyTimes,
     instructions,
@@ -59,11 +63,12 @@ export async function generateAISchedule(scheduleData) {
   // Build topics with confidence ratings, preferred times, and difficulty
   const topicsWithMetadata = topics.map(topic => {
     const rating = confidenceRatings[topic.id] || 'yellow';
-    const difficulty = advanced?.subjectDifficulty?.[topic.id] || 5;
+    const difficulty = advanced?.subjectDifficulty?.[topic.subjectId] || 5;
     return {
       ...topic,
       confidence: rating,
       difficulty,
+      reasoning: topicReasoning[topic.id] || '',
       priority: rating === 'red' ? 'high' : rating === 'yellow' ? 'medium' : 'low',
       preferredTime: topicTimes[topic.id] || 'auto'
     };
@@ -74,6 +79,7 @@ export async function generateAISchedule(scheduleData) {
     ...subject,
     topics: topicsWithMetadata.filter(t => t.subjectId === subject.id),
     examDate: advanced?.examDates?.[subject.id] || null,
+    mode: subjectModes[subject.id] || 'no-exam',
     difficulty: advanced?.subjectDifficulty?.[subject.id] || 5
   }));
 
@@ -91,13 +97,22 @@ USER COGNITIVE PROFILE:
 - Peak Energy Window: ${advanced?.peakEnergy || 'morning'}
 - Preferred Rhythm: ${advanced?.studyRhythm || 'balanced'}
 - Timetable Strategy: ${advanced?.timetableMode || 'balanced'}
-- Daily "No-Go" Hours (0-23): ${advanced?.noGoZones?.length > 0 ? advanced.noGoZones.join(', ') : 'None (Use standard hours)'}
+- Daily "No-Go" Hours (0-23): ${advanced?.noGoZones?.length > 0 ? advanced.noGoZones.join(', ') : 'None'}
+
+🏫 SCHOOL SCHEDULE (Mon-Fri):
+- School Hours: ${schoolSchedule.start || '08:30'} to ${schoolSchedule.end || '15:30'}
+- Study Before School: ${schoolSchedule.studyBefore ? 'YES' : 'NO'}
+- Study During Lunch: ${schoolSchedule.studyLunch ? 'YES' : 'NO'}
+- Study During Free Periods: ${schoolSchedule.studyFree ? 'YES' : 'NO'}
 
 TOPICS TO INCLUDE:
 ${subjectsWithTopics.map(subject => `
-  ${subject.name}: ${subject.topics.map(t => `${t.name} (ID: ${t.id}, Conf: ${t.confidence}, Diff: ${t.difficulty}/10, Pref. Time: ${t.preferredTime})`).join(', ')}
+  ${subject.name} (${subject.mode.toUpperCase()}): ${subject.topics.map(t => `${t.name} (ID: ${t.id}, Conf: ${t.confidence}, Diff: ${t.difficulty}/10${t.reasoning ? `, Struggles: "${t.reasoning}"` : ''}, Pref. Time: ${t.preferredTime})`).join(', ')}
   ${subject.examDate ? `  * EXAM DATE: ${subject.examDate} (PRIORITIZE AS DATE APPROACHES)` : ''}
 `).join('\n')}
+
+🚨 HOMEWORK ASSIGNMENTS (MANDATORY DEADLINES):
+${homeworks.length > 0 ? homeworks.map(hw => `- "${hw.title}" for ${subjects.find(s => s.id === hw.subjectId)?.name || 'Subject'}, DUE: ${hw.dueDate}, DURATION: ${hw.duration} mins`).join('\n') : 'None'}
 
 USER BUSY TIMES: ${busyTimes || 'None'}
 USER CUSTOM INSTRUCTIONS: ${instructions || 'None'}
@@ -111,19 +126,16 @@ The "tid" field MUST contain the exact original ID string provided.
 
 ENGINEERING RULES:
 1. 🧠 BIOLOGICAL PRIME TIME: Schedule the highest "Diff" (Difficulty) and "Red" (Low Confidence) topics during the Peak Energy Window (${advanced?.peakEnergy}).
-2. ⚡ STUDY RHYTHM: Adhere to the ${advanced?.studyRhythm} style:
-   - Pomodoro: 30m blocks with 5m breaks.
-   - Deep Work: 90-120m blocks with 15-20m breaks.
-   - Balanced: 45-60m blocks with 10-15m breaks.
-   - Subject Block: 3-4 hours on one subject with internal breaks.
-3. 📅 EXAM TAPERING: If an exam date is near, increase frequency/duration for that subject.
-   - Strategy [short-term-exam]: INTENSIVE. Maximize study sessions, minimal breaks, focus on past papers.
-   - Strategy [long-term-exam]: STEADY. Balanced approach, focus on foundation and understanding.
-   - Strategy [balanced]: REGULAR. Mix of revision and new learning.
-4. 🚫 NO-GO ZONES: Do NOT schedule anything during: ${advanced?.noGoZones?.join(', ') || '0-7 (sleep)'}.
-5. 🧬 SPACED REPETITION: Schedule intensive sessions first, followed by review sessions at spaced intervals.
-6. 🔀 INTERLEAVING: Mix subjects daily unless "Block" rhythm is selected to prevent cognitive fatigue.
-7. 🕐 FILL THE TIME: Generate a complete schedule for each day that fills the user's available study time.
+2. ⚡ STUDY RHYTHM: Adhere to the ${advanced?.studyRhythm} style.
+3. 🏫 SCHOOL BLOCKING: On weekdays, do NOT schedule revision during ${schoolSchedule.start || '08:30'}-${schoolSchedule.end || '15:30'} unless explicitly enabled (e.g. Lunch/Free periods).
+4. 📝 HOMEWORK DEADLINES: Homework MUST be scheduled BEFORE its due date. Never on the due date. Prioritize homework with sooner deadlines.
+5. 📏 VARIABLE DURATION: Calculate session duration based on priority: Duration = 30 + (priority_score × 6) minutes. High priority (Red/Difficulty 7+) topics get 60-90m.
+6. 📅 EXAM TAPERING: Adjust intensity based on subject mode:
+   - short-term-exam: Intensive (60-90m sessions), frequent repetition (every 2-3 days).
+   - long-term-exam: Balanced (45-60m sessions), spaced repetition (every 4-6 days).
+   - no-exam: Light reinforcement, homework takes priority.
+7. 🧬 SPACED REPETITION: Mix subjects daily (Interleaving) to prevent cognitive overload.
+8. 🕐 FILL THE TIME: Fill the available study window for each day completely.
 
 OUTPUT JSON FORMAT (STRICT):
 {
