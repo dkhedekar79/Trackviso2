@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import { useGamification } from '../context/GamificationContext';
 import { getTopicsForSubject } from '../data/masteryTopics';
+import { applyMemoryDeterioration } from '../utils/memoryDeterioration';
 
 // Helper function to calculate completion score from individual scores
 const calculateCompletionScore = (topicProgress, applyDeterioration = true) => {
@@ -24,7 +25,6 @@ const calculateCompletionScore = (topicProgress, applyDeterioration = true) => {
   
   // Apply memory deterioration if enabled
   if (applyDeterioration && topicProgress.lastPracticeDate) {
-    const { applyMemoryDeterioration } = require('../utils/memoryDeterioration');
     return applyMemoryDeterioration(baseScore, topicProgress.lastPracticeDate);
   }
   
