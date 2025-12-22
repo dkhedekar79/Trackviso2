@@ -15,6 +15,7 @@ import {
   Star,
   Trophy,
   Award,
+  Sparkles,
 } from "lucide-react";
 import { useTimer } from "../context/TimerContext";
 import { useGamification } from "../context/GamificationContext";
