@@ -1,9 +1,34 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Smartphone, Laptop, Sparkles, ArrowRight, Heart } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Smartphone, Laptop, Sparkles, ArrowRight, Heart, Mail, CheckCircle2, Loader2 } from 'lucide-react';
 import MagneticParticles from '../components/MagneticParticles';
+import { supabase } from '../supabaseClient';
 
 const Unsupported = () => {
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState('idle'); // 'idle', 'submitting', 'success', 'error'
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!email) return;
+
+    setStatus('submitting');
+    try {
+      const { error } = await supabase
+        .from('desktop_access_requests')
+        .insert([{ email }]);
+
+      if (error) throw error;
+      setStatus('success');
+      setEmail('');
+    } catch (err) {
+      console.error('Error submitting email:', err);
+      setStatus('error');
+      setErrorMessage('Something went wrong. Please try again.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 relative overflow-hidden">
       {/* Particle Effect Background */}
@@ -175,26 +200,105 @@ const Unsupported = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8 }}
-            className="space-y-4"
+            className="space-y-6"
           >
-            <p className="text-xl text-white font-semibold mb-2">
+            <p className="text-xl text-white font-semibold mb-2 px-4">
               Switch to your laptop or desktop for the full Trackviso experience! 💻
             </p>
             
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="inline-block"
-            >
-              <a
-                href="https://trackviso-beta.vercel.app"
-                className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-xl text-lg hover:shadow-2xl hover:shadow-purple-500/50 transition-all duration-300"
+            <div className="flex flex-col items-center gap-6">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="inline-block"
               >
-                <Laptop className="w-6 h-6" />
-                Open on Desktop
-                <ArrowRight className="w-6 h-6" />
-              </a>
-            </motion.div>
+                <a
+                  href="https://trackviso-beta.vercel.app"
+                  className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-xl text-lg hover:shadow-2xl hover:shadow-purple-500/50 transition-all duration-300"
+                >
+                  <Laptop className="w-6 h-6" />
+                  Open on Desktop
+                  <ArrowRight className="w-6 h-6" />
+                </a>
+              </motion.div>
+
+              {/* Email System */}
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.9 }}
+                className="w-full max-w-md mx-auto px-4"
+              >
+                <div className="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur-md text-center">
+                  <h3 className="text-white font-bold mb-2 flex items-center justify-center gap-2">
+                    <Mail className="w-4 h-4 text-purple-400" />
+                    Email me the link
+                  </h3>
+                  <p className="text-purple-300/60 text-xs mb-4">
+                    We'll send you a direct link so you can easily open Trackviso when you're back at your computer.
+                  </p>
+
+                  <AnimatePresence mode="wait">
+                    {status === 'success' ? (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        className="flex flex-col items-center py-2"
+                      >
+                        <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mb-2">
+                          <CheckCircle2 className="w-6 h-6 text-green-500" />
+                        </div>
+                        <p className="text-green-400 font-bold text-sm">Link Sent! Check your inbox.</p>
+                        <button 
+                          onClick={() => setStatus('idle')}
+                          className="mt-3 text-xs text-purple-400 hover:text-purple-300 underline"
+                        >
+                          Send to another email
+                        </button>
+                      </motion.div>
+                    ) : (
+                      <motion.form
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onSubmit={handleSubmit}
+                        className="space-y-3"
+                      >
+                        <div className="relative group">
+                          <input
+                            type="email"
+                            placeholder="Enter your email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            disabled={status === 'submitting'}
+                            className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/20 outline-none focus:border-purple-500/50 transition-all disabled:opacity-50"
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={status === 'submitting'}
+                          className="w-full py-3 bg-white text-slate-900 rounded-xl font-bold text-sm hover:bg-purple-100 transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
+                        >
+                          {status === 'submitting' ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Sending...
+                            </>
+                          ) : (
+                            'Send Link'
+                          )}
+                        </button>
+                        {status === 'error' && (
+                          <p className="text-rose-500 text-[10px] font-medium text-center">{errorMessage}</p>
+                        )}
+                      </motion.form>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </motion.div>
+            </div>
           </motion.div>
 
           {/* Coming Soon Message */}
