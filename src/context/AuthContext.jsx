@@ -183,9 +183,22 @@ export const AuthProvider = ({ children }) => {
     setIsPremiumUser(data.user?.user_metadata?.is_premium || false);
     setFreeQuizQuestionsUsed(data.user?.user_metadata?.free_quiz_questions_used || 0);
     setLastQuizResetDate(data.user?.user_metadata?.last_quiz_reset_date || null);
+    
     // Initialize database for new user
     if (data.user) {
       await initializeDatabase();
+      
+      // Handle referral if present
+      const refCode = sessionStorage.getItem('referralCode');
+      if (refCode) {
+        try {
+          const { createReferral } = await import('../utils/supabaseDb');
+          await createReferral(refCode);
+          sessionStorage.removeItem('referralCode');
+        } catch (err) {
+          console.error('Error handling referral during signup:', err);
+        }
+      }
     }
     return data;
   };

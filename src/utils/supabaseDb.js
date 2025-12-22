@@ -158,6 +158,11 @@ export const updateUserStats = async (updates) => {
       return null;
     }
 
+    // Check for referral completion if level was updated
+    if (updates.level >= 10) {
+      checkReferralCompletion(session.user.id, updates.level);
+    }
+
     return data;
   } catch (error) {
     logger.error('Exception updating user stats:', {
@@ -397,4 +402,193 @@ export const subscribeToStudySessions = (userId, callback) => {
     .subscribe();
 
   return subscription;
+};
+
+// Referral System Functions
+
+/**
+ * Creates a referral record
+ * @param {string} referrerId - The ID of the user who referred the new user
+ */
+export const createReferral = async (referrerId) => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return null;
+
+    const referredId = session.user.id;
+    
+    // Don't refer yourself
+    if (referrerId === referredId) return null;
+
+    const { data, error } = await supabase
+      .from('referrals')
+      .insert([{
+        referrer_id: referrerId,
+        referred_id: referredId,
+        status: 'pending'
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === '23505') {
+        // Already referred
+        return null;
+      }
+      logger.error('Error creating referral:', error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    logger.error('Exception creating referral:', error);
+    return null;
+  }
+};
+
+/**
+ * Fetches referrals for a user (as a referrer)
+ */
+export const fetchReferrals = async () => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return [];
+
+    const { data, error } = await supabase
+      .from('referrals')
+      .select('*, referred_stats:user_stats!referred_id(level)')
+      .eq('referrer_id', session.user.id);
+
+    if (error) {
+      logger.error('Error fetching referrals:', error);
+      return [];
+    }
+
+    return data;
+  } catch (error) {
+    logger.error('Exception fetching referrals:', error);
+    return [];
+  }
+};
+
+/**
+ * Checks and updates referral status when a user reaches level 10
+ */
+export const checkReferralCompletion = async (userId, level) => {
+  if (level < 10) return;
+
+  try {
+    // Check if this user was referred and status is still pending
+    const { data: referral, error: fetchError } = await supabase
+      .from('referrals')
+      .select('*')
+      .eq('referred_id', userId)
+      .eq('status', 'pending')
+      .maybeSingle();
+
+    if (fetchError || !referral) return;
+
+    // Update referral status to completed
+    const { error: updateError } = await supabase
+      .from('referrals')
+      .update({ status: 'completed' })
+      .eq('id', referral.id);
+
+    if (updateError) {
+      logger.error('Error completing referral:', updateError);
+      return;
+    }
+
+    // Now check if the referrer has hit the 3 referrals milestone
+    const referrerId = referral.referrer_id;
+    const { data: completedReferrals, error: countError } = await supabase
+      .from('referrals')
+      .select('id')
+      .eq('referrer_id', referrerId)
+      .eq('status', 'completed');
+
+    if (countError) return;
+
+    if (completedReferrals.length >= 3) {
+      // Grant premium to referrer
+      // Note: In a real app, this should be done via a secure server-side function
+      const { error: premiumError } = await supabase.auth.updateUser({
+        data: { is_premium: true }
+      });
+      
+      // Also update user_stats table for the referrer
+      await supabase
+        .from('user_stats')
+        .update({ is_premium: true })
+        .eq('user_id', referrerId);
+        
+      if (premiumError) {
+        logger.error('Error granting premium via referral:', premiumError);
+      } else {
+        logger.log('Premium granted to referrer:', referrerId);
+      }
+    }
+  } catch (error) {
+    logger.error('Exception in checkReferralCompletion:', error);
+  }
+};
+
+// Ambassador Program Functions
+
+/**
+ * Submits a video link for the ambassador program
+ */
+export const submitAmbassadorLink = async (videoUrl, platform, views) => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return null;
+
+    const { data, error } = await supabase
+      .from('ambassador_submissions')
+      .insert([{
+        user_id: session.user.id,
+        video_url: videoUrl,
+        platform,
+        views: parseInt(views) || 0,
+        status: 'pending'
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      logger.error('Error submitting ambassador link:', error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    logger.error('Exception submitting ambassador link:', error);
+    return null;
+  }
+};
+
+/**
+ * Fetches all ambassador submissions for the current user
+ */
+export const fetchAmbassadorSubmissions = async () => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return [];
+
+    const { data, error } = await supabase
+      .from('ambassador_submissions')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      logger.error('Error fetching ambassador submissions:', error);
+      return [];
+    }
+
+    return data;
+  } catch (error) {
+    logger.error('Exception fetching ambassador submissions:', error);
+    return [];
+  }
 };

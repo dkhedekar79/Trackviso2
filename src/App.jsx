@@ -43,12 +43,26 @@ import ToastProvider from './context/ToastContext';
 import { useOffline } from './hooks/useOffline';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import RewardSystem from './components/RewardSystem';
+import PremiumGiftSystem from './components/PremiumGiftSystem';
 import './styles/index.css';
 
 
 const RouteCleanup = () => {
   const location = useLocation();
   const { isRunning, stopTimer, resetTimer } = useTimer();
+  
+  // Capture referral code from URL
+  React.useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const ref = params.get('ref');
+    if (ref) {
+      sessionStorage.setItem('referralCode', ref);
+      // Clean up the URL
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+  }, [location]);
+
   React.useEffect(() => {
     if (location.pathname !== '/study' && isRunning) {
       try { stopTimer(); } catch {}
@@ -147,6 +161,7 @@ function App() {
                       <OfflineIndicator />
                       <Router>
                         <RewardSystem />
+                        <PremiumGiftSystem />
                         <RouteCleanup />
                           <WebsiteTimeTracker />
                           <KeyboardShortcutsHandler />
