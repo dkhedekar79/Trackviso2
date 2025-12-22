@@ -937,31 +937,7 @@ const Landing = () => {
       </section>
 
       {/* Demo Section */}
-      <section id="demo" className="py-32 px-4 bg-gradient-to-b from-slate-900 via-slate-900 to-purple-900/50 relative overflow-hidden">
-        <div className="absolute -top-40 right-0 w-96 h-96 bg-pink-600/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="max-w-7xl mx-auto relative z-10">
-          <motion.div
-            className="text-center mb-20"
-            initial={{ y: 50 }}
-            whileInView={{ y: 0 }}
-            transition={{ duration: 0.7 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-white">
-              See Trackviso in{" "}
-              <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                Action
-              </span>
-            </h2>
-            <p className="text-xl text-purple-200/80 max-w-3xl mx-auto">
-              See how Trackviso helps students achieve their academic goals.
-            </p>
-          </motion.div>
-
-          <ImageCarousel />
-        </div>
-      </section>
-
+      
       
 
       {/* Pricing Section */}
