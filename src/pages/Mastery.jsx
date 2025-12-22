@@ -75,22 +75,37 @@ const Mastery = () => {
       const availableTopics = getTopicsForSubject(qualification, examBoard, subjectName);
       
       // Parse topics from string
-      const requestedTopicNames = topicsString ? topicsString.split(',').map(t => t.trim().toLowerCase()) : [];
+      const rawTopics = topicsString ? topicsString.split(',').map(t => t.trim()) : [];
       
       // Resolve topic IDs
       let selectedTopicIds = [];
       let selectedTopics = [];
 
-      if (requestedTopicNames.length > 0) {
-        availableTopics.forEach(t => {
-          if (requestedTopicNames.some(req => t.name.toLowerCase().includes(req) || req.includes(t.name.toLowerCase()))) {
-            selectedTopicIds.push(t.id);
-            selectedTopics.push(t);
+      if (rawTopics.length > 0) {
+        rawTopics.forEach((name, index) => {
+          // Try to find a matching official topic for better AI context/tracking
+          const officialMatch = availableTopics.find(t => 
+            t.name.toLowerCase().includes(name.toLowerCase()) || 
+            name.toLowerCase().includes(t.name.toLowerCase())
+          );
+
+          if (officialMatch) {
+            selectedTopics.push(officialMatch);
+            selectedTopicIds.push(officialMatch.id);
+          } else {
+            // Create an ad-hoc topic for the AI to use exactly what the user typed
+            const customTopic = {
+              id: `custom-${Date.now()}-${index}`,
+              name: name.charAt(0).toUpperCase() + name.slice(1),
+              isCustom: true
+            };
+            selectedTopics.push(customTopic);
+            selectedTopicIds.push(customTopic.id);
           }
         });
       }
 
-      // If no topics resolved, just use the first few or all
+      // If no topics resolved (user left it blank), just use the first few
       if (selectedTopicIds.length === 0) {
         selectedTopics = availableTopics.slice(0, 3);
         selectedTopicIds = selectedTopics.map(t => t.id);
@@ -100,11 +115,11 @@ const Mastery = () => {
       setCurrentSession({
         mode: 'mockExam',
         subject: subjectName,
-        topics: selectedTopics,
+        topics: selectedTopics, // This list now includes the specific text from the user
         topicIds: selectedTopicIds,
         qualification,
         examBoard,
-        isSummaryExam: true // New flag
+        isSummaryExam: true
       });
       setIsMockExamModeActive(true);
       
