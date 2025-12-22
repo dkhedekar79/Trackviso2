@@ -436,13 +436,16 @@ const Landing = () => {
             <div className="relative h-[800px] sm:h-[900px] w-full flex items-center justify-center">
               
               {/* 1. MAIN CENTERPIECE: Insights Hub (Centralized) */}
-                  <motion.div
+              <motion.div
                 className="relative w-[95%] sm:w-[85%] lg:w-[75%] z-10 bg-slate-900/80 backdrop-blur-3xl border-2 border-purple-500/20 rounded-[3rem] p-8 sm:p-12 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] overflow-hidden"
                 initial={{ scale: 0.9 }}
                 whileInView={{ scale: 1 }}
-                transition={{ duration: 1 }}
+                viewport={{ once: true }}
                 animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+                transition={{ 
+                  scale: { duration: 1 },
+                  y: { duration: 12, repeat: Infinity, ease: "easeInOut" }
+                }}
               >
                 <div className="relative z-10">
                   <div className="flex flex-col lg:flex-row gap-12">
@@ -498,13 +501,13 @@ const Landing = () => {
                           <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="8" />
                           {/* Math Ring */}
                           <motion.circle cx="50" cy="50" r="40" fill="none" stroke="#10b981" strokeWidth="8" strokeDasharray="251.2"
-                            initial={{ strokeDashoffset: 251.2 }} whileInView={{ strokeDashoffset: 251.2 * (1 - 0.45) }} transition={{ duration: 2, delay: 0.5 }} strokeLinecap="round" />
+                            initial={{ strokeDashoffset: 251.2 }} whileInView={{ strokeDashoffset: 251.2 * (1 - 0.45) }} viewport={{ once: true }} transition={{ duration: 2, delay: 0.5 }} strokeLinecap="round" />
                           {/* Physics Ring */}
                           <motion.circle cx="50" cy="50" r="30" fill="none" stroke="#3b82f6" strokeWidth="8" strokeDasharray="188.4"
-                            initial={{ strokeDashoffset: 188.4 }} whileInView={{ strokeDashoffset: 188.4 * (1 - 0.30) }} transition={{ duration: 2, delay: 0.7 }} strokeLinecap="round" />
+                            initial={{ strokeDashoffset: 188.4 }} whileInView={{ strokeDashoffset: 188.4 * (1 - 0.30) }} viewport={{ once: true }} transition={{ duration: 2, delay: 0.7 }} strokeLinecap="round" />
                           {/* Bio Ring */}
                           <motion.circle cx="50" cy="50" r="20" fill="none" stroke="#a855f7" strokeWidth="8" strokeDasharray="125.6"
-                            initial={{ strokeDashoffset: 125.6 }} whileInView={{ strokeDashoffset: 125.6 * (1 - 0.25) }} transition={{ duration: 2, delay: 0.9 }} strokeLinecap="round" />
+                            initial={{ strokeDashoffset: 125.6 }} whileInView={{ strokeDashoffset: 125.6 * (1 - 0.25) }} viewport={{ once: true }} transition={{ duration: 2, delay: 0.9 }} strokeLinecap="round" />
                         </svg>
                         
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -538,13 +541,18 @@ const Landing = () => {
               {/* SATELLITE CARDS (Organized around the center) */}
 
               {/* Top Center: XP & Level Bar (The "Crown") */}
-                  <motion.div
+              <motion.div
                 className="absolute top-[5%] sm:top-[8%] left-1/2 -translate-x-1/2 w-[280px] sm:w-[400px] z-40 bg-gradient-to-r from-purple-600 to-pink-600 p-0.5 rounded-full shadow-2xl"
                 initial={{ y: -50 }}
                 whileInView={{ y: 0 }}
-                transition={{ delay: 0.2, duration: 0.8 }}
+                viewport={{ once: true }}
                 animate={{ y: [0, -5, 0] }}
-                transition={{ duration: 4, repeat: Infinity }}
+                transition={{ 
+                  y: { 
+                    initial: { delay: 0.2, duration: 0.8 },
+                    animate: { duration: 4, repeat: Infinity }
+                  }
+                }}
               >
                 <div className="bg-slate-900/90 backdrop-blur-md rounded-full px-6 py-3 flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-black text-lg shadow-lg">12</div>
@@ -561,13 +569,16 @@ const Landing = () => {
                   </motion.div>
 
               {/* Top Right: Performance Prediction */}
-                  <motion.div
+              <motion.div
                 className="absolute top-[12%] right-[2%] sm:right-[5%] w-[180px] sm:w-[240px] z-30 bg-gradient-to-br from-blue-600/90 to-indigo-700/90 backdrop-blur-xl border border-white/20 p-5 rounded-[2rem] shadow-2xl rotate-6"
                 initial={{ scale: 0.8 }}
                 whileInView={{ scale: 1 }}
-                transition={{ delay: 0.4, duration: 0.6 }}
+                viewport={{ once: true }}
                 animate={{ y: [0, 0, 0], rotate: [6, 9, 6] }}
-                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+                transition={{ 
+                  scale: { delay: 0.4, duration: 0.6 },
+                  rotate: { duration: 8, repeat: Infinity, ease: "easeInOut" }
+                }}
               >
                 <div className="flex items-center gap-2 mb-3">
                   <Target className="w-4 h-4 text-white/60" />
@@ -582,9 +593,12 @@ const Landing = () => {
                 className="absolute top-[15%] left-[2%] sm:left-[5%] w-[180px] sm:w-[240px] z-30 bg-slate-800/80 backdrop-blur-xl border border-purple-500/30 p-5 rounded-[2rem] shadow-2xl -rotate-6"
                 initial={{ scale: 0.8 }}
                 whileInView={{ scale: 1 }}
-                transition={{ delay: 0.5, duration: 0.6 }}
+                viewport={{ once: true }}
                 animate={{ y: [0, 0, 0], rotate: [-6, -9, -6] }}
-                transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+                transition={{ 
+                  scale: { delay: 0.5, duration: 0.6 },
+                  rotate: { duration: 7, repeat: Infinity, ease: "easeInOut" }
+                }}
               >
                 <div className="flex items-center gap-2 mb-4">
                   <BarChart2 className="w-4 h-4 text-purple-400" />
@@ -606,6 +620,7 @@ const Landing = () => {
                 className="absolute bottom-[10%] right-[2%] sm:right-[5%] w-[200px] sm:w-[280px] z-30 bg-slate-900/90 border border-white/10 p-5 rounded-[2rem] shadow-2xl"
                 initial={{ y: 50 }}
                 whileInView={{ y: 0 }}
+                viewport={{ once: true }}
                 transition={{ delay: 0.6, duration: 0.6 }}
                 animate={{ x: [0, 10, 0] }}
                 transition={{ duration: 9, repeat: Infinity }}
@@ -625,6 +640,7 @@ const Landing = () => {
                 className="absolute bottom-[12%] left-[2%] sm:left-[5%] w-[180px] sm:w-[220px] z-30 bg-white/5 backdrop-blur-xl border border-white/10 p-5 rounded-[2rem] shadow-2xl"
                 initial={{ y: 50 }}
                 whileInView={{ y: 0 }}
+                viewport={{ once: true }}
                 transition={{ delay: 0.7, duration: 0.6 }}
                 animate={{ x: [0, -10, 0] }}
                 transition={{ duration: 8, repeat: Infinity }}
@@ -665,7 +681,7 @@ const Landing = () => {
               <motion.div
                 className="absolute bottom-[25%] right-[15%] z-50 bg-emerald-500/20 backdrop-blur-md border border-emerald-500/40 px-4 py-2 rounded-2xl shadow-xl flex items-center gap-2 text-emerald-400"
                 animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 3, repeat: Infinity }}
+                transition={{ duration: 3 }}
               >
                 <Activity className="w-4 h-4" />
                 <span className="text-xs font-black">98% Focus</span>
@@ -674,7 +690,7 @@ const Landing = () => {
               {/* Floating Particles/Bubbles */}
               <motion.div className="absolute top-1/4 left-1/3 w-3 h-3 bg-purple-400 rounded-full blur-sm" animate={{ y: [0, -40], opacity: [0, 1, 0] }} transition={{ duration: 4, repeat: Infinity }} />
               <motion.div className="absolute bottom-1/4 right-1/3 w-2 h-2 bg-pink-400 rounded-full blur-sm" animate={{ y: [0, -60], opacity: [0, 1, 0] }} transition={{ duration: 5, repeat: Infinity, delay: 1 }} />
-              <motion.div className="absolute top-1/2 right-1/4 w-4 h-4 bg-yellow-400/20 rounded-full blur-md" animate={{ scale: [1, 1.5, 1] }} transition={{ duration: 6, repeat: Infinity }} />
+              <motion.div className="absolute top-1/2 right-1/4 w-4 h-4 bg-yellow-400/20 rounded-full blur-md" animate={{ scale: [1, 1.5, 1] }} transition={{ duration: 6 }} />
 
               {/* Decorative Glows */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-purple-600/10 rounded-full blur-[150px] pointer-events-none -z-10" />
@@ -1264,7 +1280,6 @@ const Landing = () => {
 // Study Modes Section Component
 const StudyModesSection = () => {
   const [activeMode, setActiveMode] = useState(0); // 0: Blurt, 1: Mock Exam
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const modes = [
     {
@@ -1299,33 +1314,6 @@ const StudyModesSection = () => {
   const currentMode = modes[activeMode];
   const ModeIcon = currentMode.icon;
 
-  // Image carousel for Blurt Mode
-  const blurtImages = [
-    {
-      src: "https://res.cloudinary.com/do6sjcdau/image/upload/v1764970523/Screenshot_2025-12-05_at_21.33.40_onxpvx.png",
-      alt: "Topics list"
-    },
-    {
-      src: "https://res.cloudinary.com/do6sjcdau/image/upload/v1764970514/Screenshot_2025-12-05_at_21.32.18_akkccu.png",
-      alt: "Input modal"
-    },
-    {
-      src: "https://res.cloudinary.com/do6sjcdau/image/upload/v1764970504/Screenshot_2025-12-05_at_21.31.49_k6uhpw.png",
-      alt: "Knowledge map"
-    }
-  ];
-
-  // Auto-rotate images every 5 seconds
-  useEffect(() => {
-    if (!currentMode.isAvailable) return;
-    
-    const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % blurtImages.length);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [currentMode.isAvailable, blurtImages.length]);
-
   return (
     <section 
       id="study-modes" 
@@ -1354,7 +1342,6 @@ const StudyModesSection = () => {
                     key={index}
                     onClick={() => {
                       setActiveMode(index);
-                      setCurrentImageIndex(0); // Reset carousel when switching modes
                     }}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
                       activeMode === index
@@ -1443,75 +1430,110 @@ const StudyModesSection = () => {
             )}
           </motion.div>
 
-          {/* Right Side - Image Carousel */}
+          {/* Right Side - Interactive Mockup */}
           <motion.div
             key={`mockup-${activeMode}`}
             initial={{ x: 50, scale: 0.95 }}
-            animate={{ x: 0, scale:1.25 }}
+            animate={{ x: 0, scale: 1 }}
             exit={{ x: -50, scale: 0.95 }}
             transition={{ duration: 0.5 }}
             className="w-full relative"
           >
-            {currentMode.isAvailable ? (
-              <div className="relative w-full max-w-md mx-auto">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={currentImageIndex}
-                    initial={{ x: 50 }}
-                    animate={{ x: 0 }}
-                    exit={{ x: -50 }}
-                    transition={{ duration: 0.5 }}
-                    className="relative"
-                  >
-                    <div className="bg-gradient-to-br from-purple-900/60 to-slate-900/60 backdrop-blur-md rounded-2xl border-2 border-purple-700/50 shadow-2xl shadow-purple-500/40 overflow-hidden inline-block w-full">
-                      <img 
-                        src={blurtImages[currentImageIndex].src} 
-                        alt={blurtImages[currentImageIndex].alt || `Trackviso ${currentMode.name} feature screenshot showing study mode interface`}
-                        className="w-full h-auto block"
-                        loading="lazy"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                          e.target.nextElementSibling.style.display = 'flex';
-                        }}
-                      />
-                      <div className="hidden bg-white/5 p-4 min-h-[200px] flex items-center justify-center">
-                        <p className="text-white/60 text-sm">{blurtImages[currentImageIndex].alt}</p>
-                      </div>
+            {activeMode === 0 ? (
+              /* Blurt Mode Dummy UI */
+              <div className="bg-slate-900/90 backdrop-blur-xl border-2 border-amber-500/20 rounded-[2.5rem] overflow-hidden shadow-2xl max-w-xl mx-auto">
+                <div className="p-6 border-b border-amber-500/10 bg-amber-500/5 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-amber-500/20 rounded-lg text-amber-400">
+                      <Zap className="w-5 h-5" />
                     </div>
-                  </motion.div>
-                </AnimatePresence>
-
-                {/* Carousel Indicators */}
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
-                  {blurtImages.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setCurrentImageIndex(index)}
-                      className={`h-2 rounded-full transition-all ${
-                        index === currentImageIndex
-                          ? 'w-8 bg-purple-400'
-                          : 'w-2 bg-white/40 hover:bg-white/60'
-                      }`}
+                    <div>
+                      <h4 className="text-white font-bold text-left">GCSE Biology: Cell Division</h4>
+                      <p className="text-amber-300/60 text-[10px] font-black uppercase tracking-widest text-left">Active Recall Session</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[10px] font-black uppercase tracking-widest">
+                      Timer: 04:12
+                    </div>
+                  </div>
+                </div>
+                <div className="p-8">
+                  <div className="relative min-h-[350px] bg-black/20 rounded-2xl p-6 border border-white/5 font-mono text-sm text-amber-100/90 leading-relaxed text-left">
+                    <p>The cell cycle has three main stages.</p>
+                    <p className="mt-4">Stage 1: The cell grows and increases the number of sub-cellular structures like ribosomes and mitochondria. The DNA replicates to form two copies of each chromosome.</p>
+                    <p className="mt-4">Stage 2: Mitosis. One set of chromosomes is pulled to each end of the cell and the nucleus divides.</p>
+                    <p className="mt-4">Stage 3: The cytoplasm and cell membranes divide to form two identical daughter cells.</p>
+                    <p className="mt-4">Mitosis is important for growth and development of multicellular organisms.</p>
+                    <motion.div 
+                      className="inline-block w-1 h-5 bg-amber-400 align-middle ml-1"
+                      animate={{ opacity: [1, 0] }}
+                      transition={{ duration: 0.8, repeat: Infinity }}
                     />
-                  ))}
+                  </div>
+                  
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full mt-8 py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-black uppercase tracking-[0.2em] rounded-2xl shadow-lg shadow-amber-500/20 flex items-center justify-center gap-3 group"
+                  >
+                    Click for detailed feedback 
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </motion.button>
                 </div>
               </div>
             ) : (
-              <div className="flex items-center justify-center py-12">
-                <div className="bg-white/5 rounded-lg p-8 border border-white/10 text-center max-w-md">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-white/10 rounded-full flex items-center justify-center">
-                    <Clock className={`w-8 h-8 ${
-                      currentMode.color === 'amber'
-                        ? 'text-amber-400'
-                        : currentMode.color === 'purple'
-                        ? 'text-purple-400'
-                        : 'text-red-400'
-                    }`} />
+              /* Mock Exam Dummy UI */
+              <div className="bg-slate-900/90 backdrop-blur-xl border-2 border-red-500/20 rounded-[2.5rem] overflow-hidden shadow-2xl max-w-xl mx-auto">
+                <div className="p-6 border-b border-red-500/10 bg-red-500/5 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-red-500/20 rounded-lg text-red-400">
+                      <FileText className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-white font-bold text-left">AQA Biology Paper 1</h4>
+                      <p className="text-red-300/60 text-[10px] font-black uppercase tracking-widest text-left">Realistic Simulation</p>
+                    </div>
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-2">Coming Soon</h3>
-                  <p className="text-purple-200/70 text-sm">
-                    {currentMode.name} is currently under development. Check back soon!
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <div className="px-3 py-1 rounded-full bg-red-500/20 border border-red-500/30 text-red-400 text-[10px] font-black uppercase tracking-widest text-left">
+                      1h 45m left
+                    </div>
+                  </div>
+                </div>
+                <div className="p-8 space-y-6">
+                  <div className="p-6 bg-white/5 rounded-2xl border border-white/10 text-left">
+                    <h5 className="text-red-400 font-black text-[10px] uppercase tracking-widest mb-3">Question 1.1</h5>
+                    <p className="text-white font-bold text-lg mb-4">Explain how the structure of a root hair cell is adapted to its function. [3 marks]</p>
+                    <div className="bg-black/20 rounded-xl p-4 min-h-[120px] border border-white/5 font-mono text-sm text-red-100/80">
+                      Root hair cells have a large surface area...
+                      <motion.div 
+                        className="inline-block w-1 h-4 bg-red-400 align-middle ml-1"
+                        animate={{ opacity: [1, 0] }}
+                        transition={{ duration: 0.8, repeat: Infinity }}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-white/5 rounded-xl border border-white/5 text-center">
+                      <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1">Mark Scheme</p>
+                      <p className="text-white font-black">AI Grade 9</p>
+                    </div>
+                    <div className="p-4 bg-white/5 rounded-xl border border-white/5 text-center">
+                      <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1">Accuracy</p>
+                      <p className="text-white font-black">94% Target</p>
+                    </div>
+                  </div>
+
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full py-4 bg-gradient-to-r from-red-500 to-rose-600 text-white font-black uppercase tracking-[0.2em] rounded-2xl shadow-lg shadow-red-500/20 flex items-center justify-center gap-3 group"
+                  >
+                    Finish and Grade
+                    <CheckCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  </motion.button>
                 </div>
               </div>
             )}
