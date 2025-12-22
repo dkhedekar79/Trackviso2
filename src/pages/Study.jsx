@@ -59,6 +59,7 @@ const Study = () => {
   const [sessionMood, setSessionMood] = useState("");
   const [sessionReflection, setSessionReflection] = useState("");
   const [sessionDifficulty, setSessionDifficulty] = useState(2);
+  const [topicsStudied, setTopicsStudied] = useState(""); // New field for specific topics
   const [isDistractionFree, setIsDistractionFree] = useState(false);
   const [isAmbientSoundOn, setIsAmbientSoundOn] = useState(false);
   const [isAmbientMode, setIsAmbientMode] = useState(false);
@@ -803,6 +804,7 @@ const Study = () => {
       mood: sessionMood,
       reflection: sessionReflection,
       difficulty: sessionDifficulty,
+      topicsStudied: topicsStudied,
       isTaskComplete,
     };
 
@@ -844,6 +846,7 @@ const Study = () => {
     setSessionMood("");
     setSessionReflection("");
     setSessionDifficulty(2);
+    setTopicsStudied("");
 
     // Reset timers but keep the subject active
     resetLocalTimer();
@@ -868,6 +871,22 @@ const Study = () => {
     if (taskName) {
       setIsTaskComplete(true);
     }
+  };
+
+  const handlePracticeExam = () => {
+    // Capture values before reset
+    const currentSubject = subject || "";
+    const currentTopics = topicsStudied || sessionReflection || "";
+
+    // Save the session
+    handleSaveSession();
+    
+    // Construct Mastery URL with params
+    const subjectParam = encodeURIComponent(currentSubject);
+    const topicsParam = encodeURIComponent(currentTopics);
+    
+    // Redirect to Mastery page with special mode
+    navigate(`/mastery?mode=summaryExam&subject=${subjectParam}&topics=${topicsParam}`);
   };
 
   const MODES = [
@@ -931,9 +950,24 @@ const Study = () => {
               value={sessionReflection}
               onChange={(e) => setSessionReflection(e.target.value)}
               className="w-full p-3 rounded-lg bg-[#1a1a2e] text-white border border-[#6C5DD3] resize-none"
-              rows="3"
+              rows="2"
               placeholder="Briefly describe what you studied..."
             />
+          </div>
+
+          {/* Topics Studied (New) */}
+          <div className="mb-6">
+            <label className="block text-white text-sm font-medium mb-2">
+              Specific Topic(s)
+            </label>
+            <input
+              type="text"
+              value={topicsStudied}
+              onChange={(e) => setTopicsStudied(e.target.value)}
+              className="w-full p-3 rounded-lg bg-[#1a1a2e] text-white border border-[#6C5DD3]"
+              placeholder="e.g. Algebra, Mitochondria..."
+            />
+            <p className="text-[10px] text-white/50 mt-1 italic">Separating topics with commas helps the AI generate a better exam.</p>
           </div>
 
           {/* Difficulty Rating */}
@@ -959,18 +993,28 @@ const Study = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3 mt-6">
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowEndSession(false)}
+                className="flex-1 px-4 py-3 rounded-lg bg-white/10 text-white font-semibold hover:bg-white/20 transition text-sm"
+              >
+                Continue Studying
+              </button>
+              <button
+                onClick={handleSaveSession}
+                className="flex-1 px-4 py-3 rounded-lg bg-[#6C5DD3] text-white font-semibold hover:bg-[#7A6AD9] transition text-sm"
+              >
+                Finish & Save
+              </button>
+            </div>
+            
             <button
-              onClick={() => setShowEndSession(false)}
-              className="flex-1 px-4 py-3 rounded-lg bg-white/10 text-white font-semibold hover:bg-white/20 transition"
+              onClick={handlePracticeExam}
+              className="w-full px-4 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold hover:from-purple-500 hover:to-pink-500 transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20"
             >
-              Continue Studying
-            </button>
-            <button
-              onClick={handleSaveSession}
-              className="flex-1 px-4 py-3 rounded-lg bg-[#6C5DD3] text-white font-semibold hover:bg-[#7A6AD9] transition"
-            >
-              Save & Finish
+              <Sparkles className="w-4 h-4" />
+              Practice with AI Summary Exam
             </button>
           </div>
         </div>

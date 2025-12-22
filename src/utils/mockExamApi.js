@@ -121,7 +121,8 @@ export async function generateMockExam(
   subject,
   examBoard,
   tier,
-  totalMarks
+  totalMarks,
+  isSummaryExam = false
 ) {
   try {
     const topicsText = topics.join(', ');
@@ -139,11 +140,12 @@ SUBJECT: ${subject}
 EXAM BOARD: ${examBoard}
 TIER: ${tier}
 TOTAL MARKS: ${totalMarks}
+${isSummaryExam ? 'NUMBER OF QUESTIONS: EXACTLY 10 questions' : ''}
 
 CRITICAL REQUIREMENTS:
 1. Create a REALISTIC exam paper that covers EVERY part of the topics comprehensively
 2. Total marks must equal exactly ${totalMarks} marks
-3. Use a realistic mix of question types and mark allocations typical of ${examBoard} ${subject} papers:
+${isSummaryExam ? '3. Create EXACTLY 10 questions. Most should be 1-2 marks, with a few 3-4 mark questions.' : '3. Use a realistic mix of question types and mark allocations typical of ${examBoard} ${subject} papers:'}
    - 1-2 mark questions (short answer, multiple choice, definitions)
    - 3-4 mark questions (explain, describe, calculate)
    - 5-6 mark questions (extended response, analysis, evaluation)
@@ -177,12 +179,13 @@ You must respond with a JSON object in this exact format:
       },
       "keyPoints": ["key point 1", "key point 2"] (content points this question tests)
     },
-    ... (more questions until total marks = ${totalMarks})
+    ... (more questions until total marks = ${totalMarks}${isSummaryExam ? ' and exactly 10 questions' : ''})
   ]
 }
 
 IMPORTANT: 
 - The sum of all question marks MUST equal exactly ${totalMarks}
+${isSummaryExam ? '- There MUST be EXACTLY 10 questions.' : ''}
 - Cover EVERY important aspect of the topics
 - Make it realistic and exam-like
 - Include proper mark schemes for marking

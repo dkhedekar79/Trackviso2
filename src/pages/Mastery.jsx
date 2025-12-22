@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, TrendingUp, Clock } from 'lucide-react';
 import MasteryWizard from '../components/MasteryWizard';
@@ -32,6 +33,7 @@ const calculateCompletionScore = (topicProgress, applyDeterioration = true) => {
 
 const Mastery = () => {
   const { user } = useAuth();
+  const location = useLocation();
   const { subscriptionPlan } = useSubscription();
   const { awardMasteryXP, checkSubjectMasteryMilestones } = useGamification();
   const [subjects, setSubjects] = useState([]);
@@ -54,6 +56,62 @@ const Mastery = () => {
 
     loadSubjects();
   }, [user]);
+
+  // Handle summary exam from study session
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const mode = params.get('mode');
+    const subjectName = params.get('subject');
+    const topicsString = params.get('topics');
+
+    if (mode === 'summaryExam' && subjectName) {
+      // Find subject metadata
+      const storageKey = getStorageKey(subjectName);
+      const metadata = JSON.parse(localStorage.getItem(`${storageKey}_metadata`) || '{}');
+      const qualification = metadata.qualification || 'GCSE';
+      const examBoard = metadata.examBoard || 'AQA';
+
+      // Get all topics for this subject
+      const availableTopics = getTopicsForSubject(qualification, examBoard, subjectName);
+      
+      // Parse topics from string
+      const requestedTopicNames = topicsString ? topicsString.split(',').map(t => t.trim().toLowerCase()) : [];
+      
+      // Resolve topic IDs
+      let selectedTopicIds = [];
+      let selectedTopics = [];
+
+      if (requestedTopicNames.length > 0) {
+        availableTopics.forEach(t => {
+          if (requestedTopicNames.some(req => t.name.toLowerCase().includes(req) || req.includes(t.name.toLowerCase()))) {
+            selectedTopicIds.push(t.id);
+            selectedTopics.push(t);
+          }
+        });
+      }
+
+      // If no topics resolved, just use the first few or all
+      if (selectedTopicIds.length === 0) {
+        selectedTopics = availableTopics.slice(0, 3);
+        selectedTopicIds = selectedTopics.map(t => t.id);
+      }
+
+      // Start session
+      setCurrentSession({
+        mode: 'mockExam',
+        subject: subjectName,
+        topics: selectedTopics,
+        topicIds: selectedTopicIds,
+        qualification,
+        examBoard,
+        isSummaryExam: true // New flag
+      });
+      setIsMockExamModeActive(true);
+      
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [location]);
 
   // Load most recent subject data
   useEffect(() => {
@@ -387,6 +445,7 @@ const Mastery = () => {
             initialNotes={currentSession.notes}
             initialKnowledgeMap={currentSession.knowledgeMap}
             initialIsAIGenerated={currentSession.isAIGenerated || false}
+            isSummaryExam={currentSession.isSummaryExam}
             onContinue={async (mockExamData) => {
               try {
                 // If finishing (has percentage), update topic scores

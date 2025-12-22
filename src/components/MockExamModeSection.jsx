@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Loader, AlertCircle, Eye, EyeOff, Send, CheckCircle, Clock, Lock, Crown } from 'lucide-react';
+import { ArrowRight, Loader, AlertCircle, Eye, EyeOff, Send, CheckCircle, Clock, Lock, Crown, Sparkles } from 'lucide-react';
 import { 
   generateMockExamNotes, 
   generateMockExam, 
@@ -9,10 +9,10 @@ import {
 import { useSubscription } from '../context/SubscriptionContext';
 import PremiumUpgradeModal from './PremiumUpgradeModal';
 
-const MockExamModeSection = ({ selectedTopics, masterySetup, onContinue, initialNotes = null, initialKnowledgeMap = null }) => {
+const MockExamModeSection = ({ selectedTopics, masterySetup, onContinue, initialNotes = null, initialKnowledgeMap = null, isSummaryExam = false }) => {
   const { canUseMockExam, incrementMockExamUsage, subscriptionPlan, getRemainingMockExams } = useSubscription();
   // If initialNotes is provided, skip the choice stage and go straight to display
-  const [stage, setStage] = useState(initialNotes ? 'display' : 'choice'); // 'choice' | 'loading' | 'display' | 'setup' | 'exam' | 'marking' | 'results'
+  const [stage, setStage] = useState(initialNotes ? 'display' : (isSummaryExam ? 'loading' : 'choice')); // 'choice' | 'loading' | 'display' | 'setup' | 'exam' | 'marking' | 'results'
   const [notes, setNotes] = useState(initialNotes || '');
   const [manualInput, setManualInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,13 +22,27 @@ const MockExamModeSection = ({ selectedTopics, masterySetup, onContinue, initial
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   
   // Setup state
-  const [tier, setTier] = useState(null); // 'higher' | 'foundation'
-  const [totalMarks, setTotalMarks] = useState(null); // 20 | 50 | 100
+  const [tier, setTier] = useState(isSummaryExam ? 'higher' : null); // 'higher' | 'foundation'
+  const [totalMarks, setTotalMarks] = useState(isSummaryExam ? 20 : null); // 20 | 50 | 100
   
   // Exam state
   const [exam, setExam] = useState(null);
   const [userAnswers, setUserAnswers] = useState([]);
   const [marking, setMarking] = useState(null);
+
+  // Auto-start for summary exam
+  useEffect(() => {
+    if (isSummaryExam && stage === 'loading' && !knowledgeMap) {
+      handleAIGenerate();
+    }
+  }, [isSummaryExam]);
+
+  // Auto-start exam for summary exam once knowledge map is ready
+  useEffect(() => {
+    if (isSummaryExam && stage === 'display' && knowledgeMap && !exam) {
+      handleStartExam();
+    }
+  }, [stage, knowledgeMap, exam]);
 
   const handleAIGenerate = async () => {
     setLoading(true);
@@ -116,7 +130,8 @@ const MockExamModeSection = ({ selectedTopics, masterySetup, onContinue, initial
         masterySetup.subject,
         masterySetup.examBoard,
         tier,
-        totalMarks
+        totalMarks,
+        isSummaryExam
       );
 
       setExam(generatedExam);
@@ -379,7 +394,9 @@ const MockExamModeSection = ({ selectedTopics, masterySetup, onContinue, initial
             >
               <Loader className="w-12 h-12 text-red-400 animate-spin mb-4" />
               <p className="text-red-100/80 text-center">
-                {exam ? 'Marking your exam...' : 'Generating knowledge map from grade 9 sources...'}
+                {isSummaryExam 
+                  ? (exam ? 'Marking your summary exam...' : 'Generating your 10-question summary exam...') 
+                  : (exam ? 'Marking your exam...' : 'Generating knowledge map from grade 9 sources...')}
               </p>
             </motion.div>
           )}
