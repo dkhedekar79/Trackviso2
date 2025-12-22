@@ -801,10 +801,10 @@ const Landing = () => {
           {/* Feature Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mt-20">
             {[
-              { icon: Clock, title: "Time Tracking", desc: "Log your study sessions" },
+              { icon: Clock, title: "AI schedule", desc: "World's leading AI timetable maker" },
               { icon: Award, title: "Achievement System", desc: "Gamified progress rewards" },
-              { icon: Shield, title: "Privacy First", desc: "Your data stays secure" },
-              { icon: Smartphone, title: "Cross-Platform", desc: "Works on all devices" }
+              { icon: Shield, title: "Enhanced analytics", desc: "Leapfrog your own limits" },
+              { icon: Smartphone, title: "Ambient mode", desc: "The all-new aesthetic way to study" }
             ].map((feature, index) => (
               <motion.div
                 key={index}
