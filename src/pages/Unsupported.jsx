@@ -28,6 +28,8 @@ const Unsupported = () => {
       // 2. Call the API to actually send the email
       // We use a more robust fetch approach
       const apiEndpoint = '/api/send-desktop-link';
+      console.log('Calling API:', apiEndpoint);
+      
       const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
@@ -36,21 +38,19 @@ const Unsupported = () => {
         },
         body: JSON.stringify({ email }),
       }).catch(err => {
+        console.error('Fetch catch error:', err);
         if (err.message === 'The string did not match the expected pattern') {
           throw new Error('Network error: Could not reach the email server. If you are in development, make sure you are using "vercel dev".');
         }
         throw err;
       });
 
+      console.log('API Response status:', response.status);
+      const responseData = await response.json().catch(e => ({ error: 'Response was not JSON' }));
+      console.log('API Response data:', responseData);
+
       if (!response.ok) {
-        let errorMsg = 'Failed to send email';
-        try {
-          const errorData = await response.json();
-          errorMsg = errorData.error || errorMsg;
-        } catch (e) {
-          errorMsg = `Server error: ${response.statusText || response.status}`;
-        }
-        throw new Error(errorMsg);
+        throw new Error(responseData.error || `Server error: ${response.status}`);
       }
 
       setStatus('success');
@@ -286,7 +286,8 @@ const Unsupported = () => {
                         <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mb-2">
                           <CheckCircle2 className="w-6 h-6 text-green-500" />
                         </div>
-                        <p className="text-green-400 font-bold text-sm">Link Sent! Check your inbox.</p>
+                        <p className="text-green-400 font-bold text-sm">Link Sent!</p>
+                        <p className="text-green-400/80 text-[10px] mt-1">Check your inbox, including spam and promotions folders.</p>
                         <button 
                           onClick={() => setStatus('idle')}
                           className="mt-3 text-xs text-purple-400 hover:text-purple-300 underline"
