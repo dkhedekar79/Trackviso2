@@ -25,6 +25,7 @@ const PremiumGiftSystem = () => {
   const location = useLocation();
 
   const referralLink = user ? `${window.location.origin}/signup?ref=${user.id}` : '';
+  const referralMessage = `Hey! I've been using Trackviso to supercharge my study sessions and it's actually helping me stay focused. Use my link to sign up and if we both hit Level 10, we get permanent Premium for free! 🚀 ${referralLink}`;
 
   useEffect(() => {
     if (isOpen && user) {
@@ -78,7 +79,7 @@ const PremiumGiftSystem = () => {
 
   const copyToClipboard = () => {
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(referralLink);
+      navigator.clipboard.writeText(referralMessage);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
@@ -366,9 +367,12 @@ const PremiumGiftSystem = () => {
 
                     {/* Referral Link */}
                     <div className="space-y-3">
-                      <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider ml-1">Your Referral Link</label>
+                      <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider ml-1">Your Referral Message</label>
+                      <div className="bg-white/[0.03] border border-white/10 rounded-2xl px-4 py-3 text-xs text-[var(--text-secondary)] italic leading-relaxed">
+                        "{referralMessage}"
+                      </div>
                       <div className="flex gap-2">
-                        <div className="flex-1 bg-white/[0.03] border border-white/10 rounded-2xl px-4 py-3 text-sm text-[var(--text-secondary)] font-mono truncate">
+                        <div className="flex-1 bg-white/[0.03] border border-white/10 rounded-2xl px-4 py-3 text-sm text-[var(--text-secondary)] font-mono truncate flex items-center">
                           {referralLink}
                         </div>
                         <button 
