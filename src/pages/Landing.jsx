@@ -203,7 +203,7 @@ const Landing = () => {
       y: [-10, 10, -10],
       transition: {
         duration: 3,
-        repeat: Infinity,
+        repeat: 1,
         ease: "easeInOut"
       }
     }
@@ -215,7 +215,7 @@ const Landing = () => {
       rotateX: [0, 360],
       transition: {
         duration: 4,
-        repeat: Infinity,
+        repeat: 1,
         ease: "linear"
       }
     }
