@@ -311,8 +311,8 @@ Mark each answer according to the mark scheme. You must respond with a JSON obje
 }
 
 Guidelines for marking:
-1. Award marks strictly according to the mark scheme
-2. Be fair but accurate - award partial marks where appropriate
+1. Award marks strictly according to the mark scheme provided for each question
+2. Be fair but accurate - award partial marks ONLY if specific key points from the mark scheme are clearly addressed
 3. For multiple choice: full marks if correct, 0 if incorrect
 4. For short answer: award marks based on key points covered
 5. For extended writing: award marks based on depth, accuracy, and completeness
@@ -320,6 +320,9 @@ Guidelines for marking:
 7. Identify which key points were covered and which were missed
 8. Be encouraging but honest in overall feedback
 9. Calculate percentage as (marksAwarded / totalMarks) * 100
+10. **CRITICAL - ANTI-CHEATING**: If the answer is just a single number (e.g., "1"), a single character, or completely nonsensical/unrelated to the topic, you MUST award **0 marks**. 
+11. **isCorrect Logic**: Set "isCorrect" to true ONLY if the student earned at least 50% of the possible marks for that question. If they earned 0 marks or very low partial marks, "isCorrect" MUST be false.
+12. Do NOT give partial marks for "effort" or for answers that don't contain actual information.
 
 Return ONLY the JSON object, no additional text.`;
 
@@ -329,6 +332,20 @@ Return ONLY the JSON object, no additional text.`;
     if (typeof marking.marksAwarded !== 'number') {
       marking.marksAwarded = 0;
     }
+    
+    // Manual verification of isCorrect flag to prevent AI being too lenient
+    if (Array.isArray(marking.questionMarkings)) {
+      marking.questionMarkings = marking.questionMarkings.map(qm => {
+        const marks = qm.marksAwarded || 0;
+        const max = qm.maxMarks || 1;
+        // If they got less than 50% marks, it shouldn't be marked as "Correct" (✓)
+        if (marks < (max / 2)) {
+          qm.isCorrect = false;
+        }
+        return qm;
+      });
+    }
+
     if (typeof marking.percentage !== 'number' || marking.percentage < 0 || marking.percentage > 100) {
       marking.percentage = totalMarks > 0 ? Math.round((marking.marksAwarded / totalMarks) * 100) : 0;
     }
