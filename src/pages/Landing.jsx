@@ -72,7 +72,6 @@ const Landing = () => {
     { id: 'ai-timetable', label: 'AI Schedule' },
     { id: 'how-it-works', label: 'How It Works' },
     { id: 'introducing-skillpulse', label: 'Skillpulse' },
-    { id: 'demo', label: 'Demo' },
     { id: 'pricing', label: 'Pricing' },
     { id: 'testimonials', label: 'Reviews' },
     { id: 'faq', label: 'FAQ' }
@@ -81,28 +80,33 @@ const Landing = () => {
   useEffect(() => {
     const observerOptions = {
       root: null,
-      rootMargin: '-20% 0px -20% 0px', // More sensitive for smaller sections
-      threshold: [0, 0.25, 0.5, 0.75, 1]
+      rootMargin: '-40% 0px -40% 0px', // Center-focused zone
+      threshold: 0
     };
 
     const observer = new IntersectionObserver((entries) => {
-      // Filter only intersecting entries and sort by intersection ratio
-      const visibleEntries = entries.filter(e => e.isIntersecting);
-      if (visibleEntries.length > 0) {
-        // Find the entry with the highest intersection ratio
-        const bestEntry = visibleEntries.reduce((prev, curr) => 
-          curr.intersectionRatio > prev.intersectionRatio ? curr : prev
-        );
-        setActiveSection(bestEntry.target.id);
-      }
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          setActiveSection(entry.target.id);
+        }
+      });
     }, observerOptions);
 
-    sections.forEach(section => {
-      const element = document.getElementById(section.id);
-      if (element) observer.observe(element);
-    });
+    const observeSections = () => {
+      sections.forEach(section => {
+        const element = document.getElementById(section.id);
+        if (element) {
+          observer.observe(element);
+        }
+      });
+    };
 
-    return () => observer.disconnect();
+    const timeoutId = setTimeout(observeSections, 500);
+
+    return () => {
+      clearTimeout(timeoutId);
+      observer.disconnect();
+    };
   }, []);
 
   const rotatingTexts = [
@@ -937,7 +941,7 @@ const Landing = () => {
       </section>
 
       {/* Demo Section */}
-      
+
       
 
       {/* Pricing Section */}
