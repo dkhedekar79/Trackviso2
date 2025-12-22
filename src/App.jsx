@@ -58,8 +58,12 @@ const RouteCleanup = () => {
     if (ref) {
       sessionStorage.setItem('referralCode', ref);
       // Clean up the URL
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, document.title, newUrl);
+      try {
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+      } catch (e) {
+        console.warn('Failed to clean up URL:', e);
+      }
     }
   }, [location]);
 

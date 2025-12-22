@@ -20,20 +20,38 @@ const Unsupported = () => {
         .from('desktop_access_requests')
         .insert([{ email }]);
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error('Supabase error:', dbError);
+        throw new Error(dbError.message || 'Failed to save request');
+      }
 
       // 2. Call the API to actually send the email
-      const response = await fetch('/api/send-desktop-link', {
+      // We use a more robust fetch approach
+      const apiEndpoint = '/api/send-desktop-link';
+      const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: JSON.stringify({ email }),
+      }).catch(err => {
+        if (err.message === 'The string did not match the expected pattern') {
+          throw new Error('Network error: Could not reach the email server. If you are in development, make sure you are using "vercel dev".');
+        }
+        throw err;
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to send email');
+        let errorMessage = 'Failed to send email';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          // If not JSON, use status text
+          errorMessage = `Server error: ${response.statusText || response.status}`;
+        }
+        throw new Error(errorMessage);
       }
 
       setStatus('success');
@@ -41,7 +59,11 @@ const Unsupported = () => {
     } catch (err) {
       console.error('Error in email system:', err);
       setStatus('error');
-      setErrorMessage(err.message || 'Something went wrong. Please try again.');
+      // Provide a more user-friendly message for the "pattern" error
+      const msg = err.message === 'The string did not match the expected pattern'
+        ? 'Browser error: The email request was blocked or malformed. Please try again.'
+        : err.message;
+      setErrorMessage(msg || 'Something went wrong. Please try again.');
     }
   };
 
