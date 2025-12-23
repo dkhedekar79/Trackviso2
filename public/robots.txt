@@ -21,7 +21,7 @@ Allow: /blog
 Allow: /resources
 Allow: /knowledge
 
-Sitemap: https://trackviso.vercel.app/sitemap.xml
+Sitemap: https://trackviso-beta.vercel.app/sitemap.xml
 
 # Crawl-delay for respectful crawling
 Crawl-delay: 1
