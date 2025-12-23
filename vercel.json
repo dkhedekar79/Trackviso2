@@ -1,23 +1,27 @@
 {
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
-    { "source": "/robots.txt", "destination": "/robots.txt" },
-    { "source": "/((?!api|.*\\..*).*)", "destination": "/index.html" }
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    },
+    {
+      "source": "/((?!api|sitemap.xml|robots.txt|.*\\..*).*)",
+      "destination": "/index.html"
+    }
   ],
   "functions": {
     "api/webhook.js": {
       "memory": 512,
       "maxDuration": 10
     }
-  }
+  },
   "headers": [
     {
       "source": "/sitemap.xml",
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "no-store"
+          "value": "no-store, no-cache, must-revalidate"
         },
         {
           "key": "Content-Type",
