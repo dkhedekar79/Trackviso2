@@ -1,21 +1,25 @@
 User-agent: *
 Allow: /
-Disallow: /dashboard
 Disallow: /settings
 Disallow: /payment
 Disallow: /payment/success
 Disallow: /callback
+Disallow: /admin
 
 # Allow important pages
 Allow: /login
 Allow: /signup
 Allow: /terms
+Allow: /privacy
 Allow: /study
 Allow: /insights
 Allow: /mastery
 Allow: /subjects
 Allow: /tasks
 Allow: /schedule
+Allow: /blog
+Allow: /resources
+Allow: /knowledge
 
 Sitemap: https://trackviso.vercel.app/sitemap.xml
 

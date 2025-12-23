@@ -8,7 +8,7 @@ import { GoogleGenAI } from "@google/genai";
 // Model configurations - all Google/Gemini models
 const MODEL_CONFIGS = [
   {
-    name: 'gemini-2.5-flash-lite',
+    name: 'gemini-3-flash',
   },
   {
     name: 'gemini-2.5-pro',
