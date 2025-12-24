@@ -26,9 +26,30 @@ import {
   BookOpen,
   Repeat,
   RotateCcw,
+  List,
+  Grid3x3,
+  CalendarDays,
+  FileText,
+  Tag,
+  CheckSquare,
+  Layers,
+  Star,
+  Copy,
+  Trash2 as TrashIcon,
+  Award,
 } from "lucide-react";
 import { useGamification } from "../context/GamificationContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+
+// Task templates for quick creation
+const TASK_TEMPLATES = [
+  { name: "Review Notes", time: "30", priority: "Medium", icon: BookOpen },
+  { name: "Practice Problems", time: "45", priority: "High", icon: Target },
+  { name: "Read Chapter", time: "60", priority: "Low", icon: FileText },
+  { name: "Study Session", time: "25", priority: "Medium", icon: Clock },
+  { name: "Quiz Prep", time: "40", priority: "High", icon: CheckSquare },
+];
 
 const priorities = [
   { label: "Low", color: "border-blue-500", bgColor: "bg-blue-500/20", textColor: "text-blue-400", icon: Flag },
@@ -38,7 +59,8 @@ const priorities = [
 
 export default function Tasks() {
   const [tasks, setTasks] = useState([]);
-  const { updateQuestProgress } = useGamification();
+  const { updateQuestProgress, addReward } = useGamification();
+  const navigate = useNavigate();
   const [subjects, setSubjects] = useState([]);
   const [form, setForm] = useState({ 
     name: "", 
@@ -48,7 +70,10 @@ export default function Tasks() {
     scheduledDate: "",
     recurrence: "none",
     recurrenceInterval: 1,
-    recurrenceDays: []
+    recurrenceDays: [],
+    notes: "",
+    subtasks: [],
+    tags: []
   });
   const [formError, setFormError] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -62,6 +87,9 @@ export default function Tasks() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [hoveredTask, setHoveredTask] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedTasks, setSelectedTasks] = useState(new Set());
+  const [viewMode, setViewMode] = useState("grid"); // "grid" | "list" | "calendar"
+  const [showTemplates, setShowTemplates] = useState(false);
 
   // Mouse tracking for dynamic effects
   useEffect(() => {
@@ -256,7 +284,10 @@ export default function Tasks() {
       scheduledDate: "",
       recurrence: "none",
       recurrenceInterval: 1,
-      recurrenceDays: []
+      recurrenceDays: [],
+      notes: "",
+      subtasks: [],
+      tags: []
     });
     setFormError("");
     setShowModal(false);
@@ -267,6 +298,7 @@ export default function Tasks() {
     const task = tasks.find(t => t.id === id);
     if (!task) return;
 
+    const wasCompleted = !task.done;
     const updated = tasks.map((t) =>
       t.id === id
         ? t.done
@@ -276,7 +308,7 @@ export default function Tasks() {
     );
 
     // If completing a recurring task, create the next instance
-    if (!task.done && task.recurrence && task.recurrence !== 'none') {
+    if (wasCompleted && task.recurrence && task.recurrence !== 'none') {
       const nextDate = calculateNextRecurrenceDate(task, task.scheduledDate ? new Date(task.scheduledDate) : new Date());
       if (nextDate) {
         const newTask = {
@@ -295,6 +327,17 @@ export default function Tasks() {
     setTasks(updated);
     localStorage.setItem("tasks", JSON.stringify(updated));
     updateQuestProgress("tasks");
+
+    // Show reward animation when completing a task
+    if (wasCompleted) {
+      addReward({
+        type: "TASK_COMPLETE",
+        title: "✅ Task Completed!",
+        description: `Great job completing "${task.name}"!`,
+        tier: task.priority === "High" ? "rare" : task.priority === "Medium" ? "uncommon" : "common",
+        xp: task.priority === "High" ? 50 : task.priority === "Medium" ? 30 : 15,
+      });
+    }
 
     setPopTaskId(id);
     setTimeout(() => setPopTaskId(null), 350);
@@ -397,10 +440,107 @@ export default function Tasks() {
       scheduledDate: task.scheduledDate || "",
       recurrence: task.recurrence || "none",
       recurrenceInterval: task.recurrenceInterval || 1,
-      recurrenceDays: task.recurrenceDays || []
+      recurrenceDays: task.recurrenceDays || [],
+      notes: task.notes || "",
+      subtasks: task.subtasks || [],
+      tags: task.tags || []
     });
     setEditId(task.id);
     setShowModal(true);
+  };
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      // Ctrl/Cmd + N: New task
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault();
+        setForm({ 
+          name: "", 
+          subject: "", 
+          time: "", 
+          priority: "Low", 
+          scheduledDate: "",
+          recurrence: "none",
+          recurrenceInterval: 1,
+          recurrenceDays: [],
+          notes: "",
+          subtasks: [],
+          tags: []
+        });
+        setEditId(null);
+        setShowModal(true);
+      }
+      // Escape: Close modal
+      if (e.key === 'Escape' && showModal) {
+        setShowModal(false);
+        setFormError("");
+        setEditId(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [showModal]);
+
+  // Bulk actions
+  const handleBulkDelete = () => {
+    if (selectedTasks.size === 0) return;
+    if (window.confirm(`Delete ${selectedTasks.size} selected task(s)?`)) {
+      setTasks(tasks.filter(t => !selectedTasks.has(t.id)));
+      setSelectedTasks(new Set());
+    }
+  };
+
+  const handleBulkComplete = () => {
+    if (selectedTasks.size === 0) return;
+    const updated = tasks.map(t => 
+      selectedTasks.has(t.id) && !t.done
+        ? { ...t, done: true, doneAt: Date.now() }
+        : t
+    );
+    setTasks(updated);
+    localStorage.setItem("tasks", JSON.stringify(updated));
+    updateQuestProgress("tasks");
+    setSelectedTasks(new Set());
+  };
+
+  const toggleTaskSelection = (id) => {
+    const newSelected = new Set(selectedTasks);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedTasks(newSelected);
+  };
+
+  const selectAllTasks = () => {
+    if (selectedTasks.size === filteredDisplayTasks.length) {
+      setSelectedTasks(new Set());
+    } else {
+      setSelectedTasks(new Set(filteredDisplayTasks.map(t => t.id)));
+    }
+  };
+
+  // Quick add from template
+  const quickAddFromTemplate = (template) => {
+    setForm({
+      name: template.name,
+      subject: subjects.length > 0 ? subjects[0].name : "",
+      time: template.time,
+      priority: template.priority,
+      scheduledDate: "",
+      recurrence: "none",
+      recurrenceInterval: 1,
+      recurrenceDays: [],
+      notes: "",
+      subtasks: [],
+      tags: []
+    });
+    setEditId(null);
+    setShowModal(true);
+    setShowTemplates(false);
   };
 
   const handleDelete = (id) => {
@@ -514,22 +654,93 @@ export default function Tasks() {
                 </motion.p>
               </div>
               
-              <motion.button
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                  setForm({ name: "", subject: "", time: "", priority: "Low", scheduledDate: "" });
-                  setEditId(null);
-                  setShowModal(true);
-                }}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold shadow-lg hover:shadow-xl hover:shadow-purple-500/50 transition-all"
-              >
-                <Plus className="w-5 h-5" />
-                Add Task
-              </motion.button>
+              <div className="flex items-center gap-3">
+                {/* Quick Templates Button */}
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowTemplates(!showTemplates)}
+                  className="flex items-center gap-2 px-4 py-3 rounded-xl bg-purple-800/40 border border-purple-700/30 text-purple-300 font-semibold hover:bg-purple-800/60 transition-all"
+                >
+                  <Layers className="w-5 h-5" />
+                  Templates
+                </motion.button>
+                
+                {/* Add Task Button */}
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    setForm({ 
+                      name: "", 
+                      subject: "", 
+                      time: "", 
+                      priority: "Low", 
+                      scheduledDate: "",
+                      recurrence: "none",
+                      recurrenceInterval: 1,
+                      recurrenceDays: [],
+                      notes: "",
+                      subtasks: [],
+                      tags: []
+                    });
+                    setEditId(null);
+                    setShowModal(true);
+                  }}
+                  className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold shadow-lg hover:shadow-xl hover:shadow-purple-500/50 transition-all"
+                >
+                  <Plus className="w-5 h-5" />
+                  Add Task
+                  <span className="text-xs opacity-70">(Ctrl+N)</span>
+                </motion.button>
+              </div>
             </div>
+
+            {/* Quick Templates Dropdown */}
+            <AnimatePresence>
+              {showTemplates && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute right-0 top-full mt-2 z-50 bg-gradient-to-br from-purple-900/95 to-slate-900/95 backdrop-blur-xl rounded-xl p-4 border border-purple-700/30 shadow-2xl min-w-[300px]"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-purple-300">Quick Templates</h3>
+                    <button
+                      onClick={() => setShowTemplates(false)}
+                      className="text-purple-400 hover:text-purple-300"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {TASK_TEMPLATES.map((template, idx) => {
+                      const Icon = template.icon;
+                      return (
+                        <motion.button
+                          key={idx}
+                          whileHover={{ scale: 1.02, x: 4 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => quickAddFromTemplate(template)}
+                          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-purple-800/40 border border-purple-700/30 hover:border-purple-500/50 hover:bg-purple-800/60 transition-all text-left"
+                        >
+                          <Icon className="w-5 h-5 text-purple-400" />
+                          <div className="flex-1">
+                            <div className="text-white font-medium">{template.name}</div>
+                            <div className="text-xs text-purple-300/70">{template.time} min • {template.priority}</div>
+                          </div>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Stats Cards */}
             <motion.div
@@ -723,14 +934,17 @@ export default function Tasks() {
               </div>
             </motion.div>
 
-          {/* Tasks Grid */}
+          {/* Tasks Grid/List */}
           <AnimatePresence mode="wait">
             <motion.div
-              key={tab}
+              key={`${tab}-${viewMode}`}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+              className={viewMode === "grid" 
+                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                : "space-y-3"
+              }
             >
               {sortedDisplayTasks.map((task, index) => {
                 const priority = priorityColor(task.priority);
@@ -749,8 +963,25 @@ export default function Tasks() {
                     whileHover={{ y: -8, scale: 1.02 }}
                     className={`group relative rounded-2xl p-5 bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-md border-l-4 ${priority.color} border-purple-700/30 hover:border-purple-500/50 transition-all duration-300 overflow-hidden ${
                       task.done ? "opacity-60" : ""
-                    }`}
+                    } ${selectedTasks.has(task.id) ? "ring-2 ring-purple-500 ring-offset-2 ring-offset-slate-900" : ""}`}
                   >
+                    {/* Selection Checkbox */}
+                    <div className="absolute top-3 right-3 z-20">
+                      <motion.button
+                        onClick={() => toggleTaskSelection(task.id)}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        className={`w-5 h-5 rounded border-2 transition-all ${
+                          selectedTasks.has(task.id)
+                            ? "bg-purple-600 border-purple-500"
+                            : "border-purple-400/30 hover:border-purple-400"
+                        }`}
+                      >
+                        {selectedTasks.has(task.id) && (
+                          <CheckCircle2 className="w-full h-full text-white" />
+                        )}
+                      </motion.button>
+                    </div>
                     {/* Gradient overlay on hover */}
                     <motion.div
                       className={`absolute inset-0 bg-gradient-to-br ${priority.bgColor} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
@@ -790,6 +1021,43 @@ export default function Tasks() {
 
                       {/* Details */}
                       <div className="space-y-2 mb-4">
+                        {task.notes && (
+                          <div className="text-sm text-purple-300/80 line-clamp-2 mb-2">
+                            {task.notes}
+                          </div>
+                        )}
+                        
+                        {task.subtasks && task.subtasks.length > 0 && (
+                          <div className="mb-2">
+                            <div className="flex items-center gap-2 text-xs text-purple-300/70 mb-1">
+                              <CheckSquare className="w-3 h-3" />
+                              <span>
+                                {task.subtasks.filter(st => st.done).length} / {task.subtasks.length} subtasks
+                              </span>
+                            </div>
+                            <div className="w-full bg-white/5 rounded-full h-1.5">
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${(task.subtasks.filter(st => st.done).length / task.subtasks.length) * 100}%` }}
+                                className="bg-gradient-to-r from-purple-500 to-pink-500 h-1.5 rounded-full"
+                              />
+                            </div>
+                          </div>
+                        )}
+                        
+                        {task.tags && task.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mb-2">
+                            {task.tags.map((tag, tagIdx) => (
+                              <span
+                                key={tagIdx}
+                                className="px-2 py-0.5 rounded-full bg-purple-800/30 border border-purple-700/30 text-xs text-purple-300"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        
                         {task.time && (
                           <div className="flex items-center gap-2 text-sm text-purple-300/70">
                             <Clock className="w-4 h-4" />
@@ -1054,6 +1322,116 @@ export default function Tasks() {
                       value={form.scheduledDate}
                       onChange={(e) => setForm({ ...form, scheduledDate: e.target.value })}
                     />
+                  </div>
+
+                  {/* Task Notes */}
+                  <div>
+                    <label className="block text-sm font-semibold text-purple-300 mb-2 flex items-center gap-2">
+                      <FileText className="w-4 h-4" />
+                      Notes (optional)
+                    </label>
+                    <textarea
+                      rows={3}
+                      className="w-full px-4 py-3 rounded-xl bg-purple-900/40 border border-purple-700/30 text-white placeholder-purple-300/50 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all resize-none"
+                      value={form.notes}
+                      onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                      placeholder="Add notes, reminders, or context for this task..."
+                    />
+                  </div>
+
+                  {/* Subtasks */}
+                  <div>
+                    <label className="block text-sm font-semibold text-purple-300 mb-2 flex items-center gap-2">
+                      <CheckSquare className="w-4 h-4" />
+                      Subtasks (optional)
+                    </label>
+                    <div className="space-y-2 mb-2">
+                      {form.subtasks.map((subtask, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            className="flex-1 px-3 py-2 rounded-lg bg-purple-900/40 border border-purple-700/30 text-white text-sm placeholder-purple-300/50 focus:outline-none focus:border-purple-500/50"
+                            value={subtask.name}
+                            onChange={(e) => {
+                              const newSubtasks = [...form.subtasks];
+                              newSubtasks[idx] = { ...subtask, name: e.target.value };
+                              setForm({ ...form, subtasks: newSubtasks });
+                            }}
+                            placeholder="Subtask name..."
+                          />
+                          <button
+                            onClick={() => {
+                              const newSubtasks = form.subtasks.filter((_, i) => i !== idx);
+                              setForm({ ...form, subtasks: newSubtasks });
+                            }}
+                            className="p-2 rounded-lg bg-red-600/20 hover:bg-red-600/30 text-red-400 transition-all"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, subtasks: [...form.subtasks, { name: "", done: false }] })}
+                      className="w-full px-4 py-2 rounded-lg bg-purple-800/40 border border-purple-700/30 text-purple-300 hover:bg-purple-800/60 transition-all text-sm flex items-center justify-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Subtask
+                    </button>
+                  </div>
+
+                  {/* Tags */}
+                  <div>
+                    <label className="block text-sm font-semibold text-purple-300 mb-2 flex items-center gap-2">
+                      <Tag className="w-4 h-4" />
+                      Tags (optional)
+                    </label>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {form.tags.map((tag, idx) => (
+                        <span
+                          key={idx}
+                          className="px-3 py-1 rounded-full bg-purple-800/40 border border-purple-700/30 text-purple-300 text-sm flex items-center gap-2"
+                        >
+                          {tag}
+                          <button
+                            onClick={() => {
+                              const newTags = form.tags.filter((_, i) => i !== idx);
+                              setForm({ ...form, tags: newTags });
+                            }}
+                            className="hover:text-red-400"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        className="flex-1 px-4 py-2 rounded-lg bg-purple-900/40 border border-purple-700/30 text-white text-sm placeholder-purple-300/50 focus:outline-none focus:border-purple-500/50"
+                        placeholder="Add tag..."
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter' && e.target.value.trim()) {
+                            setForm({ ...form, tags: [...form.tags, e.target.value.trim()] });
+                            e.target.value = '';
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          const input = e.target.previousElementSibling;
+                          if (input.value.trim()) {
+                            setForm({ ...form, tags: [...form.tags, input.value.trim()] });
+                            input.value = '';
+                          }
+                        }}
+                        className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white transition-all"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
 
                   {/* Recurrence Section */}
