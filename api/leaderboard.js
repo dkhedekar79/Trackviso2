@@ -214,8 +214,25 @@ async function getLeaderboard(timeframe, sortBy) {
       }
     }
 
-    // Sort by value (descending)
-    leaderboardData.sort((a, b) => b.value - a.value);
+    // Sort by value (descending) - this is the primary sort (study_time or streak)
+    // For users with same value, sort by XP as secondary sort
+    leaderboardData.sort((a, b) => {
+      if (b.value !== a.value) {
+        return b.value - a.value;
+      }
+      // If values are equal, sort by XP
+      return (b.xp || 0) - (a.xp || 0);
+    });
+    
+    // Debug: Log final leaderboard with XP
+    console.log(`[Leaderboard] Final leaderboard (top 5):`, 
+      leaderboardData.slice(0, 5).map(e => ({
+        name: e.displayName,
+        xp: e.xp,
+        level: e.level,
+        value: e.value
+      }))
+    );
 
     // Limit to top 100
     const topUsers = leaderboardData.slice(0, 100);
