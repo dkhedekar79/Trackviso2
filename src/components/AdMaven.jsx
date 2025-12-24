@@ -8,12 +8,14 @@ import React, { useEffect, useRef } from 'react';
  * @param {string} format - Ad format: 'popup', 'banner', 'interstitial', 'auto'
  * @param {string} style - Inline styles for the ad container
  * @param {string} className - CSS classes for the ad container
+ * @param {number} popupFrequencyHours - Minimum hours between popups (default: 24, AdMaven's default)
  */
 const AdMaven = ({ 
   placementId = 'Bqjw9rTw8', // Default from meta tag
   format = 'auto',
   style = {},
-  className = ''
+  className = '',
+  popupFrequencyHours = 24 // Default: once per 24 hours (AdMaven's default)
 }) => {
   const containerRef = useRef(null);
   const scriptLoadedRef = useRef(false);
@@ -21,6 +23,35 @@ const AdMaven = ({
   useEffect(() => {
     // Check if AdMaven script is already loaded
     if (scriptLoadedRef.current) return;
+
+    // For popup ads, check frequency before loading
+    if (format === 'popup' || format === 'auto') {
+      const lastPopupTime = localStorage.getItem('admaven_last_popup');
+      const now = Date.now();
+      
+      if (lastPopupTime) {
+        const hoursSinceLastPopup = (now - parseInt(lastPopupTime)) / (1000 * 60 * 60);
+        if (hoursSinceLastPopup < popupFrequencyHours) {
+          // Too soon, skip loading popup script
+          console.log(`AdMaven popup skipped: ${hoursSinceLastPopup.toFixed(1)} hours since last popup (minimum: ${popupFrequencyHours} hours)`);
+          return;
+        }
+      }
+      
+      // Track popup time (will be set when popup actually shows)
+      // Note: AdMaven's script handles the actual popup, we just track it
+      const handlePopup = () => {
+        localStorage.setItem('admaven_last_popup', now.toString());
+      };
+      
+      // Listen for AdMaven popup events (if they fire custom events)
+      window.addEventListener('admaven-popup', handlePopup);
+      
+      // Fallback: set timestamp after a delay (assuming popup might show)
+      setTimeout(() => {
+        localStorage.setItem('admaven_last_popup', now.toString());
+      }, 2000);
+    }
 
     // Load AdMaven script
     const script = document.createElement('script');
@@ -41,7 +72,7 @@ const AdMaven = ({
       // Don't remove script on cleanup to avoid reloading
       // The script will handle its own cleanup
     };
-  }, [placementId]);
+  }, [placementId, format, popupFrequencyHours]);
 
   // For banner/display ads, render a container
   if (format === 'banner' || format === 'auto') {
