@@ -1096,25 +1096,38 @@ export default function Tasks() {
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: hoveredTask === task.id ? 1 : 0, y: hoveredTask === task.id ? 0 : 10 }}
-                        className="flex items-center gap-2 mt-4 pt-4 border-t border-purple-700/30"
+                        className="flex flex-col gap-2 mt-4 pt-4 border-t border-purple-700/30"
                       >
-                        <motion.button
-                          onClick={() => handleEdit(task)}
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          className="flex-1 px-3 py-2 rounded-lg bg-purple-800/40 hover:bg-purple-700/60 border border-purple-700/30 text-purple-300 hover:text-white transition-all flex items-center justify-center gap-2 text-sm"
-                        >
-                          <Edit className="w-4 h-4" />
-                          Edit
-                        </motion.button>
-                        <motion.button
-                          onClick={() => handleDelete(task.id)}
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          className="px-3 py-2 rounded-lg bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 text-red-400 hover:text-red-300 transition-all"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </motion.button>
+                        {!task.done && (
+                          <motion.button
+                            onClick={() => navigate(`/study?subject=${encodeURIComponent(task.subject)}&task=${encodeURIComponent(task.name)}&duration=${task.time || 25}`)}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="w-full px-3 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold transition-all flex items-center justify-center gap-2 text-sm shadow-lg hover:shadow-purple-500/50"
+                          >
+                            <Zap className="w-4 h-4" />
+                            Start Study Session
+                          </motion.button>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <motion.button
+                            onClick={() => handleEdit(task)}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            className="flex-1 px-3 py-2 rounded-lg bg-purple-800/40 hover:bg-purple-700/60 border border-purple-700/30 text-purple-300 hover:text-white transition-all flex items-center justify-center gap-2 text-sm"
+                          >
+                            <Edit className="w-4 h-4" />
+                            Edit
+                          </motion.button>
+                          <motion.button
+                            onClick={() => handleDelete(task.id)}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            className="px-3 py-2 rounded-lg bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 text-red-400 hover:text-red-300 transition-all"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </motion.button>
+                        </div>
                       </motion.div>
                     </div>
 
