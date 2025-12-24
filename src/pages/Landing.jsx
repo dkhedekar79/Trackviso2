@@ -251,7 +251,7 @@ const Landing = () => {
         title="Trackviso — Gamified Study Tracker | Make Every Study Session Count"
         description="Transform your academic journey with Trackviso. Track study sessions, earn XP, complete quests, and get AI-powered insights. Free study tracker with gamification features, streaks, achievements, and personalized analytics."
         keywords="study tracker, gamified learning, study productivity app, academic tracker, study streaks, study quests, AI study tutor, revision tracker, study analytics, pomodoro timer, study motivation, exam preparation, study habits, learning tracker"
-        url="/"
+        url=""
       />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       

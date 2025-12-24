@@ -12,8 +12,9 @@ const SEO = ({
 }) => {
   const fullTitle = title.includes('Trackviso') ? title : `${title} | Trackviso`;
   const baseUrl = "https://trackviso.vercel.app";
-  const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
-  const fullImage = image.startsWith('http') ? image : `${baseUrl}${image}`;
+  const cleanUrl = url === "/" ? "" : url;
+  const fullUrl = url.startsWith('http') ? url : `${baseUrl}${cleanUrl}`;
+  const fullImage = image.startsWith('http') ? image : `${baseUrl}${image.startsWith('/') ? image : `/${image}`}`;
   
   return (
     <Helmet>
