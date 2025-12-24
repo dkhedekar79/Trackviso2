@@ -179,10 +179,12 @@ async function getLeaderboard(timeframe, sortBy) {
         displayValue = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
       }
 
-      // Only include users with non-zero values for the sort metric
-      // But always include XP even if it's 0
-      if (value > 0) {
-        const userXP = stat.xp !== null && stat.xp !== undefined ? stat.xp : 0;
+      // Include users if they have:
+      // 1. Non-zero value for the sort metric (study_time or streak), OR
+      // 2. Non-zero XP (so users with XP but no recent activity still show up)
+      const userXP = stat.xp !== null && stat.xp !== undefined ? stat.xp : 0;
+      
+      if (value > 0 || userXP > 0) {
         leaderboardData.push({
           userId: stat.user_id,
           displayName: userInfo.displayName,
