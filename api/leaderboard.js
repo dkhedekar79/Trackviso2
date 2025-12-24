@@ -50,20 +50,25 @@ async function getLeaderboard(timeframe, sortBy) {
       return { status: 500, body: { error: statsError.message } };
     }
 
-    // If we need to filter by timeframe, get study sessions
+    // If we need to filter by timeframe or calculate all-time more accurately, get study sessions
     let studySessions = [];
-    if (timeframe === 'daily' || timeframe === 'weekly') {
-      const { data: sessions, error: sessionsError } = await supabase
-        .from('study_sessions')
-        .select('user_id, duration_minutes, timestamp')
-        .gte('timestamp', startDate.toISOString());
+    const sessionsQuery = supabase
+      .from('study_sessions')
+      .select('user_id, duration_minutes, timestamp');
 
-      if (sessionsError) {
-        console.error('Error fetching study sessions:', sessionsError);
-        // Continue without filtering by sessions
-      } else {
-        studySessions = sessions || [];
-      }
+    if (timeframe === 'daily') {
+      sessionsQuery.gte('timestamp', getStartOfDay(now).toISOString());
+    } else if (timeframe === 'weekly') {
+      sessionsQuery.gte('timestamp', getStartOfWeek(now).toISOString());
+    }
+    // For 'all-time', we fetch all sessions to ensure accurate study time calculation
+
+    const { data: sessions, error: sessionsError } = await sessionsQuery;
+
+    if (sessionsError) {
+      console.error('Error fetching study sessions:', sessionsError);
+    } else {
+      studySessions = sessions || [];
     }
 
     // Get user emails/display names
@@ -81,38 +86,86 @@ async function getLeaderboard(timeframe, sortBy) {
     // Process leaderboard data
     const leaderboardData = [];
 
-    for (const stat of allStats || []) {
-      const userInfo = userMap.get(stat.user_id) || { email: 'Anonymous', displayName: 'Anonymous' };
+    // We can also include users who have sessions but maybe no user_stats record yet
+    const userIdsWithSessions = new Set(studySessions.map(s => s.user_id));
+    const allUserIds = new Set([...(allStats || []).map(s => s.user_id), ...userIdsWithSessions]);
+
+    for (const userId of allUserIds) {
+      const stat = (allStats || []).find(s => s.user_id === userId) || {
+        user_id: userId,
+        current_streak: 0,
+        longest_streak: 0,
+        total_study_time: 0,
+        level: 1,
+        xp: 0,
+        total_xp_earned: 0
+      };
+      
+      const userInfo = userMap.get(userId) || { email: 'Anonymous', displayName: 'Anonymous' };
       
       let value = 0;
       let displayValue = '';
 
       if (sortBy === 'streak') {
+        const userSessions = studySessions.filter(s => s.user_id === userId);
+        
         if (timeframe === 'daily' || timeframe === 'weekly') {
-          // For daily/weekly, we need to calculate streak from sessions
-          // For simplicity, use current_streak if they studied today/this week
-          const userSessions = studySessions.filter(s => s.user_id === stat.user_id);
+          // For daily/weekly, use current_streak if they studied in the timeframe
           if (userSessions.length > 0) {
             value = stat.current_streak || 0;
           } else {
-            value = 0; // No sessions in timeframe = 0 streak
+            value = 0;
           }
         } else {
-          // All time - use longest streak
-          value = stat.longest_streak || 0;
+          // All time - calculate longest streak from all sessions for maximum accuracy
+          if (userSessions.length > 0) {
+            // Get unique study days
+            const studyDays = [...new Set(userSessions.map(s => 
+              new Date(s.timestamp).toDateString()
+            ))].map(d => new Date(d).getTime());
+            
+            // Sort days
+            studyDays.sort((a, b) => a - b);
+            
+            let longest = 0;
+            let current = 0;
+            let lastDay = null;
+            
+            for (const day of studyDays) {
+              if (lastDay === null) {
+                current = 1;
+              } else {
+                const diff = (day - lastDay) / (1000 * 60 * 60 * 24);
+                if (diff <= 1.1) { // 1 day difference (with some buffer for TZ)
+                  current++;
+                } else {
+                  longest = Math.max(longest, current);
+                  current = 1;
+                }
+              }
+              lastDay = day;
+            }
+            longest = Math.max(longest, current);
+            
+            // Use the calculated longest streak, or the one in stats if it's somehow larger
+            value = Math.max(longest, stat.longest_streak || 0);
+          } else {
+            value = stat.longest_streak || 0;
+          }
         }
         displayValue = `${value} days`;
       } else if (sortBy === 'study_time') {
-        if (timeframe === 'daily' || timeframe === 'weekly') {
-          // Sum up study time from sessions in timeframe
-          const userSessions = studySessions.filter(s => s.user_id === stat.user_id);
+        // Always calculate study time from sessions if available for better accuracy
+        const userSessions = studySessions.filter(s => s.user_id === userId);
+        if (userSessions.length > 0) {
           value = userSessions.reduce((sum, s) => sum + (s.duration_minutes || 0), 0);
-        } else {
-          // All time - use total_study_time
+        } else if (timeframe === 'all-time') {
+          // Fallback to stat.total_study_time if no sessions found (maybe legacy data)
           value = stat.total_study_time || 0;
         }
+        
         const hours = Math.floor(value / 60);
-        const minutes = value % 60;
+        const minutes = Math.round(value % 60);
         displayValue = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
       }
 

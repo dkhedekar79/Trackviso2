@@ -1408,8 +1408,12 @@ export const GamificationProvider = ({ children }) => {
           if (supabaseSession) {
             updateUserStats({ 
               total_study_time: newStats.totalStudyTime,
+              total_xp_earned: newStats.totalXPEarned,
               xp: newStats.xp,
-              level: newStats.level
+              level: newStats.level,
+              current_streak: newStats.currentStreak,
+              longest_streak: newStats.longestStreak,
+              last_study_date: newStats.lastStudyDate
             });
           }
         } catch (error) {
