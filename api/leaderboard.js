@@ -178,7 +178,7 @@ async function getLeaderboard(timeframe, sortBy) {
           value,
           displayValue,
           level: stat.level || 1,
-          xp: stat.total_xp_earned || stat.xp || 0,
+          xp: stat.xp || 0, // Use current XP from user_stats
         });
       }
     }

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from "react";
 import logger from '../utils/logger';
 import { APP_CONFIG } from '../constants/appConfig';
+import { supabase } from '../supabaseClient';
 
 const GamificationContext = createContext();
 
@@ -187,6 +188,31 @@ export const GamificationProvider = ({ children }) => {
         level: calculatedLevel
       }));
     }
+  }, [userStats.xp, userStats.level]);
+
+  // Sync XP to Supabase whenever it changes (debounced)
+  useEffect(() => {
+    // Skip initial render
+    if (!userStats.xp && userStats.xp !== 0) return;
+
+    const syncXPTimeout = setTimeout(async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
+        const { updateUserStats } = await import('../utils/supabaseDb');
+        await updateUserStats({
+          xp: userStats.xp || 0,
+          level: userStats.level || 1
+        });
+        
+        logger.log('✅ XP synced to Supabase:', userStats.xp);
+      } catch (error) {
+        logger.error('Error syncing XP to Supabase:', error);
+      }
+    }, 2000); // Debounce by 2 seconds
+
+    return () => clearTimeout(syncXPTimeout);
   }, [userStats.xp, userStats.level]);
 
   // Advanced XP calculation with variable rewards
