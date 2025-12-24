@@ -40,15 +40,19 @@ async function getLeaderboard(timeframe, sortBy) {
     }
     // 'all-time' doesn't need a start date
 
-    // Get all user stats
+    // Get all user stats - ensure we get XP even if it's 0
     const { data: allStats, error: statsError } = await supabase
       .from('user_stats')
-      .select('user_id, current_streak, longest_streak, total_study_time, level, xp, total_xp_earned');
+      .select('user_id, current_streak, longest_streak, total_study_time, level, xp, total_xp_earned')
+      .not('xp', 'is', null); // Only get users who have an XP value (including 0)
 
     if (statsError) {
       console.error('Error fetching user stats:', statsError);
       return { status: 500, body: { error: statsError.message } };
     }
+
+    console.log(`Found ${allStats?.length || 0} users with stats, XP values:`, 
+      allStats?.map(s => ({ user: s.user_id, xp: s.xp })).slice(0, 5));
 
     // If we need to filter by timeframe or calculate all-time more accurately, get study sessions
     let studySessions = [];
@@ -169,8 +173,10 @@ async function getLeaderboard(timeframe, sortBy) {
         displayValue = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
       }
 
-      // Only include users with non-zero values
+      // Only include users with non-zero values for the sort metric
+      // But always include XP even if it's 0
       if (value > 0) {
+        const userXP = stat.xp !== null && stat.xp !== undefined ? stat.xp : 0;
         leaderboardData.push({
           userId: stat.user_id,
           displayName: userInfo.displayName,
@@ -178,7 +184,7 @@ async function getLeaderboard(timeframe, sortBy) {
           value,
           displayValue,
           level: stat.level || 1,
-          xp: stat.xp || 0, // Use current XP from user_stats
+          xp: userXP, // Use current XP from user_stats (always include, even if 0)
         });
       }
     }

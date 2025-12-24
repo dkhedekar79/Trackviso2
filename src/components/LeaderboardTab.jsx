@@ -29,7 +29,13 @@ const LeaderboardTab = () => {
         throw new Error(data.error || "Failed to fetch leaderboard");
       }
       
-      setLeaderboard(data.leaderboard || []);
+      const leaderboardData = data.leaderboard || [];
+      logger.log('Leaderboard data received:', leaderboardData.slice(0, 3).map(e => ({ 
+        name: e.displayName, 
+        xp: e.xp, 
+        level: e.level 
+      })));
+      setLeaderboard(leaderboardData);
     } catch (err) {
       logger.error("Error fetching leaderboard:", err);
       setError(err.message);
