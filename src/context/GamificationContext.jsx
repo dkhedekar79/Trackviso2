@@ -105,7 +105,44 @@ export const GamificationProvider = ({ children }) => {
   const [activeAnimations, setActiveAnimations] = useState([]);
   const achievementsInProgress = useRef(new Set());
 
-  // All data is now local-only (no Supabase syncing)
+  // Load initial XP from Supabase on mount to ensure we have the latest value
+  useEffect(() => {
+    const loadXPFromSupabase = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
+        const { fetchUserStats } = await import('../utils/supabaseDb');
+        const stats = await fetchUserStats();
+        
+        if (stats && stats.xp !== undefined && stats.xp !== null) {
+          // Only update if Supabase has a higher XP (to avoid overwriting with stale data)
+          // Or if local XP is 0/undefined, use Supabase value
+          const currentXP = userStats.xp || 0;
+          const supabaseXP = stats.xp || 0;
+          
+          if (supabaseXP > currentXP || currentXP === 0) {
+            logger.log('📥 Loading XP from Supabase:', supabaseXP);
+            setUserStats(prev => ({
+              ...prev,
+              xp: supabaseXP,
+              level: stats.level || getLevelFromXP(supabaseXP),
+            }));
+            lastSyncedXPRef.current = supabaseXP;
+          } else {
+            // Local XP is higher, sync it to Supabase
+            logger.log('📤 Local XP is higher, will sync to Supabase:', currentXP);
+          }
+        }
+      } catch (error) {
+        logger.error('Error loading XP from Supabase:', error);
+      }
+    };
+
+    // Load after a short delay to ensure auth is ready
+    const loadTimeout = setTimeout(loadXPFromSupabase, 1000);
+    return () => clearTimeout(loadTimeout);
+  }, []); // Only run on mount
 
   // Initialize quests and check for daily/weekly resets - FIXED
   useEffect(() => {
@@ -192,26 +229,37 @@ export const GamificationProvider = ({ children }) => {
 
   // Sync XP to Supabase whenever it changes (debounced)
   // This ensures the leaderboard always shows the current XP value
+  // XP is the source of truth - includes XP from sessions, quests, achievements, etc.
+  const lastSyncedXPRef = useRef(null);
   useEffect(() => {
-    // Only sync if XP is defined (including 0)
+    // Only sync if XP is defined (including 0) and has actually changed
     if (userStats.xp === undefined || userStats.xp === null) return;
+    if (lastSyncedXPRef.current === userStats.xp) return; // Skip if already synced
 
     const syncXPTimeout = setTimeout(async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
+        if (!session) {
+          logger.warn('No session available for XP sync');
+          return;
+        }
 
         const { updateUserStats } = await import('../utils/supabaseDb');
-        await updateUserStats({
+        const result = await updateUserStats({
           xp: userStats.xp || 0,
           level: userStats.level || 1
         });
         
-        logger.log('✅ XP synced to Supabase:', userStats.xp);
+        if (result) {
+          lastSyncedXPRef.current = userStats.xp;
+          logger.log('✅ XP synced to Supabase:', userStats.xp, 'Level:', userStats.level);
+        } else {
+          logger.warn('Failed to sync XP to Supabase');
+        }
       } catch (error) {
         logger.error('Error syncing XP to Supabase:', error);
       }
-    }, 2000); // Debounce by 2 seconds to avoid too many requests
+    }, 1500); // Debounce by 1.5 seconds to avoid too many requests
 
     return () => clearTimeout(syncXPTimeout);
   }, [userStats.xp, userStats.level]);
@@ -1437,14 +1485,20 @@ export const GamificationProvider = ({ children }) => {
           if (supabaseSession) {
             // Update other stats that aren't auto-calculated by the trigger
             // The trigger handles: total_study_time, total_xp_earned, total_sessions
-            await updateUserStats({ 
-              xp: newStats.xp,
+            // IMPORTANT: Always sync XP - it's the source of truth that includes all XP sources
+            const syncResult = await updateUserStats({ 
+              xp: newStats.xp,  // Current XP (includes sessions, quests, achievements, etc.)
               level: newStats.level,
               current_streak: newStats.currentStreak,
               longest_streak: newStats.longestStreak,
               last_study_date: newStats.lastStudyDate,
               total_sessions: newStats.totalSessions
             });
+            
+            if (syncResult) {
+              lastSyncedXPRef.current = newStats.xp;
+              logger.log('✅ Study session saved and XP synced:', newStats.xp);
+            }
           } else {
             logger.warn('Failed to save study session to Supabase');
           }
