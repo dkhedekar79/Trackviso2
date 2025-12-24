@@ -140,20 +140,29 @@ const Subjects = () => {
     
     window.addEventListener('storage', handleStorageChange);
     
-    // Also check periodically in case localStorage gets corrupted
-    const interval = setInterval(() => {
-      const currentSubjects = localStorage.getItem('subjects');
-      if (!currentSubjects && subjects.length > 0) {
-        // Subjects disappeared from localStorage but we have them in state - save them back
-        console.warn('Subjects disappeared from localStorage, restoring from state');
-        localStorage.setItem('subjects', JSON.stringify(subjects.map(({ icon, ...rest }) => rest)));
-      }
-    }, 5000); // Check every 5 seconds
-    
     return () => {
       window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
     };
+  }, []); // Only run on mount
+
+  // Safeguard: Periodically check if subjects disappeared from localStorage and restore from state
+  useEffect(() => {
+    if (subjects.length === 0) return; // Don't run if no subjects
+    
+    const interval = setInterval(() => {
+      const currentSubjects = localStorage.getItem('subjects');
+      if (!currentSubjects || currentSubjects === '[]') {
+        // Subjects disappeared from localStorage but we have them in state - save them back
+        console.warn('Subjects disappeared from localStorage, restoring from state');
+        try {
+          localStorage.setItem('subjects', JSON.stringify(subjects.map(({ icon, ...rest }) => rest)));
+        } catch (error) {
+          console.error('Error restoring subjects:', error);
+        }
+      }
+    }, 10000); // Check every 10 seconds
+    
+    return () => clearInterval(interval);
   }, [subjects]);
 
 
