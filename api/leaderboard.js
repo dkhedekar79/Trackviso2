@@ -52,12 +52,17 @@ async function getLeaderboard(timeframe, sortBy) {
 
     // Debug: Log XP values for first few users
     if (allStats && allStats.length > 0) {
-      console.log(`Found ${allStats.length} users with stats. Sample XP values:`, 
+      console.log(`[Leaderboard] Found ${allStats.length} users with stats. Sample XP values:`, 
         allStats.slice(0, 5).map(s => ({ 
           user_id: s.user_id?.substring(0, 8), 
           xp: s.xp, 
+          total_xp_earned: s.total_xp_earned,
           level: s.level 
         })));
+      
+      // Check for users with XP but null values
+      const usersWithXP = allStats.filter(s => (s.xp || 0) > 0);
+      console.log(`[Leaderboard] Users with XP > 0: ${usersWithXP.length}`);
     }
 
     // If we need to filter by timeframe or calculate all-time more accurately, get study sessions
@@ -182,18 +187,30 @@ async function getLeaderboard(timeframe, sortBy) {
       // Include users if they have:
       // 1. Non-zero value for the sort metric (study_time or streak), OR
       // 2. Non-zero XP (so users with XP but no recent activity still show up)
-      const userXP = stat.xp !== null && stat.xp !== undefined ? stat.xp : 0;
+      const userXP = stat.xp !== null && stat.xp !== undefined ? stat.xp : (stat.total_xp_earned || 0);
       
       if (value > 0 || userXP > 0) {
-        leaderboardData.push({
+        const entry = {
           userId: stat.user_id,
           displayName: userInfo.displayName,
           email: userInfo.email,
           value,
           displayValue,
           level: stat.level || 1,
-          xp: userXP, // Use current XP from user_stats (always include, even if 0)
-        });
+          xp: userXP, // Use current XP from user_stats (fallback to total_xp_earned if xp is null)
+        };
+        
+        // Debug log for first few entries
+        if (leaderboardData.length < 3) {
+          console.log(`[Leaderboard] Adding entry:`, {
+            name: entry.displayName,
+            xp: entry.xp,
+            level: entry.level,
+            value: entry.value
+          });
+        }
+        
+        leaderboardData.push(entry);
       }
     }
 
