@@ -61,6 +61,7 @@ import ImageCarousel from '../components/ImageCarousel';
 import Skillpulse from '../components/Skillpulse';
 import ambientImages, { ambientVideos } from '../data/ambientImages';
 import AdSense from '../components/AdSense';
+import AdMaven from '../components/AdMaven';
 
 const Landing = () => {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
@@ -853,6 +854,11 @@ const Landing = () => {
         <AdSense format="horizontal" className="rounded-lg" />
       </div>
 
+      {/* AdMaven Ad - Between Sections */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <AdMaven format="banner" className="rounded-lg" />
+      </div>
+
       <StudyModesSection />
 
       <AmbientModeSection />
@@ -862,6 +868,11 @@ const Landing = () => {
       {/* AdSense Ad - Between Sections */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         <AdSense format="horizontal" className="rounded-lg" />
+      </div>
+
+      {/* AdMaven Ad - Between Sections */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <AdMaven format="banner" className="rounded-lg" />
       </div>
 
       {/* How It Works Section */}
