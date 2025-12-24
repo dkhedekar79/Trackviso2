@@ -22,6 +22,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTimer } from '../context/TimerContext';
 import { useGamification } from '../context/GamificationContext';
 import { useAuth } from '../context/AuthContext';
+import AdSense from '../components/AdSense';
 // Supabase syncing removed - using localStorage only
 
 // Map icon names to actual Lucide React components
@@ -354,6 +355,11 @@ const Subjects = () => {
             <span>Add Subject</span>
           </motion.button>
         </motion.div>  
+      </div>
+
+      {/* AdSense Ad - Subjects Page */}
+      <div className="max-w-7xl mx-auto px-6 py-4 mb-6">
+        <AdSense format="horizontal" className="rounded-lg" />
       </div>
 
       {/* Subjects Grid */}
