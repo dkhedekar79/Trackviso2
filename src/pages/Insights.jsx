@@ -32,6 +32,7 @@ import {
   Lock,
   BarChart2
 } from 'lucide-react';
+import AdSense from '../components/AdSense';
 import { useSubscription } from '../context/SubscriptionContext';
 import { useGamification } from '../context/GamificationContext';
 import PremiumUpgradeModal from '../components/PremiumUpgradeModal';
