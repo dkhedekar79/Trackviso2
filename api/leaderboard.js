@@ -40,19 +40,25 @@ async function getLeaderboard(timeframe, sortBy) {
     }
     // 'all-time' doesn't need a start date
 
-    // Get all user stats - ensure we get XP even if it's 0
+    // Get all user stats - include all users even if XP is null
     const { data: allStats, error: statsError } = await supabase
       .from('user_stats')
-      .select('user_id, current_streak, longest_streak, total_study_time, level, xp, total_xp_earned')
-      .not('xp', 'is', null); // Only get users who have an XP value (including 0)
+      .select('user_id, current_streak, longest_streak, total_study_time, level, xp, total_xp_earned');
 
     if (statsError) {
       console.error('Error fetching user stats:', statsError);
       return { status: 500, body: { error: statsError.message } };
     }
 
-    console.log(`Found ${allStats?.length || 0} users with stats, XP values:`, 
-      allStats?.map(s => ({ user: s.user_id, xp: s.xp })).slice(0, 5));
+    // Debug: Log XP values for first few users
+    if (allStats && allStats.length > 0) {
+      console.log(`Found ${allStats.length} users with stats. Sample XP values:`, 
+        allStats.slice(0, 5).map(s => ({ 
+          user_id: s.user_id?.substring(0, 8), 
+          xp: s.xp, 
+          level: s.level 
+        })));
+    }
 
     // If we need to filter by timeframe or calculate all-time more accurately, get study sessions
     let studySessions = [];

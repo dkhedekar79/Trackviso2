@@ -185,9 +185,9 @@ const LeaderboardTab = () => {
                       )}
                     </div>
                     <div className="flex items-center gap-4 text-xs text-gray-300">
-                      <span>Level {entry.level}</span>
+                      <span>Level {entry.level || 1}</span>
                       <span>•</span>
-                      <span>{entry.xp.toLocaleString()} XP</span>
+                      <span>{(entry.xp || 0).toLocaleString()} XP</span>
                     </div>
                   </div>
 
