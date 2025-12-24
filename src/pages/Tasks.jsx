@@ -100,6 +100,22 @@ export default function Tasks() {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
+  // Close templates dropdown when clicking outside
+  useEffect(() => {
+    if (!showTemplates) return;
+    
+    const handleClickOutside = (e) => {
+      const target = e.target;
+      // Check if click is outside the templates dropdown and button
+      if (!target.closest('[data-templates-dropdown]') && !target.closest('[data-templates-button]')) {
+        setShowTemplates(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showTemplates]);
+
   // Function to check and create recurring tasks
   const checkAndCreateRecurringTasks = (currentTasks) => {
     const now = new Date();
@@ -635,7 +651,7 @@ export default function Tasks() {
             animate={{ opacity: 1, y: 0 }}
             className="mb-8"
           >
-            <div className="flex items-start justify-between mb-6">
+            <div className="flex items-start justify-between mb-6 relative">
               <div>
                 <motion.h1
                   initial={{ opacity: 0, x: -20 }}
@@ -654,15 +670,20 @@ export default function Tasks() {
                 </motion.p>
               </div>
               
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 relative">
                 {/* Quick Templates Button */}
                 <motion.button
+                  data-templates-button
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setShowTemplates(!showTemplates)}
-                  className="flex items-center gap-2 px-4 py-3 rounded-xl bg-purple-800/40 border border-purple-700/30 text-purple-300 font-semibold hover:bg-purple-800/60 transition-all"
+                  className={`flex items-center gap-2 px-4 py-3 rounded-xl border font-semibold transition-all ${
+                    showTemplates
+                      ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white border-purple-500/50"
+                      : "bg-purple-800/40 border-purple-700/30 text-purple-300 hover:bg-purple-800/60"
+                  }`}
                 >
                   <Layers className="w-5 h-5" />
                   Templates
@@ -697,18 +718,17 @@ export default function Tasks() {
                   Add Task
                   <span className="text-xs opacity-70">(Ctrl+N)</span>
                 </motion.button>
-              </div>
-            </div>
 
-            {/* Quick Templates Dropdown */}
-            <AnimatePresence>
-              {showTemplates && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="absolute right-0 top-full mt-2 z-50 bg-gradient-to-br from-purple-900/95 to-slate-900/95 backdrop-blur-xl rounded-xl p-4 border border-purple-700/30 shadow-2xl min-w-[300px]"
-                >
+                {/* Quick Templates Dropdown */}
+                <AnimatePresence>
+                  {showTemplates && (
+                    <motion.div
+                      data-templates-dropdown
+                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                      className="absolute right-0 top-full mt-2 z-50 bg-gradient-to-br from-purple-900/95 to-slate-900/95 backdrop-blur-xl rounded-xl p-4 border border-purple-700/30 shadow-2xl min-w-[300px]"
+                    >
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-sm font-semibold text-purple-300">Quick Templates</h3>
                     <button
@@ -738,9 +758,11 @@ export default function Tasks() {
                       );
                     })}
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
 
             {/* Stats Cards */}
             <motion.div
