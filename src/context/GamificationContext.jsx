@@ -191,9 +191,10 @@ export const GamificationProvider = ({ children }) => {
   }, [userStats.xp, userStats.level]);
 
   // Sync XP to Supabase whenever it changes (debounced)
+  // This ensures the leaderboard always shows the current XP value
   useEffect(() => {
-    // Skip initial render
-    if (!userStats.xp && userStats.xp !== 0) return;
+    // Only sync if XP is defined (including 0)
+    if (userStats.xp === undefined || userStats.xp === null) return;
 
     const syncXPTimeout = setTimeout(async () => {
       try {
@@ -210,7 +211,7 @@ export const GamificationProvider = ({ children }) => {
       } catch (error) {
         logger.error('Error syncing XP to Supabase:', error);
       }
-    }, 2000); // Debounce by 2 seconds
+    }, 2000); // Debounce by 2 seconds to avoid too many requests
 
     return () => clearTimeout(syncXPTimeout);
   }, [userStats.xp, userStats.level]);
