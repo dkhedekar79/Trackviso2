@@ -93,6 +93,26 @@ async function listUsers(adminUserId) {
       console.log('User stats fetched:', userStats?.length || 0, 'records');
     }
 
+    // Get accurate study time from study_sessions for all users
+    const { data: studySessions, error: sessionsError } = await supabase
+      .from('study_sessions')
+      .select('user_id, duration_minutes');
+
+    if (sessionsError) {
+      console.error('Error fetching study sessions:', sessionsError);
+    } else {
+      console.log('Study sessions fetched:', studySessions?.length || 0, 'records');
+    }
+
+    // Calculate accurate totals from study_sessions
+    const studyTimeByUser = new Map();
+    if (studySessions) {
+      studySessions.forEach(session => {
+        const current = studyTimeByUser.get(session.user_id) || 0;
+        studyTimeByUser.set(session.user_id, current + (session.duration_minutes || 0));
+      });
+    }
+
     // Get admin list
     const { data: adminUsers, error: adminError } = await supabase
       .from('admin_users')
@@ -113,8 +133,16 @@ async function listUsers(adminUserId) {
       const stats = (userStats || []).find(s => s.user_id === user.id);
       const isAdmin = adminUserIds.has(user.id);
       
+      // Get accurate study time from study_sessions (source of truth)
+      // Fallback to user_stats if no sessions found
+      const calculatedStudyTime = studyTimeByUser.get(user.id) || stats?.total_study_time || 0;
+      
       // Get website time from user_stats (tracked accurately)
       const websiteTimeMinutes = stats?.website_time_minutes || 0;
+
+      // Get XP from user_stats - this is the current XP (includes all sources)
+      // If null/undefined, use 0
+      const userXP = stats?.xp !== null && stats?.xp !== undefined ? stats.xp : 0;
 
       // Get email from user object or identities
       const userEmail = user.email || 
@@ -127,9 +155,9 @@ async function listUsers(adminUserId) {
         created_at: user.created_at,
         is_premium: user.user_metadata?.is_premium || stats?.is_premium || false,
         subscription_plan: user.user_metadata?.subscription_plan || 'scholar',
-        xp: stats?.xp || 0,
+        xp: userXP, // Current XP from user_stats (source of truth)
         level: stats?.level || 1,
-        total_study_time: stats?.total_study_time || 0,
+        total_study_time: calculatedStudyTime, // Accurate time from study_sessions
         website_time_minutes: websiteTimeMinutes,
         is_admin: isAdmin,
         mock_exams_used: user.user_metadata?.mock_exams_used || 0,
