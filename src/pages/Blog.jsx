@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Calendar, Clock, ArrowRight, BookOpen } from 'lucide-react';
 import SEO from '../components/SEO';
 import { getAllPosts } from '../data/blogPosts';
+import AdSense from '../components/AdSense';
 
 const Blog = () => {
   const posts = getAllPosts();
@@ -77,6 +78,11 @@ const Blog = () => {
               Study tips, learning techniques, and strategies to help you achieve academic excellence
             </p>
           </motion.div>
+
+          {/* AdSense Ad - Blog Header */}
+          <div className="mb-8">
+            <AdSense format="horizontal" className="rounded-lg" />
+          </div>
 
           {/* Blog Posts Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

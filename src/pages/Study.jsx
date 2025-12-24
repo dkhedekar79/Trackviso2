@@ -47,6 +47,7 @@ import {
   ListMusic,
 } from "lucide-react";
 import { useYouTubeMusic } from "../hooks/useYouTubeMusic";
+import AdSense from "../components/AdSense";
 
 const Study = () => {
   const location = useLocation();

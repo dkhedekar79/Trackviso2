@@ -12,6 +12,7 @@ import PremiumUpgradeModal from "../components/PremiumUpgradeModal";
 import PremiumUpgradeCard from "../components/PremiumUpgradeCard";
 import { useSubscription } from "../context/SubscriptionContext";
 import SEO from "../components/SEO";
+import AdSense from "../components/AdSense";
 
 function getStartOfWeek(date) {
   const d = new Date(date);

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Calendar, Clock, ArrowLeft, Tag, User } from 'lucide-react';
 import SEO from '../components/SEO';
 import { getPostBySlug, getRelatedPosts } from '../data/blogPosts';
+import AdSense from '../components/AdSense';
 
 const BlogPost = () => {
   const { slug } = useParams();
@@ -138,6 +139,11 @@ const BlogPost = () => {
             </div>
           </motion.header>
 
+          {/* AdSense Ad - Blog Post Header */}
+          <div className="mb-8">
+            <AdSense format="horizontal" className="rounded-lg" />
+          </div>
+
           {/* Featured Image */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -176,6 +182,11 @@ const BlogPost = () => {
               }}
             />
           </motion.div>
+
+          {/* AdSense Ad - Mid Content */}
+          <div className="my-8">
+            <AdSense format="horizontal" className="rounded-lg" />
+          </div>
 
           {/* Tags */}
           <motion.div

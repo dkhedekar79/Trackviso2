@@ -60,6 +60,7 @@ import {
 import ImageCarousel from '../components/ImageCarousel';
 import Skillpulse from '../components/Skillpulse';
 import ambientImages, { ambientVideos } from '../data/ambientImages';
+import AdSense from '../components/AdSense';
 
 const Landing = () => {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
@@ -847,11 +848,21 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* AdSense Ad - Between Sections */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <AdSense format="horizontal" className="rounded-lg" />
+      </div>
+
       <StudyModesSection />
 
       <AmbientModeSection />
 
       <AITimetableSection />
+
+      {/* AdSense Ad - Between Sections */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <AdSense format="horizontal" className="rounded-lg" />
+      </div>
 
       {/* How It Works Section */}
       <section id="how-it-works" className="py-32 px-4 bg-gradient-to-b from-purple-900/50 via-slate-900 to-slate-900 relative overflow-hidden">
