@@ -26,7 +26,7 @@ This guide will help you set up Spotify integration for the ambient mode feature
 2. Scroll to **"Redirect URIs"**
 3. Add **BOTH** of these URIs (click "Add" for each):
    - For **local development**: `http://localhost:5173/callback`
-   - For **production**: `https://trackviso.vercel.app/callback` (or your production domain)
+   - For **production**: `https://trackviso-beta.vercel.app/callback` (or your production domain)
 4. **Important**: 
    - No trailing slashes
    - Use `http://` for localhost, `https://` for production

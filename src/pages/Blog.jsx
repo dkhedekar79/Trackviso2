@@ -23,11 +23,11 @@ const Blog = () => {
     "@type": "Blog",
     "name": "Trackviso Blog",
     "description": "Study tips, learning techniques, and academic success strategies from Trackviso",
-    "url": "https://trackviso.vercel.app/blog",
+    "url": "https://trackviso-beta.vercel.app/blog",
     "publisher": {
       "@type": "Organization",
       "name": "Trackviso",
-      "url": "https://trackviso.vercel.app"
+      "url": "https://trackviso-beta.vercel.app"
     },
     "blogPost": posts.map(post => ({
       "@type": "BlogPosting",
@@ -39,8 +39,8 @@ const Blog = () => {
         "@type": "Person",
         "name": post.author
       },
-      "url": `https://trackviso.vercel.app/blog/${post.slug}`,
-      "image": `https://trackviso.vercel.app${post.featuredImage}`,
+      "url": `https://trackviso-beta.vercel.app/blog/${post.slug}`,
+      "image": `https://trackviso-beta.vercel.app${post.featuredImage}`,
       "articleSection": post.category,
       "keywords": post.keywords
     }))

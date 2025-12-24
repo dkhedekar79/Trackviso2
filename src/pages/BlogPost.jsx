@@ -43,7 +43,7 @@ const BlogPost = () => {
     "@type": "BlogPosting",
     "headline": post.title,
     "description": post.description,
-    "image": `https://trackviso.vercel.app${post.featuredImage}`,
+    "image": `https://trackviso-beta.vercel.app${post.featuredImage}`,
     "datePublished": post.publishDate,
     "dateModified": post.lastUpdated,
     "author": {
@@ -54,15 +54,15 @@ const BlogPost = () => {
     "publisher": {
       "@type": "Organization",
       "name": "Trackviso",
-      "url": "https://trackviso.vercel.app",
+      "url": "https://trackviso-beta.vercel.app",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://trackviso.vercel.app/og.png"
+        "url": "https://trackviso-beta.vercel.app/og.png"
       }
     },
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": `https://trackviso.vercel.app/blog/${post.slug}`
+      "@id": `https://trackviso-beta.vercel.app/blog/${post.slug}`
     },
     "articleSection": post.category,
     "keywords": post.keywords,

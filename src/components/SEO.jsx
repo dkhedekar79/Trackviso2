@@ -3,15 +3,15 @@ import { Helmet } from 'react-helmet-async';
 const SEO = ({ 
   title = "Trackviso — Gamified Study Tracker", 
   description = "Trackviso is a progress tracking app that turns your studying into a game with streaks, quests, and insights to keep you consistent.",
-  image = "https://trackviso.vercel.app/og.png",
-  url = "https://trackviso.vercel.app",
+  image = "https://trackviso-beta.vercel.app/og.png",
+  url = "https://trackviso-beta.vercel.app",
   type = "website",
   keywords = "study tracker, gamified learning, study app, academic tracker, study productivity, study streaks, study quests, AI study tutor, revision tracker, study analytics",
   robots = "index, follow",
   noindex = false
 }) => {
   const fullTitle = title.includes('Trackviso') ? title : `${title} | Trackviso`;
-  const baseUrl = "https://trackviso.vercel.app";
+  const baseUrl = "https://trackviso-beta.vercel.app";
   const cleanUrl = url === "/" ? "" : url;
   const fullUrl = url.startsWith('http') ? url : `${baseUrl}${cleanUrl}`;
   const fullImage = image.startsWith('http') ? image : `${baseUrl}${image.startsWith('/') ? image : `/${image}`}`;

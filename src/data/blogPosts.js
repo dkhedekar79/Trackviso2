@@ -92,7 +92,7 @@ Tracking study time properly does not make studying harder. It makes it honest. 
 If you want a study tracking app built for students rather than professionals pretending to be students, Trackviso quietly does the job, day after day.
 
 
-[Link: https://trackviso.vercel.app
+[Link: https://trackviso-beta.vercel.app
 ] </h1>
     `,
   },

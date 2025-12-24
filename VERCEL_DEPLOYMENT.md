@@ -15,7 +15,7 @@
 
 1. In Stripe Dashboard, go to **Developers** → **Webhooks**
 2. Click **Add endpoint**
-3. Enter your endpoint URL: `https://trackviso.vercel.app/api/webhook`
+3. Enter your endpoint URL: `https://trackviso-beta.vercel.app/api/webhook`
 4. Click **Select events**
 5. Select these events:
    - `checkout.session.completed`
@@ -72,11 +72,11 @@
 
    **Frontend URL:**
    - Name: `VITE_FRONTEND_URL`
-   - Value: `https://trackviso.vercel.app`
+   - Value: `https://trackviso-beta.vercel.app`
    - Environment: Production, Preview, Development (select all)
 
    - Name: `FRONTEND_URL`
-   - Value: `https://trackviso.vercel.app`
+   - Value: `https://trackviso-beta.vercel.app`
    - Environment: Production, Preview, Development (select all)
 
    **Supabase:**
@@ -107,7 +107,7 @@
 2. Click on your webhook endpoint
 3. You should see recent events (may take a few minutes)
 4. Test by making a test purchase:
-   - Go to your site: `https://trackviso.vercel.app/payment`
+   - Go to your site: `https://trackviso-beta.vercel.app/payment`
    - Use test card: `4242 4242 4242 4242`
    - Any future expiry date (e.g., 12/25)
    - Any CVC (e.g., 123)
@@ -117,7 +117,7 @@
 
 ### Step 9: Test Production Flow
 
-1. Visit: `https://trackviso.vercel.app/payment`
+1. Visit: `https://trackviso-beta.vercel.app/payment`
 2. Click "Proceed to Payment"
 3. Complete checkout with test card
 4. You should be redirected to `/payment/success`
@@ -127,7 +127,7 @@
 
 ### Webhook Not Receiving Events
 
-1. Check webhook URL is correct: `https://trackviso.vercel.app/api/webhook`
+1. Check webhook URL is correct: `https://trackviso-beta.vercel.app/api/webhook`
 2. Verify `STRIPE_WEBHOOK_SECRET` matches the secret from Stripe Dashboard
 3. Check Vercel function logs: **Deployments** → Click deployment → **Functions** tab
 4. Ensure webhook events are selected in Stripe Dashboard
