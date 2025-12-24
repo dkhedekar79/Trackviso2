@@ -103,17 +103,58 @@ const Subjects = () => {
   // Load subjects from localStorage only (no Supabase)
   useEffect(() => {
     const loadSubjects = () => {
-      // Load from localStorage only
-      const savedSubjects = JSON.parse(localStorage.getItem('subjects') || '[]');
-      const subjectsWithIcons = savedSubjects.map(subject => ({
-        ...subject,
-        icon: ICON_COMPONENTS[subject.iconName] || BookOpen,
-      }));
-      setSubjects(subjectsWithIcons);
+      try {
+        // Load from localStorage only
+        const savedSubjectsStr = localStorage.getItem('subjects');
+        if (!savedSubjectsStr) {
+          setSubjects([]);
+          return;
+        }
+        
+        const savedSubjects = JSON.parse(savedSubjectsStr);
+        if (!Array.isArray(savedSubjects)) {
+          console.warn('Subjects data is not an array, resetting');
+          setSubjects([]);
+          return;
+        }
+        
+        const subjectsWithIcons = savedSubjects.map(subject => ({
+          ...subject,
+          icon: ICON_COMPONENTS[subject.iconName] || BookOpen,
+        }));
+        setSubjects(subjectsWithIcons);
+      } catch (error) {
+        console.error('Error loading subjects:', error);
+        setSubjects([]);
+      }
     };
 
     loadSubjects();
-  }, []);
+    
+    // Listen for storage events (in case subjects are updated in another tab)
+    const handleStorageChange = (e) => {
+      if (e.key === 'subjects') {
+        loadSubjects();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also check periodically in case localStorage gets corrupted
+    const interval = setInterval(() => {
+      const currentSubjects = localStorage.getItem('subjects');
+      if (!currentSubjects && subjects.length > 0) {
+        // Subjects disappeared from localStorage but we have them in state - save them back
+        console.warn('Subjects disappeared from localStorage, restoring from state');
+        localStorage.setItem('subjects', JSON.stringify(subjects.map(({ icon, ...rest }) => rest)));
+      }
+    }, 5000); // Check every 5 seconds
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [subjects]);
 
 
 
@@ -136,9 +177,19 @@ const Subjects = () => {
       const updatedSubjects = [...subjects, newSubject];
       setSubjects(updatedSubjects);
       
-      // Save to localStorage
-      localStorage.setItem('subjects', JSON.stringify(updatedSubjects.map(({ icon, ...rest }) => rest)));
-      // All data is now local-only (no Supabase syncing)
+      // Save to localStorage immediately and verify
+      try {
+        const subjectsToSave = updatedSubjects.map(({ icon, ...rest }) => rest);
+        localStorage.setItem('subjects', JSON.stringify(subjectsToSave));
+        
+        // Verify it was saved correctly
+        const verify = localStorage.getItem('subjects');
+        if (!verify || JSON.parse(verify).length !== updatedSubjects.length) {
+          console.error('Failed to save subjects correctly');
+        }
+      } catch (error) {
+        console.error('Error saving subjects:', error);
+      }
 
       // Reset state
       setNewSubjectName('');
@@ -157,9 +208,19 @@ const Subjects = () => {
       );
       setSubjects(updatedSubjects);
       
-      // Save to localStorage
-      localStorage.setItem('subjects', JSON.stringify(updatedSubjects.map(({ icon, ...rest }) => rest)));
-      // All data is now local-only (no Supabase syncing)
+      // Save to localStorage immediately and verify
+      try {
+        const subjectsToSave = updatedSubjects.map(({ icon, ...rest }) => rest);
+        localStorage.setItem('subjects', JSON.stringify(subjectsToSave));
+        
+        // Verify it was saved correctly
+        const verify = localStorage.getItem('subjects');
+        if (!verify || JSON.parse(verify).length !== updatedSubjects.length) {
+          console.error('Failed to save subjects correctly');
+        }
+      } catch (error) {
+        console.error('Error saving subjects:', error);
+      }
 
       setEditingSubject(null);
       setShowEditModal(false);

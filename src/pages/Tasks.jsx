@@ -173,20 +173,22 @@ export default function Tasks() {
   };
 
   // Load subjects from localStorage on mount
+  // IMPORTANT: Only read subjects, never overwrite them with defaults
+  // If subjects don't exist, let the user create them in the Subjects page
   useEffect(() => {
     const savedSubjects = localStorage.getItem("subjects");
     if (savedSubjects) {
-      setSubjects(JSON.parse(savedSubjects));
-    } else {
-      const defaultSubjects = [
-        { id: 1, name: "Math", color: "#6C5DD3", goalHours: 5 },
-        { id: 2, name: "English", color: "#B6E4CF", goalHours: 4 },
-        { id: 3, name: "Biology", color: "#FEC260", goalHours: 6 },
-        { id: 4, name: "History", color: "#FF6B6B", goalHours: 3 }
-      ];
-      setSubjects(defaultSubjects);
-      localStorage.setItem("subjects", JSON.stringify(defaultSubjects));
+      try {
+        const parsed = JSON.parse(savedSubjects);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setSubjects(parsed);
+        }
+      } catch (error) {
+        console.error('Error parsing subjects:', error);
+      }
     }
+    // Don't create default subjects here - let user create them in Subjects page
+    // This prevents overwriting user's custom subjects
   }, []);
 
   // Save tasks to localStorage whenever they change
