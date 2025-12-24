@@ -1381,14 +1381,14 @@ export default function Tasks() {
                       Subtasks (optional)
                     </label>
                     <div className="space-y-2 mb-2">
-                      {form.subtasks.map((subtask, idx) => (
+                      {(form.subtasks || []).map((subtask, idx) => (
                         <div key={idx} className="flex items-center gap-2">
                           <input
                             type="text"
                             className="flex-1 px-3 py-2 rounded-lg bg-purple-900/40 border border-purple-700/30 text-white text-sm placeholder-purple-300/50 focus:outline-none focus:border-purple-500/50"
-                            value={subtask.name}
+                            value={subtask?.name || ""}
                             onChange={(e) => {
-                              const newSubtasks = [...form.subtasks];
+                              const newSubtasks = [...(form.subtasks || [])];
                               newSubtasks[idx] = { ...subtask, name: e.target.value };
                               setForm({ ...form, subtasks: newSubtasks });
                             }}
@@ -1396,7 +1396,7 @@ export default function Tasks() {
                           />
                           <button
                             onClick={() => {
-                              const newSubtasks = form.subtasks.filter((_, i) => i !== idx);
+                              const newSubtasks = (form.subtasks || []).filter((_, i) => i !== idx);
                               setForm({ ...form, subtasks: newSubtasks });
                             }}
                             className="p-2 rounded-lg bg-red-600/20 hover:bg-red-600/30 text-red-400 transition-all"
@@ -1408,7 +1408,7 @@ export default function Tasks() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => setForm({ ...form, subtasks: [...form.subtasks, { name: "", done: false }] })}
+                      onClick={() => setForm({ ...form, subtasks: [...(form.subtasks || []), { name: "", done: false }] })}
                       className="w-full px-4 py-2 rounded-lg bg-purple-800/40 border border-purple-700/30 text-purple-300 hover:bg-purple-800/60 transition-all text-sm flex items-center justify-center gap-2"
                     >
                       <Plus className="w-4 h-4" />
@@ -1423,7 +1423,7 @@ export default function Tasks() {
                       Tags (optional)
                     </label>
                     <div className="flex flex-wrap gap-2 mb-2">
-                      {form.tags.map((tag, idx) => (
+                      {(form.tags || []).map((tag, idx) => (
                         <span
                           key={idx}
                           className="px-3 py-1 rounded-full bg-purple-800/40 border border-purple-700/30 text-purple-300 text-sm flex items-center gap-2"
@@ -1431,7 +1431,7 @@ export default function Tasks() {
                           {tag}
                           <button
                             onClick={() => {
-                              const newTags = form.tags.filter((_, i) => i !== idx);
+                              const newTags = (form.tags || []).filter((_, i) => i !== idx);
                               setForm({ ...form, tags: newTags });
                             }}
                             className="hover:text-red-400"
@@ -1448,7 +1448,7 @@ export default function Tasks() {
                         placeholder="Add tag..."
                         onKeyPress={(e) => {
                           if (e.key === 'Enter' && e.target.value.trim()) {
-                            setForm({ ...form, tags: [...form.tags, e.target.value.trim()] });
+                            setForm({ ...form, tags: [...(form.tags || []), e.target.value.trim()] });
                             e.target.value = '';
                           }
                         }}
@@ -1458,7 +1458,7 @@ export default function Tasks() {
                         onClick={(e) => {
                           const input = e.target.previousElementSibling;
                           if (input.value.trim()) {
-                            setForm({ ...form, tags: [...form.tags, input.value.trim()] });
+                            setForm({ ...form, tags: [...(form.tags || []), input.value.trim()] });
                             input.value = '';
                           }
                         }}
