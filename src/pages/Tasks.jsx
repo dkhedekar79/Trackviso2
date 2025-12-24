@@ -449,17 +449,17 @@ export default function Tasks() {
 
   const handleEdit = (task) => {
     setForm({
-      name: task.name,
-      subject: task.subject,
-      time: task.time,
-      priority: task.priority,
+      name: task.name || "",
+      subject: task.subject || "",
+      time: task.time || "",
+      priority: task.priority || "Low",
       scheduledDate: task.scheduledDate || "",
       recurrence: task.recurrence || "none",
       recurrenceInterval: task.recurrenceInterval || 1,
-      recurrenceDays: task.recurrenceDays || [],
+      recurrenceDays: Array.isArray(task.recurrenceDays) ? task.recurrenceDays : [],
       notes: task.notes || "",
-      subtasks: task.subtasks || [],
-      tags: task.tags || []
+      subtasks: Array.isArray(task.subtasks) ? task.subtasks : [],
+      tags: Array.isArray(task.tags) ? task.tags : []
     });
     setEditId(task.id);
     setShowModal(true);
