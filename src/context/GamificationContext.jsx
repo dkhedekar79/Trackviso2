@@ -1391,11 +1391,13 @@ export const GamificationProvider = ({ children }) => {
       }, 100);
 
       // Save to Supabase asynchronously
+      // Note: The database trigger will automatically update total_study_time and total_xp_earned
+      // from the study_sessions table, so we don't need to manually update those here
       (async () => {
         try {
           const { addStudySession: addSupabaseSession, updateUserStats } = await import('../utils/supabaseDb');
           
-          // Save session to Supabase
+          // Save session to Supabase - this will trigger the database function to update totals
           const supabaseSession = await addSupabaseSession({
             subject_name: session.subjectName,
             duration_minutes: session.durationMinutes,
@@ -1406,15 +1408,18 @@ export const GamificationProvider = ({ children }) => {
           });
 
           if (supabaseSession) {
-            updateUserStats({ 
-              total_study_time: newStats.totalStudyTime,
-              total_xp_earned: newStats.totalXPEarned,
+            // Update other stats that aren't auto-calculated by the trigger
+            // The trigger handles: total_study_time, total_xp_earned, total_sessions
+            await updateUserStats({ 
               xp: newStats.xp,
               level: newStats.level,
               current_streak: newStats.currentStreak,
               longest_streak: newStats.longestStreak,
-              last_study_date: newStats.lastStudyDate
+              last_study_date: newStats.lastStudyDate,
+              total_sessions: newStats.totalSessions
             });
+          } else {
+            logger.warn('Failed to save study session to Supabase');
           }
         } catch (error) {
           logger.error('Error saving study session to Supabase:', error);
