@@ -342,14 +342,14 @@ const Admin = () => {
                       )}
                     </div>
                     <p className="text-sm text-purple-300/60">
-                      Level {u.level} • {Math.floor(u.total_study_time / 60)}h {u.total_study_time % 60}m studied
+                      Level {u.level || 1} • {Math.floor((u.total_study_time || 0) / 60)}h {(u.total_study_time || 0) % 60}m studied
                     </p>
                   </div>
 
                   <div className="grid grid-cols-4 gap-4 mr-4">
                     <div className="text-right">
                       <p className="text-xs text-purple-300/60">XP</p>
-                      <p className="font-semibold text-white">{u.xp?.toLocaleString() || 0}</p>
+                      <p className="font-semibold text-white">{(u.xp || 0).toLocaleString()}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-purple-300/60">Website Time</p>
@@ -463,7 +463,13 @@ const Admin = () => {
                             <div className="bg-purple-950/50 rounded p-3">
                               <p className="text-xs text-purple-300/60 mb-1">Total Study Time</p>
                               <p className="text-sm font-semibold text-white">
-                                {Math.floor((u.total_study_time || 0) / 60)}h {(u.total_study_time || 0) % 60}m
+                                {u.total_study_time ? (
+                                  <>
+                                    {Math.floor(u.total_study_time / 60)}h {u.total_study_time % 60}m
+                                  </>
+                                ) : (
+                                  '0m'
+                                )}
                               </p>
                             </div>
                             <div className="bg-purple-950/50 rounded p-3">

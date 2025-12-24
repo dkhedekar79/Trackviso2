@@ -165,6 +165,19 @@ async function listUsers(adminUserId) {
       };
     });
 
+    // Debug: Log sample data to verify accuracy
+    if (enrichedUsers.length > 0) {
+      const sample = enrichedUsers[0];
+      console.log('Sample user data:', {
+        email: sample.email,
+        xp: sample.xp,
+        level: sample.level,
+        total_study_time: sample.total_study_time,
+        website_time_minutes: sample.website_time_minutes,
+        calculated_from_sessions: studyTimeByUser.has(sample.id)
+      });
+    }
+
     console.log('Returning', enrichedUsers.length, 'enriched users');
     return {
       status: 200,
