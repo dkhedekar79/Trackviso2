@@ -38,9 +38,11 @@ const PremiumGiftSystem = () => {
     setLoading(true);
     try {
       const data = await fetchReferrals();
-      setReferrals(data || []);
+      // Ensure data is always an array
+      setReferrals(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Error loading referrals:', err);
+      setReferrals([]); // Set to empty array on error
     } finally {
       setLoading(false);
     }
@@ -50,9 +52,11 @@ const PremiumGiftSystem = () => {
     setLoading(true);
     try {
       const data = await fetchAmbassadorSubmissions();
-      setSubmissions(data || []);
+      // Ensure data is always an array
+      setSubmissions(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Error loading submissions:', err);
+      setSubmissions([]); // Set to empty array on error
     } finally {
       setLoading(false);
     }
@@ -85,7 +89,11 @@ const PremiumGiftSystem = () => {
     }
   };
 
-  const completedCount = referrals.filter(r => r.status === 'completed').length;
+  // Ensure referrals and submissions are always arrays
+  const safeReferrals = Array.isArray(referrals) ? referrals : [];
+  const safeSubmissions = Array.isArray(submissions) ? submissions : [];
+  
+  const completedCount = safeReferrals.filter(r => r && r.status === 'completed').length;
   const progress = Math.min(100, (completedCount / 3) * 100);
 
   // Hidden on these pages
@@ -395,12 +403,12 @@ const PremiumGiftSystem = () => {
                       <div className="space-y-2 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
                         {loading ? (
                           <div className="text-center py-4 text-[var(--text-muted)]">Loading...</div>
-                        ) : referrals.length === 0 ? (
+                        ) : safeReferrals.length === 0 ? (
                           <div className="text-center py-8 rounded-3xl border border-dashed border-white/10 text-[var(--text-muted)] text-sm">
                             No referrals yet. Share your link to start!
                           </div>
                         ) : (
-                          referrals.map((ref, i) => (
+                          safeReferrals.map((ref, i) => (
                             <div key={i} className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
                               <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold">
