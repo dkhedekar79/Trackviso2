@@ -78,43 +78,51 @@ const Subjects = () => {
   const { userStats } = useGamification();
   const { user } = useAuth();
 
-  // Helper function to convert Supabase format (snake_case) to app format (camelCase)
-  const convertFromSupabase = (supabaseSubject) => {
-    return {
-      id: supabaseSubject.id,
-      name: supabaseSubject.name,
-      color: supabaseSubject.color || '#6C5DD3',
-      goalHours: supabaseSubject.goal_hours || 0,
-      iconName: supabaseSubject.icon_name || 'BookOpen',
-      icon: ICON_COMPONENTS[supabaseSubject.icon_name || 'BookOpen'] || BookOpen,
-    };
-  };
-
-  // Helper function to convert app format (camelCase) to Supabase format (snake_case)
-  const convertToSupabase = (subject) => {
-    return {
-      id: subject.id,
-      name: subject.name,
-      color: subject.color,
-      goal_hours: subject.goalHours || 0,
-      icon_name: subject.iconName || 'BookOpen',
-    };
-  };
-
   // Load subjects from localStorage only (no Supabase)
   useEffect(() => {
     const loadSubjects = () => {
       try {
-        // Load from localStorage only
-        const savedSubjectsStr = localStorage.getItem('subjects');
-        if (!savedSubjectsStr) {
+        // Try loading from primary storage first
+        let savedSubjectsStr = localStorage.getItem('subjects');
+        
+        // If primary is empty/missing, try backup
+        if (!savedSubjectsStr || savedSubjectsStr === '[]') {
+          const backupStr = localStorage.getItem('subjects_backup');
+          if (backupStr && backupStr !== '[]') {
+            console.log('Loading subjects from backup');
+            savedSubjectsStr = backupStr;
+            // Restore backup to primary
+            localStorage.setItem('subjects', backupStr);
+          }
+        }
+        
+        if (!savedSubjectsStr || savedSubjectsStr === '[]') {
           setSubjects([]);
           return;
         }
         
         const savedSubjects = JSON.parse(savedSubjectsStr);
         if (!Array.isArray(savedSubjects)) {
-          console.warn('Subjects data is not an array, resetting');
+          console.warn('Subjects data is not an array, trying backup...');
+          // Try backup
+          const backupStr = localStorage.getItem('subjects_backup');
+          if (backupStr) {
+            try {
+              const backup = JSON.parse(backupStr);
+              if (Array.isArray(backup) && backup.length > 0) {
+                const subjectsWithIcons = backup.map(subject => ({
+                  ...subject,
+                  icon: ICON_COMPONENTS[subject.iconName] || BookOpen,
+                }));
+                setSubjects(subjectsWithIcons);
+                // Restore backup
+                localStorage.setItem('subjects', backupStr);
+                return;
+              }
+            } catch (e) {
+              console.error('Backup also invalid:', e);
+            }
+          }
           setSubjects([]);
           return;
         }
@@ -126,6 +134,25 @@ const Subjects = () => {
         setSubjects(subjectsWithIcons);
       } catch (error) {
         console.error('Error loading subjects:', error);
+        // Try backup on error
+        try {
+          const backupStr = localStorage.getItem('subjects_backup');
+          if (backupStr) {
+            const backup = JSON.parse(backupStr);
+            if (Array.isArray(backup) && backup.length > 0) {
+              console.log('Loaded subjects from backup after error');
+              const subjectsWithIcons = backup.map(subject => ({
+                ...subject,
+                icon: ICON_COMPONENTS[subject.iconName] || BookOpen,
+              }));
+              setSubjects(subjectsWithIcons);
+              localStorage.setItem('subjects', backupStr);
+              return;
+            }
+          }
+        } catch (e) {
+          console.error('Backup also failed:', e);
+        }
         setSubjects([]);
       }
     };
@@ -134,7 +161,7 @@ const Subjects = () => {
     
     // Listen for storage events (in case subjects are updated in another tab)
     const handleStorageChange = (e) => {
-      if (e.key === 'subjects') {
+      if (e.key === 'subjects' || e.key === 'subjects_backup') {
         loadSubjects();
       }
     };
@@ -146,22 +173,73 @@ const Subjects = () => {
     };
   }, []); // Only run on mount
 
-  // Safeguard: Periodically check if subjects disappeared from localStorage and restore from state
+  // Save subjects to localStorage whenever they change (reactive save)
+  useEffect(() => {
+    if (subjects.length === 0) return; // Don't save if empty (might be initial load)
+    
+    try {
+      const subjectsToSave = subjects.map(({ icon, ...rest }) => rest);
+      localStorage.setItem('subjects', JSON.stringify(subjectsToSave));
+      
+      // Create backup copy
+      localStorage.setItem('subjects_backup', JSON.stringify(subjectsToSave));
+    } catch (error) {
+      console.error('Error saving subjects:', error);
+      // Try to free up space by removing old backup
+      try {
+        localStorage.removeItem('subjects_backup_old');
+        const backup = localStorage.getItem('subjects_backup');
+        if (backup) {
+          localStorage.setItem('subjects_backup_old', backup);
+        }
+        localStorage.setItem('subjects', JSON.stringify(subjects.map(({ icon, ...rest }) => rest)));
+      } catch (e) {
+        console.error('Failed to save subjects even after cleanup:', e);
+      }
+    }
+  }, [subjects]);
+
+  // Safeguard: Periodically check if subjects disappeared from localStorage and restore
   useEffect(() => {
     if (subjects.length === 0) return; // Don't run if no subjects
     
     const interval = setInterval(() => {
       const currentSubjects = localStorage.getItem('subjects');
+      const backupSubjects = localStorage.getItem('subjects_backup');
+      
+      // Check if subjects disappeared
       if (!currentSubjects || currentSubjects === '[]') {
-        // Subjects disappeared from localStorage but we have them in state - save them back
-        console.warn('Subjects disappeared from localStorage, restoring from state');
-        try {
-          localStorage.setItem('subjects', JSON.stringify(subjects.map(({ icon, ...rest }) => rest)));
-        } catch (error) {
-          console.error('Error restoring subjects:', error);
+        console.warn('⚠️ Subjects disappeared from localStorage, attempting restore...');
+        
+        // Try to restore from backup first
+        if (backupSubjects && backupSubjects !== '[]') {
+          try {
+            const backup = JSON.parse(backupSubjects);
+            if (Array.isArray(backup) && backup.length > 0) {
+              console.log('Restoring subjects from backup');
+              localStorage.setItem('subjects', backupSubjects);
+              setSubjects(backup.map(s => ({
+                ...s,
+                icon: ICON_COMPONENTS[s.iconName] || BookOpen
+              })));
+              return;
+            }
+          } catch (e) {
+            console.error('Error parsing backup:', e);
+          }
+        }
+        
+        // If no backup, restore from state
+        if (subjects.length > 0) {
+          console.warn('Restoring subjects from state');
+          try {
+            localStorage.setItem('subjects', JSON.stringify(subjects.map(({ icon, ...rest }) => rest)));
+          } catch (error) {
+            console.error('Error restoring subjects:', error);
+          }
         }
       }
-    }, 10000); // Check every 10 seconds
+    }, 5000); // Check every 5 seconds (more frequent for better protection)
     
     return () => clearInterval(interval);
   }, [subjects]);
