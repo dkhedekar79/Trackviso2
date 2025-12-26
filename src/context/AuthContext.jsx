@@ -127,6 +127,25 @@ export const AuthProvider = ({ children }) => {
       setLastQuizResetDate(session?.user?.user_metadata?.last_quiz_reset_date || null);
       setOnboardingCompleted(session?.user?.user_metadata?.onboarding_completed || false);
       setDisplayName(session?.user?.user_metadata?.display_name || '');
+      
+      // Handle referral code for logged-in users (not just on signup)
+      if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+        const refCode = sessionStorage.getItem('referralCode');
+        if (refCode && refCode !== session.user.id) { // Don't refer yourself
+          try {
+            const { createReferral } = await import('../utils/supabaseDb');
+            const result = await createReferral(refCode);
+            if (result) {
+              logger.log('✅ Referral created successfully on auth state change');
+            } else {
+              logger.log('ℹ️ Referral already exists or invalid');
+            }
+            sessionStorage.removeItem('referralCode');
+          } catch (err) {
+            logger.error('Error handling referral on auth state change:', err);
+          }
+        }
+      }
 
       // Client-side daily reset check on auth state change - don't block
       if (session?.user) {
@@ -188,15 +207,20 @@ export const AuthProvider = ({ children }) => {
     if (data.user) {
       await initializeDatabase();
       
-      // Handle referral if present
+      // Handle referral if present (works for both new signups and existing users visiting with referral link)
       const refCode = sessionStorage.getItem('referralCode');
-      if (refCode) {
+      if (refCode && refCode !== data.user.id) { // Don't refer yourself
         try {
           const { createReferral } = await import('../utils/supabaseDb');
-          await createReferral(refCode);
+          const result = await createReferral(refCode);
+          if (result) {
+            logger.log('✅ Referral created successfully');
+          } else {
+            logger.log('ℹ️ Referral already exists or invalid');
+          }
           sessionStorage.removeItem('referralCode');
         } catch (err) {
-          console.error('Error handling referral during signup:', err);
+          logger.error('Error handling referral:', err);
         }
       }
     }

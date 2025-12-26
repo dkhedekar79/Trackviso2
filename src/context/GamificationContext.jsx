@@ -244,7 +244,7 @@ export const GamificationProvider = ({ children }) => {
           return;
         }
 
-        const { updateUserStats } = await import('../utils/supabaseDb');
+        const { updateUserStats, checkReferralCompletion } = await import('../utils/supabaseDb');
         const result = await updateUserStats({
           xp: userStats.xp || 0,
           level: userStats.level || 1
@@ -253,6 +253,13 @@ export const GamificationProvider = ({ children }) => {
         if (result) {
           lastSyncedXPRef.current = userStats.xp;
           logger.log('✅ XP synced to Supabase:', userStats.xp, 'Level:', userStats.level);
+          
+          // Check referral completion when level changes (especially when reaching level 10)
+          if (userStats.level >= 10) {
+            checkReferralCompletion(session.user.id, userStats.level).catch(err => {
+              logger.error('Error checking referral completion:', err);
+            });
+          }
         } else {
           logger.warn('Failed to sync XP to Supabase');
         }

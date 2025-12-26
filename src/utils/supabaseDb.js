@@ -413,12 +413,20 @@ export const subscribeToStudySessions = (userId, callback) => {
 export const createReferral = async (referrerId) => {
   try {
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return null;
+    if (!session) {
+      logger.warn('Cannot create referral: No active session');
+      return null;
+    }
 
     const referredId = session.user.id;
     
     // Don't refer yourself
-    if (referrerId === referredId) return null;
+    if (referrerId === referredId) {
+      logger.log('Cannot refer yourself');
+      return null;
+    }
+    
+    logger.log(`Creating referral: referrer ${referrerId.substring(0, 8)}... -> referred ${referredId.substring(0, 8)}...`);
 
     const { data, error } = await supabase
       .from('referrals')
@@ -433,12 +441,14 @@ export const createReferral = async (referrerId) => {
     if (error) {
       if (error.code === '23505') {
         // Already referred
+        logger.log('Referral already exists for this user');
         return null;
       }
       logger.error('Error creating referral:', error);
       return null;
     }
 
+    logger.log(`✅ Referral created successfully: ${data.id}`);
     return data;
   } catch (error) {
     logger.error('Exception creating referral:', error);
@@ -475,9 +485,14 @@ export const fetchReferrals = async () => {
  * Checks and updates referral status when a user reaches level 10
  */
 export const checkReferralCompletion = async (userId, level) => {
-  if (level < 10) return;
+  if (level < 10) {
+    logger.log(`Referral check skipped: level ${level} < 10`);
+    return;
+  }
 
   try {
+    logger.log(`Checking referral completion for user ${userId.substring(0, 8)}... at level ${level}`);
+    
     // Check if this user was referred and status is still pending
     const { data: referral, error: fetchError } = await supabase
       .from('referrals')
@@ -486,7 +501,17 @@ export const checkReferralCompletion = async (userId, level) => {
       .eq('status', 'pending')
       .maybeSingle();
 
-    if (fetchError || !referral) return;
+    if (fetchError) {
+      logger.error('Error fetching referral:', fetchError);
+      return;
+    }
+    
+    if (!referral) {
+      logger.log('No pending referral found for this user');
+      return;
+    }
+    
+    logger.log(`Found pending referral: ${referral.id}, referrer: ${referral.referrer_id.substring(0, 8)}...`);
 
     // Update referral status to completed
     const { error: updateError } = await supabase
@@ -498,18 +523,29 @@ export const checkReferralCompletion = async (userId, level) => {
       logger.error('Error completing referral:', updateError);
       return;
     }
+    
+    logger.log(`✅ Referral ${referral.id} marked as completed!`);
 
     // Now check if the referrer has hit the 3 referrals milestone
     const referrerId = referral.referrer_id;
+    logger.log(`Checking if referrer ${referrerId.substring(0, 8)}... has 3+ completed referrals`);
+    
     const { data: completedReferrals, error: countError } = await supabase
       .from('referrals')
       .select('id')
       .eq('referrer_id', referrerId)
       .eq('status', 'completed');
 
-    if (countError) return;
+    if (countError) {
+      logger.error('Error counting completed referrals:', countError);
+      return;
+    }
+    
+    logger.log(`Referrer has ${completedReferrals.length} completed referrals`);
 
     if (completedReferrals.length >= 3) {
+      logger.log(`🎉 Referrer ${referrerId.substring(0, 8)}... has reached 3 referrals! Granting premium...`);
+      
       // Grant premium to referrer
       // Note: In a real app, this should be done via a secure server-side function
       const { error: premiumError } = await supabase.auth.updateUser({
@@ -517,15 +553,15 @@ export const checkReferralCompletion = async (userId, level) => {
       });
       
       // Also update user_stats table for the referrer
-      await supabase
+      const { error: statsError } = await supabase
         .from('user_stats')
         .update({ is_premium: true })
         .eq('user_id', referrerId);
         
-      if (premiumError) {
-        logger.error('Error granting premium via referral:', premiumError);
+      if (premiumError || statsError) {
+        logger.error('Error granting premium via referral:', premiumError || statsError);
       } else {
-        logger.log('Premium granted to referrer:', referrerId);
+        logger.log(`✅ Premium granted to referrer: ${referrerId.substring(0, 8)}...`);
       }
     }
   } catch (error) {
