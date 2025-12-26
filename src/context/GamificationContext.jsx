@@ -1453,6 +1453,21 @@ export const GamificationProvider = ({ children }) => {
           for (let i = 1; i <= levelsGained; i++) {
             handleLevelUp(oldLevel + i);
           }
+          
+          // Check referral completion when level changes (especially when reaching level 10)
+          if (newLevel >= 10) {
+            setTimeout(async () => {
+              try {
+                const { checkReferralCompletion } = await import('../utils/supabaseDb');
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                  await checkReferralCompletion(session.user.id, newLevel);
+                }
+              } catch (error) {
+                logger.error('Error checking referral completion on level up:', error);
+              }
+            }, 2000); // Wait 2 seconds for stats to sync
+          }
         }
 
         // Check achievements after state update
