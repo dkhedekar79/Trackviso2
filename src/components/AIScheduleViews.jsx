@@ -363,8 +363,25 @@ export default function AIScheduleViews({ schedule, onToggleComplete, onSchedule
         const newEndMin = newEndMinutes % 60;
         const newEndTime = `${newEndHour.toString().padStart(2, '0')}:${newEndMin.toString().padStart(2, '0')}`;
 
-        // Update the block
-        const updatedBlocks = schedule.blocks.map(b => {
+        // Get all blocks for the target date
+        const blocksForTargetDate = schedule.blocks.filter(b => b.day === targetDate && b.id !== block.id);
+        
+        // Find overlapping blocks
+        const newStartMinutes = timeToMinutes(newStartTime);
+        const newEndMinutesTotal = timeToMinutes(newEndTime);
+        
+        const overlappingBlocks = blocksForTargetDate.filter(b => {
+          const blockStart = timeToMinutes(b.startTime);
+          const blockEnd = timeToMinutes(b.endTime);
+          // Check if blocks overlap
+          return (newStartMinutes < blockEnd && newEndMinutesTotal > blockStart);
+        });
+
+        // Rearrange overlapping blocks
+        let updatedBlocks = [...schedule.blocks];
+        
+        // Update the dragged block first
+        updatedBlocks = updatedBlocks.map(b => {
           if (b.id === block.id) {
             return {
               ...b,
@@ -375,6 +392,71 @@ export default function AIScheduleViews({ schedule, onToggleComplete, onSchedule
           }
           return b;
         });
+
+        // Rearrange overlapping blocks - push them later
+        if (overlappingBlocks.length > 0) {
+          // Sort overlapping blocks by start time
+          overlappingBlocks.sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
+          
+          // Push overlapping blocks to start after the new block
+          let currentTime = newEndMinutesTotal;
+          
+          overlappingBlocks.forEach(overlappingBlock => {
+            const blockDuration = calculateDuration(overlappingBlock.startTime, overlappingBlock.endTime);
+            const newBlockStartMinutes = currentTime;
+            const newBlockEndMinutes = currentTime + blockDuration;
+            
+            // Clamp to 24 hours (1440 minutes) - don't allow blocks to go past midnight
+            const maxMinutes = 24 * 60;
+            if (newBlockEndMinutes > maxMinutes) {
+              // If the block would go past midnight, adjust it to end at 23:59
+              const adjustedEndMinutes = maxMinutes;
+              const adjustedStartMinutes = adjustedEndMinutes - blockDuration;
+              
+              const adjustedStartHour = Math.floor(adjustedStartMinutes / 60);
+              const adjustedStartMin = adjustedStartMinutes % 60;
+              const adjustedEndHour = Math.floor(adjustedEndMinutes / 60);
+              const adjustedEndMin = adjustedEndMinutes % 60;
+              
+              const newBlockStart = `${adjustedStartHour.toString().padStart(2, '0')}:${adjustedStartMin.toString().padStart(2, '0')}`;
+              const newBlockEnd = `${adjustedEndHour.toString().padStart(2, '0')}:${adjustedEndMin.toString().padStart(2, '0')}`;
+              
+              updatedBlocks = updatedBlocks.map(b => {
+                if (b.id === overlappingBlock.id) {
+                  return {
+                    ...b,
+                    startTime: newBlockStart,
+                    endTime: newBlockEnd,
+                  };
+                }
+                return b;
+              });
+              
+              currentTime = adjustedEndMinutes;
+            } else {
+              const newBlockStartHour = Math.floor(newBlockStartMinutes / 60);
+              const newBlockStartMin = newBlockStartMinutes % 60;
+              const newBlockEndHour = Math.floor(newBlockEndMinutes / 60);
+              const newBlockEndMin = newBlockEndMinutes % 60;
+              
+              const newBlockStart = `${newBlockStartHour.toString().padStart(2, '0')}:${newBlockStartMin.toString().padStart(2, '0')}`;
+              const newBlockEnd = `${newBlockEndHour.toString().padStart(2, '0')}:${newBlockEndMin.toString().padStart(2, '0')}`;
+              
+              updatedBlocks = updatedBlocks.map(b => {
+                if (b.id === overlappingBlock.id) {
+                  return {
+                    ...b,
+                    startTime: newBlockStart,
+                    endTime: newBlockEnd,
+                  };
+                }
+                return b;
+              });
+              
+              currentTime = newBlockEndMinutes;
+            }
+          });
+        }
 
         // Update schedule
         const updatedSchedule = {
@@ -541,20 +623,35 @@ export default function AIScheduleViews({ schedule, onToggleComplete, onSchedule
                 </tbody>
               </table>
             </div>
-            <DragOverlay>
+            <DragOverlay
+              style={{
+                cursor: 'grabbing',
+                zIndex: 9999,
+              }}
+            >
               {activeBlock ? (
-                <div className="p-3 rounded-lg border text-xs shadow-lg bg-slate-800/90 backdrop-blur-sm border-purple-400/50 opacity-90">
-                  <div className="font-semibold mb-1 truncate flex items-center gap-1">
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1.1, opacity: 1 }}
+                  className="p-3 rounded-lg border-2 text-xs shadow-2xl bg-gradient-to-br from-purple-900/95 to-slate-900/95 backdrop-blur-xl border-purple-400/80 min-w-[200px]"
+                  style={{
+                    boxShadow: '0 20px 60px rgba(139, 92, 246, 0.5), 0 0 40px rgba(139, 92, 246, 0.3)',
+                  }}
+                >
+                  <div className="font-semibold mb-1 truncate flex items-center gap-1 text-white">
                     {activeBlock.type?.toLowerCase() === 'break' ? <Coffee className="w-3 h-3" /> : <Zap className="w-3 h-3 text-yellow-400" />}
-                    {activeBlock.topic || activeBlock.name}
+                    {activeBlock.topic?.startsWith('topic-') ? (activeBlock.name?.split(' - ')[1] || activeBlock.name) : (activeBlock.topic || activeBlock.name)}
                   </div>
                   {activeBlock.type?.toLowerCase() !== 'break' && (
-                    <div className="text-[10px] opacity-80 flex items-center gap-1 mb-1 font-medium">
+                    <div className="text-[10px] opacity-90 flex items-center gap-1 mb-1 font-medium text-purple-200">
                       <BookOpen className="w-3 h-3" />
                       {activeBlock.subject}
                     </div>
                   )}
-                </div>
+                  <div className="text-[10px] opacity-70 font-medium text-purple-300">
+                    {formatTime(activeBlock.startTime)} - {formatTime(activeBlock.endTime)}
+                  </div>
+                </motion.div>
               ) : null}
             </DragOverlay>
           </motion.div>
