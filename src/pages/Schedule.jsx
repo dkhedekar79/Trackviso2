@@ -817,6 +817,19 @@ export default function AISchedule() {
         )}
       </AnimatePresence>
 
+      {/* Reset & Regenerate Modal */}
+      <AnimatePresence>
+        {isResetModalOpen && currentSchedule?.isAIGenerated && currentSchedule?.setupData && (
+          <AIScheduleSetup
+            onComplete={handleAISetupComplete}
+            onCancel={() => setIsResetModalOpen(false)}
+            availableSubjects={availableSubjects}
+            initialData={currentSchedule.setupData}
+            existingScheduleId={currentSchedule.id}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Edit Schedule Modal */}
       {currentSchedule && (
         <EditScheduleModal
