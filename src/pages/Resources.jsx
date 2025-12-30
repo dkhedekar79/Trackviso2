@@ -28,7 +28,7 @@ import {
   X,
 } from 'lucide-react';
 
-const LEVELS = ["GCSE", "A Level"];
+const LEVELS = ["GCSE", "IGCSE", "A Level"];
 const SUBJECTS = [
   "Mathematics",
   "English Language",
@@ -79,6 +79,15 @@ const SPEC_LINKS = [
   { level: "A Level", subject: "Biology", board: "Eduqas", title: "Eduqas AS/A Level Biology - Specification", url: "https://www.eduqas.co.uk/qualifications/biology-as-a-level/", type: "specification" },
   { level: "A Level", subject: "Chemistry", board: "Eduqas", title: "Eduqas AS/A Level Chemistry - Specification", url: "https://www.eduqas.co.uk/qualifications/chemistry-as-a-level/", type: "specification" },
   { level: "GCSE", subject: "English Language", board: "Eduqas", title: "Eduqas GCSE English Language - Specification", url: "https://www.eduqas.co.uk/qualifications/english-language-gcse/", type: "specification" },
+  // IGCSE Specifications
+  { level: "IGCSE", subject: "Mathematics", board: "Cambridge", title: "Cambridge IGCSE Mathematics (0580) - Specification", url: "https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-igcse-mathematics-0580/", type: "specification" },
+  { level: "IGCSE", subject: "Biology", board: "Cambridge", title: "Cambridge IGCSE Biology (0610) - Specification", url: "https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-igcse-biology-0610/", type: "specification" },
+  { level: "IGCSE", subject: "Chemistry", board: "Cambridge", title: "Cambridge IGCSE Chemistry (0620) - Specification", url: "https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-igcse-chemistry-0620/", type: "specification" },
+  { level: "IGCSE", subject: "Physics", board: "Cambridge", title: "Cambridge IGCSE Physics (0625) - Specification", url: "https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-igcse-physics-0625/", type: "specification" },
+  { level: "IGCSE", subject: "Mathematics", board: "Edexcel", title: "Edexcel IGCSE Mathematics A/B - Specification", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-mathematics-a-2016.html", type: "specification" },
+  { level: "IGCSE", subject: "Biology", board: "Edexcel", title: "Edexcel IGCSE Biology - Specification", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-biology-2017.html", type: "specification" },
+  { level: "IGCSE", subject: "Chemistry", board: "Edexcel", title: "Edexcel IGCSE Chemistry - Specification", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-chemistry-2017.html", type: "specification" },
+  { level: "IGCSE", subject: "Physics", board: "Edexcel", title: "Edexcel IGCSE Physics - Specification", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-physics-2017.html", type: "specification" },
 ];
 
 // Past paper hubs
@@ -105,6 +114,15 @@ const PAST_BASES = [
   { level: "A Level", subject: "Biology", board: "Eduqas", title: "Eduqas AS/A Level Biology - Past papers", url: "https://www.eduqas.co.uk/qualifications/biology-as-a-level/#tab_assessmentresources" },
   { level: "A Level", subject: "Chemistry", board: "Eduqas", title: "Eduqas AS/A Level Chemistry - Past papers", url: "https://www.eduqas.co.uk/qualifications/chemistry-as-a-level/#tab_assessmentresources" },
   { level: "GCSE", subject: "English Language", board: "Eduqas", title: "Eduqas GCSE English Language - Past papers", url: "https://www.eduqas.co.uk/qualifications/english-language-gcse/#tab_assessmentresources" },
+  // IGCSE Past Papers
+  { level: "IGCSE", subject: "Mathematics", board: "Cambridge", title: "Cambridge IGCSE Mathematics - Past papers & mark schemes", url: "https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-igcse-mathematics-0580/past-papers/", type: "past_paper" },
+  { level: "IGCSE", subject: "Biology", board: "Cambridge", title: "Cambridge IGCSE Biology - Past papers & mark schemes", url: "https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-igcse-biology-0610/past-papers/", type: "past_paper" },
+  { level: "IGCSE", subject: "Chemistry", board: "Cambridge", title: "Cambridge IGCSE Chemistry - Past papers & mark schemes", url: "https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-igcse-chemistry-0620/past-papers/", type: "past_paper" },
+  { level: "IGCSE", subject: "Physics", board: "Cambridge", title: "Cambridge IGCSE Physics - Past papers & mark schemes", url: "https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-igcse-physics-0625/past-papers/", type: "past_paper" },
+  { level: "IGCSE", subject: "Mathematics", board: "Edexcel", title: "Edexcel IGCSE Mathematics - Past papers & mark schemes", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-mathematics-a-2016.coursematerials.html#filterQuery=category:Pearson-UK:Category%2FExam-materials", type: "past_paper" },
+  { level: "IGCSE", subject: "Biology", board: "Edexcel", title: "Edexcel IGCSE Biology - Past papers & mark schemes", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-biology-2017.coursematerials.html#filterQuery=category:Pearson-UK:Category%2FExam-materials", type: "past_paper" },
+  { level: "IGCSE", subject: "Chemistry", board: "Edexcel", title: "Edexcel IGCSE Chemistry - Past papers & mark schemes", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-chemistry-2017.coursematerials.html#filterQuery=category:Pearson-UK:Category%2FExam-materials", type: "past_paper" },
+  { level: "IGCSE", subject: "Physics", board: "Edexcel", title: "Edexcel IGCSE Physics - Past papers & mark schemes", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-physics-2017.coursematerials.html#filterQuery=category:Pearson-UK:Category%2FExam-materials", type: "past_paper" },
 ];
 
 // New content: Video resources
@@ -115,6 +133,10 @@ const VIDEO_RESOURCES = [
   { level: "GCSE", subject: "Chemistry", board: "All", title: "GCSE Chemistry Revision Guide", url: "https://www.youtube.com/results?search_query=gcse+chemistry+revision", type: "video", description: "Complete GCSE Chemistry revision playlist" },
   { level: "GCSE", subject: "Biology", board: "All", title: "GCSE Biology - All Topics Covered", url: "https://www.youtube.com/results?search_query=gcse+biology+revision", type: "video", description: "Comprehensive Biology revision videos" },
   { level: "GCSE", subject: "English Language", board: "All", title: "GCSE English Language Exam Techniques", url: "https://www.youtube.com/results?search_query=gcse+english+language+techniques", type: "video", description: "Expert tips for GCSE English Language exams" },
+  { level: "IGCSE", subject: "Mathematics", board: "All", title: "IGCSE Maths Revision - Complete Course", url: "https://www.youtube.com/results?search_query=igcse+maths+revision", type: "video", description: "Comprehensive revision videos covering all IGCSE Maths topics" },
+  { level: "IGCSE", subject: "Biology", board: "All", title: "IGCSE Biology - All Topics Covered", url: "https://www.youtube.com/results?search_query=igcse+biology+revision", type: "video", description: "Comprehensive IGCSE Biology revision videos" },
+  { level: "IGCSE", subject: "Chemistry", board: "All", title: "IGCSE Chemistry Revision Guide", url: "https://www.youtube.com/results?search_query=igcse+chemistry+revision", type: "video", description: "Complete IGCSE Chemistry revision playlist" },
+  { level: "IGCSE", subject: "Physics", board: "All", title: "IGCSE Physics Explained - All Topics", url: "https://www.youtube.com/results?search_query=igcse+physics+explained", type: "video", description: "Clear explanations of IGCSE Physics concepts" },
 ];
 
 // New content: Study tips with real URLs
@@ -144,6 +166,7 @@ function getPastPaperDownloadUrl(base, year) {
   
   const levelMap = {
     'GCSE': 'gcse',
+    'IGCSE': 'igcse',
     'A Level': 'a-level',
   };
   
@@ -153,6 +176,7 @@ function getPastPaperDownloadUrl(base, year) {
     'OCR': 'ocr',
     'WJEC': 'wjec',
     'Eduqas': 'eduqas',
+    'Cambridge': 'cambridge',
   };
   
   const subjectSlug = subjectMap[base.subject] || base.subject.toLowerCase().replace(/\s+/g, '-');

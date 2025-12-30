@@ -152,6 +152,99 @@ export const masteryTopics = {
       ]
     },
     OCR: {}
+  },
+  IGCSE: {
+    Cambridge: {
+      Mathematics: [
+        { id: 'number', name: 'Number' },
+        { id: 'algebra', name: 'Algebra and Graphs' },
+        { id: 'coordinate-geometry', name: 'Coordinate Geometry' },
+        { id: 'geometry', name: 'Geometry' },
+        { id: 'mensuration', name: 'Mensuration' },
+        { id: 'trigonometry', name: 'Trigonometry' },
+        { id: 'vectors', name: 'Vectors and Transformations' },
+        { id: 'probability', name: 'Probability' },
+        { id: 'statistics', name: 'Statistics' }
+      ],
+      Biology: [
+        { id: 'characteristics', name: 'Characteristics and Classification of Living Organisms' },
+        { id: 'cells', name: 'Cell Structure and Organisation' },
+        { id: 'movement', name: 'Movement In and Out of Cells' },
+        { id: 'biological-molecules', name: 'Biological Molecules' },
+        { id: 'enzymes', name: 'Enzymes' },
+        { id: 'plant-nutrition', name: 'Plant Nutrition' },
+        { id: 'human-nutrition', name: 'Human Nutrition' },
+        { id: 'transport', name: 'Transport in Plants and Animals' },
+        { id: 'respiration', name: 'Respiration' },
+        { id: 'gas-exchange', name: 'Gas Exchange in Humans' },
+        { id: 'excretion', name: 'Excretion' },
+        { id: 'coordination', name: 'Coordination and Response' },
+        { id: 'reproduction', name: 'Reproduction' },
+        { id: 'inheritance', name: 'Inheritance' },
+        { id: 'variation', name: 'Variation and Selection' },
+        { id: 'organisms', name: 'Organisms and Their Environment' },
+        { id: 'biotechnology', name: 'Biotechnology and Genetic Engineering' },
+        { id: 'human-influences', name: 'Human Influences on Ecosystems' }
+      ],
+      Chemistry: [
+        { id: 'particulate-nature', name: 'The Particulate Nature of Matter' },
+        { id: 'experimental-techniques', name: 'Experimental Techniques' },
+        { id: 'atoms-elements', name: 'Atoms, Elements and Compounds' },
+        { id: 'stoichiometry', name: 'Stoichiometry' },
+        { id: 'electricity', name: 'Electricity and Chemistry' },
+        { id: 'energy-changes', name: 'Energy Changes in Chemical Reactions' },
+        { id: 'chemical-reactions', name: 'Chemical Reactions' },
+        { id: 'acids-bases', name: 'Acids, Bases and Salts' },
+        { id: 'periodic-table', name: 'The Periodic Table' },
+        { id: 'metals', name: 'Metals' },
+        { id: 'air-water', name: 'Air and Water' },
+        { id: 'sulfur', name: 'Sulfur' },
+        { id: 'carbonates', name: 'Carbonates' },
+        { id: 'organic-chemistry', name: 'Organic Chemistry' }
+      ],
+      Physics: [
+        { id: 'motion', name: 'Motion, Forces and Energy' },
+        { id: 'thermal-physics', name: 'Thermal Physics' },
+        { id: 'waves', name: 'Waves' },
+        { id: 'electricity', name: 'Electricity and Magnetism' },
+        { id: 'nuclear-physics', name: 'Nuclear Physics' },
+        { id: 'space-physics', name: 'Space Physics' }
+      ]
+    },
+    Edexcel: {
+      Mathematics: [
+        { id: 'number', name: 'Number' },
+        { id: 'algebra', name: 'Algebra' },
+        { id: 'graphs', name: 'Graphs' },
+        { id: 'geometry', name: 'Geometry and Trigonometry' },
+        { id: 'vectors', name: 'Vectors and Transformations' },
+        { id: 'statistics', name: 'Statistics' },
+        { id: 'probability', name: 'Probability' }
+      ],
+      Biology: [
+        { id: 'nature-variety', name: 'The Nature and Variety of Living Organisms' },
+        { id: 'structures', name: 'Structures and Functions in Living Organisms' },
+        { id: 'reproduction', name: 'Reproduction and Inheritance' },
+        { id: 'ecology', name: 'Ecology and the Environment' },
+        { id: 'use-biological', name: 'Use of Biological Resources' }
+      ],
+      Chemistry: [
+        { id: 'principles', name: 'Principles of Chemistry' },
+        { id: 'inorganic', name: 'Inorganic Chemistry' },
+        { id: 'physical', name: 'Physical Chemistry' },
+        { id: 'organic', name: 'Organic Chemistry' }
+      ],
+      Physics: [
+        { id: 'forces-motion', name: 'Forces and Motion' },
+        { id: 'electricity', name: 'Electricity' },
+        { id: 'waves', name: 'Waves' },
+        { id: 'energy', name: 'Energy Resources and Energy Transfers' },
+        { id: 'solids-liquids', name: 'Solids, Liquids and Gases' },
+        { id: 'magnetism', name: 'Magnetism and Electromagnetism' },
+        { id: 'radioactivity', name: 'Radioactivity and Particles' },
+        { id: 'astrophysics', name: 'Astrophysics' }
+      ]
+    }
   }
 };
 

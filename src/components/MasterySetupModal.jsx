@@ -5,6 +5,7 @@ import { generateTopics } from '../utils/geminiApi';
 
 const qualifications = [
   { name: 'GCSE', available: true },
+  { name: 'IGCSE', available: true },
   { name: 'A-Level', available: false },
   { name: 'IB', available: false },
   { name: 'AP', available: false },
@@ -15,6 +16,7 @@ const qualifications = [
 
 const examBoards = {
   GCSE: ['AQA', 'Edexcel', 'OCR', 'Eduqas'],
+  IGCSE: ['Cambridge', 'Edexcel'],
   'A-Level': ['AQA', 'Edexcel', 'OCR', 'Cambridge'],
   IB: ['IB'],
   AP: ['AP'],
