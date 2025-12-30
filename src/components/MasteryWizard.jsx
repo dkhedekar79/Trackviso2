@@ -26,6 +26,7 @@ const MasteryWizard = ({ subjects, onComplete, onClose }) => {
 
   const examBoards = {
     GCSE: ['AQA', 'Edexcel', 'OCR', 'Eduqas'],
+    IGCSE: ['Cambridge', 'Edexcel'],
     'A-Level': ['AQA', 'Edexcel', 'OCR', 'Cambridge'],
   };
 
@@ -346,10 +347,18 @@ const MasteryWizard = ({ subjects, onComplete, onClose }) => {
                       <label className="block text-sm text-purple-300/80 mb-2">Qualification</label>
                       <select
                         value={qualification}
-                        onChange={(e) => setQualification(e.target.value)}
+                        onChange={(e) => {
+                          setQualification(e.target.value);
+                          // Reset exam board to first available option when qualification changes
+                          const boards = examBoards[e.target.value] || [];
+                          if (boards.length > 0) {
+                            setExamBoard(boards[0]);
+                          }
+                        }}
                         className="w-full px-4 py-2 rounded-lg bg-purple-900/40 text-white border border-purple-700/50 focus:outline-none focus:border-purple-600/80"
                       >
                         <option value="GCSE">GCSE</option>
+                        <option value="IGCSE">IGCSE</option>
                         <option value="A-Level">A-Level</option>
                       </select>
                     </div>
