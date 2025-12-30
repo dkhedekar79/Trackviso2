@@ -824,7 +824,10 @@ export default function AISchedule() {
             onComplete={handleAISetupComplete}
             onCancel={() => setIsResetModalOpen(false)}
             availableSubjects={availableSubjects}
-            initialData={currentSchedule.setupData}
+            initialData={{
+              ...currentSchedule.setupData,
+              scheduleName: currentSchedule.name,
+            }}
             existingScheduleId={currentSchedule.id}
           />
         )}
