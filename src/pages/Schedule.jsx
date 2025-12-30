@@ -4,7 +4,7 @@ import {
   ChevronLeft, ChevronRight, Sun, CloudSun, Moon, 
   Sparkles, Plus, X, BookOpen, Coffee, Calendar,
   Clock, Repeat, Trash2, Edit2, Zap, Brain, ArrowLeft,
-  CalendarDays, List
+  CalendarDays, List, RotateCcw
 } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import SEO from "../components/SEO";
@@ -98,6 +98,7 @@ export default function AISchedule() {
   const [editingBlock, setEditingBlock] = useState(null);
   const [isAISetupOpen, setIsAISetupOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState('calendar'); // For AI schedules: 'calendar' or 'topics'
 
 
@@ -155,11 +156,21 @@ export default function AISchedule() {
   };
 
   const handleAISetupComplete = (newSchedule) => {
-    setSchedules(prev => [...prev, newSchedule].sort((a, b) => 
-      new Date(a.startDate) - new Date(b.startDate)
-    ));
-    setIsAISetupOpen(false);
-    setCurrentSchedule(newSchedule);
+    if (isResetModalOpen && currentSchedule) {
+      // Update existing schedule
+      setSchedules(prev => prev.map(s => 
+        s.id === currentSchedule.id ? newSchedule : s
+      ));
+      setCurrentSchedule(newSchedule);
+      setIsResetModalOpen(false);
+    } else {
+      // Create new schedule
+      setSchedules(prev => [...prev, newSchedule].sort((a, b) => 
+        new Date(a.startDate) - new Date(b.startDate)
+      ));
+      setIsAISetupOpen(false);
+      setCurrentSchedule(newSchedule);
+    }
   };
 
   const handleAISetupCancel = () => {
@@ -584,6 +595,15 @@ export default function AISchedule() {
                 >
                   <Sparkles className="w-5 h-5" />
                   Edit & Regenerate
+                </motion.button>
+                <motion.button
+                  onClick={() => setIsResetModalOpen(true)}
+                  className="px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white rounded-xl font-semibold transition-all shadow-lg shadow-amber-500/30 flex items-center gap-2"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <RotateCcw className="w-5 h-5" />
+                  Reset & Regenerate
                 </motion.button>
               </div>
             )}

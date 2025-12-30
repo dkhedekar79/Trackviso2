@@ -9,7 +9,7 @@ import {
 import { generateAISchedule } from "../utils/scheduleGeneratorApi";
 import { useSubscription } from "../context/SubscriptionContext";
 
-export default function AIScheduleSetup({ onComplete, onCancel, availableSubjects }) {
+export default function AIScheduleSetup({ onComplete, onCancel, availableSubjects, initialData, existingScheduleId }) {
   const { incrementAIScheduleUsage } = useSubscription();
   const [currentStep, setCurrentStep] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -56,22 +56,22 @@ export default function AIScheduleSetup({ onComplete, onCancel, availableSubject
   }, [isGenerating]);
 
   // Step 1: Duration
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [scheduleName, setScheduleName] = useState('');
+  const [startDate, setStartDate] = useState(initialData?.startDate || '');
+  const [endDate, setEndDate] = useState(initialData?.endDate || '');
+  const [scheduleName, setScheduleName] = useState(initialData?.scheduleName || '');
 
   // Step 2: Subjects and Topics
-  const [selectedSubjects, setSelectedSubjects] = useState([]);
-  const [subjectModes, setSubjectModes] = useState({}); // { subjectId: mode }
-  const [topics, setTopics] = useState([]); // Array of { id, name, subjectId, subjectName }
+  const [selectedSubjects, setSelectedSubjects] = useState(initialData?.subjects || []);
+  const [subjectModes, setSubjectModes] = useState(initialData?.subjectModes || {}); // { subjectId: mode }
+  const [topics, setTopics] = useState(initialData?.topics || []); // Array of { id, name, subjectId, subjectName }
 
   // Step 3: Confidence Ratings
-  const [confidenceRatings, setConfidenceRatings] = useState({}); // { topicId: 'red' | 'yellow' | 'green' }
-  const [topicReasoning, setTopicReasoning] = useState({}); // { topicId: reasoning }
+  const [confidenceRatings, setConfidenceRatings] = useState(initialData?.confidenceRatings || {}); // { topicId: 'red' | 'yellow' | 'green' }
+  const [topicReasoning, setTopicReasoning] = useState(initialData?.topicReasoning || {}); // { topicId: reasoning }
 
   // Step 4: School & Homework (New)
-  const [homeworks, setHomeworks] = useState([]);
-  const [schoolSchedule, setSchoolSchedule] = useState({
+  const [homeworks, setHomeworks] = useState(initialData?.homeworks || []);
+  const [schoolSchedule, setSchoolSchedule] = useState(initialData?.schoolSchedule || {
     start: '08:30',
     end: '15:30',
     studyBefore: false,
@@ -81,25 +81,27 @@ export default function AIScheduleSetup({ onComplete, onCancel, availableSubject
 
   // Step 5: Advanced Parameters (Optional)
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
-  const [timetableMode, setTimetableMode] = useState('balanced'); // short-term-exam, long-term-exam, balanced
-  const [peakEnergy, setPeakEnergy] = useState('morning'); // morning, afternoon, evening, night
-  const [examDates, setExamDates] = useState({}); // { subjectId: date }
-  const [studyRhythm, setStudyRhythm] = useState('balanced'); // pomodoro, deepwork, balanced, block
-  const [subjectDifficulty, setSubjectDifficulty] = useState({}); // { subjectId: 1-10 }
-  const [noGoZones, setNoGoZones] = useState([]); // Array of hours (0-23) representing typical "busy" daily hours
-  const [topicTimes, setTopicTimes] = useState({}); // { topicId: minutes } (Moved from Step 4 state)
+  const [timetableMode, setTimetableMode] = useState(initialData?.advanced?.timetableMode || 'balanced'); // short-term-exam, long-term-exam, balanced
+  const [peakEnergy, setPeakEnergy] = useState(initialData?.advanced?.peakEnergy || 'morning'); // morning, afternoon, evening, night
+  const [examDates, setExamDates] = useState(initialData?.advanced?.examDates || {}); // { subjectId: date }
+  const [studyRhythm, setStudyRhythm] = useState(initialData?.advanced?.studyRhythm || 'balanced'); // pomodoro, deepwork, balanced, block
+  const [subjectDifficulty, setSubjectDifficulty] = useState(initialData?.advanced?.subjectDifficulty || {}); // { subjectId: 1-10 }
+  const [noGoZones, setNoGoZones] = useState(initialData?.advanced?.noGoZones || []); // Array of hours (0-23) representing typical "busy" daily hours
+  const [topicTimes, setTopicTimes] = useState(initialData?.topicTimes || {}); // { topicId: minutes } (Moved from Step 4 state)
 
   // Step 6: Busy Times and Instructions
-  const [busyTimes, setBusyTimes] = useState('');
-  const [instructions, setInstructions] = useState('');
+  const [busyTimes, setBusyTimes] = useState(initialData?.busyTimes || '');
+  const [instructions, setInstructions] = useState(initialData?.instructions || '');
 
   const totalSteps = 6;
 
   useEffect(() => {
-    // Set default start date to today
-    const today = new Date().toISOString().split('T')[0];
-    setStartDate(today);
-  }, []);
+    // Set default start date to today if no initial data
+    if (!initialData) {
+      const today = new Date().toISOString().split('T')[0];
+      setStartDate(today);
+    }
+  }, [initialData]);
 
   const handleAddSubject = (subject) => {
     if (!selectedSubjects.find(s => s.id === subject.id)) {
@@ -262,7 +264,7 @@ export default function AIScheduleSetup({ onComplete, onCancel, availableSubject
       });
 
       const newSchedule = {
-        id: Date.now(),
+        id: existingScheduleId || Date.now(),
         name: scheduleName || `AI Schedule ${new Date().toLocaleDateString()}`,
         startDate,
         endDate,
@@ -270,7 +272,8 @@ export default function AIScheduleSetup({ onComplete, onCancel, availableSubject
         isAIGenerated: true,
         setupData: scheduleData,
         aiSummary: generatedSchedule.summary,
-        createdAt: new Date().toISOString(),
+        createdAt: existingScheduleId ? undefined : new Date().toISOString(),
+        updatedAt: existingScheduleId ? new Date().toISOString() : undefined,
       };
 
       // Wait for animation to finish or at least a few seconds for effect
