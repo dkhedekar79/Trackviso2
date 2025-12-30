@@ -71,46 +71,83 @@ export const useYouTubeMusic = () => {
 
   // Load YouTube IFrame API
   useEffect(() => {
-    if (!window.YT) {
-      const tag = document.createElement('script');
-      tag.src = YOUTUBE_IFRAME_API_URL;
-      const firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    let isMounted = true;
+    let initTimeout = null;
+    
+    const loadAPI = () => {
+      if (!window.YT) {
+        const tag = document.createElement('script');
+        tag.src = YOUTUBE_IFRAME_API_URL;
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-      window.onYouTubeIframeAPIReady = () => {
-        initializePlayer();
-      };
-    } else if (window.YT && window.YT.Player && !player) {
-      initializePlayer();
-    }
+        window.onYouTubeIframeAPIReady = () => {
+          if (isMounted && !playerRef.current) {
+            initializePlayer();
+          }
+        };
+      } else if (window.YT && window.YT.Player && !playerRef.current && !isReady) {
+        // Small delay to ensure API is fully ready
+        initTimeout = setTimeout(() => {
+          if (isMounted && !playerRef.current) {
+            initializePlayer();
+          }
+        }, 100);
+      }
+    };
+
+    loadAPI();
 
     return () => {
+      isMounted = false;
+      if (initTimeout) {
+        clearTimeout(initTimeout);
+      }
       if (playerRef.current) {
         try {
           playerRef.current.destroy();
+          playerRef.current = null;
         } catch (e) {
           // Ignore errors on cleanup
         }
       }
     };
-  }, []);
+  }, [initializePlayer, isReady]);
 
   const initializePlayer = useCallback(() => {
-    if (!window.YT || !window.YT.Player) {
-      setError('YouTube IFrame API not loaded');
+    // Don't initialize if player already exists
+    if (playerRef.current) {
+      console.log('YouTube player already initialized');
       return;
     }
 
-    // Create a hidden div for the player
-    if (!playerDivRef.current) {
-      const div = document.createElement('div');
-      div.id = 'youtube-music-player';
-      div.style.display = 'none';
-      div.style.position = 'absolute';
-      div.style.top = '-9999px';
-      document.body.appendChild(div);
-      playerDivRef.current = div;
+    if (!window.YT || !window.YT.Player) {
+      console.warn('YouTube IFrame API not loaded, will retry...');
+      setError('YouTube IFrame API not loaded');
+      // Retry after a short delay
+      setTimeout(() => {
+        if (window.YT && window.YT.Player && !playerRef.current) {
+          initializePlayer();
+        }
+      }, 1000);
+      return;
     }
+
+    // Check if div already exists, if so remove it first
+    const existingDiv = document.getElementById('youtube-music-player');
+    if (existingDiv && existingDiv.parentNode) {
+      existingDiv.parentNode.removeChild(existingDiv);
+    }
+
+    // Create a hidden div for the player
+    const div = document.createElement('div');
+    div.id = 'youtube-music-player';
+    div.style.display = 'none';
+    div.style.position = 'absolute';
+    div.style.top = '-9999px';
+    div.style.left = '-9999px';
+    document.body.appendChild(div);
+    playerDivRef.current = div;
 
     try {
       const ytPlayer = new window.YT.Player('youtube-music-player', {
@@ -129,10 +166,16 @@ export const useYouTubeMusic = () => {
         },
         events: {
           onReady: (event) => {
+            console.log('YouTube player ready');
             setIsReady(true);
             setPlayer(ytPlayer);
             playerRef.current = ytPlayer;
-            event.target.setVolume(volume);
+            setError(null); // Clear any previous errors
+            try {
+              event.target.setVolume(volume);
+            } catch (e) {
+              console.error('Error setting initial volume:', e);
+            }
           },
           onStateChange: (event) => {
             // YT.PlayerState.PLAYING = 1, YT.PlayerState.PAUSED = 2, YT.PlayerState.ENDED = 0
@@ -151,6 +194,11 @@ export const useYouTubeMusic = () => {
     } catch (err) {
       console.error('Error initializing YouTube player:', err);
       setError(err.message || 'Failed to initialize YouTube player');
+      // Clean up failed attempt
+      if (playerDivRef.current && playerDivRef.current.parentNode) {
+        playerDivRef.current.parentNode.removeChild(playerDivRef.current);
+        playerDivRef.current = null;
+      }
     }
   }, [volume]);
 
@@ -333,12 +381,19 @@ export const useYouTubeMusic = () => {
   const handleLogin = useCallback(() => {
     // YouTube doesn't require login for basic playback
     // This is just for consistency with other music services
-    if (!isReady) {
-      setError('YouTube player not ready. Please wait...');
+    if (!isReady || !playerRef.current) {
+      // Try to initialize if not ready
+      if (!playerRef.current && window.YT && window.YT.Player) {
+        console.log('Initializing YouTube player on login attempt...');
+        initializePlayer();
+      } else {
+        setError('YouTube player not ready. Please wait...');
+      }
       return;
     }
     // Player is already ready, no login needed
-  }, [isReady]);
+    setError(null); // Clear any errors
+  }, [isReady, initializePlayer]);
 
   const handleLogout = useCallback(() => {
     if (player && isReady) {
