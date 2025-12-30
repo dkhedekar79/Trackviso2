@@ -300,16 +300,41 @@ export default function AIScheduleViews({ schedule, onToggleComplete, onSchedule
 
   // Get all unique dates split into weeks
   const weeks = useMemo(() => {
-    if (!schedule?.blocks) return [];
-    const dates = [...new Set(schedule.blocks.map(b => b.day))].sort((a, b) => new Date(a) - new Date(b));
+    if (!schedule?.blocks || schedule.blocks.length === 0) return [];
+    
+    // Extract all unique dates and filter out invalid ones
+    const allDates = schedule.blocks
+      .map(b => b.day)
+      .filter(day => day && typeof day === 'string' && day.trim() !== '');
+    
+    if (allDates.length === 0) return [];
+    
+    // Get unique dates and sort them properly
+    const uniqueDates = [...new Set(allDates)].sort((a, b) => {
+      const dateA = new Date(a);
+      const dateB = new Date(b);
+      // Check if dates are valid
+      if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) {
+        return a.localeCompare(b); // Fallback to string comparison
+      }
+      return dateA - dateB;
+    });
+    
+    if (uniqueDates.length === 0) return [];
+    
+    // Split into weeks (chunks of 7 days)
     const chunks = [];
-    for (let i = 0; i < dates.length; i += 7) {
-      chunks.push(dates.slice(i, i + 7));
+    for (let i = 0; i < uniqueDates.length; i += 7) {
+      chunks.push(uniqueDates.slice(i, i + 7));
     }
+    
     return chunks;
   }, [schedule]);
 
   const currentWeekDates = weeks[currentWeekIndex] || [];
+  
+  // Show week navigation if there are multiple weeks OR if there are more than 7 days total
+  const shouldShowWeekNavigation = weeks.length > 1 || (weeks.length === 1 && weeks[0]?.length > 7);
 
   // Generate hours array (6 AM to 11 PM)
   const hours = Array.from({ length: 18 }, (_, i) => i + 6); // 6 to 23
@@ -495,7 +520,7 @@ export default function AIScheduleViews({ schedule, onToggleComplete, onSchedule
 
         <div className="flex items-center gap-4">
           {/* Week Navigation */}
-          {weeks.length > 1 && (
+          {shouldShowWeekNavigation && (
             <div className="flex items-center gap-2 bg-slate-800/50 rounded-lg p-1 border border-purple-500/30">
               <button
                 onClick={() => setCurrentWeekIndex(prev => Math.max(0, prev - 1))}
