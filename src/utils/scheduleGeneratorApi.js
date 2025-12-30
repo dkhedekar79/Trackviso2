@@ -60,8 +60,11 @@ export async function generateAISchedule(scheduleData) {
     endDate,
   } = scheduleData;
 
+  // Filter out empty topics
+  const validTopics = topics.filter(t => t.name && t.name.trim() !== '');
+  
   // Build topics with confidence ratings, preferred times, and difficulty
-  const topicsWithMetadata = topics.map(topic => {
+  const topicsWithMetadata = validTopics.map(topic => {
     const rating = confidenceRatings[topic.id] || 'yellow';
     const difficulty = advanced?.subjectDifficulty?.[topic.subjectId] || 5;
     return {
@@ -74,14 +77,18 @@ export async function generateAISchedule(scheduleData) {
     };
   });
 
-  // Organize by subject
-  const subjectsWithTopics = subjects.map(subject => ({
-    ...subject,
-    topics: topicsWithMetadata.filter(t => t.subjectId === subject.id),
-    examDate: advanced?.examDates?.[subject.id] || null,
-    mode: subjectModes[subject.id] || 'no-exam',
-    difficulty: advanced?.subjectDifficulty?.[subject.id] || 5
-  }));
+  // Organize by subject - include subjects with no topics (for general study)
+  const subjectsWithTopics = subjects.map(subject => {
+    const subjectTopics = topicsWithMetadata.filter(t => t.subjectId === subject.id);
+    return {
+      ...subject,
+      topics: subjectTopics,
+      hasSpecificTopics: subjectTopics.length > 0, // Flag to indicate if subject has specific topics
+      examDate: advanced?.examDates?.[subject.id] || null,
+      mode: subjectModes[subject.id] || 'no-exam',
+      difficulty: advanced?.subjectDifficulty?.[subject.id] || 5
+    };
+  });
 
   const isLongSchedule = duration > 7;
   const preferredModel = isLongSchedule ? 'gemini-1.5-pro' : 'gemini-2.5-flash-lite';
@@ -105,11 +112,24 @@ USER COGNITIVE PROFILE:
 - Study During Lunch: ${schoolSchedule.studyLunch ? 'YES' : 'NO'}
 - Study During Free Periods: ${schoolSchedule.studyFree ? 'YES' : 'NO'}
 
-TOPICS TO INCLUDE:
-${subjectsWithTopics.map(subject => `
-  ${subject.name} (${subject.mode.toUpperCase()}): ${subject.topics.map(t => `${t.name} (ID: ${t.id}, Conf: ${t.confidence}, Diff: ${t.difficulty}/10${t.reasoning ? `, Struggles: "${t.reasoning}"` : ''}, Pref. Time: ${t.preferredTime})`).join(', ')}
-  ${subject.examDate ? `  * EXAM DATE: ${subject.examDate} (PRIORITIZE AS DATE APPROACHES)` : ''}
-`).join('\n')}
+SUBJECTS TO STUDY:
+${subjectsWithTopics.map(subject => {
+  if (subject.hasSpecificTopics) {
+    // Subject has specific topics
+    return `
+  ${subject.name} (${subject.mode.toUpperCase()}):
+    Topics: ${subject.topics.map(t => `${t.name} (ID: ${t.id}, Conf: ${t.confidence}, Diff: ${t.difficulty}/10${t.reasoning ? `, Struggles: "${t.reasoning}"` : ''}, Pref. Time: ${t.preferredTime})`).join(', ')}
+    ${subject.examDate ? `  * EXAM DATE: ${subject.examDate} (PRIORITIZE AS DATE APPROACHES)` : ''}`;
+  } else {
+    // Subject has no specific topics - general study
+    return `
+  ${subject.name} (${subject.mode.toUpperCase()}):
+    ⚠️ NO SPECIFIC TOPICS PROVIDED - Schedule GENERAL STUDY sessions covering the ENTIRE ${subject.name} subject.
+    The AI should create broad revision sessions that cover all aspects of ${subject.name} without focusing on specific topics.
+    Use topic name "General ${subject.name} Study" or "Complete ${subject.name} Revision" in the schedule.
+    ${subject.examDate ? `  * EXAM DATE: ${subject.examDate} (PRIORITIZE AS DATE APPROACHES)` : ''}`;
+  }
+}).join('\n')}
 
 🚨 HOMEWORK ASSIGNMENTS (MANDATORY DEADLINES):
 ${homeworks.length > 0 ? homeworks.map(hw => `- "${hw.title}" for ${subjects.find(s => s.id === hw.subjectId)?.name || 'Subject'}, DUE: ${hw.dueDate}, DURATION: ${hw.duration} mins`).join('\n') : 'None'}
@@ -118,11 +138,18 @@ USER BUSY TIMES: ${busyTimes || 'None'}
 USER CUSTOM INSTRUCTIONS: ${instructions || 'None'}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-⚠️ CRITICAL: USE EXACT TOPIC NAMES - MANDATORY ⚠️
+⚠️ CRITICAL: TOPIC HANDLING RULES ⚠️
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-You MUST use the EXACT topic names provided in the topics list above.
-DO NOT paraphrase, shorten, or modify topic names.
-The "tid" field MUST contain the exact original ID string provided.
+1. For subjects WITH specific topics listed:
+   - You MUST use the EXACT topic names provided in the topics list above.
+   - DO NOT paraphrase, shorten, or modify topic names.
+   - The "tid" field MUST contain the exact original ID string provided.
+
+2. For subjects WITHOUT specific topics (marked as "NO SPECIFIC TOPICS PROVIDED"):
+   - Use general topic names like "General [Subject] Study" or "Complete [Subject] Revision"
+   - The "tid" field should be "general-[subject-id]" or similar
+   - These sessions should cover the entire subject broadly, not focus on specific topics
+   - Distribute study time evenly across all areas of the subject
 
 ENGINEERING RULES:
 1. 🧠 BIOLOGICAL PRIME TIME: Schedule the highest "Diff" (Difficulty) and "Red" (Low Confidence) topics during the Peak Energy Window (${advanced?.peakEnergy}).
@@ -180,8 +207,16 @@ IMPORTANT: Return ONLY valid JSON. No markdown fences. Ensure all quotes are bal
     const rawSchedule = await generateAIJSON(prompt, { preferredModel });
 
     // CRITICAL: Validate and Filter topics to prevent hallucinations
-    const validTopicNames = new Set(topics.map(t => t.name.toLowerCase().trim()));
-    const validTopicIds = new Set(topics.map(t => t.id));
+    // Only validate if topics exist - subjects without topics use general study
+    const validTopicNames = new Set(validTopics.map(t => t.name.toLowerCase().trim()));
+    const validTopicIds = new Set(validTopics.map(t => t.id));
+    
+    // Track which subjects have no topics (for general study validation)
+    const subjectsWithoutTopics = new Set(
+      subjectsWithTopics
+        .filter(s => !s.hasSpecificTopics)
+        .map(s => s.name.toLowerCase())
+    );
 
     // Map and Validate the format
     const schedule = {
@@ -190,10 +225,26 @@ IMPORTANT: Return ONLY valid JSON. No markdown fences. Ensure all quotes are bal
         sessions: day.sessions.filter(s => {
           if (s.type === 'break') return true;
           
-          // Fuzzy validation for topic names
+          // Check if this is a general study session (subject has no specific topics)
+          const subjectName = s.sub.toLowerCase();
+          if (subjectsWithoutTopics.has(subjectName)) {
+            // Allow general study topics like "General [Subject] Study" or "Complete [Subject] Revision"
+            const isGeneralStudy = s.top.toLowerCase().includes('general') || 
+                                   s.top.toLowerCase().includes('complete') ||
+                                   s.top.toLowerCase().includes('revision') ||
+                                   s.tid?.startsWith('general-');
+            if (isGeneralStudy) {
+              return true;
+            }
+            // If it's a specific topic name for a subject without topics, still allow it
+            // (AI might create reasonable general topics)
+            return true;
+          }
+          
+          // For subjects with specific topics, validate against the topic list
           const isValid = isValidTopicFuzzy(s.top, validTopicNames) || validTopicIds.has(s.tid);
           if (!isValid) {
-            console.warn(`Filtering hallucinated topic: ${s.top}`);
+            console.warn(`Filtering hallucinated topic: ${s.top} for subject ${s.sub}`);
           }
           return isValid;
         }).map(s => ({

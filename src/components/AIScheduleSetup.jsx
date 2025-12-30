@@ -162,10 +162,13 @@ export default function AIScheduleSetup({ onComplete, onCancel, availableSubject
       case 1:
         return startDate && endDate && new Date(startDate) <= new Date(endDate);
       case 2:
-        return selectedSubjects.length > 0 && topics.length > 0 && 
-               topics.every(t => t.name.trim() !== '');
+        // Topics are now optional - if provided, they must have names
+        return selectedSubjects.length > 0 && 
+               (topics.length === 0 || topics.every(t => t.name.trim() !== ''));
       case 3:
-        return topics.every(t => confidenceRatings[t.id]);
+        // Step 3 is optional if no topics - skip confidence ratings
+        const validTopics = topics.filter(t => t.name.trim() !== '');
+        return validTopics.length === 0 || validTopics.every(t => confidenceRatings[t.id]);
       case 4:
         // Homework is optional, but if present must have title and date
         return homeworks.every(hw => hw.title.trim() !== '' && hw.dueDate !== '');
@@ -463,7 +466,14 @@ export default function AIScheduleSetup({ onComplete, onCancel, availableSubject
                     <BookOpen className="w-5 h-5 text-violet-400" />
                     Subjects & Topics
                   </h3>
-                  <p className="text-white/70 mb-6">Select subjects and add topics for each</p>
+                  <p className="text-white/70 mb-6">Select subjects and optionally add topics for each</p>
+                  <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg mb-6">
+                    <p className="text-blue-300 text-sm">
+                      <strong>💡 Tip:</strong> Topics are optional! If you don't add any topics for a subject, 
+                      the AI will schedule general study sessions covering the entire subject. 
+                      This is perfect for broad revision or when you want flexibility.
+                    </p>
+                  </div>
                 </div>
 
                 {/* Available Subjects */}
@@ -553,7 +563,12 @@ export default function AIScheduleSetup({ onComplete, onCancel, availableSubject
                               </div>
                             ))}
                             {subjectTopics.length === 0 && (
-                              <p className="text-white/50 text-sm">No topics added yet</p>
+                              <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                                <p className="text-blue-300 text-sm">
+                                  <strong>No topics added.</strong> The AI will schedule general study sessions 
+                                  covering the entire <strong>{subject.name}</strong> subject.
+                                </p>
+                              </div>
                             )}
                           </div>
                         </div>
@@ -581,10 +596,21 @@ export default function AIScheduleSetup({ onComplete, onCancel, availableSubject
                   <p className="text-white/70 mb-6">Rate your confidence level for each topic</p>
                 </div>
 
-                <div className="space-y-4">
-                  {selectedSubjects.map(subject => {
-                    const subjectTopics = topics.filter(t => t.subjectId === subject.id && t.name.trim() !== '');
-                    if (subjectTopics.length === 0) return null;
+                {topics.filter(t => t.name.trim() !== '').length === 0 ? (
+                  <div className="p-6 bg-blue-500/10 border border-blue-500/30 rounded-lg text-center">
+                    <p className="text-blue-300 text-lg mb-2">
+                      <strong>No topics to rate!</strong>
+                    </p>
+                    <p className="text-blue-200/80 text-sm">
+                      Since you haven't added any specific topics, the AI will schedule general study sessions 
+                      for all your subjects. You can skip this step and continue.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {selectedSubjects.map(subject => {
+                      const subjectTopics = topics.filter(t => t.subjectId === subject.id && t.name.trim() !== '');
+                      if (subjectTopics.length === 0) return null;
 
                     return (
                       <div key={subject.id} className="p-4 bg-slate-800/50 rounded-lg border border-purple-500/30">
@@ -637,15 +663,18 @@ export default function AIScheduleSetup({ onComplete, onCancel, availableSubject
                       </div>
                     );
                   })}
-                </div>
+                  </div>
+                )}
 
-                <div className="p-4 bg-violet-500/10 border border-violet-500/30 rounded-lg">
-                  <p className="text-violet-300 text-sm">
-                    <strong>Red:</strong> Low confidence - needs more time<br />
-                    <strong>Yellow:</strong> Medium confidence - moderate time<br />
-                    <strong>Green:</strong> High confidence - less time needed
-                  </p>
-                </div>
+                {topics.filter(t => t.name.trim() !== '').length > 0 && (
+                  <div className="p-4 bg-violet-500/10 border border-violet-500/30 rounded-lg">
+                    <p className="text-violet-300 text-sm">
+                      <strong>Red:</strong> Low confidence - needs more time<br />
+                      <strong>Yellow:</strong> Medium confidence - moderate time<br />
+                      <strong>Green:</strong> High confidence - less time needed
+                    </p>
+                  </div>
+                )}
               </motion.div>
             )}
 
