@@ -43,10 +43,48 @@ class ErrorBoundary extends React.Component {
 }
 
 const ErrorFallback = ({ error, errorInfo, onReset }) => {
+  const [showDetails, setShowDetails] = React.useState(false);
   const isDev = import.meta.env.DEV;
+
+  const handleTryAgain = () => {
+    // Reload the page to reset everything
+    window.location.reload();
+  };
 
   const handleGoHome = () => {
     window.location.href = '/dashboard';
+  };
+
+  // Format error message for display
+  const getErrorMessage = () => {
+    if (!error) return 'Unknown error occurred';
+    
+    // Try to extract a meaningful error message
+    if (error.message) return error.message;
+    if (typeof error === 'string') return error;
+    return error.toString();
+  };
+
+  // Format error stack/details
+  const getErrorDetails = () => {
+    const parts = [];
+    
+    if (error?.stack) {
+      parts.push('Stack Trace:');
+      parts.push(error.stack);
+    }
+    
+    if (errorInfo?.componentStack) {
+      parts.push('\nComponent Stack:');
+      parts.push(errorInfo.componentStack);
+    }
+    
+    if (error?.toString && error.toString() !== getErrorMessage()) {
+      parts.push('\nFull Error:');
+      parts.push(error.toString());
+    }
+    
+    return parts.join('\n');
   };
 
   return (
@@ -62,19 +100,36 @@ const ErrorFallback = ({ error, errorInfo, onReset }) => {
           </p>
         </div>
 
-        {isDev && error && (
+        {/* Always show error message */}
+        {error && (
           <div className="mb-6 p-4 bg-red-900/30 rounded-lg border border-red-700/50">
-            <h3 className="text-sm font-semibold text-red-300 mb-2">Error Details (Dev Only):</h3>
-            <pre className="text-xs text-red-200/70 overflow-auto max-h-40 font-mono">
-              {error.toString()}
-              {errorInfo?.componentStack}
-            </pre>
+            <div className="flex items-start justify-between mb-2">
+              <h3 className="text-sm font-semibold text-red-300">Error Message:</h3>
+              <button
+                onClick={() => setShowDetails(!showDetails)}
+                className="text-xs text-red-300 hover:text-red-200 underline"
+              >
+                {showDetails ? 'Hide Details' : 'Show Details'}
+              </button>
+            </div>
+            <p className="text-sm text-red-200/90 font-mono mb-2 break-words">
+              {getErrorMessage()}
+            </p>
+            
+            {/* Show detailed error info when expanded */}
+            {showDetails && getErrorDetails() && (
+              <div className="mt-3 pt-3 border-t border-red-700/50">
+                <pre className="text-xs text-red-200/70 overflow-auto max-h-60 font-mono whitespace-pre-wrap break-words">
+                  {getErrorDetails()}
+                </pre>
+              </div>
+            )}
           </div>
         )}
 
         <div className="flex flex-col sm:flex-row gap-3">
           <button
-            onClick={onReset}
+            onClick={handleTryAgain}
             className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-purple-500/50 transition-all"
           >
             <RefreshCw className="w-5 h-5" />
