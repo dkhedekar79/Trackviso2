@@ -4,8 +4,26 @@ import { useNavigate } from "react-router-dom";
 import { 
   Calendar, List, Clock, BookOpen, Coffee, Zap, 
   ChevronLeft, ChevronRight, PieChart, Info, 
-  Sparkles, X, ArrowRight, ExternalLink, Check, RotateCcw 
+  Sparkles, X, ArrowRight, ExternalLink, Check, RotateCcw, GripVertical
 } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+  useDroppable,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 // Helper functions defined before component to avoid ReferenceErrors
 const timeToMinutes = (timeStr) => {
@@ -35,11 +53,132 @@ const formatDate = (dateStr) => {
   return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 };
 
-export default function AIScheduleViews({ schedule, onToggleComplete }) {
+// Draggable Block Component
+function DraggableBlock({ block, blockIndex, date, hour, onBlockClick }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: `block-${block.id}-${date}-${hour}-${blockIndex}`,
+    data: {
+      type: 'block',
+      block,
+      date,
+      hour,
+    },
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const duration = calculateDuration(block.hourStart || block.startTime, block.hourEnd || block.endTime);
+  const durationMinutes = Math.round(duration);
+  const isBreak = block.type?.toLowerCase() === 'break' || block.topicId === 'small-break' || block.topicId === 'large-break';
+  const isLargeBreak = block.topicId === 'large-break';
+  const isTopicIdLeaked = block.topic?.startsWith('topic-');
+  const displayName = isTopicIdLeaked ? block.name?.split(' - ')[1] || block.name : block.topic || block.name;
+
+  return (
+    <motion.div
+      ref={setNodeRef}
+      style={style}
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: isDragging ? 0.5 : 1, scale: 1 }}
+      whileHover={!isDragging ? { scale: 1.02, y: -2 } : {}}
+      whileTap={{ scale: 0.98 }}
+      onClick={() => onBlockClick(block)}
+      className={`p-3 rounded-lg border text-xs shadow-md cursor-move transition-all relative ${
+        block.completed 
+          ? 'bg-slate-800/50 border-slate-700 opacity-50' 
+          : isLargeBreak
+          ? 'bg-blue-600/20 border-blue-400/50 text-blue-100'
+          : isBreak
+          ? 'bg-slate-700/40 border-slate-500/30 text-slate-200'
+          : block.priority === 'high'
+          ? 'bg-red-600/20 border-red-500/50 text-red-200'
+          : block.priority === 'medium'
+          ? 'bg-yellow-600/20 border-yellow-500/50 text-yellow-200'
+          : 'bg-emerald-600/20 border-emerald-500/50 text-emerald-200'
+      }`}
+    >
+      <div
+        {...attributes}
+        {...listeners}
+        className="absolute top-1 left-1 opacity-30 hover:opacity-60 transition-opacity cursor-grab active:cursor-grabbing"
+      >
+        <GripVertical className="w-3 h-3" />
+      </div>
+      <div className={`font-semibold mb-1 truncate flex items-center gap-1 ${block.completed ? 'line-through text-white/40' : ''}`}>
+        {block.completed ? <Check className="w-3 h-3 text-emerald-400" /> : isBreak ? <Coffee className="w-3 h-3" /> : <Zap className="w-3 h-3 text-yellow-400" />}
+        {displayName}
+      </div>
+      {!isBreak && (
+        <div className="text-[10px] opacity-80 flex items-center gap-1 mb-1 font-medium">
+          <BookOpen className="w-3 h-3" />
+          {block.subject}
+        </div>
+      )}
+      <div className="text-[10px] opacity-70 font-medium">
+        {formatTime(block.hourStart || block.startTime)} - {formatTime(block.hourEnd || block.endTime)}
+      </div>
+      {durationMinutes < 60 && (
+        <div className="text-[10px] opacity-60 mt-1">
+          {durationMinutes} min
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
+// Droppable Time Slot Component
+function DroppableTimeSlot({ date, hour, children, blocks }) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `slot-${date}-${hour}`,
+    data: {
+      type: 'slot',
+      date,
+      hour,
+    },
+  });
+
+  return (
+    <td className="p-2 align-top min-h-[80px]">
+      <div
+        ref={setNodeRef}
+        className={`h-full min-h-[80px] transition-all ${
+          isOver ? 'bg-purple-500/20 border-2 border-purple-400/50 rounded-lg' : ''
+        }`}
+      >
+        {children}
+      </div>
+    </td>
+  );
+}
+
+export default function AIScheduleViews({ schedule, onToggleComplete, onScheduleUpdate }) {
   const [viewMode, setViewMode] = useState('hour'); // 'hour', 'topics', or 'overview'
   const [currentWeekIndex, setCurrentWeekIndex] = useState(0);
   const [selectedBlock, setSelectedBlock] = useState(null);
+  const [activeId, setActiveId] = useState(null);
   const navigate = useNavigate();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const handleToggleComplete = (block) => {
     if (onToggleComplete) {
@@ -187,6 +326,80 @@ export default function AIScheduleViews({ schedule, onToggleComplete }) {
     };
   }, [schedule]);
 
+  // Handle drag start
+  const handleDragStart = (event) => {
+    setActiveId(event.active.id);
+  };
+
+  // Handle drag end
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    setActiveId(null);
+
+    if (!over || !schedule?.blocks || !onScheduleUpdate) return;
+
+    const activeData = active.data.current;
+    const overData = over.data.current;
+
+    // Extract block from active
+    if (!activeData || activeData.type !== 'block') return;
+
+    const block = activeData.block;
+    const sourceDate = activeData.date;
+    const sourceHour = activeData.hour;
+
+    // Check if dropped on a time slot
+    if (overData && overData.type === 'slot') {
+      const targetDate = overData.date;
+      const targetHour = overData.hour;
+
+      // Only update if moved to a different slot
+      if (targetDate !== sourceDate || targetHour !== sourceHour) {
+        // Calculate new start and end times
+        const duration = calculateDuration(block.startTime, block.endTime);
+        const newStartTime = `${targetHour.toString().padStart(2, '0')}:00`;
+        const newEndMinutes = timeToMinutes(newStartTime) + duration;
+        const newEndHour = Math.floor(newEndMinutes / 60);
+        const newEndMin = newEndMinutes % 60;
+        const newEndTime = `${newEndHour.toString().padStart(2, '0')}:${newEndMin.toString().padStart(2, '0')}`;
+
+        // Update the block
+        const updatedBlocks = schedule.blocks.map(b => {
+          if (b.id === block.id) {
+            return {
+              ...b,
+              day: targetDate,
+              startTime: newStartTime,
+              endTime: newEndTime,
+            };
+          }
+          return b;
+        });
+
+        // Update schedule
+        const updatedSchedule = {
+          ...schedule,
+          blocks: updatedBlocks,
+        };
+
+        // Call the update callback
+        onScheduleUpdate(updatedSchedule);
+      }
+    }
+  };
+
+  // Get active block for drag overlay
+  const activeBlock = useMemo(() => {
+    if (!activeId || !schedule?.blocks) return null;
+    // Extract block ID from activeId format: "block-{id}-{date}-{hour}-{index}"
+    const parts = activeId.toString().split('-');
+    if (parts.length >= 2) {
+      const blockId = parts[1];
+      return schedule.blocks.find(b => b.id === blockId);
+    }
+    return null;
+  }, [activeId, schedule]);
+
   return (
     <div className="space-y-6">
       {/* View Toggle and Navigation */}
@@ -248,119 +461,104 @@ export default function AIScheduleViews({ schedule, onToggleComplete }) {
 
       {/* Hour View */}
       {viewMode === 'hour' && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-slate-900/50 rounded-xl border border-purple-500/30 overflow-hidden"
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
         >
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-purple-500/30">
-                  <th className="text-left p-4 text-purple-300 font-semibold sticky left-0 bg-slate-900 z-10 min-w-[80px]">
-                    Time
-                  </th>
-                  {currentWeekDates.map(date => (
-                    <th key={date} className="text-center p-4 text-purple-300 font-semibold min-w-[200px]">
-                      {formatDate(date)}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-slate-900/50 rounded-xl border border-purple-500/30 overflow-hidden"
+          >
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b border-purple-500/30">
+                    <th className="text-left p-4 text-purple-300 font-semibold sticky left-0 bg-slate-900 z-10 min-w-[80px]">
+                      Time
                     </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {hours.map((hour, hourIndex) => {
-                  const hourStr = `${hour.toString().padStart(2, '0')}:00`;
-                  const displayHour = hour % 12 || 12;
-                  const ampm = hour >= 12 ? 'PM' : 'AM';
-                  
-                  return (
-                    <motion.tr
-                      key={hour}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: hourIndex * 0.02 }}
-                      className="border-b border-purple-500/20 hover:bg-slate-800/30 transition-colors"
-                    >
-                      <td className="p-4 text-white/70 font-medium sticky left-0 bg-slate-900 z-10">
-                        <div className="flex flex-col">
-                          <span className="font-semibold">{displayHour}:00 {ampm}</span>
-                          <span className="text-xs text-white/40">{hourStr}</span>
-                        </div>
-                      </td>
-                      {currentWeekDates.map(date => {
-                        const blocksForThisHour = organizedSchedule.hourGrid[date]?.[hour] || [];
-                        
-                        return (
-                          <td key={date} className="p-2 align-top">
-                            {blocksForThisHour.length === 0 ? (
-                              <div className="h-20 flex items-center justify-center border border-dashed border-purple-500/10 rounded-lg">
-                                <span className="text-white/10 text-xs">-</span>
-                              </div>
-                            ) : (
-                              <div className="space-y-2">
-                                {blocksForThisHour.map((block, blockIndex) => {
-                                  const duration = calculateDuration(block.hourStart, block.hourEnd);
-                                  const durationMinutes = Math.round(duration);
-                                  const isBreak = block.type?.toLowerCase() === 'break' || block.topicId === 'small-break' || block.topicId === 'large-break';
-                                  const isLargeBreak = block.topicId === 'large-break';
-                                  const isTopicIdLeaked = block.topic?.startsWith('topic-');
-                                  const displayName = isTopicIdLeaked ? block.name?.split(' - ')[1] || block.name : block.topic || block.name;
-                                  
-                                  return (
-                                    <motion.div
-                                      key={block.id || blockIndex}
-                                      initial={{ opacity: 0, scale: 0.9 }}
-                                      animate={{ opacity: 1, scale: 1 }}
-                                      whileHover={{ scale: 1.02, y: -2 }}
-                                      whileTap={{ scale: 0.98 }}
-                                      onClick={() => setSelectedBlock(block)}
-                                      className={`p-3 rounded-lg border text-xs shadow-md cursor-pointer transition-all ${
-                                        block.completed 
-                                          ? 'bg-slate-800/50 border-slate-700 opacity-50' 
-                                          : isLargeBreak
-                                          ? 'bg-blue-600/20 border-blue-400/50 text-blue-100'
-                                          : isBreak
-                                          ? 'bg-slate-700/40 border-slate-500/30 text-slate-200'
-                                          : block.priority === 'high'
-                                          ? 'bg-red-600/20 border-red-500/50 text-red-200'
-                                          : block.priority === 'medium'
-                                          ? 'bg-yellow-600/20 border-yellow-500/50 text-yellow-200'
-                                          : 'bg-emerald-600/20 border-emerald-500/50 text-emerald-200'
-                                      }`}
-                                    >
-                                      <div className={`font-semibold mb-1 truncate flex items-center gap-1 ${block.completed ? 'line-through text-white/40' : ''}`}>
-                                        {block.completed ? <Check className="w-3 h-3 text-emerald-400" /> : isBreak ? <Coffee className="w-3 h-3" /> : <Zap className="w-3 h-3 text-yellow-400" />}
-                                        {displayName}
-                                      </div>
-                                      {!isBreak && (
-                                        <div className="text-[10px] opacity-80 flex items-center gap-1 mb-1 font-medium">
-                                          <BookOpen className="w-3 h-3" />
-                                          {block.subject}
-                                        </div>
-                                      )}
-                                      <div className="text-[10px] opacity-70 font-medium">
-                                        {formatTime(block.hourStart)} - {formatTime(block.hourEnd)}
-                                      </div>
-                                      {durationMinutes < 60 && (
-                                        <div className="text-[10px] opacity-60 mt-1">
-                                          {durationMinutes} min
-                                        </div>
-                                      )}
-                                    </motion.div>
-                                  );
-                                })}
-                              </div>
-                            )}
-                          </td>
-                        );
-                      })}
-                    </motion.tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </motion.div>
+                    {currentWeekDates.map(date => (
+                      <th key={date} className="text-center p-4 text-purple-300 font-semibold min-w-[200px]">
+                        {formatDate(date)}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {hours.map((hour, hourIndex) => {
+                    const hourStr = `${hour.toString().padStart(2, '0')}:00`;
+                    const displayHour = hour % 12 || 12;
+                    const ampm = hour >= 12 ? 'PM' : 'AM';
+                    
+                    return (
+                      <motion.tr
+                        key={hour}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: hourIndex * 0.02 }}
+                        className="border-b border-purple-500/20 hover:bg-slate-800/30 transition-colors"
+                      >
+                        <td className="p-4 text-white/70 font-medium sticky left-0 bg-slate-900 z-10">
+                          <div className="flex flex-col">
+                            <span className="font-semibold">{displayHour}:00 {ampm}</span>
+                            <span className="text-xs text-white/40">{hourStr}</span>
+                          </div>
+                        </td>
+                        {currentWeekDates.map(date => {
+                          const blocksForThisHour = organizedSchedule.hourGrid[date]?.[hour] || [];
+                          const sortableIds = blocksForThisHour.map((block, idx) => `block-${block.id}-${date}-${hour}-${idx}`);
+                          
+                          return (
+                            <DroppableTimeSlot key={date} date={date} hour={hour} blocks={blocksForThisHour}>
+                              {blocksForThisHour.length === 0 ? (
+                                <div className="h-20 flex items-center justify-center border border-dashed border-purple-500/10 rounded-lg">
+                                  <span className="text-white/10 text-xs">-</span>
+                                </div>
+                              ) : (
+                                <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
+                                  <div className="space-y-2">
+                                    {blocksForThisHour.map((block, blockIndex) => (
+                                      <DraggableBlock
+                                        key={`block-${block.id}-${date}-${hour}-${blockIndex}`}
+                                        block={block}
+                                        blockIndex={blockIndex}
+                                        date={date}
+                                        hour={hour}
+                                        onBlockClick={setSelectedBlock}
+                                      />
+                                    ))}
+                                  </div>
+                                </SortableContext>
+                              )}
+                            </DroppableTimeSlot>
+                          );
+                        })}
+                      </motion.tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <DragOverlay>
+              {activeBlock ? (
+                <div className="p-3 rounded-lg border text-xs shadow-lg bg-slate-800/90 backdrop-blur-sm border-purple-400/50 opacity-90">
+                  <div className="font-semibold mb-1 truncate flex items-center gap-1">
+                    {activeBlock.type?.toLowerCase() === 'break' ? <Coffee className="w-3 h-3" /> : <Zap className="w-3 h-3 text-yellow-400" />}
+                    {activeBlock.topic || activeBlock.name}
+                  </div>
+                  {activeBlock.type?.toLowerCase() !== 'break' && (
+                    <div className="text-[10px] opacity-80 flex items-center gap-1 mb-1 font-medium">
+                      <BookOpen className="w-3 h-3" />
+                      {activeBlock.subject}
+                    </div>
+                  )}
+                </div>
+              ) : null}
+            </DragOverlay>
+          </motion.div>
+        </DndContext>
       )}
 
       {/* Topics View */}

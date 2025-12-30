@@ -55,6 +55,20 @@ export default function AISchedule() {
     });
   };
 
+  const handleScheduleUpdate = (updatedSchedule) => {
+    setSchedules(prevSchedules => {
+      const updatedSchedules = prevSchedules.map(s => 
+        s.id === updatedSchedule.id ? updatedSchedule : s
+      );
+      return updatedSchedules;
+    });
+    
+    // Update current schedule if it's the one being modified
+    if (currentSchedule && currentSchedule.id === updatedSchedule.id) {
+      setCurrentSchedule(updatedSchedule);
+    }
+  };
+
   // Calendar view states (when viewing a specific schedule)
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const today = new Date();
@@ -558,7 +572,11 @@ export default function AISchedule() {
 
         {/* AI Schedule Views (only for AI-generated schedules) */}
         {currentSchedule?.isAIGenerated ? (
-          <AIScheduleViews schedule={currentSchedule} onToggleComplete={handleToggleComplete} />
+          <AIScheduleViews 
+            schedule={currentSchedule} 
+            onToggleComplete={handleToggleComplete}
+            onScheduleUpdate={handleScheduleUpdate}
+          />
         ) : (
           // Fallback for non-AI schedules (shouldn't happen, but just in case)
           <div className="text-center py-12 text-white/50">
