@@ -10,6 +10,7 @@ import Sidebar from "../components/Sidebar";
 import SEO from "../components/SEO";
 import AIScheduleSetup from "../components/AIScheduleSetup";
 import AIScheduleViews from "../components/AIScheduleViews";
+import EditScheduleModal from "../components/EditScheduleModal";
 import { useSubscription } from "../context/SubscriptionContext";
 import { useGamification } from "../context/GamificationContext";
 import PremiumUpgradeModal from "../components/PremiumUpgradeModal";
@@ -69,6 +70,11 @@ export default function AISchedule() {
     }
   };
 
+  const handleEditScheduleComplete = (updatedSchedule) => {
+    handleScheduleUpdate(updatedSchedule);
+    setIsEditModalOpen(false);
+  };
+
   // Calendar view states (when viewing a specific schedule)
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const today = new Date();
@@ -91,6 +97,7 @@ export default function AISchedule() {
   const [blockEventName, setBlockEventName] = useState('');
   const [editingBlock, setEditingBlock] = useState(null);
   const [isAISetupOpen, setIsAISetupOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState('calendar'); // For AI schedules: 'calendar' or 'topics'
 
 
@@ -567,6 +574,19 @@ export default function AISchedule() {
                 </p>
               </div>
             </div>
+            {currentSchedule?.isAIGenerated && (
+              <div className="flex items-center gap-3">
+                <motion.button
+                  onClick={() => setIsEditModalOpen(true)}
+                  className="px-6 py-3 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white rounded-xl font-semibold transition-all shadow-lg shadow-violet-500/30 flex items-center gap-2"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Sparkles className="w-5 h-5" />
+                  Edit & Regenerate
+                </motion.button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -776,6 +796,16 @@ export default function AISchedule() {
           />
         )}
       </AnimatePresence>
+
+      {/* Edit Schedule Modal */}
+      {currentSchedule && (
+        <EditScheduleModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          schedule={currentSchedule}
+          onScheduleUpdated={handleEditScheduleComplete}
+        />
+      )}
 
       <PremiumUpgradeModal 
         isOpen={showUpgradeModal} 
