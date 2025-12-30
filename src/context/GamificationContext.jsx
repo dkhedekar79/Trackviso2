@@ -2216,74 +2216,124 @@ export const GamificationProvider = ({ children }) => {
 
 
   // Debug function to reset user stats - COMPLETELY RESET EVERYTHING
-  const resetUserStats = () => {
-    localStorage.removeItem("userStats");
-    localStorage.removeItem("lastDailyQuestReset");
-    localStorage.removeItem("lastWeeklyQuestReset");
-    
-    const defaultStats = {
-      // Core progression
-      xp: 0,
-      level: 1,
-      prestigeLevel: 0,
+  const resetUserStats = async () => {
+    try {
+      // Clear localStorage first
+      localStorage.removeItem("userStats");
+      localStorage.removeItem("lastDailyQuestReset");
+      localStorage.removeItem("lastWeeklyQuestReset");
+      
+      const defaultStats = {
+        // Core progression
+        xp: 0,
+        level: 1,
+        prestigeLevel: 0,
 
-      // Session tracking
-      totalSessions: 0,
-      totalStudyTime: 0,
-      sessionHistory: [],
+        // Session tracking
+        totalSessions: 0,
+        totalStudyTime: 0,
+        sessionHistory: [],
 
-      // Streak system
-      currentStreak: 0,
-      longestStreak: 0,
-      lastStudyDate: null,
-      streakSavers: 3,
+        // Streak system
+        currentStreak: 0,
+        longestStreak: 0,
+        lastStudyDate: null,
+        streakSavers: 3,
 
-      // Achievement & badge system
-      badges: [],
-      achievements: [],
-      unlockedTitles: [],
-      currentTitle: "Rookie Scholar",
+        // Achievement & badge system
+        badges: [],
+        achievements: [],
+        unlockedTitles: [],
+        currentTitle: "Rookie Scholar",
 
-      // Quest system
-      dailyQuests: [],
-      weeklyQuests: [],
-      completedQuestsToday: 0,
-      questStreak: 0,
+        // Quest system
+        dailyQuests: [],
+        weeklyQuests: [],
+        completedQuestsToday: 0,
+        questStreak: 0,
 
-      // Social & competition
-      weeklyXP: 0,
-      weeklyRank: 0,
-      friends: [],
-      challenges: [],
+        // Social & competition
+        weeklyXP: 0,
+        weeklyRank: 0,
+        friends: [],
+        challenges: [],
 
-      // Premium features
-      isPremium: false,
-      xpMultiplier: 1.0,
-      premiumSkins: [],
-      currentSkin: "default",
+        // Premium features
+        isPremium: false,
+        xpMultiplier: 1.0,
+        premiumSkins: [],
+        currentSkin: "default",
 
-      // Statistics
-      subjectMastery: {},
-      weeklyGoal: 0,
-      weeklyProgress: 0,
-      totalXPEarned: 0,
+        // Statistics
+        subjectMastery: {},
+        weeklyGoal: 0,
+        weeklyProgress: 0,
+        totalXPEarned: 0,
 
-      // Variable reward tracking
-      lastRewardTime: null,
-      rewardStreak: 0,
-      luckyStreak: 0,
-      jackpotCount: 0,
-      gems: 0,
-      xpEvents: [],
-    };
-    
-    setUserStats(defaultStats);
-    
-    // Generate fresh quests after reset
-    setTimeout(() => {
-      generateDailyQuests();
-      generateWeeklyQuests();
-    }, 100);
+        // Variable reward tracking
+        lastRewardTime: null,
+        rewardStreak: 0,
+        luckyStreak: 0,
+        jackpotCount: 0,
+        gems: 0,
+        xpEvents: [],
+      };
+      
+      // Update local state
+      setUserStats(defaultStats);
+      
+      // Reset XP and stats in Supabase
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        // Update user_stats in Supabase
+        const { updateUserStats } = await import('../utils/supabaseDb');
+        await updateUserStats({
+          xp: 0,
+          level: 1,
+          total_study_time: 0,
+          total_sessions: 0,
+          current_streak: 0,
+          longest_streak: 0,
+          last_study_date: null,
+          weekly_xp: 0,
+          total_xp_earned: 0,
+          subject_mastery: {},
+          current_title: 'Rookie Scholar',
+          prestige_level: 0,
+          gems: 0,
+          reward_streak: 0,
+          lucky_streak: 0,
+          jackpot_count: 0,
+          completed_quests_today: 0,
+        });
+
+        // Delete all study sessions from Supabase
+        const { error: deleteError } = await supabase
+          .from('study_sessions')
+          .delete()
+          .eq('user_id', session.user.id);
+
+        if (deleteError) {
+          logger.error('Error deleting study sessions:', deleteError);
+        } else {
+          logger.log('✅ All study sessions deleted from Supabase');
+        }
+
+        logger.log('✅ User stats reset in Supabase');
+      }
+      
+      // Reset the sync ref to ensure next XP change triggers a sync
+      lastSyncedXPRef.current = null;
+      
+      // Generate fresh quests after reset
+      setTimeout(() => {
+        generateDailyQuests();
+        generateWeeklyQuests();
+      }, 100);
+    } catch (error) {
+      logger.error('Error resetting user stats:', error);
+      throw error;
+    }
   };
 
   const value = {

@@ -50,10 +50,12 @@ export default function ProfileDropdown() {
     }
   };
 
-  const handleResetData = () => {
+  const handleResetData = async () => {
+    setLoading(true);
+    setError("");
     try {
-      // Reset gamification stats
-      resetUserStats();
+      // Reset gamification stats (now async and resets Supabase)
+      await resetUserStats();
       // Clear all app data
       localStorage.removeItem("tasks");
       localStorage.removeItem("mysteryBoxClaimedSessions");
@@ -61,13 +63,15 @@ export default function ProfileDropdown() {
       localStorage.removeItem("studySessions");
       localStorage.removeItem("lastDailyQuestReset");
       localStorage.removeItem("lastWeeklyQuestReset");
+      localStorage.removeItem("aiSchedules");
       setShowResetConfirm(false);
       setIsOpen(false);
       // Reload page to refresh all data from localStorage
       window.location.reload();
     } catch (e) {
       console.error("Failed to reset data", e);
-      setError("Failed to reset data");
+      setError("Failed to reset data. Please try again.");
+      setLoading(false);
     }
   };
 
@@ -131,9 +135,10 @@ export default function ProfileDropdown() {
                 <div className="flex gap-2">
                   <button
                     onClick={handleResetData}
-                    className="px-3 py-1 bg-amber-600 text-white rounded text-xs hover:bg-amber-700"
+                    disabled={loading}
+                    className="px-3 py-1 bg-amber-600 text-white rounded text-xs hover:bg-amber-700 disabled:opacity-50"
                   >
-                    Yes, Reset
+                    {loading ? "Resetting..." : "Yes, Reset"}
                   </button>
                   <button
                     onClick={() => setShowResetConfirm(false)}
