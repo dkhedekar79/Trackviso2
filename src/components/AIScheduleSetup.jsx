@@ -1102,14 +1102,25 @@ export default function AIScheduleSetup({ onComplete, onCancel, availableSubject
                     <FileText className="w-4 h-4" />
                     Additional Instructions
                   </label>
-                  <textarea
-                    rows="6"
-                    className="w-full bg-slate-800/50 border border-purple-500/30 rounded-lg py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 resize-none"
-                    placeholder="e.g., Prefer morning sessions for difficult topics, need at least 1 hour break between subjects, want to review topics every 3 days..."
-                    value={instructions}
-                    onChange={(e) => setInstructions(e.target.value)}
-                  />
-                  <p className="text-white/50 text-xs mt-1">Any specific preferences or requirements for your schedule</p>
+                  <div className="relative">
+                    <textarea
+                      rows="6"
+                      className="w-full bg-slate-800/50 border-2 border-purple-500/40 rounded-lg py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/70 focus:border-purple-500/60 resize-none shadow-lg shadow-purple-500/20 transition-all relative z-10"
+                      placeholder="e.g., Prefer morning sessions for difficult topics, need at least 1 hour break between subjects, want to review topics every 3 days..."
+                      value={instructions}
+                      onChange={(e) => setInstructions(e.target.value)}
+                      style={{
+                        boxShadow: '0 0 20px rgba(139, 92, 246, 0.15), 0 0 40px rgba(139, 92, 246, 0.1), inset 0 0 20px rgba(139, 92, 246, 0.05)'
+                      }}
+                    />
+                  </div>
+                  <div className="mt-2 p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+                    <p className="text-purple-300 text-xs font-medium">
+                      <strong>💡 Important:</strong> Make sure you add detail here, as everyone's plans are different. 
+                      The more specific you are about your preferences, study habits, and requirements, 
+                      the better the AI can tailor your perfect schedule.
+                    </p>
+                  </div>
                 </div>
               </motion.div>
             )}
