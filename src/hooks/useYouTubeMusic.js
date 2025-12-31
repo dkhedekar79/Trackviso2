@@ -213,16 +213,50 @@ export const useYouTubeMusic = () => {
     };
   }, [initializePlayer, isReady]);
 
+  // Helper function to check if player is valid and ready
+  const isPlayerValid = useCallback(() => {
+    if (!player || !isReady || !playerRef.current) {
+      return false;
+    }
+    // Check if the player div still exists in the DOM
+    const playerDiv = document.getElementById('youtube-music-player');
+    if (!playerDiv) {
+      console.warn('YouTube player div not found in DOM, player may have been removed');
+      return false;
+    }
+    // Check if player has a valid iframe
+    try {
+      // Try to access a safe property to verify player is still valid
+      if (player.getIframe && typeof player.getIframe === 'function') {
+        const iframe = player.getIframe();
+        if (!iframe || !iframe.contentWindow) {
+          return false;
+        }
+      }
+    } catch (e) {
+      console.warn('Error checking player validity:', e);
+      return false;
+    }
+    return true;
+  }, [player, isReady]);
+
   // Update volume when it changes
   useEffect(() => {
-    if (player && isReady) {
+    if (isPlayerValid()) {
       try {
         player.setVolume(volume);
       } catch (e) {
         console.error('Error setting volume:', e);
+        // If player is invalid, try to re-initialize
+        if (e.message?.includes('null') || e.message?.includes('src')) {
+          console.log('Player appears invalid, will re-initialize on next use');
+          setIsReady(false);
+          setPlayer(null);
+          playerRef.current = null;
+        }
       }
     }
-  }, [volume, player, isReady]);
+  }, [volume, player, isReady, isPlayerValid]);
 
   const searchVideo = useCallback(async (query) => {
     if (!YOUTUBE_API_KEY) {
@@ -281,9 +315,17 @@ export const useYouTubeMusic = () => {
   }, []);
 
   const playLofiPlaylist = useCallback(async (playlistId = 'lofi-hip-hop') => {
-    if (!player || !isReady) {
-      setError('YouTube player not ready');
-      return;
+    if (!isPlayerValid()) {
+      // Try to re-initialize if player is invalid
+      if (window.YT && window.YT.Player && !playerRef.current) {
+        console.log('Player invalid, attempting to re-initialize...');
+        initializePlayer();
+        setError('Player not ready, initializing...');
+        return;
+      } else {
+        setError('YouTube player not ready');
+        return;
+      }
     }
 
     setIsLoading(true);
@@ -307,6 +349,10 @@ export const useYouTubeMusic = () => {
       }
 
       if (video) {
+        // Double-check player is still valid before loading video
+        if (!isPlayerValid()) {
+          throw new Error('Player became invalid while loading video');
+        }
         player.loadVideoById(video.videoId);
         setCurrentTrack({
           name: video.title,
@@ -325,19 +371,33 @@ export const useYouTubeMusic = () => {
     } catch (err) {
       console.error('Error playing lofi:', err);
       setError(err.message || 'Failed to play lofi music');
+      // If error is due to invalid player, reset state
+      if (err.message?.includes('null') || err.message?.includes('src') || err.message?.includes('invalid')) {
+        setIsReady(false);
+        setPlayer(null);
+        playerRef.current = null;
+      }
     } finally {
       setIsLoading(false);
     }
-  }, [player, isReady, searchVideo]);
+  }, [player, isReady, searchVideo, isPlayerValid, initializePlayer]);
 
   const getMostPlayedPlaylistsHook = useCallback(() => {
     return getMostPlayedPlaylists();
   }, []);
 
   const searchAndPlay = useCallback(async (query) => {
-    if (!player || !isReady) {
-      setError('YouTube player not ready');
-      return;
+    if (!isPlayerValid()) {
+      // Try to re-initialize if player is invalid
+      if (window.YT && window.YT.Player && !playerRef.current) {
+        console.log('Player invalid, attempting to re-initialize...');
+        initializePlayer();
+        setError('Player not ready, initializing...');
+        return;
+      } else {
+        setError('YouTube player not ready');
+        return;
+      }
     }
 
     setIsLoading(true);
@@ -353,6 +413,10 @@ export const useYouTubeMusic = () => {
       }
 
       if (video) {
+        // Double-check player is still valid before loading video
+        if (!isPlayerValid()) {
+          throw new Error('Player became invalid while loading video');
+        }
         player.loadVideoById(video.videoId);
         setCurrentTrack({
           name: video.title,
@@ -366,13 +430,19 @@ export const useYouTubeMusic = () => {
     } catch (err) {
       console.error('Error searching and playing:', err);
       setError(err.message || 'Failed to search and play');
+      // If error is due to invalid player, reset state
+      if (err.message?.includes('null') || err.message?.includes('src') || err.message?.includes('invalid')) {
+        setIsReady(false);
+        setPlayer(null);
+        playerRef.current = null;
+      }
     } finally {
       setIsLoading(false);
     }
-  }, [player, isReady, searchVideo]);
+  }, [player, isReady, searchVideo, isPlayerValid, initializePlayer]);
 
   const togglePlayback = useCallback(() => {
-    if (!player || !isReady) {
+    if (!isPlayerValid()) {
       setError('YouTube player not ready');
       return;
     }
@@ -386,8 +456,14 @@ export const useYouTubeMusic = () => {
     } catch (err) {
       console.error('Error toggling playback:', err);
       setError(err.message || 'Failed to toggle playback');
+      // If error is due to invalid player, reset state
+      if (err.message?.includes('null') || err.message?.includes('src')) {
+        setIsReady(false);
+        setPlayer(null);
+        playerRef.current = null;
+      }
     }
-  }, [player, isReady, isPlaying]);
+  }, [player, isReady, isPlaying, isPlayerValid]);
 
   const handleLogin = useCallback(() => {
     // YouTube doesn't require login for basic playback
