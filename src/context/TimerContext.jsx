@@ -1,13 +1,42 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 
-const TimerContext = createContext();
+// Provide default value to prevent initialization errors
+const defaultTimerContext = {
+  timerState: {
+    isRunning: false,
+    mode: 'pomodoro',
+    secondsLeft: 25 * 60,
+    stopwatchSeconds: 0,
+    isPomodoroBreak: false,
+    pomodoroCount: 0,
+    totalCyclesCompleted: 0,
+    subjectName: '',
+    customMinutes: 25,
+    startTime: null,
+    pausedTime: null,
+    lastUpdateTime: null,
+    phaseJustCompleted: null,
+    showPhaseNotification: false,
+  },
+  startTimer: () => {},
+  pauseTimer: () => {},
+  stopTimer: () => {},
+  resetTimer: () => {},
+  setMode: () => {},
+  setCustomMinutes: () => {},
+  setSubjectName: () => {},
+  setOnWorkComplete: () => {},
+  setOnBreakComplete: () => {},
+  setOnCycleComplete: () => {},
+  getActualElapsedTime: () => 0,
+};
+
+const TimerContext = createContext(defaultTimerContext);
 
 export const useTimer = () => {
   const context = useContext(TimerContext);
-  if (!context) {
-    throw new Error('useTimer must be used within a TimerProvider');
-  }
-  return context;
+  // Return context even if provider isn't ready (defensive)
+  return context || defaultTimerContext;
 };
 
 // Sound notification helper

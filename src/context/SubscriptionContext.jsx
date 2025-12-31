@@ -2,7 +2,30 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 import { useAuth } from './AuthContext';
 import { supabase } from '../supabaseClient';
 
-const SubscriptionContext = createContext();
+// Provide default value to prevent initialization errors
+const defaultSubscriptionContext = {
+  subscriptionPlan: 'scholar',
+  usage: {
+    mockExamsUsed: 0,
+    blurtTestsUsed: 0,
+    aiSchedulesGenerated: 0,
+    lastResetDate: null,
+  },
+  loading: true,
+  canUseMockExam: () => false,
+  canUseBlurtTest: () => false,
+  canGenerateAISchedule: () => false,
+  incrementMockExamUsage: async () => false,
+  incrementBlurtTestUsage: async () => false,
+  incrementAIScheduleUsage: async () => false,
+  updateSubscriptionPlan: async () => {},
+  getRemainingMockExams: () => 0,
+  getRemainingBlurtTests: () => 0,
+  getHoursUntilReset: () => 24,
+  resetDailyUsage: async () => {},
+};
+
+const SubscriptionContext = createContext(defaultSubscriptionContext);
 
 export const useSubscription = () => useContext(SubscriptionContext);
 

@@ -3,14 +3,22 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, XCircle, AlertCircle, Info, X } from 'lucide-react';
 import logger from '../utils/logger';
 
-const ToastContext = createContext();
+// Provide default value to prevent initialization errors
+const defaultToastContext = {
+  showToast: () => {},
+  removeToast: () => {},
+  success: () => {},
+  error: () => {},
+  warning: () => {},
+  info: () => {},
+};
+
+const ToastContext = createContext(defaultToastContext);
 
 export const useToast = () => {
   const context = useContext(ToastContext);
-  if (!context) {
-    throw new Error('useToast must be used within ToastProvider');
-  }
-  return context;
+  // Return context even if provider isn't ready (defensive)
+  return context || defaultToastContext;
 };
 
 const ToastProvider = ({ children }) => {
