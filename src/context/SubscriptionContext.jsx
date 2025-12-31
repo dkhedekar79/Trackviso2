@@ -27,7 +27,11 @@ const defaultSubscriptionContext = {
 
 const SubscriptionContext = createContext(defaultSubscriptionContext);
 
-export const useSubscription = () => useContext(SubscriptionContext);
+export const useSubscription = () => {
+  const context = useContext(SubscriptionContext);
+  // Return context even if provider isn't ready (defensive)
+  return context || defaultSubscriptionContext;
+};
 
 export const SubscriptionProvider = ({ children }) => {
   // Always call useAuth unconditionally (React hooks rule)
