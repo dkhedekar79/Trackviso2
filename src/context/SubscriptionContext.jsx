@@ -7,7 +7,18 @@ const SubscriptionContext = createContext();
 export const useSubscription = () => useContext(SubscriptionContext);
 
 export const SubscriptionProvider = ({ children }) => {
-  const { user } = useAuth();
+  // Safely get user from auth context with error handling
+  let user = null;
+  try {
+    const authContext = useAuth();
+    user = authContext?.user || null;
+  } catch (error) {
+    // If AuthContext is not available yet, user will be null
+    // This prevents "Cannot access 'S' before initialization" errors
+    console.warn('AuthContext not available in SubscriptionProvider:', error);
+    user = null;
+  }
+  
   const [subscriptionPlan, setSubscriptionPlan] = useState('scholar'); // 'scholar' (free) or 'professor' (premium)
   const [usage, setUsage] = useState({
     mockExamsUsed: 0,
