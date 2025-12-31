@@ -105,15 +105,16 @@ export default function AISchedule() {
   const [viewMode, setViewMode] = useState('calendar'); // For AI schedules: 'calendar' or 'topics'
 
 
-  // Load schedules from both localStorage and Supabase
+  // Load schedules from both localStorage and Supabase, and sync any missing ones
   useEffect(() => {
     const loadSchedules = async () => {
       // First load from localStorage (for immediate display)
       const savedSchedules = localStorage.getItem("aiSchedules");
+      let localSchedules = [];
       if (savedSchedules) {
         try {
-          const parsed = JSON.parse(savedSchedules);
-          setSchedules(parsed);
+          localSchedules = JSON.parse(savedSchedules);
+          setSchedules(localSchedules);
         } catch (e) {
           console.error('Error parsing saved schedules:', e);
         }
@@ -123,29 +124,81 @@ export default function AISchedule() {
       if (user) {
         try {
           const supabaseSchedules = await fetchUserSchedules();
+          
           if (supabaseSchedules && supabaseSchedules.length > 0) {
             // Merge Supabase schedules with localStorage, prioritizing Supabase
-            setSchedules(prev => {
-              const merged = [...supabaseSchedules];
-              // Add any localStorage schedules that aren't in Supabase
-              if (savedSchedules) {
-                try {
-                  const localSchedules = JSON.parse(savedSchedules);
-                  localSchedules.forEach(localSchedule => {
-                    if (!merged.find(s => s.id === localSchedule.id)) {
-                      merged.push(localSchedule);
+            const merged = [...supabaseSchedules];
+            
+            // Check for localStorage schedules that aren't in Supabase and sync them
+            if (localSchedules.length > 0) {
+              localSchedules.forEach(async (localSchedule) => {
+                const existsInSupabase = supabaseSchedules.find(s => 
+                  s.id === localSchedule.id || 
+                  (s.name === localSchedule.name && 
+                   s.startDate === localSchedule.startDate &&
+                   s.endDate === localSchedule.endDate)
+                );
+                
+                if (!existsInSupabase) {
+                  // This schedule exists in localStorage but not in Supabase - sync it
+                  console.log('Syncing existing schedule to Supabase:', localSchedule.name);
+                  try {
+                    const syncedSchedule = await upsertUserSchedule(localSchedule);
+                    if (syncedSchedule) {
+                      // Update the merged list with the synced schedule
+                      merged.push({
+                        ...localSchedule,
+                        id: syncedSchedule.id || localSchedule.id
+                      });
                     }
-                  });
-                } catch (e) {
-                  // Ignore parse errors
+                  } catch (error) {
+                    console.error('Error syncing schedule to Supabase:', error);
+                  }
+                } else {
+                  // Schedule exists in both, add to merged if not already there
+                  if (!merged.find(s => s.id === localSchedule.id)) {
+                    merged.push(localSchedule);
+                  }
                 }
+              });
+            }
+            
+            setSchedules(merged);
+          } else if (localSchedules.length > 0) {
+            // No Supabase schedules, but we have localStorage schedules - sync them all
+            console.log('No schedules in Supabase, syncing all localStorage schedules...');
+            const syncedSchedules = [];
+            for (const localSchedule of localSchedules) {
+              try {
+                const syncedSchedule = await upsertUserSchedule(localSchedule);
+                if (syncedSchedule) {
+                  syncedSchedules.push({
+                    ...localSchedule,
+                    id: syncedSchedule.id || localSchedule.id
+                  });
+                } else {
+                  syncedSchedules.push(localSchedule);
+                }
+              } catch (error) {
+                console.error('Error syncing schedule to Supabase:', error);
+                syncedSchedules.push(localSchedule); // Keep local version if sync fails
               }
-              return merged;
-            });
+            }
+            setSchedules(syncedSchedules);
           }
         } catch (error) {
           console.error('Error loading schedules from Supabase:', error);
-          // Continue with localStorage data
+          // Continue with localStorage data, but try to sync them
+          if (localSchedules.length > 0 && user) {
+            console.log('Error loading from Supabase, attempting to sync localStorage schedules...');
+            for (const localSchedule of localSchedules) {
+              try {
+                await upsertUserSchedule(localSchedule);
+              } catch (syncError) {
+                console.error('Error syncing schedule:', syncError);
+              }
+            }
+          }
         }
       }
 
