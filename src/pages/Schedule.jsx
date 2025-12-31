@@ -14,10 +14,13 @@ import EditScheduleModal from "../components/EditScheduleModal";
 import { useSubscription } from "../context/SubscriptionContext";
 import { useGamification } from "../context/GamificationContext";
 import PremiumUpgradeModal from "../components/PremiumUpgradeModal";
+import { upsertUserSchedule, fetchUserSchedules, deleteUserSchedule } from "../utils/supabaseDb";
+import { useAuth } from "../context/AuthContext";
 
 export default function AISchedule() {
   const { canGenerateAISchedule, subscriptionPlan } = useSubscription();
   const { awardScheduleCompletionXP } = useGamification();
+  const { user } = useAuth();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [schedules, setSchedules] = useState([]);
   const [currentSchedule, setCurrentSchedule] = useState(null);
@@ -102,22 +105,77 @@ export default function AISchedule() {
   const [viewMode, setViewMode] = useState('calendar'); // For AI schedules: 'calendar' or 'topics'
 
 
+  // Load schedules from both localStorage and Supabase
   useEffect(() => {
-    const savedSchedules = localStorage.getItem("aiSchedules");
-    if (savedSchedules) {
-      const parsed = JSON.parse(savedSchedules);
-      setSchedules(parsed);
-    }
+    const loadSchedules = async () => {
+      // First load from localStorage (for immediate display)
+      const savedSchedules = localStorage.getItem("aiSchedules");
+      if (savedSchedules) {
+        try {
+          const parsed = JSON.parse(savedSchedules);
+          setSchedules(parsed);
+        } catch (e) {
+          console.error('Error parsing saved schedules:', e);
+        }
+      }
 
-    const savedSubjects = localStorage.getItem("subjects");
-    if (savedSubjects) {
-      setAvailableSubjects(JSON.parse(savedSubjects));
-    }
-  }, []);
+      // Then try to load from Supabase if user is logged in
+      if (user) {
+        try {
+          const supabaseSchedules = await fetchUserSchedules();
+          if (supabaseSchedules && supabaseSchedules.length > 0) {
+            // Merge Supabase schedules with localStorage, prioritizing Supabase
+            setSchedules(prev => {
+              const merged = [...supabaseSchedules];
+              // Add any localStorage schedules that aren't in Supabase
+              if (savedSchedules) {
+                try {
+                  const localSchedules = JSON.parse(savedSchedules);
+                  localSchedules.forEach(localSchedule => {
+                    if (!merged.find(s => s.id === localSchedule.id)) {
+                      merged.push(localSchedule);
+                    }
+                  });
+                } catch (e) {
+                  // Ignore parse errors
+                }
+              }
+              return merged;
+            });
+          }
+        } catch (error) {
+          console.error('Error loading schedules from Supabase:', error);
+          // Continue with localStorage data
+        }
+      }
 
+      const savedSubjects = localStorage.getItem("subjects");
+      if (savedSubjects) {
+        setAvailableSubjects(JSON.parse(savedSubjects));
+      }
+    };
+
+    loadSchedules();
+  }, [user]);
+
+  // Sync schedules to both localStorage and Supabase
   useEffect(() => {
+    if (schedules.length === 0) return;
+
+    // Always save to localStorage
     localStorage.setItem("aiSchedules", JSON.stringify(schedules));
-  }, [schedules]);
+
+    // Sync to Supabase if user is logged in
+    if (user) {
+      schedules.forEach(async (schedule) => {
+        try {
+          await upsertUserSchedule(schedule);
+        } catch (error) {
+          console.error('Error syncing schedule to Supabase:', error);
+        }
+      });
+    }
+  }, [schedules, user]);
 
   useEffect(() => {
     if (currentSchedule) {
@@ -142,11 +200,20 @@ export default function AISchedule() {
   }, [scheduledBlocks, currentSchedule]);
 
 
-  const handleDeleteSchedule = (scheduleId) => {
+  const handleDeleteSchedule = async (scheduleId) => {
     if (window.confirm('Are you sure you want to delete this schedule?')) {
       setSchedules(prev => prev.filter(s => s.id !== scheduleId));
       if (currentSchedule?.id === scheduleId) {
         setCurrentSchedule(null);
+      }
+      
+      // Delete from Supabase if user is logged in
+      if (user) {
+        try {
+          await deleteUserSchedule(scheduleId);
+        } catch (error) {
+          console.error('Error deleting schedule from Supabase:', error);
+        }
       }
     }
   };
@@ -155,21 +222,41 @@ export default function AISchedule() {
     setCurrentSchedule(schedule);
   };
 
-  const handleAISetupComplete = (newSchedule) => {
+  const handleAISetupComplete = async (newSchedule) => {
     if (isResetModalOpen && currentSchedule) {
       // Update existing schedule
-      setSchedules(prev => prev.map(s => 
+      const updatedSchedules = schedules.map(s => 
         s.id === currentSchedule.id ? newSchedule : s
-      ));
+      );
+      setSchedules(updatedSchedules);
       setCurrentSchedule(newSchedule);
       setIsResetModalOpen(false);
+      
+      // Sync to Supabase
+      if (user) {
+        try {
+          await upsertUserSchedule(newSchedule);
+        } catch (error) {
+          console.error('Error syncing updated schedule to Supabase:', error);
+        }
+      }
     } else {
       // Create new schedule
-      setSchedules(prev => [...prev, newSchedule].sort((a, b) => 
+      const updatedSchedules = [...schedules, newSchedule].sort((a, b) => 
         new Date(a.startDate) - new Date(b.startDate)
-      ));
+      );
+      setSchedules(updatedSchedules);
       setIsAISetupOpen(false);
       setCurrentSchedule(newSchedule);
+      
+      // Sync to Supabase
+      if (user) {
+        try {
+          await upsertUserSchedule(newSchedule);
+        } catch (error) {
+          console.error('Error syncing new schedule to Supabase:', error);
+        }
+      }
     }
   };
 

@@ -628,3 +628,145 @@ export const fetchAmbassadorSubmissions = async () => {
     return [];
   }
 };
+
+/**
+ * Save or update a user schedule to Supabase
+ */
+export const upsertUserSchedule = async (scheduleData) => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      logger.warn('No session available for saving schedule');
+      return null;
+    }
+
+    const userId = session.user.id;
+
+    const scheduleRecord = {
+      user_id: userId,
+      schedule_name: scheduleData.name || scheduleData.scheduleName || 'Untitled Schedule',
+      start_date: scheduleData.startDate || scheduleData.start_date,
+      end_date: scheduleData.endDate || scheduleData.end_date,
+      is_ai_generated: scheduleData.isAIGenerated !== false,
+      blocks: scheduleData.blocks || [],
+      setup_data: scheduleData.setupData || scheduleData.setup_data || null,
+      ai_summary: scheduleData.aiSummary || scheduleData.ai_summary || null,
+    };
+
+    // If schedule has an ID, try to update; otherwise insert
+    if (scheduleData.id) {
+      const { data, error } = await supabase
+        .from('user_schedules')
+        .update(scheduleRecord)
+        .eq('id', scheduleData.id)
+        .eq('user_id', userId)
+        .select()
+        .single();
+
+      if (error) {
+        // If update fails (e.g., schedule doesn't exist), try insert
+        if (error.code === 'PGRST116') {
+          logger.log('Schedule not found, creating new one');
+          const { data: insertData, error: insertError } = await supabase
+            .from('user_schedules')
+            .insert([scheduleRecord])
+            .select()
+            .single();
+
+          if (insertError) {
+            logger.error('Error creating schedule:', insertError);
+            return null;
+          }
+          return insertData;
+        }
+        logger.error('Error updating schedule:', error);
+        return null;
+      }
+      return data;
+    } else {
+      const { data, error } = await supabase
+        .from('user_schedules')
+        .insert([scheduleRecord])
+        .select()
+        .single();
+
+      if (error) {
+        logger.error('Error creating schedule:', error);
+        return null;
+      }
+      return data;
+    }
+  } catch (error) {
+    logger.error('Exception saving schedule:', error);
+    return null;
+  }
+};
+
+/**
+ * Fetch all schedules for the current user
+ */
+export const fetchUserSchedules = async () => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return [];
+
+    const { data, error } = await supabase
+      .from('user_schedules')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      logger.error('Error fetching schedules:', error);
+      return [];
+    }
+
+    // Convert database format to app format
+    return data.map(schedule => ({
+      id: schedule.id,
+      name: schedule.schedule_name,
+      startDate: schedule.start_date,
+      endDate: schedule.end_date,
+      isAIGenerated: schedule.is_ai_generated,
+      blocks: schedule.blocks || [],
+      setupData: schedule.setup_data,
+      aiSummary: schedule.ai_summary,
+      createdAt: schedule.created_at,
+      updatedAt: schedule.updated_at,
+    }));
+  } catch (error) {
+    logger.error('Exception fetching schedules:', error);
+    return [];
+  }
+};
+
+/**
+ * Delete a user schedule from Supabase
+ */
+export const deleteUserSchedule = async (scheduleId) => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      logger.warn('No session available for deleting schedule');
+      return false;
+    }
+
+    const userId = session.user.id;
+
+    const { error } = await supabase
+      .from('user_schedules')
+      .delete()
+      .eq('id', scheduleId)
+      .eq('user_id', userId);
+
+    if (error) {
+      logger.error('Error deleting schedule:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    logger.error('Exception deleting schedule:', error);
+    return false;
+  }
+};

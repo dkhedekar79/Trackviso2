@@ -15,7 +15,9 @@ import {
   TrendingUp,
   Clock,
   Shield,
-  AlertCircle
+  AlertCircle,
+  Calendar,
+  Brain
 } from 'lucide-react';
 
 const Admin = () => {
@@ -28,6 +30,9 @@ const Admin = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [expandedUser, setExpandedUser] = useState(null);
   const [actionInProgress, setActionInProgress] = useState(null);
+  const [schedules, setSchedules] = useState([]);
+  const [schedulesLoading, setSchedulesLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('users'); // 'users' or 'schedules'
 
   // Redirect if not admin - check email specifically
   useEffect(() => {
@@ -44,6 +49,7 @@ const Admin = () => {
   useEffect(() => {
     if (isAdmin && user) {
       loadUsers();
+      loadSchedules();
     }
   }, [isAdmin, user]);
 
@@ -200,6 +206,37 @@ const Admin = () => {
     }
   };
 
+  const loadSchedules = async () => {
+    try {
+      setSchedulesLoading(true);
+      const response = await fetch('/api/admin/schedules', {
+        headers: {
+          'x-admin-user-id': user.id
+        }
+      });
+
+      const contentType = response.headers.get('content-type') || '';
+      const parseBody = async () => {
+        if (contentType.includes('application/json')) return await response.json();
+        const text = await response.text();
+        try { return JSON.parse(text); } catch { return { error: text || 'Unknown error' }; }
+      };
+
+      const body = await parseBody();
+
+      if (response.ok) {
+        setSchedules(body.schedules || []);
+      } else {
+        const msg = body?.error || body?.message || `HTTP ${response.status}`;
+        console.error('Error loading schedules:', msg);
+      }
+    } catch (error) {
+      console.error('Error loading schedules:', error);
+    } finally {
+      setSchedulesLoading(false);
+    }
+  };
+
   const filteredUsers = users.filter(u =>
     u.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -235,6 +272,42 @@ const Admin = () => {
           <p className="text-purple-200/80">Manage users, subscriptions, and system settings</p>
         </motion.div>
 
+        {/* Tabs */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6"
+        >
+          <div className="flex gap-2 border-b border-purple-700/30">
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`px-6 py-3 font-semibold transition ${
+                activeTab === 'users'
+                  ? 'text-purple-400 border-b-2 border-purple-400'
+                  : 'text-purple-300/60 hover:text-purple-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Users ({users.length})
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('schedules')}
+              className={`px-6 py-3 font-semibold transition ${
+                activeTab === 'schedules'
+                  ? 'text-purple-400 border-b-2 border-purple-400'
+                  : 'text-purple-300/60 hover:text-purple-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Calendar className="w-5 h-5" />
+                Timetables ({schedules.length})
+              </div>
+            </button>
+          </div>
+        </motion.div>
+
         {/* Stats */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -264,10 +337,10 @@ const Admin = () => {
           <div className="bg-gradient-to-br from-blue-900/40 to-slate-900/40 rounded-xl p-6 border border-blue-700/30">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-200/80 text-sm">Admin Users</p>
-                <p className="text-3xl font-bold text-white">{users.filter(u => u.is_admin).length}</p>
+                <p className="text-blue-200/80 text-sm">AI Timetables</p>
+                <p className="text-3xl font-bold text-white">{schedules.length}</p>
               </div>
-              <Shield className="w-8 h-8 text-blue-400 opacity-50" />
+              <Brain className="w-8 h-8 text-blue-400 opacity-50" />
             </div>
           </div>
 
@@ -283,24 +356,27 @@ const Admin = () => {
         </motion.div>
 
         {/* Search */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6"
-        >
-          <div className="relative">
-            <Search className="absolute left-3 top-3 w-5 h-5 text-purple-400" />
-            <input
-              type="text"
-              placeholder="Search by email..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-purple-900/30 border border-purple-700/50 rounded-lg pl-10 pr-4 py-3 text-white placeholder-purple-400/50 focus:outline-none focus:border-purple-600"
-            />
-          </div>
-        </motion.div>
+        {activeTab === 'users' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
+          >
+            <div className="relative">
+              <Search className="absolute left-3 top-3 w-5 h-5 text-purple-400" />
+              <input
+                type="text"
+                placeholder="Search by email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-purple-900/30 border border-purple-700/50 rounded-lg pl-10 pr-4 py-3 text-white placeholder-purple-400/50 focus:outline-none focus:border-purple-600"
+              />
+            </div>
+          </motion.div>
+        )}
 
         {/* Users List */}
+        {activeTab === 'users' && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -514,6 +590,99 @@ const Admin = () => {
             ))
           )}
         </motion.div>
+        )}
+
+        {/* Schedules List */}
+        {activeTab === 'schedules' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="space-y-4"
+          >
+            {schedulesLoading ? (
+              <div className="text-center py-12 bg-purple-900/20 rounded-xl border border-purple-700/30">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+                <p className="text-purple-300">Loading timetables...</p>
+              </div>
+            ) : schedules.length === 0 ? (
+              <div className="text-center py-12 bg-purple-900/20 rounded-xl border border-purple-700/30">
+                <Calendar className="w-12 h-12 text-purple-400/50 mx-auto mb-3" />
+                <p className="text-purple-300">No timetables found</p>
+                <p className="text-purple-300/60 text-sm mt-2">Users need to generate AI timetables first</p>
+              </div>
+            ) : (
+              schedules.map((schedule, idx) => {
+                const startDate = new Date(schedule.startDate);
+                const endDate = new Date(schedule.endDate);
+                const duration = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+                const totalHours = schedule.blocksCount * 0.5; // Rough estimate
+
+                return (
+                  <motion.div
+                    key={schedule.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    className="bg-gradient-to-br from-purple-900/30 to-slate-900/30 rounded-xl border border-purple-700/30 p-6"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Brain className="w-5 h-5 text-purple-400" />
+                          <h3 className="text-lg font-semibold text-white">{schedule.scheduleName}</h3>
+                          {schedule.isAIGenerated && (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-900/50 border border-purple-700/50 rounded text-xs text-purple-300">
+                              <Zap className="w-3 h-3" />
+                              AI Generated
+                            </span>
+                          )}
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                          <div>
+                            <p className="text-xs text-purple-300/60 mb-1">User</p>
+                            <p className="text-sm font-semibold text-white">{schedule.userName}</p>
+                            <p className="text-xs text-purple-300/50">{schedule.userEmail}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-purple-300/60 mb-1">Duration</p>
+                            <p className="text-sm font-semibold text-white">{duration} days</p>
+                            <p className="text-xs text-purple-300/50">
+                              {startDate.toLocaleDateString()} - {endDate.toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-purple-300/60 mb-1">Study Blocks</p>
+                            <p className="text-sm font-semibold text-white">{schedule.blocksCount}</p>
+                            <p className="text-xs text-purple-300/50">~{Math.round(totalHours)}h planned</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-purple-300/60 mb-1">Created</p>
+                            <p className="text-sm font-semibold text-white">
+                              {new Date(schedule.createdAt).toLocaleDateString()}
+                            </p>
+                            <p className="text-xs text-purple-300/50">
+                              {new Date(schedule.createdAt).toLocaleTimeString()}
+                            </p>
+                          </div>
+                        </div>
+                        {schedule.aiSummary && (
+                          <div className="mt-4 p-3 bg-purple-950/50 rounded-lg border border-purple-700/30">
+                            <p className="text-xs text-purple-300/60 mb-1">AI Summary</p>
+                            <p className="text-sm text-purple-200">
+                              {typeof schedule.aiSummary === 'object' 
+                                ? schedule.aiSummary.note || JSON.stringify(schedule.aiSummary)
+                                : schedule.aiSummary}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })
+            )}
+          </motion.div>
+        )}
       </div>
     </div>
   );
