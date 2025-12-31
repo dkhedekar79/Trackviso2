@@ -5,36 +5,29 @@ import logger from '../utils/logger';
 import { APP_CONFIG } from '../constants/appConfig';
 
 // Provide default value to prevent initialization errors
-const AuthContext = createContext({
+const defaultAuthContext = {
   user: null,
   loading: true,
   isPremiumUser: false,
   displayName: '',
   onboardingCompleted: true,
+  debugInfo: { step: 'Initializing...', details: '', progress: 0 },
   login: async () => {},
   logout: async () => {},
   signup: async () => {},
   deleteUserAccount: async () => {},
   resetFreeQuizQuestions: async () => {},
   updateFreeQuizQuestionsUsed: async () => {},
-});
+  updatePremiumStatus: async () => {},
+  updateUserMetadata: async () => {},
+};
+
+const AuthContext = createContext(defaultAuthContext);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   // Return context even if provider isn't ready (defensive)
-  return context || {
-    user: null,
-    loading: true,
-    isPremiumUser: false,
-    displayName: '',
-    onboardingCompleted: true,
-    login: async () => {},
-    logout: async () => {},
-    signup: async () => {},
-    deleteUserAccount: async () => {},
-    resetFreeQuizQuestions: async () => {},
-    updateFreeQuizQuestionsUsed: async () => {},
-  };
+  return context || defaultAuthContext;
 };
 
 export const AuthProvider = ({ children }) => {
