@@ -4,9 +4,38 @@ import { initializeDatabase } from '../utils/supabaseDb';
 import logger from '../utils/logger';
 import { APP_CONFIG } from '../constants/appConfig';
 
-const AuthContext = createContext();
+// Provide default value to prevent initialization errors
+const AuthContext = createContext({
+  user: null,
+  loading: true,
+  isPremiumUser: false,
+  displayName: '',
+  onboardingCompleted: true,
+  login: async () => {},
+  logout: async () => {},
+  signup: async () => {},
+  deleteUserAccount: async () => {},
+  resetFreeQuizQuestions: async () => {},
+  updateFreeQuizQuestionsUsed: async () => {},
+});
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  // Return context even if provider isn't ready (defensive)
+  return context || {
+    user: null,
+    loading: true,
+    isPremiumUser: false,
+    displayName: '',
+    onboardingCompleted: true,
+    login: async () => {},
+    logout: async () => {},
+    signup: async () => {},
+    deleteUserAccount: async () => {},
+    resetFreeQuizQuestions: async () => {},
+    updateFreeQuizQuestionsUsed: async () => {},
+  };
+};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
