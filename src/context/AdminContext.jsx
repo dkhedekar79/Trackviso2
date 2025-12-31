@@ -2,18 +2,29 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '../supabaseClient';
 
-const AdminContext = createContext();
+// Provide default value to prevent initialization errors
+const defaultAdminContext = {
+  isAdmin: false,
+  adminLoading: true,
+  adminPermissions: {},
+  canManageUsers: () => false,
+  canManageSubscriptions: () => false,
+  canViewAnalytics: () => false,
+};
+
+const AdminContext = createContext(defaultAdminContext);
 
 export const useAdmin = () => {
   const context = useContext(AdminContext);
-  if (!context) {
-    throw new Error('useAdmin must be used within AdminProvider');
-  }
-  return context;
+  // Return context even if provider isn't ready (defensive)
+  return context || defaultAdminContext;
 };
 
 export const AdminProvider = ({ children }) => {
-  const { user } = useAuth();
+  // Always call useAuth unconditionally (React hooks rule)
+  // If AuthProvider isn't ready, useAuth will return default value
+  const authContext = useAuth();
+  const user = authContext?.user ?? null;
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminLoading, setAdminLoading] = useState(true);
   const [adminPermissions, setAdminPermissions] = useState({});

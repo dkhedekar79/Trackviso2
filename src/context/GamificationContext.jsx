@@ -3,16 +3,93 @@ import logger from '../utils/logger';
 import { APP_CONFIG } from '../constants/appConfig';
 import { supabase } from '../supabaseClient';
 
-const GamificationContext = createContext();
+// Provide default value to prevent initialization errors
+// Note: Most functions will be no-ops, but this prevents crashes
+const defaultGamificationContext = {
+  userStats: {
+    xp: 0,
+    level: 1,
+    prestigeLevel: 0,
+    totalSessions: 0,
+    totalStudyTime: 0,
+    sessionHistory: [],
+    currentStreak: 0,
+    longestStreak: 0,
+    lastStudyDate: null,
+    streakSavers: 3,
+    badges: [],
+    achievements: [],
+    unlockedTitles: [],
+    currentTitle: "Rookie Scholar",
+    dailyQuests: [],
+    weeklyQuests: [],
+    completedQuestsToday: 0,
+    questStreak: 0,
+    weeklyXP: 0,
+    weeklyRank: 0,
+    friends: [],
+    challenges: [],
+    isPremium: false,
+    xpMultiplier: 1.0,
+    premiumSkins: [],
+    currentSkin: "default",
+    subjectMastery: {},
+    weeklyGoal: 0,
+    weeklyProgress: 0,
+    totalXPEarned: 0,
+    lastRewardTime: null,
+    rewardStreak: 0,
+    luckyStreak: 0,
+    jackpotCount: 0,
+    gems: 0,
+    xpEvents: [],
+  },
+  showRewards: false,
+  rewardQueue: [],
+  achievements: [],
+  awardXP: () => ({ totalXP: 0, bonuses: {} }),
+  grantXP: () => {},
+  spendXP: () => {},
+  addGems: () => {},
+  spendGems: () => {},
+  convertXPToGems: () => 0,
+  purchaseItem: () => false,
+  applyReward: () => {},
+  updateStreak: () => ({ streak: 0, isNewDay: false, streakBroken: false }),
+  useStreakSaver: () => false,
+  addReward: () => {},
+  addStudySession: () => {},
+  getUserRank: () => "Rookie Scholar",
+  getXPProgress: () => ({ current: 0, next: 100, percentage: 0 }),
+  getStudyTimeForLevel: () => 0,
+  generateDailyQuests: () => {},
+  generateWeeklyQuests: () => {},
+  updateQuestProgress: () => {},
+  checkAchievements: () => {},
+  unlockAchievement: () => {},
+  dismissReward: () => {},
+  prestige: () => false,
+  setShowRewards: () => {},
+  calculateXP: () => ({ totalXP: 0, bonuses: {} }),
+  getTotalXPForLevel: () => 0,
+  getXPForLevel: () => 0,
+  getLevelFromXP: () => 1,
+  awardMasteryXP: () => {},
+  awardScheduleCompletionXP: () => {},
+  checkSubjectMasteryMilestones: () => {},
+  getTotalStudyTimeForLevel: () => 0,
+  getLevelFromStudyTime: () => 1,
+  getStudyTimeProgress: () => ({ current: 0, next: 100, percentage: 0 }),
+  resetUserStats: async () => {},
+  refreshQuestProgress: () => {},
+};
+
+const GamificationContext = createContext(defaultGamificationContext);
 
 export const useGamification = () => {
   const context = useContext(GamificationContext);
-  if (!context) {
-    throw new Error(
-      "useGamification must be used within a GamificationProvider",
-    );
-  }
-  return context;
+  // Return context even if provider isn't ready (defensive)
+  return context || defaultGamificationContext;
 };
 
 export const GamificationProvider = ({ children }) => {
