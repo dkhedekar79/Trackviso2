@@ -69,51 +69,7 @@ export const useYouTubeMusic = () => {
   const playerRef = useRef(null);
   const playerDivRef = useRef(null);
 
-  // Load YouTube IFrame API
-  useEffect(() => {
-    let isMounted = true;
-    let initTimeout = null;
-    
-    const loadAPI = () => {
-      if (!window.YT) {
-        const tag = document.createElement('script');
-        tag.src = YOUTUBE_IFRAME_API_URL;
-        const firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-        window.onYouTubeIframeAPIReady = () => {
-          if (isMounted && !playerRef.current) {
-            initializePlayer();
-          }
-        };
-      } else if (window.YT && window.YT.Player && !playerRef.current && !isReady) {
-        // Small delay to ensure API is fully ready
-        initTimeout = setTimeout(() => {
-          if (isMounted && !playerRef.current) {
-            initializePlayer();
-          }
-        }, 100);
-      }
-    };
-
-    loadAPI();
-
-    return () => {
-      isMounted = false;
-      if (initTimeout) {
-        clearTimeout(initTimeout);
-      }
-      if (playerRef.current) {
-        try {
-          playerRef.current.destroy();
-          playerRef.current = null;
-        } catch (e) {
-          // Ignore errors on cleanup
-        }
-      }
-    };
-  }, [initializePlayer, isReady]);
-
+  // Define initializePlayer before it's used in useEffect
   const initializePlayer = useCallback(() => {
     // Don't initialize if player already exists
     if (playerRef.current) {
@@ -201,6 +157,51 @@ export const useYouTubeMusic = () => {
       }
     }
   }, [volume]);
+
+  // Load YouTube IFrame API
+  useEffect(() => {
+    let isMounted = true;
+    let initTimeout = null;
+    
+    const loadAPI = () => {
+      if (!window.YT) {
+        const tag = document.createElement('script');
+        tag.src = YOUTUBE_IFRAME_API_URL;
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        window.onYouTubeIframeAPIReady = () => {
+          if (isMounted && !playerRef.current) {
+            initializePlayer();
+          }
+        };
+      } else if (window.YT && window.YT.Player && !playerRef.current && !isReady) {
+        // Small delay to ensure API is fully ready
+        initTimeout = setTimeout(() => {
+          if (isMounted && !playerRef.current) {
+            initializePlayer();
+          }
+        }, 100);
+      }
+    };
+
+    loadAPI();
+
+    return () => {
+      isMounted = false;
+      if (initTimeout) {
+        clearTimeout(initTimeout);
+      }
+      if (playerRef.current) {
+        try {
+          playerRef.current.destroy();
+          playerRef.current = null;
+        } catch (e) {
+          // Ignore errors on cleanup
+        }
+      }
+    };
+  }, [initializePlayer, isReady]);
 
   // Update volume when it changes
   useEffect(() => {
