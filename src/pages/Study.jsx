@@ -1098,7 +1098,7 @@ const Study = () => {
                   const selectedVideo = ambientVideos.find(vid => vid.id === selectedAmbientVideo);
                   const isFirstVideo = ambientVideos.length > 0 && ambientVideos[0].id === selectedAmbientVideo;
                   // Allow first video for free, rest require premium
-                  if (selectedVideo && (isFirstVideo || isPremium)) {
+                  if (selectedVideo && selectedVideo.path && (isFirstVideo || isPremium)) {
                     return (
                       <video
                         autoPlay

@@ -168,7 +168,17 @@ export const useYouTubeMusic = () => {
         const tag = document.createElement('script');
         tag.src = YOUTUBE_IFRAME_API_URL;
         const firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        if (firstScriptTag && firstScriptTag.parentNode) {
+          firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        } else {
+          // Fallback: append to head or body if no script tags exist
+          const head = document.head || document.getElementsByTagName('head')[0];
+          if (head) {
+            head.appendChild(tag);
+          } else {
+            document.body.appendChild(tag);
+          }
+        }
 
         window.onYouTubeIframeAPIReady = () => {
           if (isMounted && !playerRef.current) {
