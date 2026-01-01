@@ -519,18 +519,18 @@ export const GamificationProvider = ({ children }) => {
     }
     totalXP += 25 * 2000; // 50000 XP for levels 26-50
 
-    // Levels 51-75: Even harder (4000 XP per level)
-    // 51-75 = 25 levels × 4000 XP = 100000 more XP
+    // Levels 51-75: Significantly harder (6000 XP per level, increased from 4000)
+    // 51-75 = 25 levels × 6000 XP = 150000 more XP
     if (level <= 75) {
-      totalXP += (level - 50) * 4000;
+      totalXP += (level - 50) * 6000;
       return totalXP;
     }
-    totalXP += 25 * 4000; // 100000 XP for levels 51-75
+    totalXP += 25 * 6000; // 150000 XP for levels 51-75
 
-    // Levels 76-100: Extremely hard (6000 XP per level)
-    // 76-100 = 25 levels × 6000 XP = 150000 more XP
-    // Total to level 100: ~320,000 XP
-    totalXP += (level - 75) * 6000;
+    // Levels 76-100: Extremely hard (10000 XP per level, increased from 6000)
+    // 76-100 = 25 levels × 10000 XP = 250000 more XP
+    // Total to level 100: ~470,000 XP (increased from ~320,000 XP)
+    totalXP += (level - 75) * 10000;
 
     return totalXP;
   };
@@ -582,20 +582,20 @@ export const GamificationProvider = ({ children }) => {
       return Math.min(50, level);
     }
     
-    // Level 51: 74000 XP (getTotalXPForLevel(51) = 500 + 9*500 + 15*1000 + 25*2000 + (51-50)*4000 = 74000)
-    // Levels 51-75: 4000 XP per level
-    // Level 51 = 74000, Level 52 = 78000, ..., Level 75 = 170000
-    // getTotalXPForLevel(75) = 500 + 9*500 + 15*1000 + 25*2000 + (75-50)*4000 = 500 + 4500 + 15000 + 50000 + 100000 = 170000
-    if (totalXP < 176000) {
-      const level = 51 + Math.floor((totalXP - 74000) / 4000);
+    // Level 51: 80000 XP (getTotalXPForLevel(51) = 500 + 9*500 + 15*1000 + 25*2000 + (51-50)*6000 = 80000)
+    // Levels 51-75: 6000 XP per level (increased from 4000)
+    // Level 51 = 80000, Level 52 = 86000, ..., Level 75 = 220000
+    // getTotalXPForLevel(75) = 500 + 9*500 + 15*1000 + 25*2000 + (75-50)*6000 = 500 + 4500 + 15000 + 50000 + 150000 = 220000
+    if (totalXP < 226000) {
+      const level = 51 + Math.floor((totalXP - 80000) / 6000);
       return Math.min(75, level);
     }
     
-    // Level 76: 176000 XP (getTotalXPForLevel(76) = 500 + 9*500 + 15*1000 + 25*2000 + 25*4000 + (76-75)*6000 = 176000)
-    // Levels 76-100: 6000 XP per level
-    // Level 76 = 176000, Level 77 = 182000, ..., Level 100 = 320000
-    // getTotalXPForLevel(100) = 500 + 9*500 + 15*1000 + 25*2000 + 25*4000 + (100-75)*6000 = 500 + 4500 + 15000 + 50000 + 100000 + 150000 = 320000
-    const level = 76 + Math.floor((totalXP - 176000) / 6000);
+    // Level 76: 226000 XP (getTotalXPForLevel(76) = 500 + 9*500 + 15*1000 + 25*2000 + 25*6000 + (76-75)*10000 = 226000)
+    // Levels 76-100: 10000 XP per level (increased from 6000)
+    // Level 76 = 226000, Level 77 = 236000, ..., Level 100 = 470000
+    // getTotalXPForLevel(100) = 500 + 9*500 + 15*1000 + 25*2000 + 25*6000 + (100-75)*10000 = 500 + 4500 + 15000 + 50000 + 150000 + 250000 = 470000
+    const level = 76 + Math.floor((totalXP - 226000) / 10000);
     return Math.min(100, level);
   };
 
