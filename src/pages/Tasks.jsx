@@ -604,7 +604,7 @@ export default function Tasks() {
   const sortedDisplayTasks = getSortedTasks(filteredDisplayTasks);
 
   return (
-    <div className="min-h-screen mt-20 flex bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 relative overflow-hidden">
+    <div className="h-screen mt-20 flex bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 relative overflow-hidden">
       {/* Animated background gradient */}
       <div className="fixed inset-0 opacity-20 pointer-events-none">
         <div 
@@ -643,7 +643,7 @@ export default function Tasks() {
 
       <Sidebar />
       
-      <div className="flex-1 ml-16 transition-all duration-300 ease-in-out [body>div>aside:hover_+_div&]:ml-64 relative z-10">
+      <div className="flex-1 ml-16 transition-all duration-300 ease-in-out [body>div>aside:hover_+_div&]:ml-64 relative z-10 overflow-y-auto h-full">
         <div className="p-8">
           {/* Header Section */}
         <motion.div
@@ -1242,47 +1242,52 @@ export default function Tasks() {
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.9, opacity: 0, y: 20 }}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-gradient-to-br from-purple-900/95 to-slate-900/95 backdrop-blur-xl rounded-2xl p-6 w-full max-w-md max-h-[90vh] border border-purple-700/30 shadow-2xl overflow-y-auto my-auto"
+                className="bg-gradient-to-br from-purple-900/95 to-slate-900/95 backdrop-blur-xl rounded-2xl w-full max-w-md max-h-[90vh] border border-purple-700/30 shadow-2xl flex flex-col my-auto"
               >
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-white">
-                    {editId ? "Edit Task" : "Add New Task"}
-                  </h2>
-                  <motion.button
-                    onClick={() => {
-                      setShowModal(false);
-                      setFormError("");
-                      setEditId(null);
-                      setForm({ 
-                        name: "", 
-                        subject: "", 
-                        time: "", 
-                        priority: "Low", 
-                        scheduledDate: "",
-                        recurrence: "none",
-                        recurrenceInterval: 1,
-                        recurrenceDays: []
-                      });
-                    }}
-                    whileHover={{ scale: 1.1, rotate: 90 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="p-2 rounded-lg bg-purple-800/40 hover:bg-purple-800/60 text-white transition-all"
-                  >
-                    <X className="w-5 h-5" />
-                  </motion.button>
-                    </div>
+                {/* Fixed Header */}
+                <div className="flex-shrink-0 p-6 pb-4 border-b border-purple-700/30">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-bold text-white">
+                      {editId ? "Edit Task" : "Add New Task"}
+                    </h2>
+                    <motion.button
+                      onClick={() => {
+                        setShowModal(false);
+                        setFormError("");
+                        setEditId(null);
+                        setForm({ 
+                          name: "", 
+                          subject: "", 
+                          time: "", 
+                          priority: "Low", 
+                          scheduledDate: "",
+                          recurrence: "none",
+                          recurrenceInterval: 1,
+                          recurrenceDays: []
+                        });
+                      }}
+                      whileHover={{ scale: 1.1, rotate: 90 }}
+                      whileTap={{ scale: 0.9 }}
+                      className="p-2 rounded-lg bg-purple-800/40 hover:bg-purple-800/60 text-white transition-all"
+                    >
+                      <X className="w-5 h-5" />
+                    </motion.button>
+                  </div>
+                </div>
 
-                {formError && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mb-4 p-3 rounded-lg bg-red-500/20 border border-red-500/30 text-red-400 text-sm"
-                  >
-                    {formError}
-                  </motion.div>
-                )}
+                {/* Scrollable Content */}
+                <div className="flex-1 overflow-y-auto p-6 pt-4">
+                  {formError && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mb-4 p-3 rounded-lg bg-red-500/20 border border-red-500/30 text-red-400 text-sm"
+                    >
+                      {formError}
+                    </motion.div>
+                  )}
 
-                <div className="space-y-4">
+                  <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-semibold text-purple-300 mb-2">
                       Task Name
@@ -1556,7 +1561,11 @@ export default function Tasks() {
                       </div>
                     )}
                   </div>
+                  </div>
+                </div>
 
+                {/* Fixed Footer */}
+                <div className="flex-shrink-0 p-6 pt-4 border-t border-purple-700/30">
                   <motion.button
                     onClick={addTask}
                     whileHover={{ scale: 1.02 }}
@@ -1566,8 +1575,8 @@ export default function Tasks() {
                     {editId ? "Update Task" : "Create Task"}
                   </motion.button>
                 </div>
-                  </motion.div>
               </motion.div>
+            </motion.div>
             )}
         </AnimatePresence>
       </div>
