@@ -1242,7 +1242,7 @@ export default function Tasks() {
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.9, opacity: 0, y: 20 }}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-gradient-to-br from-purple-900/95 to-slate-900/95 backdrop-blur-xl rounded-2xl w-full max-w-md max-h-[90vh] border border-purple-700/30 shadow-2xl flex flex-col my-auto"
+                className="bg-gradient-to-br from-purple-900/95 to-slate-900/95 backdrop-blur-xl rounded-2xl w-full max-w-md max-h-[90vh] min-h-[400px] border border-purple-700/30 shadow-2xl flex flex-col my-auto"
               >
                 {/* Fixed Header */}
                 <div className="flex-shrink-0 p-6 pb-4 border-b border-purple-700/30">
@@ -1276,7 +1276,7 @@ export default function Tasks() {
                 </div>
 
                 {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto p-6 pt-4">
+                <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 pt-4 min-h-0">
                   {formError && (
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
