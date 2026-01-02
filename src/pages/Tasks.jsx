@@ -71,7 +71,6 @@ export default function Tasks() {
     recurrence: "none",
     recurrenceInterval: 1,
     recurrenceDays: [],
-    notes: "",
     subtasks: [],
     tags: []
   });
@@ -301,7 +300,6 @@ export default function Tasks() {
       recurrence: "none",
       recurrenceInterval: 1,
       recurrenceDays: [],
-      notes: "",
       subtasks: [],
       tags: []
     });
@@ -457,7 +455,6 @@ export default function Tasks() {
       recurrence: task.recurrence || "none",
       recurrenceInterval: task.recurrenceInterval || 1,
       recurrenceDays: Array.isArray(task.recurrenceDays) ? task.recurrenceDays : [],
-      notes: task.notes || "",
       subtasks: Array.isArray(task.subtasks) ? task.subtasks : [],
       tags: Array.isArray(task.tags) ? task.tags : []
     });
@@ -480,7 +477,6 @@ export default function Tasks() {
           recurrence: "none",
           recurrenceInterval: 1,
           recurrenceDays: [],
-          notes: "",
           subtasks: [],
           tags: []
         });
@@ -550,7 +546,6 @@ export default function Tasks() {
       recurrence: "none",
       recurrenceInterval: 1,
       recurrenceDays: [],
-      notes: "",
       subtasks: [],
       tags: []
     });
@@ -705,7 +700,6 @@ export default function Tasks() {
                       recurrence: "none",
                       recurrenceInterval: 1,
                       recurrenceDays: [],
-                      notes: "",
                       subtasks: [],
                       tags: []
                     });
@@ -1043,12 +1037,6 @@ export default function Tasks() {
 
                       {/* Details */}
                       <div className="space-y-2 mb-4">
-                        {task.notes && (
-                          <div className="text-sm text-purple-300/80 line-clamp-2 mb-2">
-                            {task.notes}
-                          </div>
-                        )}
-                        
                         {task.subtasks && task.subtasks.length > 0 && (
                           <div className="mb-2">
                             <div className="flex items-center gap-2 text-xs text-purple-300/70 mb-1">
@@ -1361,21 +1349,6 @@ export default function Tasks() {
                       className="w-full px-4 py-3 rounded-xl bg-purple-900/40 border border-purple-700/30 text-white focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all"
                       value={form.scheduledDate}
                       onChange={(e) => setForm({ ...form, scheduledDate: e.target.value })}
-                    />
-                  </div>
-
-                  {/* Task Notes */}
-                  <div>
-                    <label className="block text-sm font-semibold text-purple-300 mb-2 flex items-center gap-2">
-                      <FileText className="w-4 h-4" />
-                      Notes (optional)
-                    </label>
-                    <textarea
-                      rows={3}
-                      className="w-full px-4 py-3 rounded-xl bg-purple-900/40 border border-purple-700/30 text-white placeholder-purple-300/50 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all resize-none"
-                      value={form.notes}
-                      onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                      placeholder="Add notes, reminders, or context for this task..."
                     />
                   </div>
 
