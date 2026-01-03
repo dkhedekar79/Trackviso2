@@ -21,8 +21,11 @@ import {
   Video,
   CheckCircle,
   XCircle,
-  ExternalLink
+  ExternalLink,
+  ChevronUp,
+  Eye
 } from 'lucide-react';
+import AIScheduleViews from '../components/AIScheduleViews';
 
 const Admin = () => {
   const { user } = useAuth();
@@ -40,6 +43,7 @@ const Admin = () => {
   const [ambassadorLoading, setAmbassadorLoading] = useState(false);
   const [submissionFilter, setSubmissionFilter] = useState('all'); // 'all', 'pending', 'approved', 'rejected'
   const [activeTab, setActiveTab] = useState('users'); // 'users', 'schedules', or 'ambassador'
+  const [expandedSchedule, setExpandedSchedule] = useState(null); // Track which schedule is expanded
 
   // Redirect if not admin - check email specifically
   useEffect(() => {
@@ -739,6 +743,19 @@ const Admin = () => {
                 const endDate = new Date(schedule.endDate);
                 const duration = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
                 const totalHours = schedule.blocksCount * 0.5; // Rough estimate
+                const isExpanded = expandedSchedule === schedule.id;
+                
+                // Format schedule for AIScheduleViews component
+                const formattedSchedule = {
+                  id: schedule.id,
+                  name: schedule.scheduleName,
+                  startDate: schedule.startDate,
+                  endDate: schedule.endDate,
+                  blocks: schedule.blocks || [],
+                  isAIGenerated: schedule.isAIGenerated,
+                  setupData: schedule.setupData,
+                  aiSummary: schedule.aiSummary,
+                };
 
                 return (
                   <motion.div
@@ -799,7 +816,36 @@ const Admin = () => {
                           </div>
                         )}
                       </div>
+                      <button
+                        onClick={() => setExpandedSchedule(isExpanded ? null : schedule.id)}
+                        className="ml-4 flex items-center gap-2 px-4 py-2 bg-purple-600/40 hover:bg-purple-600/60 text-purple-200 rounded-lg text-sm font-medium transition"
+                      >
+                        <Eye className="w-4 h-4" />
+                        {isExpanded ? 'Hide View' : 'View Schedule'}
+                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                      </button>
                     </div>
+                    
+                    {/* Expanded Schedule View */}
+                    <AnimatePresence>
+                      {isExpanded && schedule.blocks && schedule.blocks.length > 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="mt-6 pt-6 border-t border-purple-700/30"
+                        >
+                          <div className="bg-slate-900/50 rounded-xl p-6">
+                            <AIScheduleViews 
+                              schedule={formattedSchedule}
+                              onToggleComplete={() => {}} // Read-only in admin view
+                              onScheduleUpdate={() => {}} // Read-only in admin view
+                            />
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </motion.div>
                 );
               })

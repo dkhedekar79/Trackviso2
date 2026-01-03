@@ -275,6 +275,39 @@ async function listSchedules(adminUserId) {
 
     const formattedSchedules = schedules.map(schedule => {
       const userInfo = userMap.get(schedule.user_id) || { email: 'Unknown', displayName: 'Unknown' };
+      
+      // Parse blocks if it's a string (JSONB from Supabase)
+      let blocks = [];
+      if (Array.isArray(schedule.blocks)) {
+        blocks = schedule.blocks;
+      } else if (typeof schedule.blocks === 'string') {
+        try {
+          blocks = JSON.parse(schedule.blocks || '[]');
+        } catch (e) {
+          console.warn('Error parsing blocks for schedule', schedule.id, e);
+          blocks = [];
+        }
+      }
+      
+      // Parse setupData and aiSummary if they're strings
+      let setupData = schedule.setup_data;
+      if (typeof setupData === 'string') {
+        try {
+          setupData = JSON.parse(setupData);
+        } catch (e) {
+          console.warn('Error parsing setupData for schedule', schedule.id, e);
+        }
+      }
+      
+      let aiSummary = schedule.ai_summary;
+      if (typeof aiSummary === 'string') {
+        try {
+          aiSummary = JSON.parse(aiSummary);
+        } catch (e) {
+          console.warn('Error parsing aiSummary for schedule', schedule.id, e);
+        }
+      }
+      
       return {
         id: schedule.id,
         userId: schedule.user_id,
@@ -284,9 +317,10 @@ async function listSchedules(adminUserId) {
         startDate: schedule.start_date,
         endDate: schedule.end_date,
         isAIGenerated: schedule.is_ai_generated,
-        blocksCount: Array.isArray(schedule.blocks) ? schedule.blocks.length : (typeof schedule.blocks === 'string' ? JSON.parse(schedule.blocks || '[]').length : 0),
-        setupData: schedule.setup_data,
-        aiSummary: schedule.ai_summary,
+        blocks: blocks, // Include full blocks array
+        blocksCount: blocks.length,
+        setupData: setupData,
+        aiSummary: aiSummary,
         createdAt: schedule.created_at,
         updatedAt: schedule.updated_at,
       };
