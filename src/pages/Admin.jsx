@@ -64,7 +64,7 @@ const Admin = () => {
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/users', {
+      const response = await fetch('/api/admin?resource=users', {
         headers: {
           'x-admin-user-id': user.id
         }
@@ -111,7 +111,7 @@ const Admin = () => {
   const makeUserAdmin = async (userId, email) => {
     setActionInProgress(`${userId}-make-admin`);
     try {
-      const response = await fetch(`/api/admin/users?action=make-admin&userId=${userId}`, {
+      const response = await fetch(`/api/admin?resource=users&action=make-admin&userId=${userId}`, {
         method: 'POST',
         headers: {
           'x-admin-user-id': user.id,
@@ -138,7 +138,7 @@ const Admin = () => {
   const removeUserAdmin = async (userId) => {
     setActionInProgress(`${userId}-remove-admin`);
     try {
-      const response = await fetch(`/api/admin/users?action=remove-admin&userId=${userId}`, {
+      const response = await fetch(`/api/admin?resource=users&action=remove-admin&userId=${userId}`, {
         method: 'POST',
         headers: {
           'x-admin-user-id': user.id,
@@ -164,7 +164,7 @@ const Admin = () => {
   const updateSubscription = async (userId, plan) => {
     setActionInProgress(`${userId}-sub-${plan}`);
     try {
-      const response = await fetch(`/api/admin/users?action=update-subscription&userId=${userId}`, {
+      const response = await fetch(`/api/admin?resource=users&action=update-subscription&userId=${userId}`, {
         method: 'POST',
         headers: {
           'x-admin-user-id': user.id,
@@ -191,7 +191,7 @@ const Admin = () => {
   const resetUsage = async (userId) => {
     setActionInProgress(`${userId}-reset`);
     try {
-      const response = await fetch(`/api/admin/users?action=reset-usage&userId=${userId}`, {
+      const response = await fetch(`/api/admin?resource=users&action=reset-usage&userId=${userId}`, {
         method: 'POST',
         headers: {
           'x-admin-user-id': user.id,
@@ -217,7 +217,7 @@ const Admin = () => {
   const loadSchedules = async () => {
     try {
       setSchedulesLoading(true);
-      const response = await fetch('/api/admin/schedules', {
+      const response = await fetch('/api/admin?resource=schedules', {
         headers: {
           'x-admin-user-id': user.id
         }
@@ -249,8 +249,8 @@ const Admin = () => {
     try {
       setAmbassadorLoading(true);
       const activeFilter = filter || submissionFilter;
-      const statusParam = activeFilter !== 'all' ? `?status=${activeFilter}` : '';
-      const response = await fetch(`/api/admin/ambassador-submissions${statusParam}`, {
+      const statusParam = activeFilter !== 'all' ? `&status=${activeFilter}` : '';
+      const response = await fetch(`/api/admin?resource=ambassador-submissions${statusParam}`, {
         headers: {
           'x-admin-user-id': user.id
         }
@@ -281,7 +281,7 @@ const Admin = () => {
   const handleApproveSubmission = async (submissionId, feedback = '') => {
     setActionInProgress(`approve-${submissionId}`);
     try {
-      const response = await fetch('/api/admin/ambassador-submissions', {
+      const response = await fetch('/api/admin?resource=ambassador-submissions', {
         method: 'POST',
         headers: {
           'x-admin-user-id': user.id,
@@ -314,7 +314,7 @@ const Admin = () => {
   const handleRejectSubmission = async (submissionId, feedback = '') => {
     setActionInProgress(`reject-${submissionId}`);
     try {
-      const response = await fetch('/api/admin/ambassador-submissions', {
+      const response = await fetch('/api/admin?resource=ambassador-submissions', {
         method: 'POST',
         headers: {
           'x-admin-user-id': user.id,

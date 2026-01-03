@@ -26,7 +26,7 @@ You can run this via:
 If you need to recalculate stats for all existing users, call the API endpoint:
 
 ```bash
-POST /api/admin/recalculate-stats
+POST /api/admin?resource=recalculate-stats
 ```
 
 Or manually run in Supabase SQL Editor:
