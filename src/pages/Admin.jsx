@@ -17,7 +17,11 @@ import {
   Shield,
   AlertCircle,
   Calendar,
-  Brain
+  Brain,
+  Video,
+  CheckCircle,
+  XCircle,
+  ExternalLink
 } from 'lucide-react';
 
 const Admin = () => {
@@ -32,7 +36,10 @@ const Admin = () => {
   const [actionInProgress, setActionInProgress] = useState(null);
   const [schedules, setSchedules] = useState([]);
   const [schedulesLoading, setSchedulesLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('users'); // 'users' or 'schedules'
+  const [ambassadorSubmissions, setAmbassadorSubmissions] = useState([]);
+  const [ambassadorLoading, setAmbassadorLoading] = useState(false);
+  const [submissionFilter, setSubmissionFilter] = useState('all'); // 'all', 'pending', 'approved', 'rejected'
+  const [activeTab, setActiveTab] = useState('users'); // 'users', 'schedules', or 'ambassador'
 
   // Redirect if not admin - check email specifically
   useEffect(() => {
@@ -50,6 +57,7 @@ const Admin = () => {
     if (isAdmin && user) {
       loadUsers();
       loadSchedules();
+      loadAmbassadorSubmissions();
     }
   }, [isAdmin, user]);
 
@@ -237,6 +245,103 @@ const Admin = () => {
     }
   };
 
+  const loadAmbassadorSubmissions = async (filter = submissionFilter) => {
+    try {
+      setAmbassadorLoading(true);
+      const statusParam = filter !== 'all' ? `?status=${filter}` : '';
+      const response = await fetch(`/api/admin/ambassador-submissions${statusParam}`, {
+        headers: {
+          'x-admin-user-id': user.id
+        }
+      });
+
+      const contentType = response.headers.get('content-type') || '';
+      const parseBody = async () => {
+        if (contentType.includes('application/json')) return await response.json();
+        const text = await response.text();
+        try { return JSON.parse(text); } catch { return { error: text || 'Unknown error' }; }
+      };
+
+      const body = await parseBody();
+
+      if (response.ok) {
+        setAmbassadorSubmissions(body.submissions || []);
+      } else {
+        const msg = body?.error || body?.message || `HTTP ${response.status}`;
+        console.error('Error loading ambassador submissions:', msg);
+      }
+    } catch (error) {
+      console.error('Error loading ambassador submissions:', error);
+    } finally {
+      setAmbassadorLoading(false);
+    }
+  };
+
+  const handleApproveSubmission = async (submissionId, feedback = '') => {
+    setActionInProgress(`approve-${submissionId}`);
+    try {
+      const response = await fetch('/api/admin/ambassador-submissions', {
+        method: 'POST',
+        headers: {
+          'x-admin-user-id': user.id,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          submissionId,
+          action: 'approve',
+          feedback
+        })
+      });
+
+      const body = await response.json();
+
+      if (response.ok) {
+        alert('Submission approved! Premium access has been granted to the user.');
+        loadAmbassadorSubmissions();
+        loadUsers(); // Refresh users to see updated premium status
+      } else {
+        alert(`Error: ${body.error || 'Failed to approve submission'}`);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Failed to approve submission');
+    } finally {
+      setActionInProgress(null);
+    }
+  };
+
+  const handleRejectSubmission = async (submissionId, feedback = '') => {
+    setActionInProgress(`reject-${submissionId}`);
+    try {
+      const response = await fetch('/api/admin/ambassador-submissions', {
+        method: 'POST',
+        headers: {
+          'x-admin-user-id': user.id,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          submissionId,
+          action: 'reject',
+          feedback
+        })
+      });
+
+      const body = await response.json();
+
+      if (response.ok) {
+        alert('Submission rejected.');
+        loadAmbassadorSubmissions();
+      } else {
+        alert(`Error: ${body.error || 'Failed to reject submission'}`);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Failed to reject submission');
+    } finally {
+      setActionInProgress(null);
+    }
+  };
+
   const filteredUsers = users.filter(u =>
     u.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -303,6 +408,22 @@ const Admin = () => {
               <div className="flex items-center gap-2">
                 <Calendar className="w-5 h-5" />
                 Timetables ({schedules.length})
+              </div>
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('ambassador');
+                loadAmbassadorSubmissions();
+              }}
+              className={`px-6 py-3 font-semibold transition ${
+                activeTab === 'ambassador'
+                  ? 'text-purple-400 border-b-2 border-purple-400'
+                  : 'text-purple-300/60 hover:text-purple-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Video className="w-5 h-5" />
+                Ambassador ({ambassadorSubmissions.filter(s => s.status === 'pending').length} pending)
               </div>
             </button>
           </div>
@@ -676,6 +797,196 @@ const Admin = () => {
                           </div>
                         )}
                       </div>
+                    </div>
+                  </motion.div>
+                );
+              })
+            )}
+          </motion.div>
+        )}
+
+        {/* Ambassador Submissions List */}
+        {activeTab === 'ambassador' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="space-y-4"
+          >
+            {/* Filter Buttons */}
+            <div className="flex gap-2 mb-4">
+              <button
+                onClick={() => {
+                  setSubmissionFilter('all');
+                  loadAmbassadorSubmissions('all');
+                }}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                  submissionFilter === 'all'
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-purple-900/40 hover:bg-purple-900/60 text-purple-300'
+                }`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => {
+                  setSubmissionFilter('pending');
+                  loadAmbassadorSubmissions('pending');
+                }}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                  submissionFilter === 'pending'
+                    ? 'bg-yellow-600 text-white'
+                    : 'bg-yellow-900/40 hover:bg-yellow-900/60 text-yellow-300'
+                }`}
+              >
+                Pending
+              </button>
+              <button
+                onClick={() => {
+                  setSubmissionFilter('approved');
+                  loadAmbassadorSubmissions('approved');
+                }}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                  submissionFilter === 'approved'
+                    ? 'bg-green-600 text-white'
+                    : 'bg-green-900/40 hover:bg-green-900/60 text-green-300'
+                }`}
+              >
+                Approved
+              </button>
+              <button
+                onClick={() => {
+                  setSubmissionFilter('rejected');
+                  loadAmbassadorSubmissions('rejected');
+                }}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                  submissionFilter === 'rejected'
+                    ? 'bg-red-600 text-white'
+                    : 'bg-red-900/40 hover:bg-red-900/60 text-red-300'
+                }`}
+              >
+                Rejected
+              </button>
+            </div>
+
+            {ambassadorLoading ? (
+              <div className="text-center py-12 bg-purple-900/20 rounded-xl border border-purple-700/30">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+                <p className="text-purple-300">Loading submissions...</p>
+              </div>
+            ) : ambassadorSubmissions.length === 0 ? (
+              <div className="text-center py-12 bg-purple-900/20 rounded-xl border border-purple-700/30">
+                <Video className="w-12 h-12 text-purple-400/50 mx-auto mb-3" />
+                <p className="text-purple-300">No ambassador submissions found</p>
+                <p className="text-purple-300/60 text-sm mt-2">
+                  {submissionFilter !== 'all' ? `No ${submissionFilter} submissions` : 'Users can submit videos through the Premium Gift System'}
+                </p>
+              </div>
+            ) : (
+              ambassadorSubmissions.map((submission, idx) => {
+                const statusColors = {
+                  pending: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+                  approved: 'bg-green-500/20 text-green-400 border-green-500/30',
+                  rejected: 'bg-red-500/20 text-red-400 border-red-500/30'
+                };
+
+                return (
+                  <motion.div
+                    key={submission.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    className="bg-gradient-to-br from-purple-900/30 to-slate-900/30 rounded-xl border border-purple-700/30 p-6"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Video className="w-5 h-5 text-purple-400" />
+                          <h3 className="text-lg font-semibold text-white">Ambassador Submission</h3>
+                          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium border ${statusColors[submission.status] || statusColors.pending}`}>
+                            {submission.status === 'pending' && <Clock className="w-3 h-3" />}
+                            {submission.status === 'approved' && <CheckCircle className="w-3 h-3" />}
+                            {submission.status === 'rejected' && <XCircle className="w-3 h-3" />}
+                            {submission.status.charAt(0).toUpperCase() + submission.status.slice(1)}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                          <div>
+                            <p className="text-xs text-purple-300/60 mb-1">User</p>
+                            <p className="text-sm font-semibold text-white">{submission.userName}</p>
+                            <p className="text-xs text-purple-300/50">{submission.userEmail}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-purple-300/60 mb-1">Platform</p>
+                            <p className="text-sm font-semibold text-white capitalize">{submission.platform}</p>
+                            <p className="text-xs text-purple-300/50">{submission.views.toLocaleString()} views</p>
+                          </div>
+                        </div>
+
+                        <div className="mb-4">
+                          <p className="text-xs text-purple-300/60 mb-2">Video Link</p>
+                          <a
+                            href={submission.videoUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-sm text-purple-400 hover:text-purple-300 break-all"
+                          >
+                            <ExternalLink className="w-4 h-4 flex-shrink-0" />
+                            <span className="truncate">{submission.videoUrl}</span>
+                          </a>
+                        </div>
+
+                        {submission.adminFeedback && (
+                          <div className="mb-4 p-3 bg-purple-950/50 rounded-lg border border-purple-700/30">
+                            <p className="text-xs text-purple-300/60 mb-1">Admin Feedback</p>
+                            <p className="text-sm text-purple-200">{submission.adminFeedback}</p>
+                          </div>
+                        )}
+
+                        <div className="text-xs text-purple-300/50">
+                          Submitted: {new Date(submission.createdAt).toLocaleString()}
+                          {submission.updatedAt !== submission.createdAt && (
+                            <span className="ml-2">
+                              • Updated: {new Date(submission.updatedAt).toLocaleString()}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {submission.status === 'pending' && (
+                        <div className="flex flex-col gap-2 flex-shrink-0">
+                          <motion.button
+                            onClick={() => {
+                              const feedback = window.prompt('Optional feedback for approval:');
+                              if (feedback !== null) {
+                                handleApproveSubmission(submission.id, feedback);
+                              }
+                            }}
+                            disabled={actionInProgress === `approve-${submission.id}`}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition disabled:opacity-50 flex items-center gap-2"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                            {actionInProgress === `approve-${submission.id}` ? 'Approving...' : 'Approve'}
+                          </motion.button>
+                          <motion.button
+                            onClick={() => {
+                              const feedback = window.prompt('Reason for rejection (optional):');
+                              if (feedback !== null) {
+                                handleRejectSubmission(submission.id, feedback);
+                              }
+                            }}
+                            disabled={actionInProgress === `reject-${submission.id}`}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition disabled:opacity-50 flex items-center gap-2"
+                          >
+                            <XCircle className="w-4 h-4" />
+                            {actionInProgress === `reject-${submission.id}` ? 'Rejecting...' : 'Reject'}
+                          </motion.button>
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 );
