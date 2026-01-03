@@ -247,38 +247,54 @@ async function listSchedules(adminUserId) {
 
     const { data: schedules, error: schedulesError } = await supabase
       .from('user_schedules')
-      .select(`
-        *,
-        user:user_id (
-          id,
-          email,
-          user_metadata
-        )
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
 
     if (schedulesError) {
       return { status: 500, body: { error: 'Failed to fetch schedules', details: schedulesError.message } };
     }
 
-    const formattedSchedules = schedules.map(schedule => ({
-      id: schedule.id,
-      userId: schedule.user_id,
-      userEmail: schedule.user?.email || 'Unknown',
-      userName: schedule.user?.user_metadata?.display_name || schedule.user?.email?.split('@')[0] || 'Unknown',
-      scheduleName: schedule.schedule_name,
-      startDate: schedule.start_date,
-      endDate: schedule.end_date,
-      isAIGenerated: schedule.is_ai_generated,
-      blocksCount: Array.isArray(schedule.blocks) ? schedule.blocks.length : 0,
-      setupData: schedule.setup_data,
-      aiSummary: schedule.ai_summary,
-      createdAt: schedule.created_at,
-      updatedAt: schedule.updated_at,
-    }));
+    // Fetch user data separately for each unique user_id
+    const uniqueUserIds = [...new Set(schedules.map(s => s.user_id))];
+    const userMap = new Map();
+
+    for (const userId of uniqueUserIds) {
+      try {
+        const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
+        if (!userError && userData?.user) {
+          userMap.set(userId, {
+            email: userData.user.email || 'Unknown',
+            displayName: userData.user.user_metadata?.display_name || userData.user.email?.split('@')[0] || 'Unknown'
+          });
+        }
+      } catch (e) {
+        console.warn(`Error fetching user ${userId}:`, e.message);
+        userMap.set(userId, { email: 'Unknown', displayName: 'Unknown' });
+      }
+    }
+
+    const formattedSchedules = schedules.map(schedule => {
+      const userInfo = userMap.get(schedule.user_id) || { email: 'Unknown', displayName: 'Unknown' };
+      return {
+        id: schedule.id,
+        userId: schedule.user_id,
+        userEmail: userInfo.email,
+        userName: userInfo.displayName,
+        scheduleName: schedule.schedule_name,
+        startDate: schedule.start_date,
+        endDate: schedule.end_date,
+        isAIGenerated: schedule.is_ai_generated,
+        blocksCount: Array.isArray(schedule.blocks) ? schedule.blocks.length : (typeof schedule.blocks === 'string' ? JSON.parse(schedule.blocks || '[]').length : 0),
+        setupData: schedule.setup_data,
+        aiSummary: schedule.ai_summary,
+        createdAt: schedule.created_at,
+        updatedAt: schedule.updated_at,
+      };
+    });
 
     return { status: 200, body: { schedules: formattedSchedules, total: formattedSchedules.length } };
   } catch (error) {
+    console.error('Error in listSchedules:', error);
     return { status: 500, body: { error: error.message } };
   }
 }
@@ -293,14 +309,7 @@ async function listAmbassadorSubmissions(adminUserId, status = null) {
 
     let query = supabase
       .from('ambassador_submissions')
-      .select(`
-        *,
-        user:user_id (
-          id,
-          email,
-          user_metadata
-        )
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
 
     if (status) {
@@ -313,19 +322,41 @@ async function listAmbassadorSubmissions(adminUserId, status = null) {
       return { status: 500, body: { error: 'Failed to fetch submissions', details: submissionsError.message } };
     }
 
-    const formattedSubmissions = submissions.map(submission => ({
-      id: submission.id,
-      userId: submission.user_id,
-      userEmail: submission.user?.email || 'Unknown',
-      userName: submission.user?.user_metadata?.display_name || submission.user?.email?.split('@')[0] || 'Unknown',
-      videoUrl: submission.video_url,
-      platform: submission.platform,
-      views: submission.views || 0,
-      status: submission.status || 'pending',
-      adminFeedback: submission.admin_feedback || null,
-      createdAt: submission.created_at,
-      updatedAt: submission.updated_at,
-    }));
+    // Fetch user data separately for each unique user_id
+    const uniqueUserIds = [...new Set(submissions.map(s => s.user_id))];
+    const userMap = new Map();
+
+    for (const userId of uniqueUserIds) {
+      try {
+        const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
+        if (!userError && userData?.user) {
+          userMap.set(userId, {
+            email: userData.user.email || 'Unknown',
+            displayName: userData.user.user_metadata?.display_name || userData.user.email?.split('@')[0] || 'Unknown'
+          });
+        }
+      } catch (e) {
+        console.warn(`Error fetching user ${userId}:`, e.message);
+        userMap.set(userId, { email: 'Unknown', displayName: 'Unknown' });
+      }
+    }
+
+    const formattedSubmissions = submissions.map(submission => {
+      const userInfo = userMap.get(submission.user_id) || { email: 'Unknown', displayName: 'Unknown' };
+      return {
+        id: submission.id,
+        userId: submission.user_id,
+        userEmail: userInfo.email,
+        userName: userInfo.displayName,
+        videoUrl: submission.video_url,
+        platform: submission.platform,
+        views: submission.views || 0,
+        status: submission.status || 'pending',
+        adminFeedback: submission.admin_feedback || null,
+        createdAt: submission.created_at,
+        updatedAt: submission.updated_at,
+      };
+    });
 
     return {
       status: 200,
@@ -338,6 +369,7 @@ async function listAmbassadorSubmissions(adminUserId, status = null) {
       }
     };
   } catch (error) {
+    console.error('Error in listAmbassadorSubmissions:', error);
     return { status: 500, body: { error: error.message } };
   }
 }
