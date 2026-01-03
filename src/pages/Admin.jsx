@@ -245,10 +245,11 @@ const Admin = () => {
     }
   };
 
-  const loadAmbassadorSubmissions = async (filter = submissionFilter) => {
+  const loadAmbassadorSubmissions = async (filter = null) => {
     try {
       setAmbassadorLoading(true);
-      const statusParam = filter !== 'all' ? `?status=${filter}` : '';
+      const activeFilter = filter || submissionFilter;
+      const statusParam = activeFilter !== 'all' ? `?status=${activeFilter}` : '';
       const response = await fetch(`/api/admin/ambassador-submissions${statusParam}`, {
         headers: {
           'x-admin-user-id': user.id
