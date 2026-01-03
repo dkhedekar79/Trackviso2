@@ -215,10 +215,9 @@ export default function Tasks() {
     return nextDate;
   };
 
-  // Load subjects from localStorage on mount
-  // IMPORTANT: Only read subjects, never overwrite them with defaults
-  // If subjects don't exist, let the user create them in the Subjects page
+  // Load subjects and tasks from localStorage on mount
   useEffect(() => {
+    // Load subjects
     const savedSubjects = localStorage.getItem("subjects");
     if (savedSubjects) {
       try {
@@ -232,11 +231,26 @@ export default function Tasks() {
     }
     // Don't create default subjects here - let user create them in Subjects page
     // This prevents overwriting user's custom subjects
+
+    // Load tasks
+    const savedTasks = localStorage.getItem("tasks");
+    if (savedTasks) {
+      try {
+        const parsed = JSON.parse(savedTasks);
+        if (Array.isArray(parsed)) {
+          setTasks(parsed);
+        }
+      } catch (error) {
+        console.error('Error parsing tasks:', error);
+      }
+    }
   }, []);
 
   // Save tasks to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem("tasks", JSON.stringify(tasks));
+    if (tasks.length > 0 || localStorage.getItem("tasks")) {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
   }, [tasks]);
 
   // Daily check for recurring tasks (runs once per day)
