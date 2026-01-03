@@ -414,7 +414,8 @@ const Admin = () => {
             <button
               onClick={() => {
                 setActiveTab('ambassador');
-                loadAmbassadorSubmissions();
+                setSubmissionFilter('all');
+                loadAmbassadorSubmissions('all');
               }}
               className={`px-6 py-3 font-semibold transition ${
                 activeTab === 'ambassador'
