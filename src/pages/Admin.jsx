@@ -57,7 +57,7 @@ const Admin = () => {
     if (isAdmin && user) {
       loadUsers();
       loadSchedules();
-      loadAmbassadorSubmissions();
+      loadAmbassadorSubmissions('all'); // Load all to get accurate pending count
     }
   }, [isAdmin, user]);
 
