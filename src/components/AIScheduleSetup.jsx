@@ -446,12 +446,42 @@ export default function AIScheduleSetup({ onComplete, onCancel, availableSubject
                 </div>
 
                 {startDate && endDate && (
-                  <div className="p-4 bg-violet-500/10 border border-violet-500/30 rounded-lg">
-                    <p className="text-violet-300 font-medium">
-                      Duration: {calculateDuration()} days
-                    </p>
-                  </div>
+                  <>
+                    <div className="p-4 bg-violet-500/10 border border-violet-500/30 rounded-lg">
+                      <p className="text-violet-300 font-medium">
+                        Duration: {calculateDuration()} days
+                      </p>
+                    </div>
+                    {calculateDuration() > 21 && (
+                      <div className="p-4 bg-amber-500/20 border border-amber-500/50 rounded-lg">
+                        <div className="flex items-start gap-3">
+                          <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-amber-300 font-semibold mb-1">⚠️ Timetable Length Warning</p>
+                            <p className="text-amber-200/90 text-sm">
+                              Timetables longer than 3 weeks (21 days) are unlikely to work properly. 
+                              If you need a longer schedule, please try creating a repeating block of 3 weeks instead.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
+                
+                {/* General warning about 3-week limit */}
+                <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-blue-300 text-sm font-medium mb-1">📅 Recommended Duration</p>
+                      <p className="text-blue-200/90 text-sm">
+                        For best results, keep your timetable to 3 weeks or less. For longer periods, 
+                        consider creating a repeating 3-week schedule instead.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </motion.div>
             )}
 
