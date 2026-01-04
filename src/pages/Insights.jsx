@@ -1318,7 +1318,7 @@ export default function Insights() {
                 {/* Graph Area */}
                 <div className="flex-1">
                   {/* X-axis labels (hours) */}
-                  <div className="flex justify-between mb-2 px-2">
+                  <div className="flex justify-between mb-2">
                     {[0, 2, 4, 6, 8, 10, 12, 14, 16].map(hour => (
                       <div key={hour} className="text-xs text-purple-300/70">
                         {hour}h
@@ -1502,7 +1502,7 @@ export default function Insights() {
                 {/* Graph Area */}
                 <div className="flex-1">
                   {/* X-axis labels (hours) */}
-                  <div className="flex justify-between mb-2 px-2">
+                  <div className="flex justify-between mb-2">
                     {[0, 2, 4, 6, 8, 10, 12, 14, 16].map(hour => (
                       <div key={hour} className="text-xs text-purple-300/70">
                         {hour}h
@@ -1714,7 +1714,7 @@ export default function Insights() {
                 {/* Graph Area */}
                 <div className="flex-1">
                   {/* X-axis labels (hours) */}
-                  <div className="flex justify-between mb-2 px-2">
+                  <div className="flex justify-between mb-2">
                     {[0, 2, 4, 6, 8, 10, 12, 14, 16].map(hour => (
                       <div key={hour} className="text-xs text-purple-300/70">
                         {hour}h
