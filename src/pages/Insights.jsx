@@ -1329,17 +1329,22 @@ export default function Insights() {
                   {/* Graph Grid */}
                   <div className="relative" style={{ height: '420px' }}>
                     {/* Vertical grid lines */}
-                    <div className="absolute inset-0 flex">
-                      {[0, 2, 4, 6, 8, 10, 12, 14, 16].map((hour, index) => (
-                        <div
-                          key={hour}
-                          className="flex-1 border-l border-dashed border-purple-700/30"
-                          style={{ 
-                            borderLeftWidth: index === 0 ? '0px' : '1px',
-                            marginLeft: index === 0 ? '0' : '-1px'
-                          }}
-                        />
-                      ))}
+                    <div className="absolute inset-0">
+                      {[0, 2, 4, 6, 8, 10, 12, 14, 16].map((hour) => {
+                        const maxHours = 16;
+                        const position = (hour / maxHours) * 100;
+                        return (
+                          <div
+                            key={hour}
+                            className="absolute top-0 bottom-0 border-l border-dashed border-purple-700/30"
+                            style={{ 
+                              left: `${position}%`,
+                              borderLeftWidth: hour === 0 ? '0px' : '1px',
+                              marginLeft: hour === 0 ? '0' : '-1px'
+                            }}
+                          />
+                        );
+                      })}
                     </div>
                     
                     {/* Bars for each day */}
@@ -1514,17 +1519,22 @@ export default function Insights() {
                   <div className="relative max-h-[600px] overflow-y-auto overflow-x-hidden pr-2" style={{ scrollbarWidth: 'thin' }}>
                     <div className="relative" style={{ minHeight: `${monthlyStudyData.days.length * 24}px` }}>
                       {/* Vertical grid lines */}
-                      <div className="absolute inset-0 flex">
-                        {[0, 2, 4, 6, 8, 10, 12, 14, 16].map((hour, index) => (
-                          <div
-                            key={hour}
-                            className="flex-1 border-l border-dashed border-purple-700/30"
-                            style={{ 
-                              borderLeftWidth: index === 0 ? '0px' : '1px',
-                              marginLeft: index === 0 ? '0' : '-1px'
-                            }}
-                          />
-                        ))}
+                      <div className="absolute inset-0">
+                        {[0, 2, 4, 6, 8, 10, 12, 14, 16].map((hour) => {
+                          const maxHours = 16;
+                          const position = (hour / maxHours) * 100;
+                          return (
+                            <div
+                              key={hour}
+                              className="absolute top-0 bottom-0 border-l border-dashed border-purple-700/30"
+                              style={{ 
+                                left: `${position}%`,
+                                borderLeftWidth: hour === 0 ? '0px' : '1px',
+                                marginLeft: hour === 0 ? '0' : '-1px'
+                              }}
+                            />
+                          );
+                        })}
                       </div>
                       
                       {/* Bars for each day - smaller rows */}
@@ -1726,17 +1736,22 @@ export default function Insights() {
                   <div className="relative max-h-[600px] overflow-y-auto overflow-x-hidden pr-2" style={{ scrollbarWidth: 'thin' }}>
                     <div className="relative" style={{ minHeight: `${allTimeMonthlyStudyData.days.length * 24}px` }}>
                       {/* Vertical grid lines */}
-                      <div className="absolute inset-0 flex">
-                        {[0, 2, 4, 6, 8, 10, 12, 14, 16].map((hour, index) => (
-                          <div
-                            key={hour}
-                            className="flex-1 border-l border-dashed border-purple-700/30"
-                            style={{ 
-                              borderLeftWidth: index === 0 ? '0px' : '1px',
-                              marginLeft: index === 0 ? '0' : '-1px'
-                            }}
-                          />
-                        ))}
+                      <div className="absolute inset-0">
+                        {[0, 2, 4, 6, 8, 10, 12, 14, 16].map((hour) => {
+                          const maxHours = 16;
+                          const position = (hour / maxHours) * 100;
+                          return (
+                            <div
+                              key={hour}
+                              className="absolute top-0 bottom-0 border-l border-dashed border-purple-700/30"
+                              style={{ 
+                                left: `${position}%`,
+                                borderLeftWidth: hour === 0 ? '0px' : '1px',
+                                marginLeft: hour === 0 ? '0' : '-1px'
+                              }}
+                            />
+                          );
+                        })}
                       </div>
                       
                       {/* Bars for each day - smaller rows */}
