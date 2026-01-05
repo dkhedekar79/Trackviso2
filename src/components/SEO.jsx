@@ -1,19 +1,30 @@
 import { Helmet } from 'react-helmet-async';
+import { useLocation } from 'react-router-dom';
 
 const SEO = ({ 
   title = "Trackviso — Gamified Study Tracker", 
   description = "Trackviso is a progress tracking app that turns your studying into a game with streaks, quests, and insights to keep you consistent.",
   image = "https://trackviso-beta.vercel.app/og.png",
-  url = "https://trackviso-beta.vercel.app",
+  url = "",
   type = "website",
   keywords = "study tracker, gamified learning, study app, academic tracker, study productivity, study streaks, study quests, AI study tutor, revision tracker, study analytics",
   robots = "index, follow",
   noindex = false
 }) => {
+  const location = useLocation();
   const fullTitle = title.includes('Trackviso') ? title : `${title} | Trackviso`;
   const baseUrl = "https://trackviso-beta.vercel.app";
-  const cleanUrl = url === "/" ? "" : url;
-  const fullUrl = url.startsWith('http') ? url : `${baseUrl}${cleanUrl}`;
+  
+  // Get the current path from location, or use the provided url prop
+  const currentPath = url || location.pathname;
+  
+  // Strip query parameters and hash from the path for canonical URL
+  const cleanPath = currentPath.split('?')[0].split('#')[0];
+  const canonicalPath = cleanPath === "/" ? "" : cleanPath;
+  const canonicalUrl = `${baseUrl}${canonicalPath}`;
+  
+  // For Open Graph and Twitter, use the full URL (with query params if needed for tracking)
+  const fullUrl = url.startsWith('http') ? url.split('?')[0].split('#')[0] : canonicalUrl;
   const fullImage = image.startsWith('http') ? image : `${baseUrl}${image.startsWith('/') ? image : `/${image}`}`;
   
   return (
@@ -23,7 +34,7 @@ const SEO = ({
       <meta name="title" content={fullTitle} />
       <meta name="description" content={description} />
       <meta name="keywords" content={keywords} />
-      <link rel="canonical" href={fullUrl} />
+      <link rel="canonical" href={canonicalUrl} />
       <meta name="robots" content={noindex ? "noindex, nofollow" : robots} />
       <meta name="language" content="English" />
       <meta name="author" content="Trackviso" />
