@@ -1141,8 +1141,7 @@ const Study = () => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ 
                   opacity: 1, 
-                  x: 0,
-                  y: showPlaylistSelector ? -400 : 0
+                  x: 0
                 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ delay: 0.3, type: 'spring', stiffness: 300, damping: 30 }}
