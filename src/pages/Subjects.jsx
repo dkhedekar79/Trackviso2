@@ -328,11 +328,33 @@ const Subjects = () => {
 
 
 
+  // Helper function to get start of week (Monday)
+  const getStartOfWeek = (date) => {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust to Monday
+    d.setDate(diff);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  };
+
   const getSubjectStudyTime = (subjectName) => {
     const studySessions = JSON.parse(localStorage.getItem('studySessions') || '[]');
     return studySessions
       .filter(session => session.subjectName === subjectName)
       .reduce((total, session) => total + session.durationMinutes, 0);
+  };
+
+  const getSubjectWeeklyStudyTime = (subjectName) => {
+    const studySessions = JSON.parse(localStorage.getItem('studySessions') || '[]');
+    const weekStart = getStartOfWeek(new Date());
+    
+    return studySessions
+      .filter(session => {
+        const sessionDate = new Date(session.timestamp);
+        return session.subjectName === subjectName && sessionDate >= weekStart;
+      })
+      .reduce((total, session) => total + (session.durationMinutes || 0), 0);
   };
 
   const getLastStudied = (subjectName) => {
@@ -444,9 +466,10 @@ const Subjects = () => {
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {subjects.map((subject) => {
           const studyTime = getSubjectStudyTime(subject.name);
+          const weeklyStudyTime = getSubjectWeeklyStudyTime(subject.name);
           const lastStudied = getLastStudied(subject.name);
           const level = getSubjectLevel(studyTime);
-          const progress = getSubjectProgress(studyTime, subject.goalHours);
+          const progress = getSubjectProgress(weeklyStudyTime, subject.goalHours);
           const badge = getSubjectBadge(studyTime);
           const SubjectIcon = subject.icon; // Already mapped in useEffect
           const isExpanded = expandedSubjects[subject.id] || false;
