@@ -109,9 +109,9 @@ export default function AISchedule() {
   useEffect(() => {
     const loadSchedules = async () => {
       // First load from localStorage (for immediate display)
-      const savedSchedules = localStorage.getItem("aiSchedules");
+    const savedSchedules = localStorage.getItem("aiSchedules");
       let localSchedules = [];
-      if (savedSchedules) {
+    if (savedSchedules) {
         try {
           localSchedules = JSON.parse(savedSchedules);
           setSchedules(localSchedules);
@@ -200,12 +200,12 @@ export default function AISchedule() {
             }
           }
         }
-      }
+    }
 
-      const savedSubjects = localStorage.getItem("subjects");
-      if (savedSubjects) {
-        setAvailableSubjects(JSON.parse(savedSubjects));
-      }
+    const savedSubjects = localStorage.getItem("subjects");
+    if (savedSubjects) {
+      setAvailableSubjects(JSON.parse(savedSubjects));
+    }
     };
 
     loadSchedules();
@@ -296,11 +296,11 @@ export default function AISchedule() {
     } else {
       // Create new schedule
       const updatedSchedules = [...schedules, newSchedule].sort((a, b) => 
-        new Date(a.startDate) - new Date(b.startDate)
+      new Date(a.startDate) - new Date(b.startDate)
       );
       setSchedules(updatedSchedules);
-      setIsAISetupOpen(false);
-      setCurrentSchedule(newSchedule);
+    setIsAISetupOpen(false);
+    setCurrentSchedule(newSchedule);
       
       // Sync to Supabase
       if (user) {

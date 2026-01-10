@@ -68,7 +68,7 @@ async function getLeaderboard(timeframe, sortBy) {
     // If we need to filter by timeframe or calculate all-time more accurately, get study sessions
     let studySessions = [];
     const sessionsQuery = supabase
-      .from('study_sessions')
+        .from('study_sessions')
       .select('user_id, duration_minutes, timestamp');
 
     if (timeframe === 'daily') {
@@ -80,22 +80,47 @@ async function getLeaderboard(timeframe, sortBy) {
 
     const { data: sessions, error: sessionsError } = await sessionsQuery;
 
-    if (sessionsError) {
-      console.error('Error fetching study sessions:', sessionsError);
-    } else {
-      studySessions = sessions || [];
+      if (sessionsError) {
+        console.error('Error fetching study sessions:', sessionsError);
+      } else {
+        studySessions = sessions || [];
     }
 
     // Get user emails/display names
-    const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers();
+    const { data: usersData, error: usersError } = await supabase.auth.admin.listUsers();
     const userMap = new Map();
-    if (users && !usersError) {
-      users.forEach(user => {
+    
+    if (usersData && usersData.users && !usersError) {
+      const allAuthUsers = usersData.users;
+      
+      // Build user map with better fallback logic
+      allAuthUsers.forEach(user => {
+        let displayName = null;
+        
+        // Priority 1: Use display_name from metadata (if set and not empty)
+        if (user.user_metadata?.display_name && user.user_metadata.display_name.trim()) {
+          displayName = user.user_metadata.display_name.trim();
+        } 
+        // Priority 2: Use email username part (capitalized)
+        else if (user.email) {
+          const emailUsername = user.email.split('@')[0];
+          if (emailUsername && emailUsername.length > 0) {
+            // Capitalize first letter and lowercase the rest
+            displayName = emailUsername.charAt(0).toUpperCase() + emailUsername.slice(1).toLowerCase();
+          }
+        }
+        
         userMap.set(user.id, {
-          email: user.email || 'Anonymous',
-          displayName: user.user_metadata?.display_name || user.email?.split('@')[0] || 'Anonymous'
+          email: user.email || null,
+          displayName: displayName // null if no display name or email, handled in fallback below
         });
       });
+      
+      console.log(`[Leaderboard] Loaded ${allAuthUsers.length} users from auth`);
+    } else if (usersError) {
+      console.error('[Leaderboard] Error fetching users from auth:', usersError);
+    } else {
+      console.warn('[Leaderboard] No users data returned from auth');
     }
 
     // Process leaderboard data
@@ -116,7 +141,34 @@ async function getLeaderboard(timeframe, sortBy) {
         total_xp_earned: 0
       };
       
-      const userInfo = userMap.get(userId) || { email: 'Anonymous', displayName: 'Anonymous' };
+      // Try to get user info, with better fallback handling
+      let userInfo = userMap.get(userId);
+      
+      if (!userInfo) {
+        // User not found in auth - might be deleted but stats remain (shouldn't happen with CASCADE, but handle it)
+        const shortUserId = userId ? userId.substring(0, 8) : 'unknown';
+        console.warn(`[Leaderboard] User ${shortUserId} not found in auth users map (may be deleted)`);
+        userInfo = { 
+          email: null, 
+          displayName: 'Anonymous'
+        };
+      } else if (!userInfo.displayName) {
+        // User exists in auth but has no display name - this should have been handled above,
+        // but if somehow displayName is still null, try to use email
+        if (userInfo.email) {
+          const emailUsername = userInfo.email.split('@')[0];
+          if (emailUsername && emailUsername.length > 0) {
+            userInfo.displayName = emailUsername.charAt(0).toUpperCase() + emailUsername.slice(1).toLowerCase();
+          } else {
+            userInfo.displayName = 'Anonymous';
+            console.warn(`[Leaderboard] User ${userId.substring(0, 8)} has invalid email format`);
+          }
+        } else {
+          // User exists but has no email and no display name (very rare - OAuth without email?)
+          userInfo.displayName = 'Anonymous';
+          console.warn(`[Leaderboard] User ${userId.substring(0, 8)} has no email or display name`);
+        }
+      }
       
       let value = 0;
       let displayValue = '';
@@ -165,7 +217,7 @@ async function getLeaderboard(timeframe, sortBy) {
             // Use the calculated longest streak, or the one in stats if it's somehow larger
             value = Math.max(longest, stat.longest_streak || 0);
           } else {
-            value = stat.longest_streak || 0;
+          value = stat.longest_streak || 0;
           }
         }
         displayValue = `${value} days`;
