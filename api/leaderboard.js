@@ -27,7 +27,7 @@ function getStartOfWeek(date) {
 }
 
 // Fetch leaderboard data
-async function getLeaderboard(timeframe, sortBy) {
+async function getLeaderboard(timeframe, sortBy, currentUserId = null) {
   try {
     const now = new Date();
     let startDate = null;
@@ -286,16 +286,51 @@ async function getLeaderboard(timeframe, sortBy) {
       }))
     );
 
-    // Limit to top 100
-    const topUsers = leaderboardData.slice(0, 100);
+    // Add rank to each entry
+    leaderboardData.forEach((entry, index) => {
+      entry.rank = index + 1;
+    });
+
+    // Filter leaderboard to show: top 5 + user context (above, user, below)
+    let filteredLeaderboard = [];
+    let userRank = -1;
+    
+    if (currentUserId) {
+      // Find the current user's rank
+      userRank = leaderboardData.findIndex(entry => entry.userId === currentUserId);
+    }
+    
+    if (userRank === -1 || userRank < 5) {
+      // User is in top 5 or not found - just show top 5
+      filteredLeaderboard = leaderboardData.slice(0, 5);
+    } else {
+      // User is below top 5 - show top 5 + user above + user + user below
+      const top5 = leaderboardData.slice(0, 5);
+      const userAbove = userRank > 0 ? leaderboardData[userRank - 1] : null;
+      const userEntry = leaderboardData[userRank];
+      const userBelow = userRank < leaderboardData.length - 1 ? leaderboardData[userRank + 1] : null;
+      
+      filteredLeaderboard = [...top5];
+      
+      // Add separator if user is far from top 5
+      if (userRank > 5) {
+        filteredLeaderboard.push({ isSeparator: true });
+      }
+      
+      // Add user above, user, and user below
+      if (userAbove) filteredLeaderboard.push(userAbove);
+      filteredLeaderboard.push(userEntry);
+      if (userBelow) filteredLeaderboard.push(userBelow);
+    }
 
     return {
       status: 200,
       body: {
-        leaderboard: topUsers,
+        leaderboard: filteredLeaderboard,
         timeframe,
         sortBy,
-        total: topUsers.length
+        total: leaderboardData.length,
+        userRank: userRank >= 0 ? userRank + 1 : null
       }
     };
   } catch (error) {
@@ -321,6 +356,7 @@ export default async function handler(req, res) {
 
     const timeframe = query.timeframe || 'all-time'; // daily, weekly, all-time
     const sortBy = query.sortBy || 'study_time'; // streak, study_time
+    const userId = query.userId || null; // Current user ID for filtering
 
     if (!['daily', 'weekly', 'all-time'].includes(timeframe)) {
       return res.status(400).json({ error: 'Invalid timeframe' });
@@ -330,7 +366,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid sortBy' });
     }
 
-    const result = await getLeaderboard(timeframe, sortBy);
+    const result = await getLeaderboard(timeframe, sortBy, userId);
     return res.status(result.status).json(result.body);
   } catch (error) {
     console.error('Leaderboard API error:', error);

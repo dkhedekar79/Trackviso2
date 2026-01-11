@@ -14,14 +14,15 @@ const LeaderboardTab = () => {
 
   useEffect(() => {
     fetchLeaderboard();
-  }, [timeframe, sortBy]);
+  }, [timeframe, sortBy, user?.id]);
 
   const fetchLeaderboard = async () => {
     setLoading(true);
     setError(null);
     try {
+      const userId = user?.id || '';
       const response = await fetch(
-        `/api/leaderboard?timeframe=${timeframe}&sortBy=${sortBy}`
+        `/api/leaderboard?timeframe=${timeframe}&sortBy=${sortBy}${userId ? `&userId=${userId}` : ''}`
       );
       const data = await response.json();
       
@@ -146,12 +147,23 @@ const LeaderboardTab = () => {
       ) : (
         <div className="space-y-3">
           {leaderboard.map((entry, index) => {
-            const rank = index + 1;
+            // Handle separator entries
+            if (entry.isSeparator) {
+              return (
+                <div key={`separator-${index}`} className="flex items-center justify-center py-2">
+                  <div className="flex-1 border-t border-white/10"></div>
+                  <span className="px-4 text-xs text-gray-500">...</span>
+                  <div className="flex-1 border-t border-white/10"></div>
+                </div>
+              );
+            }
+            
+            const rank = entry.rank || (index + 1);
             const isUser = isCurrentUser(entry.userId);
             
             return (
               <motion.div
-                key={entry.userId}
+                key={entry.userId || `entry-${index}`}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
