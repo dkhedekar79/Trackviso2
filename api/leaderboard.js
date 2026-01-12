@@ -26,6 +26,42 @@ function getStartOfWeek(date) {
   return d;
 }
 
+// Helper function to fetch all users with pagination
+async function getAllUsers() {
+  const allUsers = [];
+  let page = 1;
+  const perPage = 1000; // Fetch up to 1000 users per page
+  
+  while (true) {
+    const { data, error } = await supabase.auth.admin.listUsers({
+      page,
+      perPage
+    });
+    
+    if (error) {
+      console.error(`[Leaderboard] Error fetching users page ${page}:`, error);
+      break;
+    }
+    
+    if (!data || !data.users || data.users.length === 0) {
+      // No more users to fetch
+      break;
+    }
+    
+    allUsers.push(...data.users);
+    
+    // If we got fewer users than perPage, we've reached the end
+    if (data.users.length < perPage) {
+      break;
+    }
+    
+    page++;
+  }
+  
+  console.log(`[Leaderboard] Fetched ${allUsers.length} total users across ${page} page(s)`);
+  return allUsers;
+}
+
 // Fetch leaderboard data
 async function getLeaderboard(timeframe, sortBy, currentUserId = null) {
   try {
@@ -86,13 +122,18 @@ async function getLeaderboard(timeframe, sortBy, currentUserId = null) {
         studySessions = sessions || [];
     }
 
-    // Get user emails/display names
-    const { data: usersData, error: usersError } = await supabase.auth.admin.listUsers();
+    // Get user emails/display names - fetch all users with pagination
+    let allAuthUsers = [];
+    try {
+      allAuthUsers = await getAllUsers();
+    } catch (error) {
+      console.error('[Leaderboard] Error fetching all users:', error);
+      // Continue with empty array - will show Anonymous for users not found
+    }
+    
     const userMap = new Map();
     
-    if (usersData && usersData.users && !usersError) {
-      const allAuthUsers = usersData.users;
-      
+    if (allAuthUsers && allAuthUsers.length > 0) {
       // Build user map with better fallback logic
       allAuthUsers.forEach(user => {
         let displayName = null;
@@ -117,10 +158,8 @@ async function getLeaderboard(timeframe, sortBy, currentUserId = null) {
       });
       
       console.log(`[Leaderboard] Loaded ${allAuthUsers.length} users from auth`);
-    } else if (usersError) {
-      console.error('[Leaderboard] Error fetching users from auth:', usersError);
     } else {
-      console.warn('[Leaderboard] No users data returned from auth');
+      console.warn('[Leaderboard] No users returned from auth (empty result)');
     }
 
     // Process leaderboard data

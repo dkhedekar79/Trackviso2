@@ -55,6 +55,42 @@ async function verifyAdmin(userId) {
   return false;
 }
 
+// Helper function to fetch all users with pagination
+async function getAllUsers() {
+  const allUsers = [];
+  let page = 1;
+  const perPage = 1000; // Fetch up to 1000 users per page
+  
+  while (true) {
+    const { data, error } = await supabase.auth.admin.listUsers({
+      page,
+      perPage
+    });
+    
+    if (error) {
+      console.error(`[Admin] Error fetching users page ${page}:`, error);
+      break;
+    }
+    
+    if (!data || !data.users || data.users.length === 0) {
+      // No more users to fetch
+      break;
+    }
+    
+    allUsers.push(...data.users);
+    
+    // If we got fewer users than perPage, we've reached the end
+    if (data.users.length < perPage) {
+      break;
+    }
+    
+    page++;
+  }
+  
+  console.log(`[Admin] Fetched ${allUsers.length} total users across ${page} page(s)`);
+  return allUsers;
+}
+
 // ========== USERS RESOURCE ==========
 async function listUsers(adminUserId) {
   try {
@@ -63,15 +99,16 @@ async function listUsers(adminUserId) {
       return { status: 403, body: { error: 'Unauthorized: Not an admin' } };
     }
 
-    console.log('Fetching all users from Supabase...');
-    const { data: users, error: usersError } = await supabase.auth.admin.listUsers();
-
-    if (usersError) {
-      console.error('Error listing users:', usersError);
-      return { status: 400, body: { error: usersError.message } };
+    console.log('Fetching all users from Supabase with pagination...');
+    let allAuthUsers = [];
+    try {
+      allAuthUsers = await getAllUsers();
+    } catch (error) {
+      console.error('[Admin] Error fetching all users:', error);
+      return { status: 500, body: { error: `Failed to fetch users: ${error.message}` } };
     }
 
-    if (!users || !users.users) {
+    if (!allAuthUsers || allAuthUsers.length === 0) {
       return { status: 200, body: { users: [], total: 0 } };
     }
 
@@ -100,7 +137,7 @@ async function listUsers(adminUserId) {
 
     const adminUserIds = new Set((adminUsers || []).map(a => a.user_id));
 
-    const enrichedUsers = users.users.map(user => {
+    const enrichedUsers = allAuthUsers.map(user => {
       const stats = (userStats || []).find(s => s.user_id === user.id);
       const isAdmin = adminUserIds.has(user.id);
       const calculatedStudyTime = studyTimeByUser.get(user.id) || stats?.total_study_time || 0;
