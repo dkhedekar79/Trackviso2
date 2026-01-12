@@ -741,6 +741,62 @@ export const fetchUserSchedules = async () => {
 };
 
 /**
+ * Save a mastery activity to Supabase (blurt, mock exam, or topic generation)
+ */
+export const saveMasteryActivity = async (activityData) => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      logger.warn('No session available for saving mastery activity');
+      return null;
+    }
+
+    const {
+      activityType, // 'blurt', 'mock_exam', or 'topic_generation'
+      subject,
+      qualification,
+      examBoard,
+      topics = [],
+      score = null,
+      tier = null,
+      totalMarks = null,
+      metadata = {}
+    } = activityData;
+
+    const activityRecord = {
+      user_id: session.user.id,
+      activity_type: activityType,
+      subject: subject,
+      qualification: qualification || null,
+      exam_board: examBoard || null,
+      topics: topics.length > 0 ? topics : null,
+      topic_count: topics.length > 0 ? topics.length : null,
+      score: score !== null && score !== undefined ? score : null,
+      tier: tier || null,
+      total_marks: totalMarks || null,
+      metadata: metadata
+    };
+
+    const { data, error } = await supabase
+      .from('mastery_activities')
+      .insert([activityRecord])
+      .select()
+      .single();
+
+    if (error) {
+      logger.error('Error saving mastery activity:', error);
+      return null;
+    }
+
+    logger.log(`Saved ${activityType} activity for subject: ${subject}`);
+    return data;
+  } catch (error) {
+    logger.error('Exception saving mastery activity:', error);
+    return null;
+  }
+};
+
+/**
  * Delete a user schedule from Supabase
  */
 export const deleteUserSchedule = async (scheduleId) => {

@@ -210,6 +210,8 @@ const MockExamModeSection = ({ selectedTopics, masterySetup, onContinue, initial
       answers: userAnswers,
       marking,
       percentage: marking?.percentage || 0,
+      tier: tier,
+      totalMarks: totalMarks,
     });
   };
 

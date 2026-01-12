@@ -10,6 +10,7 @@ import { useSubscription } from '../context/SubscriptionContext';
 import { useGamification } from '../context/GamificationContext';
 import { getTopicsForSubject } from '../data/masteryTopics';
 import { applyMemoryDeterioration } from '../utils/memoryDeterioration';
+import { saveMasteryActivity } from '../utils/supabaseDb';
 
 // Helper function to calculate completion score from individual scores
 const calculateCompletionScore = (topicProgress, applyDeterioration = true) => {
@@ -442,6 +443,24 @@ const Mastery = () => {
                 }
                 localStorage.setItem(storageKey, JSON.stringify(progress));
                 checkSubjectMasteryMilestones(currentSession.subject, progress);
+
+                // Save blurt activity to Supabase
+                const topicNames = currentSession.topicIds
+                  .map(topicId => currentSession.topics.find(t => t.id === topicId)?.name)
+                  .filter(Boolean);
+                
+                await saveMasteryActivity({
+                  activityType: 'blurt',
+                  subject: currentSession.subject,
+                  qualification: currentSession.qualification,
+                  examBoard: currentSession.examBoard,
+                  topics: topicNames,
+                  score: blurtData.percentage,
+                  metadata: {
+                    analysis: blurtData.analysis,
+                    topicIds: currentSession.topicIds
+                  }
+                });
                 }
 
                 setIsBlurtModeActive(false);
@@ -513,6 +532,27 @@ const Mastery = () => {
 
                   localStorage.setItem(storageKey, JSON.stringify(progress));
                   checkSubjectMasteryMilestones(currentSession.subject, progress);
+
+                  // Save mock exam activity to Supabase
+                  const topicNames = currentSession.topicIds
+                    .map(topicId => currentSession.topics.find(t => t.id === topicId)?.name)
+                    .filter(Boolean);
+                  
+                  await saveMasteryActivity({
+                    activityType: 'mock_exam',
+                    subject: currentSession.subject,
+                    qualification: currentSession.qualification,
+                    examBoard: currentSession.examBoard,
+                    topics: topicNames,
+                    score: mockExamData.percentage,
+                    tier: mockExamData.tier || null,
+                    totalMarks: mockExamData.totalMarks || null,
+                    metadata: {
+                      marking: mockExamData.marking,
+                      exam: mockExamData.exam,
+                      topicIds: currentSession.topicIds
+                    }
+                  });
 
                   // Update linked study session with the score for insights
                   if (currentSession.linkedSessionId) {

@@ -56,6 +56,20 @@ export default function MasterySetupModal({ subjects, onComplete, onClose }) {
       setError('');
       try {
         const topics = await generateTopics(qualName, examBoard, subject);
+        
+        // Save topic generation activity to Supabase
+        const { saveMasteryActivity } = await import('../utils/supabaseDb');
+        await saveMasteryActivity({
+          activityType: 'topic_generation',
+          subject: subject,
+          qualification: qualName,
+          examBoard: examBoard,
+          topics: topics.map(t => t.name),
+          metadata: {
+            topicIds: topics.map(t => t.id)
+          }
+        });
+        
         onComplete({
           qualification: qualName,
           subject,

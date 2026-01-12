@@ -43,6 +43,19 @@ const MasteryWizard = ({ subjects, onComplete, onClose }) => {
     try {
       const topics = await generateTopics(qualification, examBoard, selectedSubject);
       setAvailableTopics(topics);
+      
+      // Save topic generation activity to Supabase
+      const { saveMasteryActivity } = await import('../utils/supabaseDb');
+      await saveMasteryActivity({
+        activityType: 'topic_generation',
+        subject: selectedSubject,
+        qualification: qualification,
+        examBoard: examBoard,
+        topics: topics.map(t => t.name),
+        metadata: {
+          topicIds: topics.map(t => t.id)
+        }
+      });
     } catch (err) {
       setError(err.message || 'Failed to load topics. Please try again.');
     } finally {
