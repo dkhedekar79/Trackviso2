@@ -1317,8 +1317,8 @@ export default function Insights() {
               <div className="flex gap-6">
                 {/* Graph Area */}
                 <div className="flex-1">
-                  {/* X-axis labels (hours) */}
-                  <div className="flex justify-between mb-2">
+                  {/* X-axis labels (hours) - add left padding to align with graph area, not day labels */}
+                  <div className="flex justify-between mb-2 pl-24">
                     {[0, 2, 4, 6, 8, 10, 12, 14, 16].map(hour => (
                       <div key={hour} className="text-xs text-purple-300/70">
                         {hour}h
@@ -1328,8 +1328,8 @@ export default function Insights() {
                   
                   {/* Graph Grid */}
                   <div className="relative" style={{ height: '420px' }}>
-                    {/* Vertical grid lines */}
-                    <div className="absolute inset-0">
+                    {/* Vertical grid lines - positioned to align with bar area, not day labels */}
+                    <div className="absolute top-0 bottom-0 left-24 right-0">
                       {[0, 2, 4, 6, 8, 10, 12, 14, 16].map((hour) => {
                         const maxHours = 16;
                         const position = (hour / maxHours) * 100;
@@ -1506,8 +1506,8 @@ export default function Insights() {
               <div className="flex gap-6">
                 {/* Graph Area */}
                 <div className="flex-1">
-                  {/* X-axis labels (hours) */}
-                  <div className="flex justify-between mb-2">
+                  {/* X-axis labels (hours) - add left padding to align with graph area, not day labels */}
+                  <div className="flex justify-between mb-2 pl-16">
                     {[0, 2, 4, 6, 8, 10, 12, 14, 16].map(hour => (
                       <div key={hour} className="text-xs text-purple-300/70">
                         {hour}h
@@ -1518,8 +1518,8 @@ export default function Insights() {
                   {/* Graph Grid - Scrollable for 31 days */}
                   <div className="relative max-h-[600px] overflow-y-auto overflow-x-hidden pr-2" style={{ scrollbarWidth: 'thin' }}>
                     <div className="relative" style={{ minHeight: `${monthlyStudyData.days.length * 24}px` }}>
-                      {/* Vertical grid lines */}
-                      <div className="absolute inset-0">
+                      {/* Vertical grid lines - positioned to align with bar area, not day labels */}
+                      <div className="absolute top-0 bottom-0 left-16 right-0">
                         {[0, 2, 4, 6, 8, 10, 12, 14, 16].map((hour) => {
                           const maxHours = 16;
                           const position = (hour / maxHours) * 100;
@@ -1723,8 +1723,8 @@ export default function Insights() {
               <div className="flex gap-6">
                 {/* Graph Area */}
                 <div className="flex-1">
-                  {/* X-axis labels (hours) */}
-                  <div className="flex justify-between mb-2">
+                  {/* X-axis labels (hours) - add left padding to align with graph area, not day labels */}
+                  <div className="flex justify-between mb-2 pl-16">
                     {[0, 2, 4, 6, 8, 10, 12, 14, 16].map(hour => (
                       <div key={hour} className="text-xs text-purple-300/70">
                         {hour}h
@@ -1735,8 +1735,8 @@ export default function Insights() {
                   {/* Graph Grid - Scrollable for 31 days */}
                   <div className="relative max-h-[600px] overflow-y-auto overflow-x-hidden pr-2" style={{ scrollbarWidth: 'thin' }}>
                     <div className="relative" style={{ minHeight: `${allTimeMonthlyStudyData.days.length * 24}px` }}>
-                      {/* Vertical grid lines */}
-                      <div className="absolute inset-0">
+                      {/* Vertical grid lines - positioned to align with bar area, not day labels */}
+                      <div className="absolute top-0 bottom-0 left-16 right-0">
                         {[0, 2, 4, 6, 8, 10, 12, 14, 16].map((hour) => {
                           const maxHours = 16;
                           const position = (hour / maxHours) * 100;
