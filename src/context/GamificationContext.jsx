@@ -837,10 +837,10 @@ export const GamificationProvider = ({ children }) => {
     });
 
     // Handle side effects outside of the functional update
+    // Only show the most recent/highest level, not all intermediate levels
     if (levelsToGrant.length > 0) {
-      levelsToGrant.forEach((l, idx) => {
-        setTimeout(() => handleLevelUp(l), 100 * idx);
-      });
+      const highestLevel = levelsToGrant[levelsToGrant.length - 1];
+      setTimeout(() => handleLevelUp(highestLevel), 100);
     }
 
     if (isPomodoroCycle) {
@@ -962,10 +962,14 @@ export const GamificationProvider = ({ children }) => {
 
   // Handle level up rewards - FIXED
   const handleLevelUp = (newLevel) => {
+    // Remove any existing LEVEL_UP notifications from the queue to avoid duplicates
+    setRewardQueue((prev) => prev.filter((r) => r.type !== "LEVEL_UP"));
+    
     addReward({
       type: "LEVEL_UP",
       title: `🎉 LEVEL ${newLevel}!`,
       description: "You're getting stronger!",
+      level: newLevel,
       tier: "epic",
       animation: "levelup",
       sound: "levelup",
@@ -1524,12 +1528,9 @@ export const GamificationProvider = ({ children }) => {
         // Update streak
         updateStreak();
 
-        // Check for level up rewards
+        // Check for level up rewards - only show the highest/most recent level
         if (newLevel > oldLevel) {
-          const levelsGained = newLevel - oldLevel;
-          for (let i = 1; i <= levelsGained; i++) {
-            handleLevelUp(oldLevel + i);
-          }
+          handleLevelUp(newLevel);
           
           // Check referral completion when level changes (especially when reaching level 10)
           if (newLevel >= 10) {
