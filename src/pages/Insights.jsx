@@ -2137,14 +2137,15 @@ export default function Insights() {
                 {/* Heatmap Grid */}
                 <div className="flex-1">
                   <div className="grid grid-cols-8 gap-1">
-                    {/* Day headers */}
-                    <div className="col-span-8 grid grid-cols-7 gap-1 mb-1">
-                      {timeOfDayByDayHeatmap.daysOfWeek.map((day, dayIndex) => (
-                        <div key={day} className="text-xs text-purple-300/80 text-center font-medium">
-                          {day}
-                        </div>
-                      ))}
+                    {/* Day headers - first column empty to align with time labels */}
+                    <div className="text-xs text-purple-300/80 text-center font-medium mb-1">
+                      {/* Empty space for time label column */}
+                    </div>
+                    {timeOfDayByDayHeatmap.daysOfWeek.map((day, dayIndex) => (
+                      <div key={day} className="text-xs text-purple-300/80 text-center font-medium mb-1">
+                        {day}
                       </div>
+                    ))}
                     
                     {/* Time chunks and heatmap cells */}
                     {timeOfDayByDayHeatmap.timeChunks.map((chunk, chunkIndex) => (
