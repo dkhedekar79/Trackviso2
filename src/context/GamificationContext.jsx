@@ -181,6 +181,7 @@ export const GamificationProvider = ({ children }) => {
   const [showRewards, setShowRewards] = useState(false);
   const [activeAnimations, setActiveAnimations] = useState([]);
   const achievementsInProgress = useRef(new Set());
+  const handleLevelUpRef = useRef(null);
 
   // Load initial XP from Supabase on mount to ensure we have the latest value
   useEffect(() => {
@@ -200,12 +201,24 @@ export const GamificationProvider = ({ children }) => {
           
           if (supabaseXP > currentXP || currentXP === 0) {
             logger.log('📥 Loading XP from Supabase:', supabaseXP);
+            const calculatedLevel = getLevelFromXP(supabaseXP);
+            const oldLevel = userStats.level || 1;
+            
             setUserStats(prev => ({
               ...prev,
               xp: supabaseXP,
-              level: stats.level || getLevelFromXP(supabaseXP),
+              level: calculatedLevel,
             }));
             lastSyncedXPRef.current = supabaseXP;
+            
+            // If level increased, trigger level up notification
+            if (calculatedLevel > oldLevel) {
+              setTimeout(() => {
+                if (handleLevelUpRef.current) {
+                  handleLevelUpRef.current(calculatedLevel);
+                }
+              }, 200);
+            }
           } else {
             // Local XP is higher, sync it to Supabase
             logger.log('📤 Local XP is higher, will sync to Supabase:', currentXP);
@@ -295,12 +308,31 @@ export const GamificationProvider = ({ children }) => {
   // AUTO-FIX: Ensure level is always synced with XP
   useEffect(() => {
     const calculatedLevel = getLevelFromXP(userStats.xp || 0);
-    if (calculatedLevel !== userStats.level) {
-      logger.warn(`🛠️ XP/Level mismatch detected! Fixing: ${userStats.level} -> ${calculatedLevel}`);
-      setUserStats(prev => ({
-        ...prev,
-        level: calculatedLevel
-      }));
+    const currentLevel = userStats.level || 1;
+    
+    if (calculatedLevel !== currentLevel) {
+      logger.warn(`🛠️ XP/Level mismatch detected! Fixing: ${currentLevel} -> ${calculatedLevel}`);
+      
+      // If level increased, trigger level up notification
+      if (calculatedLevel > currentLevel) {
+        setUserStats(prev => ({
+          ...prev,
+          level: calculatedLevel
+        }));
+        
+        // Trigger level up notification for the new level
+        setTimeout(() => {
+          if (handleLevelUpRef.current) {
+            handleLevelUpRef.current(calculatedLevel);
+          }
+        }, 100);
+      } else {
+        // Level decreased (shouldn't happen, but handle it)
+        setUserStats(prev => ({
+          ...prev,
+          level: calculatedLevel
+        }));
+      }
     }
   }, [userStats.xp, userStats.level]);
 
@@ -1012,6 +1044,11 @@ export const GamificationProvider = ({ children }) => {
       checkAchievements();
     }, 150);
   };
+
+  // Store handleLevelUp in ref so it can be called from effects
+  useEffect(() => {
+    handleLevelUpRef.current = handleLevelUp;
+  }, []);
 
   // Check and award XP for subject mastery milestones
   // Called when topic progress is updated
