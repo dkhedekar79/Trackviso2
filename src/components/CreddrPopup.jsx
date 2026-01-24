@@ -7,9 +7,24 @@ import { supabase } from '../supabaseClient';
 
 const CreddrPopup = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isManualOpen, setIsManualOpen] = useState(false); // Track if opened manually
   const { user } = useAuth();
   const location = useLocation();
 
+  // Listen for manual open event from Settings page
+  useEffect(() => {
+    const handleManualOpen = () => {
+      if (user) {
+        setIsManualOpen(true);
+        setIsOpen(true);
+      }
+    };
+
+    window.addEventListener('openCreddrPopup', handleManualOpen);
+    return () => window.removeEventListener('openCreddrPopup', handleManualOpen);
+  }, [user]);
+
+  // Auto-show popup on first visit
   useEffect(() => {
     const checkAndShowPopup = async () => {
       // Only show for logged-in users
@@ -58,19 +73,23 @@ const CreddrPopup = () => {
 
   const handleClose = async () => {
     setIsOpen(false);
+    setIsManualOpen(false);
     
-    // Mark as seen in localStorage immediately
-    localStorage.setItem('hasSeenCreddrPopup', 'true');
+    // Only mark as seen if it wasn't opened manually (first-time auto-show)
+    if (!isManualOpen) {
+      // Mark as seen in localStorage immediately
+      localStorage.setItem('hasSeenCreddrPopup', 'true');
 
-    // Mark as seen in Supabase if user is logged in
-    if (user) {
-      try {
-        await supabase
-          .from('user_stats')
-          .update({ has_seen_creddr_popup: true })
-          .eq('user_id', user.id);
-      } catch (error) {
-        console.error('Error updating Creddr popup status:', error);
+      // Mark as seen in Supabase if user is logged in
+      if (user) {
+        try {
+          await supabase
+            .from('user_stats')
+            .update({ has_seen_creddr_popup: true })
+            .eq('user_id', user.id);
+        } catch (error) {
+          console.error('Error updating Creddr popup status:', error);
+        }
       }
     }
   };

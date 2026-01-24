@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Crown, FileText, Plus, X, Calendar, Edit2, Trash2, AlertTriangle } from 'lucide-react';
+import { User, Crown, FileText, Plus, X, Calendar, Edit2, Trash2, AlertTriangle, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import { useNavigate } from 'react-router-dom';
@@ -280,6 +280,36 @@ const Settings = () => {
               </a>
             )}
           </div>
+        </motion.div>
+
+        {/* Creddr Popup Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="bg-gradient-to-br from-emerald-900/30 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-emerald-700/30 mb-6"
+        >
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-3 rounded-lg bg-emerald-600/20">
+              <Sparkles className="w-6 h-6 text-emerald-400" />
+            </div>
+            <h2 className="text-2xl font-bold text-white">Creddr Launch Offer</h2>
+          </div>
+          
+          <p className="text-purple-200/70 mb-4">
+            Learn about Creddr, our exclusive finance learning platform for students breaking into investment banking, private equity, and quant finance.
+          </p>
+
+          <button
+            onClick={() => {
+              // Dispatch custom event to open Creddr popup
+              window.dispatchEvent(new CustomEvent('openCreddrPopup'));
+            }}
+            className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-emerald-500/50 transition-all flex items-center gap-2"
+          >
+            <Sparkles className="w-5 h-5" />
+            View Creddr Offer
+          </button>
         </motion.div>
 
         {/* Patch Notes Section */}
