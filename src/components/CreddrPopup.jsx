@@ -77,7 +77,7 @@ const CreddrPopup = () => {
 
   const handleJoinWaitlist = () => {
     // Open waitlist link in new tab
-    window.open('https://creddr.com/waitlist', '_blank');
+    window.open('https://creddr.vercel.app', '_blank');
     handleClose();
   };
 
