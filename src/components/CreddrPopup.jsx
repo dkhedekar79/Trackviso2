@@ -103,7 +103,7 @@ const CreddrPopup = () => {
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative w-full max-w-lg bg-gradient-to-br from-[#0a0a0f] via-[#1a1625] to-[#0a0a0f] rounded-2xl border border-emerald-500/30 shadow-2xl overflow-hidden">
+            <div className="relative w-full max-w-lg max-h-[90vh] bg-gradient-to-br from-[#0a0a0f] via-[#1a1625] to-[#0a0a0f] rounded-2xl border border-emerald-500/30 shadow-2xl overflow-hidden flex flex-col">
               {/* Close Button */}
               <button
                 onClick={handleClose}
@@ -112,8 +112,8 @@ const CreddrPopup = () => {
                 <X className="w-4 h-4 text-white/80" />
               </button>
 
-              {/* Content */}
-              <div className="p-6 md:p-7 space-y-5">
+              {/* Content - Scrollable */}
+              <div className="p-6 md:p-7 space-y-5 overflow-y-auto flex-1" style={{ scrollbarWidth: 'thin' }}>
                 {/* Header Section */}
                 <div className="text-center space-y-3">
                   <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30">
@@ -126,7 +126,7 @@ const CreddrPopup = () => {
                   </h2>
                   
                   <p className="text-sm text-gray-300/80 max-w-xl mx-auto">
-                    Master investment banking, private equity, and quant finance through the platform built by students, for students.
+                    Jumpstart your finance career from zero knowledge. Master investment banking, private equity, and quant finance through the platform built by students, for students.
                   </p>
                 </div>
 
@@ -137,10 +137,63 @@ const CreddrPopup = () => {
                   </div>
                   <div className="flex-1">
                     <h3 className="text-lg font-bold text-white mb-1.5">What is Creddr?</h3>
-                    <p className="text-xs text-gray-300/80 leading-relaxed">
-                      Interactive learning for finance careers. Learn by thinking like an analyst. Covers DCF, M&A, LBO, technical interviews. 
-                      Realistic missions and AI-powered practice to master investment banking, private equity, and quant finance.
-                    </p>
+                    <div className="text-xs text-gray-300/80 leading-relaxed space-y-1.5">
+                      <p>
+                        Creddr is an interactive learning platform that jumpstarts finance careers from zero knowledge. Whether you're a complete beginner or looking to break into high finance, we teach you everything from scratch.
+                      </p>
+                      <p>
+                        No prior experience needed. We start with the basics and build you up to master DCF modeling, M&A analysis, LBO structures, and technical interview skills.
+                      </p>
+                      <p>
+                        Learn by actually thinking like an analyst—not just memorizing formulas. Our realistic missions and AI-powered practice prepare you for real finance roles.
+                      </p>
+                      <p>
+                        Perfect for students, career changers, and anyone who wants to land their first role in investment banking, private equity, venture capital, or quant finance.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* How It Works Section */}
+                <div className="space-y-2.5">
+                  <h3 className="text-base font-bold text-white flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-emerald-400" />
+                    How Creddr Jumpstarts Your Career
+                  </h3>
+                  
+                  <div className="space-y-2">
+                    {/* Point 1 */}
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-gradient-to-br from-emerald-500/5 to-teal-500/5 border border-emerald-500/20">
+                      <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 mt-0.5">
+                        <span className="text-xs font-bold text-emerald-400">1</span>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-sm font-bold text-white mb-0.5">Start from Zero</h4>
+                        <p className="text-xs text-gray-300/70">No finance background? No problem. We teach you everything from accounting basics to complex deal structures.</p>
+                      </div>
+                    </div>
+
+                    {/* Point 2 */}
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-gradient-to-br from-emerald-500/5 to-teal-500/5 border border-emerald-500/20">
+                      <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 mt-0.5">
+                        <span className="text-xs font-bold text-emerald-400">2</span>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-sm font-bold text-white mb-0.5">Learn by Doing</h4>
+                        <p className="text-xs text-gray-300/70">Interactive missions that mirror real analyst work. Practice DCF models, analyze M&A deals, and master technical interviews.</p>
+                      </div>
+                    </div>
+
+                    {/* Point 3 */}
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-gradient-to-br from-emerald-500/5 to-teal-500/5 border border-emerald-500/20">
+                      <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 mt-0.5">
+                        <span className="text-xs font-bold text-emerald-400">3</span>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-sm font-bold text-white mb-0.5">Land Your First Role</h4>
+                        <p className="text-xs text-gray-300/70">Build the exact skills investment banks and PE firms look for. Get interview-ready with our comprehensive prep.</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
