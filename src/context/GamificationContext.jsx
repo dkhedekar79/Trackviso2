@@ -311,27 +311,21 @@ export const GamificationProvider = ({ children }) => {
     const currentLevel = userStats.level || 1;
     
     if (calculatedLevel !== currentLevel) {
-      logger.warn(`🛠️ XP/Level mismatch detected! Fixing: ${currentLevel} -> ${calculatedLevel}`);
+      logger.log(`🛠️ Level Mismatch: XP=${userStats.xp}, Current=${currentLevel}, Calculated=${calculatedLevel}`);
       
-      // If level increased, trigger level up notification
+      // Update the level immediately in state
+      setUserStats(prev => ({
+        ...prev,
+        level: calculatedLevel
+      }));
+      
+      // Background effects if level increased
       if (calculatedLevel > currentLevel) {
-        setUserStats(prev => ({
-          ...prev,
-          level: calculatedLevel
-        }));
-        
-        // Trigger level up notification for the new level
         setTimeout(() => {
           if (handleLevelUpRef.current) {
             handleLevelUpRef.current(calculatedLevel);
           }
         }, 100);
-      } else {
-        // Level decreased (shouldn't happen, but handle it)
-        setUserStats(prev => ({
-          ...prev,
-          level: calculatedLevel
-        }));
       }
     }
   }, [userStats.xp, userStats.level]);
@@ -523,48 +517,36 @@ export const GamificationProvider = ({ children }) => {
   // This encourages long-term dedication and mastery integration
   const getTotalXPForLevel = (level) => {
     if (level <= 1) return 0;
-    if (level === 2) return 500;
 
-    let totalXP = 500; // Level 2 requirement
+    let totalXP = 500; // XP required to reach Level 2
+    if (level === 2) return totalXP;
 
-    // Levels 2-10: Moderate progression (500 XP per level)
-    // 2-10 = 9 levels × 500 XP = 4500 more XP
+    // Levels 3-10: 500 XP per level (8 levels: 2->3, 3->4, ..., 9->10)
     if (level <= 10) {
-      totalXP += (level - 2) * 500;
-      return totalXP;
+      return totalXP + (level - 2) * 500;
     }
-    totalXP += 9 * 500; // 4500 XP for levels 2-10
+    totalXP += 8 * 500; // 4000 XP for levels 3-10. Total at L10 = 4500
 
-    // Levels 11-25: Harder progression (1000 XP per level)
-    // 11-25 = 15 levels × 1000 XP = 15000 more XP
+    // Levels 11-25: 1000 XP per level (15 levels: 10->11, ..., 24->25)
     if (level <= 25) {
-      totalXP += (level - 10) * 1000;
-      return totalXP;
+      return totalXP + (level - 10) * 1000;
     }
-    totalXP += 15 * 1000; // 15000 XP for levels 11-25
+    totalXP += 15 * 1000; // 15000 XP for levels 11-25. Total at L25 = 19500
 
-    // Levels 26-50: Much harder progression (2000 XP per level)
-    // 26-50 = 25 levels × 2000 XP = 50000 more XP
+    // Levels 26-50: 2000 XP per level (25 levels: 25->26, ..., 49->50)
     if (level <= 50) {
-      totalXP += (level - 25) * 2000;
-      return totalXP;
+      return totalXP + (level - 25) * 2000;
     }
-    totalXP += 25 * 2000; // 50000 XP for levels 26-50
+    totalXP += 25 * 2000; // 50000 XP for levels 26-50. Total at L50 = 69500
 
-    // Levels 51-75: Significantly harder (6000 XP per level, increased from 4000)
-    // 51-75 = 25 levels × 6000 XP = 150000 more XP
+    // Levels 51-75: 6000 XP per level (25 levels: 50->51, ..., 74->75)
     if (level <= 75) {
-      totalXP += (level - 50) * 6000;
-      return totalXP;
+      return totalXP + (level - 50) * 6000;
     }
-    totalXP += 25 * 6000; // 150000 XP for levels 51-75
+    totalXP += 25 * 6000; // 150000 XP for levels 51-75. Total at L75 = 219500
 
-    // Levels 76-100: Extremely hard (10000 XP per level, increased from 6000)
-    // 76-100 = 25 levels × 10000 XP = 250000 more XP
-    // Total to level 100: ~470,000 XP (increased from ~320,000 XP)
-    totalXP += (level - 75) * 10000;
-
-    return totalXP;
+    // Levels 76-100: 10000 XP per level (25 levels: 75->76, ..., 99->100)
+    return totalXP + (level - 75) * 10000;
   };
 
   // XP required to go from one level to the next
@@ -573,62 +555,21 @@ export const GamificationProvider = ({ children }) => {
     return getTotalXPForLevel(level) - getTotalXPForLevel(level - 1);
   };
 
-  // Calculate current level from total XP - FIXED to match getTotalXPForLevel exactly
+  // Calculate current level from total XP - FIXED to perfectly match getTotalXPForLevel
   const getLevelFromXP = (totalXP) => {
-    if (totalXP < 0) return 1;
+    if (totalXP <= 0) return 1;
     
-    // Level 1: 0 XP (getTotalXPForLevel(1) = 0)
-    if (totalXP < 500) return 1;
-    
-    // Level 2: 500 XP (getTotalXPForLevel(2) = 500)
-    if (totalXP < 1000) return 2;
-    
-    // Levels 3-10: 500 XP per level
-    // Level 3 = 1000, Level 4 = 1500, ..., Level 10 = 4500
-    // getTotalXPForLevel(10) = 500 + (10-2)*500 = 500 + 4000 = 4500
-    if (totalXP < 5000) {
-      // Level 3 starts at 1000, so: level = 2 + floor((totalXP - 500) / 500)
-      // But we need to handle level 2 separately, so for levels 3-10:
-      // level = 2 + floor((totalXP - 500) / 500)
-      const level = 2 + Math.floor((totalXP - 500) / 500);
-      return Math.min(10, level);
+    // Simple loop to ensure perfect sync with getTotalXPForLevel
+    // This is safer than binary search for this range and handles any changes
+    let level = 1;
+    for (let l = 2; l <= 100; l++) {
+      if (totalXP >= getTotalXPForLevel(l)) {
+        level = l;
+      } else {
+        break;
+      }
     }
-    
-    // Level 11: 5000 XP (getTotalXPForLevel(11) = 500 + 9*500 + (11-10)*1000 = 5000)
-    // Levels 11-25: 1000 XP per level
-    // Level 11 = 5000, Level 12 = 6000, ..., Level 25 = 20000
-    // getTotalXPForLevel(25) = 500 + 9*500 + (25-10)*1000 = 500 + 4500 + 15000 = 20000
-    if (totalXP < 22000) {
-      // Level 11 starts at 5000, so: level = 10 + floor((totalXP - 5000) / 1000) + 1
-      // Actually: level = 11 + floor((totalXP - 5000) / 1000)
-      const level = 11 + Math.floor((totalXP - 5000) / 1000);
-      return Math.min(25, level);
-    }
-    
-    // Level 26: 22000 XP (getTotalXPForLevel(26) = 500 + 9*500 + 15*1000 + (26-25)*2000 = 22000)
-    // Levels 26-50: 2000 XP per level
-    // Level 26 = 22000, Level 27 = 24000, ..., Level 50 = 70000
-    // getTotalXPForLevel(50) = 500 + 9*500 + 15*1000 + (50-25)*2000 = 500 + 4500 + 15000 + 50000 = 70000
-    if (totalXP < 74000) {
-      const level = 26 + Math.floor((totalXP - 22000) / 2000);
-      return Math.min(50, level);
-    }
-    
-    // Level 51: 80000 XP (getTotalXPForLevel(51) = 500 + 9*500 + 15*1000 + 25*2000 + (51-50)*6000 = 80000)
-    // Levels 51-75: 6000 XP per level (increased from 4000)
-    // Level 51 = 80000, Level 52 = 86000, ..., Level 75 = 220000
-    // getTotalXPForLevel(75) = 500 + 9*500 + 15*1000 + 25*2000 + (75-50)*6000 = 500 + 4500 + 15000 + 50000 + 150000 = 220000
-    if (totalXP < 226000) {
-      const level = 51 + Math.floor((totalXP - 80000) / 6000);
-      return Math.min(75, level);
-    }
-    
-    // Level 76: 226000 XP (getTotalXPForLevel(76) = 500 + 9*500 + 15*1000 + 25*2000 + 25*6000 + (76-75)*10000 = 226000)
-    // Levels 76-100: 10000 XP per level (increased from 6000)
-    // Level 76 = 226000, Level 77 = 236000, ..., Level 100 = 470000
-    // getTotalXPForLevel(100) = 500 + 9*500 + 15*1000 + 25*2000 + 25*6000 + (100-75)*10000 = 500 + 4500 + 15000 + 50000 + 150000 + 250000 = 470000
-    const level = 76 + Math.floor((totalXP - 226000) / 10000);
-    return Math.min(100, level);
+    return level;
   };
 
   // Get XP progress to next level
@@ -801,6 +742,7 @@ export const GamificationProvider = ({ children }) => {
       // Reset only level and XP
     }));
 
+    /*
     addReward({
       type: "PRESTIGE",
       title: `🌟 PRESTIGE ${newPrestigeLevel}!`,
@@ -808,6 +750,7 @@ export const GamificationProvider = ({ children }) => {
       tier: "legendary",
       animation: "prestige",
     });
+    */
 
     return true;
   };
@@ -992,11 +935,13 @@ export const GamificationProvider = ({ children }) => {
     return xpData;
   };
 
-  // Handle level up rewards - FIXED
+  // Handle level up rewards - UPDATED: Removed popups
   const handleLevelUp = (newLevel) => {
     // Remove any existing LEVEL_UP notifications from the queue to avoid duplicates
     setRewardQueue((prev) => prev.filter((r) => r.type !== "LEVEL_UP"));
     
+    // Level up popup removed as per user request
+    /*
     addReward({
       type: "LEVEL_UP",
       title: `🎉 LEVEL ${newLevel}!`,
@@ -1006,6 +951,7 @@ export const GamificationProvider = ({ children }) => {
       animation: "levelup",
       sound: "levelup",
     });
+    */
 
     // Track weekly level-up quest
     setTimeout(() => {
@@ -1029,14 +975,17 @@ export const GamificationProvider = ({ children }) => {
         currentTitle: milestone.title,
       }));
 
+      // Still grant the bonus XP but without the popup
       grantXP(milestone.xp, "milestone");
 
+      /*
       addReward({
         type: "MILESTONE",
         title: `👑 ${milestone.title}`,
         description: `Level ${newLevel} milestone! +${milestone.xp} bonus XP`,
         tier: newLevel >= 100 ? "legendary" : newLevel >= 50 ? "epic" : "rare",
       });
+      */
     }
     
     // Check achievements after level up
