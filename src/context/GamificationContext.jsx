@@ -55,7 +55,7 @@ const defaultGamificationContext = {
   convertXPToGems: () => 0,
   purchaseItem: () => false,
   applyReward: () => {},
-  updateStreak: () => ({ streak: 0, isNewDay: false, streakBroken: false }),
+    updateStreak: () => {},
   useStreakSaver: () => false,
   addReward: () => {},
   addStudySession: () => {},
@@ -621,56 +621,52 @@ export const GamificationProvider = ({ children }) => {
     };
   };
 
-  // Advanced streak tracking with decay
+  // Advanced streak tracking with decay - Requires 10 minutes of study to count
   const updateStreak = () => {
-    const today = new Date().toDateString();
-    const lastStudy = userStats.lastStudyDate
-      ? new Date(userStats.lastStudyDate).toDateString()
-      : null;
+    setUserStats((prev) => {
+      const today = new Date().toDateString();
+      
+      // Calculate total study time for today from the history
+      const todaysTotalMinutes = (prev.sessionHistory || [])
+        .filter(s => s && s.timestamp && new Date(s.timestamp).toDateString() === today)
+        .reduce((sum, s) => sum + (Number(s.durationMinutes) || 0), 0);
 
-    if (lastStudy === today) {
+      if (todaysTotalMinutes < 10) {
+        logger.log(`⏱️ Streak not updated: Only ${todaysTotalMinutes} mins studied today (needs 10)`);
+        return prev;
+      }
+
+      const lastStudy = prev.lastStudyDate
+        ? new Date(prev.lastStudyDate).toDateString()
+        : null;
+
+      if (lastStudy === today) {
+        return prev;
+      }
+
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toDateString();
+
+      let newStreak;
+      if (lastStudy === yesterdayStr) {
+        // Continuing streak
+        newStreak = (prev.currentStreak || 0) + 1;
+      } else {
+        // Streak broken or starting new
+        newStreak = 1;
+      }
+
+      // Check streak achievements
+      setTimeout(() => checkStreakAchievements(newStreak), 100);
+
       return {
-        streak: userStats.currentStreak,
-        isNewDay: false,
-        streakBroken: false,
+        ...prev,
+        currentStreak: newStreak,
+        longestStreak: Math.max(prev.longestStreak || 0, newStreak),
+        lastStudyDate: new Date().toISOString(),
       };
-    }
-
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toDateString();
-
-    let newStreak;
-    let streakBroken = false;
-
-    if (lastStudy === yesterdayStr) {
-      // Continuing streak
-      newStreak = userStats.currentStreak + 1;
-    } else if (lastStudy && userStats.streakSavers > 0) {
-      // Offer streak saver for premium users
-      return {
-        streak: userStats.currentStreak,
-        isNewDay: true,
-        streakBroken: true,
-        canUseSaver: true,
-      };
-    } else {
-      // Streak broken
-      newStreak = 1;
-      streakBroken = true;
-    }
-
-    setUserStats((prev) => ({
-      ...prev,
-      currentStreak: newStreak,
-      longestStreak: Math.max(prev.longestStreak, newStreak),
-      lastStudyDate: new Date().toISOString(),
-    }));
-
-    // Check streak achievements
-    checkStreakAchievements(newStreak);
-
-    return { streak: newStreak, isNewDay: true, streakBroken };
+    });
   };
 
   // Use streak saver (premium feature)
