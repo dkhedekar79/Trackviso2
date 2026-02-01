@@ -800,6 +800,19 @@ const Subjects = () => {
                     className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white cursor-not-allowed"
                 />
               </div>
+
+              <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Subject Color</label>
+                  <input
+                    type="color"
+                    value={editingSubject.color || '#6C5DD3'}
+                    onChange={(e) => setEditingSubject({
+                      ...editingSubject,
+                      color: e.target.value
+                    })}
+                    className="w-full h-10 rounded-lg border-none overflow-hidden cursor-pointer"
+                  />
+              </div>
               
               <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Weekly Goal (hours)</label>
