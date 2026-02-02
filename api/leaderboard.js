@@ -79,7 +79,8 @@ async function getLeaderboard(timeframe, sortBy, currentUserId = null) {
     // Get all user stats - include all users even if XP is null
     const { data: allStats, error: statsError } = await supabase
       .from('user_stats')
-      .select('user_id, current_streak, longest_streak, total_study_time, level, xp, total_xp_earned');
+      .select('user_id, current_streak, longest_streak, total_study_time, level, xp, total_xp_earned')
+      .limit(1000); // Increase limit to fetch more users
 
     if (statsError) {
       console.error('Error fetching user stats:', statsError);
@@ -105,7 +106,8 @@ async function getLeaderboard(timeframe, sortBy, currentUserId = null) {
     let studySessions = [];
     const sessionsQuery = supabase
         .from('study_sessions')
-      .select('user_id, duration_minutes, timestamp');
+      .select('user_id, duration_minutes, timestamp')
+      .limit(5000); // Increase limit for study sessions
 
     if (timeframe === 'daily') {
       sessionsQuery.gte('timestamp', getStartOfDay(now).toISOString());
