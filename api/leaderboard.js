@@ -330,42 +330,11 @@ async function getLeaderboard(timeframe, sortBy, currentUserId = null) {
       entry.rank = index + 1;
     });
 
-    // Filter leaderboard to show: top 5 + user context (above, user, below)
-    let filteredLeaderboard = [];
-    let userRank = -1;
-    
-    if (currentUserId) {
-      // Find the current user's rank
-      userRank = leaderboardData.findIndex(entry => entry.userId === currentUserId);
-    }
-    
-    if (userRank === -1 || userRank < 5) {
-      // User is in top 5 or not found - just show top 5
-      filteredLeaderboard = leaderboardData.slice(0, 5);
-    } else {
-      // User is below top 5 - show top 5 + user above + user + user below
-      const top5 = leaderboardData.slice(0, 5);
-      const userAbove = userRank > 0 ? leaderboardData[userRank - 1] : null;
-      const userEntry = leaderboardData[userRank];
-      const userBelow = userRank < leaderboardData.length - 1 ? leaderboardData[userRank + 1] : null;
-      
-      filteredLeaderboard = [...top5];
-      
-      // Add separator if user is far from top 5
-      if (userRank > 5) {
-        filteredLeaderboard.push({ isSeparator: true });
-      }
-      
-      // Add user above, user, and user below
-      if (userAbove) filteredLeaderboard.push(userAbove);
-      filteredLeaderboard.push(userEntry);
-      if (userBelow) filteredLeaderboard.push(userBelow);
-    }
-
+    // Return all data for the frontend to handle filtering/pinning
     return {
       status: 200,
       body: {
-        leaderboard: filteredLeaderboard,
+        leaderboard: leaderboardData,
         timeframe,
         sortBy,
         total: leaderboardData.length,

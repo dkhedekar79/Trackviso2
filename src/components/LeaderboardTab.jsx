@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Crown, Trophy, Flame, Clock, Medal, Loader2 } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Crown, Trophy, Flame, Clock, Medal, Loader2, ChevronUp, ChevronDown } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import logger from "../utils/logger";
 
@@ -11,6 +11,8 @@ const LeaderboardTab = () => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [pinPosition, setPinPosition] = useState(null); // 'top', 'bottom', or null
+  const scrollContainerRef = useRef(null);
 
   useEffect(() => {
     fetchLeaderboard();
@@ -31,12 +33,10 @@ const LeaderboardTab = () => {
       }
       
       const leaderboardData = data.leaderboard || [];
-      logger.log('Leaderboard data received:', leaderboardData.slice(0, 3).map(e => ({ 
-        name: e.displayName, 
-        xp: e.xp, 
-        level: e.level 
-      })));
       setLeaderboard(leaderboardData);
+      
+      // Reset pin position on new data
+      setPinPosition(null);
     } catch (err) {
       logger.error("Error fetching leaderboard:", err);
       setError(err.message);
@@ -45,17 +45,50 @@ const LeaderboardTab = () => {
     }
   };
 
+  const handleScroll = () => {
+    if (!scrollContainerRef.current || leaderboard.length === 0) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+    const userIndex = leaderboard.findIndex(entry => entry.userId === user?.id);
+    
+    if (userIndex === -1) {
+      setPinPosition(null);
+      return;
+    }
+
+    const itemHeight = 64; // Approximate height of a compact item
+    const userOffsetTop = userIndex * itemHeight;
+    
+    if (userOffsetTop < scrollTop) {
+      setPinPosition('top');
+    } else if (userOffsetTop > scrollTop + clientHeight - itemHeight) {
+      setPinPosition('bottom');
+    } else {
+      setPinPosition(null);
+    }
+  };
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+      // Initial check
+      handleScroll();
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, [leaderboard, user?.id]);
+
   const getRankIcon = (rank) => {
-    if (rank === 1) return <Crown className="w-5 h-5 text-yellow-400" />;
-    if (rank === 2) return <Medal className="w-5 h-5 text-gray-300" />;
-    if (rank === 3) return <Medal className="w-5 h-5 text-orange-400" />;
-    return <span className="text-gray-400 font-bold">#{rank}</span>;
+    if (rank === 1) return <Crown className="w-4 h-4 text-yellow-400" />;
+    if (rank === 2) return <Medal className="w-4 h-4 text-gray-300" />;
+    if (rank === 3) return <Medal className="w-4 h-4 text-orange-400" />;
+    return <span className="text-gray-400 font-bold text-xs">#{rank}</span>;
   };
 
   const getRankColor = (rank) => {
-    if (rank === 1) return "from-yellow-500/30 to-orange-500/30 border-yellow-500/50";
-    if (rank === 2) return "from-gray-400/30 to-gray-500/30 border-gray-400/50";
-    if (rank === 3) return "from-orange-400/30 to-orange-500/30 border-orange-400/50";
+    if (rank === 1) return "from-yellow-500/20 to-orange-500/20 border-yellow-500/30";
+    if (rank === 2) return "from-gray-400/20 to-gray-500/20 border-gray-400/30";
+    if (rank === 3) return "from-orange-400/20 to-orange-500/20 border-orange-400/30";
     return "bg-white/5 border-white/10";
   };
 
@@ -63,171 +96,190 @@ const LeaderboardTab = () => {
     return user?.id === userId;
   };
 
+  const scrollToUser = () => {
+    const userIndex = leaderboard.findIndex(entry => entry.userId === user?.id);
+    if (userIndex !== -1 && scrollContainerRef.current) {
+      const itemHeight = 64;
+      scrollContainerRef.current.scrollTo({
+        top: userIndex * itemHeight - (scrollContainerRef.current.clientHeight / 2) + (itemHeight / 2),
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const LeaderboardItem = ({ entry, index, isPinned = false }) => {
+    const rank = entry.rank || (index + 1);
+    const isUser = isCurrentUser(entry.userId);
+    
+    return (
+      <motion.div
+        layout
+        initial={isPinned ? { opacity: 0, y: isPinned === 'top' ? -20 : 20 } : { opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0, y: 0 }}
+        className={`rounded-xl p-3 border backdrop-blur transition-all ${
+          isPinned 
+            ? "bg-purple-600/90 border-purple-400 shadow-2xl z-20" 
+            : isUser
+              ? "bg-gradient-to-r from-purple-600/40 to-pink-600/40 border-purple-500/50 shadow-lg shadow-purple-500/20"
+              : getRankColor(rank)
+        } ${isPinned ? 'cursor-pointer' : ''}`}
+        onClick={isPinned ? scrollToUser : undefined}
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex-shrink-0 w-8 flex items-center justify-center">
+            {getRankIcon(rank)}
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold truncate text-sm text-white">
+                {entry.displayName}
+                {isUser && !isPinned && (
+                  <span className="ml-1 text-[10px] text-purple-300">(You)</span>
+                )}
+              </h3>
+              {rank <= 3 && !isPinned && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300">
+                  Top {rank}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 text-[10px] text-gray-300">
+              <span>Lvl {entry.level || 1}</span>
+              <span>•</span>
+              <span>{(entry.xp || 0).toLocaleString()} XP</span>
+            </div>
+          </div>
+
+          <div className="flex-shrink-0 text-right">
+            <div className="text-sm font-bold text-white">
+              {entry.displayValue}
+            </div>
+            <div className="text-[10px] text-gray-400">
+              {sortBy === "streak" ? "days" : "studied"}
+            </div>
+          </div>
+          
+          {isPinned && (
+            <div className="flex-shrink-0">
+              {isPinned === 'top' ? <ChevronDown className="w-4 h-4 text-white animate-bounce" /> : <ChevronUp className="w-4 h-4 text-white animate-bounce" />}
+            </div>
+          )}
+        </div>
+      </motion.div>
+    );
+  };
+
+  const currentUserEntry = leaderboard.find(entry => entry.userId === user?.id);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 flex flex-col h-full max-h-[600px]">
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        {/* Timeframe Filter */}
+      <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
         <div className="flex-1">
-          <label className="text-sm font-medium text-gray-300 mb-2 block">
-            Time Period
-          </label>
-          <div className="flex gap-2">
+          <div className="flex gap-1 bg-white/5 p-1 rounded-xl border border-white/10">
             {["daily", "weekly", "all-time"].map((tf) => (
-              <motion.button
+              <button
                 key={tf}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
                 onClick={() => setTimeframe(tf)}
-                className={`flex-1 px-4 py-2 rounded-xl font-semibold text-sm transition-all ${
+                className={`flex-1 px-3 py-1.5 rounded-lg font-semibold text-xs transition-all ${
                   timeframe === tf
                     ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-md"
-                    : "bg-white/10 text-gray-300 hover:bg-white/20"
+                    : "text-gray-400 hover:text-white hover:bg-white/5"
                 }`}
               >
-                {tf === "daily" ? "Today" : tf === "weekly" ? "This Week" : "All Time"}
-              </motion.button>
+                {tf === "daily" ? "Today" : tf === "weekly" ? "Week" : "All Time"}
+              </button>
             ))}
           </div>
         </div>
 
-        {/* Sort By Filter */}
         <div className="flex-1">
-          <label className="text-sm font-medium text-gray-300 mb-2 block">
-            Sort By
-          </label>
-          <div className="flex gap-2">
+          <div className="flex gap-1 bg-white/5 p-1 rounded-xl border border-white/10">
             {[
-              { id: "study_time", label: "Study Time", icon: Clock },
+              { id: "study_time", label: "Time", icon: Clock },
               { id: "streak", label: "Streak", icon: Flame },
             ].map((option) => {
               const Icon = option.icon;
               return (
-                <motion.button
+                <button
                   key={option.id}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
                   onClick={() => setSortBy(option.id)}
-                  className={`flex-1 px-4 py-2 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
+                  className={`flex-1 px-3 py-1.5 rounded-lg font-semibold text-xs transition-all flex items-center justify-center gap-1.5 ${
                     sortBy === option.id
                       ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md"
-                      : "bg-white/10 text-gray-300 hover:bg-white/20"
+                      : "text-gray-400 hover:text-white hover:bg-white/5"
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-3 h-3" />
                   {option.label}
-                </motion.button>
+                </button>
               );
             })}
           </div>
         </div>
       </div>
 
-      {/* Leaderboard */}
+      {/* Leaderboard Container */}
+      <div className="relative flex-1 min-h-0 bg-black/20 rounded-2xl border border-white/5 overflow-hidden flex flex-col">
       {loading ? (
-        <div className="flex items-center justify-center py-12">
+          <div className="flex flex-col items-center justify-center h-full py-12">
           <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
-          <span className="ml-3 text-gray-300">Loading leaderboard...</span>
+            <span className="mt-3 text-sm text-gray-400">Loading rankings...</span>
         </div>
       ) : error ? (
-        <div className="bg-red-900/30 border border-red-700/50 rounded-xl p-6 text-center">
-          <p className="text-red-300">{error}</p>
+          <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+            <p className="text-red-400 text-sm mb-4">{error}</p>
           <button
             onClick={fetchLeaderboard}
-            className="mt-4 px-4 py-2 bg-red-600/50 hover:bg-red-600/70 rounded-lg text-white transition-colors"
+              className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-xl text-red-200 text-xs transition-colors"
           >
-            Retry
+              Try Again
           </button>
         </div>
       ) : leaderboard.length === 0 ? (
-        <div className="bg-white/10 rounded-xl p-8 text-center backdrop-blur">
-          <Trophy className="w-12 h-12 mx-auto mb-4 text-gray-500" />
-          <p className="text-gray-400">No data available for this period</p>
+          <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+            <Trophy className="w-10 h-10 mb-3 text-gray-600" />
+            <p className="text-gray-500 text-sm">No rankings yet</p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {leaderboard.map((entry, index) => {
-            // Handle separator entries
-            if (entry.isSeparator) {
-              return (
-                <div key={`separator-${index}`} className="flex items-center justify-center py-2">
-                  <div className="flex-1 border-t border-white/10"></div>
-                  <span className="px-4 text-xs text-gray-500">...</span>
-                  <div className="flex-1 border-t border-white/10"></div>
+          <>
+            {/* Pinned Top */}
+            <AnimatePresence>
+              {pinPosition === 'top' && currentUserEntry && (
+                <div className="absolute top-2 left-2 right-2 z-30">
+                  <LeaderboardItem entry={currentUserEntry} isPinned="top" />
                 </div>
-              );
-            }
-            
-            const rank = entry.rank || (index + 1);
-            const isUser = isCurrentUser(entry.userId);
-            
-            return (
-              <motion.div
-                key={entry.userId || `entry-${index}`}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className={`rounded-xl p-4 border backdrop-blur ${
-                  isUser
-                    ? "bg-gradient-to-r from-purple-600/40 to-pink-600/40 border-purple-500/50 shadow-lg shadow-purple-500/20"
-                    : getRankColor(rank)
-                }`}
-              >
-                <div className="flex items-center gap-4">
-                  {/* Rank */}
-                  <div className="flex-shrink-0 w-12 flex items-center justify-center">
-                    {getRankIcon(rank)}
+              )}
+            </AnimatePresence>
+
+            {/* Scrollable List */}
+            <div 
+              ref={scrollContainerRef}
+              className="flex-1 overflow-y-auto p-2 space-y-2 scrollbar-hide"
+              style={{ scrollBehavior: 'smooth' }}
+            >
+              {leaderboard.map((entry, index) => (
+                <LeaderboardItem key={entry.userId || index} entry={entry} index={index} />
+              ))}
                   </div>
 
-                  {/* User Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className={`font-semibold truncate ${
-                        isUser ? "text-white" : "text-white"
-                      }`}>
-                        {entry.displayName}
-                        {isUser && (
-                          <span className="ml-2 text-xs text-purple-300">(You)</span>
-                        )}
-                      </h3>
-                      {rank <= 3 && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300">
-                          Top {rank}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-4 text-xs text-gray-300">
-                      <span>Level {entry.level || 1}</span>
-                      <span>•</span>
-                      <span>{(entry.xp || 0).toLocaleString()} XP</span>
-                    </div>
-                  </div>
-
-                  {/* Value */}
-                  <div className="flex-shrink-0 text-right">
-                    <div className={`text-lg font-bold ${
-                      isUser ? "text-purple-200" : "text-white"
-                    }`}>
-                      {entry.displayValue}
-                    </div>
-                    <div className="text-xs text-gray-400">
-                      {sortBy === "streak" ? "days" : "studied"}
-                    </div>
-                  </div>
+            {/* Pinned Bottom */}
+            <AnimatePresence>
+              {pinPosition === 'bottom' && currentUserEntry && (
+                <div className="absolute bottom-2 left-2 right-2 z-30">
+                  <LeaderboardItem entry={currentUserEntry} isPinned="bottom" />
                 </div>
-              </motion.div>
-            );
-          })}
+              )}
+            </AnimatePresence>
+          </>
+        )}
         </div>
-      )}
 
-      {/* Info Text */}
-      <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-        <p className="text-xs text-gray-400 text-center">
-          {sortBy === "streak" 
-            ? "Leaderboard shows top studiers by consecutive study days"
-            : "Leaderboard shows top studiers by total study time"
-          } for {timeframe === "daily" ? "today" : timeframe === "weekly" ? "this week" : "all time"}
+      {/* Footer Info */}
+      <div className="px-2">
+        <p className="text-[10px] text-gray-500 text-center italic">
+          Showing {leaderboard.length} users • {sortBy === "streak" ? "Consecutive days" : "Total study time"}
         </p>
       </div>
     </div>
