@@ -330,6 +330,11 @@ async function getLeaderboard(timeframe, sortBy, currentUserId = null) {
       entry.rank = index + 1;
     });
 
+    let userRank = -1;
+    if (currentUserId) {
+      userRank = leaderboardData.findIndex(entry => entry.userId === currentUserId);
+    }
+
     // Return all data for the frontend to handle filtering/pinning
     return {
       status: 200,
