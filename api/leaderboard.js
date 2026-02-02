@@ -169,7 +169,13 @@ async function getLeaderboard(timeframe, sortBy, currentUserId = null) {
 
     // We can also include users who have sessions but maybe no user_stats record yet
     const userIdsWithSessions = new Set(studySessions.map(s => s.user_id));
-    const allUserIds = new Set([...(allStats || []).map(s => s.user_id), ...userIdsWithSessions]);
+    
+    // CRITICAL FIX: Ensure we include ALL users from the auth map, even if they have no stats/sessions yet
+    const allUserIds = new Set([
+      ...userMap.keys(),
+      ...(allStats || []).map(s => s.user_id), 
+      ...userIdsWithSessions
+    ]);
 
     for (const userId of allUserIds) {
       const stat = (allStats || []).find(s => s.user_id === userId) || {
@@ -279,32 +285,21 @@ async function getLeaderboard(timeframe, sortBy, currentUserId = null) {
 
       // Include users if they have:
       // 1. Non-zero value for the sort metric (study_time or streak), OR
-      // 2. Non-zero XP (so users with XP but no recent activity still show up)
+      // 2. Non-zero XP (so users with XP but no recent activity still show up), OR
+      // 3. They exist in the system (show everyone)
       const userXP = stat.xp !== null && stat.xp !== undefined ? stat.xp : (stat.total_xp_earned || 0);
       
-      if (value > 0 || userXP > 0) {
-        const entry = {
-          userId: stat.user_id,
-          displayName: userInfo.displayName,
-          email: userInfo.email,
-          value,
-          displayValue,
-          level: stat.level || 1,
-          xp: userXP, // Use current XP from user_stats (fallback to total_xp_earned if xp is null)
-        };
-        
-        // Debug log for first few entries
-        if (leaderboardData.length < 3) {
-          console.log(`[Leaderboard] Adding entry:`, {
-            name: entry.displayName,
-            xp: entry.xp,
-            level: entry.level,
-            value: entry.value
-          });
-        }
-        
-        leaderboardData.push(entry);
-      }
+      const entry = {
+        userId: stat.user_id,
+        displayName: userInfo.displayName,
+        email: userInfo.email,
+        value,
+        displayValue,
+        level: stat.level || 1,
+        xp: userXP, // Use current XP from user_stats (fallback to total_xp_earned if xp is null)
+      };
+      
+      leaderboardData.push(entry);
     }
 
     // Sort by value (descending) - this is the primary sort (study_time or streak)
