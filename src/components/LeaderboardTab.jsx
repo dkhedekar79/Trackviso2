@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Crown, Trophy, Flame, Clock, Medal, Loader2, ChevronUp, ChevronDown } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
@@ -18,7 +18,7 @@ const LeaderboardTab = () => {
     fetchLeaderboard();
   }, [timeframe, sortBy, user?.id]);
 
-  const fetchLeaderboard = async () => {
+  const fetchLeaderboard = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -43,9 +43,9 @@ const LeaderboardTab = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [timeframe, sortBy, user?.id]);
 
-  const handleScroll = () => {
+  const handleScroll = useCallback(() => {
     if (!scrollContainerRef.current || leaderboard.length === 0) return;
 
     const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
@@ -66,17 +66,29 @@ const LeaderboardTab = () => {
     } else {
       setPinPosition(null);
     }
-  };
+  }, [leaderboard, user?.id]);
 
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (container) {
-      container.addEventListener('scroll', handleScroll);
+      // Throttle scroll handler for better performance
+      let ticking = false;
+      const throttledHandleScroll = () => {
+        if (!ticking) {
+          window.requestAnimationFrame(() => {
+            handleScroll();
+            ticking = false;
+          });
+          ticking = true;
+        }
+      };
+      
+      container.addEventListener('scroll', throttledHandleScroll, { passive: true });
       // Initial check
       handleScroll();
-      return () => container.removeEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', throttledHandleScroll);
     }
-  }, [leaderboard, user?.id]);
+  }, [handleScroll]);
 
   const getRankIcon = (rank) => {
     if (rank === 1) return <Crown className="w-4 h-4 text-yellow-400" />;
@@ -96,7 +108,7 @@ const LeaderboardTab = () => {
     return user?.id === userId;
   };
 
-  const scrollToUser = () => {
+  const scrollToUser = useCallback(() => {
     const userIndex = leaderboard.findIndex(entry => entry.userId === user?.id);
     if (userIndex !== -1 && scrollContainerRef.current) {
       const itemHeight = 64;
@@ -105,7 +117,7 @@ const LeaderboardTab = () => {
         behavior: 'smooth'
       });
     }
-  };
+  }, [leaderboard, user?.id]);
 
   const LeaderboardItem = ({ entry, index, isPinned = false }) => {
     const rank = entry.rank || (index + 1);
@@ -170,7 +182,10 @@ const LeaderboardTab = () => {
     );
   };
 
-  const currentUserEntry = leaderboard.find(entry => entry.userId === user?.id);
+  const currentUserEntry = useMemo(() => 
+    leaderboard.find(entry => entry.userId === user?.id),
+    [leaderboard, user?.id]
+  );
 
   return (
     <div className="space-y-4 flex flex-col h-full max-h-[600px]">

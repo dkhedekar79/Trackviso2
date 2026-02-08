@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useAdmin } from '../context/AdminContext';
@@ -56,16 +56,29 @@ const Admin = () => {
     }
   }, [isAdmin, adminLoading, navigate, user]);
 
-  // Load users
+  // Load users - only load data for active tab to reduce initial load
   useEffect(() => {
     if (isAdmin && user) {
+      // Only load users initially, other data loads when tab is clicked
       loadUsers();
-      loadSchedules();
-      loadAmbassadorSubmissions('all'); // Load all to get accurate pending count
     }
   }, [isAdmin, user]);
 
-  const loadUsers = async () => {
+  // Load schedules when schedules tab is active
+  useEffect(() => {
+    if (isAdmin && user && activeTab === 'schedules' && schedules.length === 0 && !schedulesLoading) {
+      loadSchedules();
+    }
+  }, [isAdmin, user, activeTab]);
+
+  // Load ambassador submissions when ambassador tab is active
+  useEffect(() => {
+    if (isAdmin && user && activeTab === 'ambassador' && ambassadorSubmissions.length === 0 && !ambassadorLoading) {
+      loadAmbassadorSubmissions('all');
+    }
+  }, [isAdmin, user, activeTab]);
+
+  const loadUsers = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch('/api/admin?resource=users', {
@@ -110,7 +123,7 @@ const Admin = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   const makeUserAdmin = async (userId, email) => {
     setActionInProgress(`${userId}-make-admin`);
@@ -218,7 +231,7 @@ const Admin = () => {
     }
   };
 
-  const loadSchedules = async () => {
+  const loadSchedules = useCallback(async () => {
     try {
       setSchedulesLoading(true);
       const response = await fetch('/api/admin?resource=schedules', {
@@ -247,9 +260,9 @@ const Admin = () => {
     } finally {
       setSchedulesLoading(false);
     }
-  };
+  }, [user]);
 
-  const loadAmbassadorSubmissions = async (filter = null) => {
+  const loadAmbassadorSubmissions = useCallback(async (filter = null) => {
     try {
       setAmbassadorLoading(true);
       const activeFilter = filter || submissionFilter;
@@ -280,7 +293,7 @@ const Admin = () => {
     } finally {
       setAmbassadorLoading(false);
     }
-  };
+  }, [user, submissionFilter]);
 
   const handleApproveSubmission = async (submissionId, feedback = '') => {
     setActionInProgress(`approve-${submissionId}`);
@@ -347,9 +360,17 @@ const Admin = () => {
     }
   };
 
-  const filteredUsers = users.filter(u =>
-    u.email.toLowerCase().includes(searchTerm.toLowerCase())
+  // Memoize filtered users to prevent recalculation on every render
+  const filteredUsers = useMemo(() => 
+    users.filter(u =>
+      u.email.toLowerCase().includes(searchTerm.toLowerCase())
+    ), [users, searchTerm]
   );
+
+  // Memoize stats calculations
+  const premiumCount = useMemo(() => users.filter(u => u.is_premium).length, [users]);
+  const freeCount = useMemo(() => users.filter(u => !u.is_premium).length, [users]);
+  const pendingSubmissions = useMemo(() => ambassadorSubmissions.filter(s => s.status === 'pending').length, [ambassadorSubmissions]);
 
   if (adminLoading || loading) {
     return (
@@ -429,7 +450,7 @@ const Admin = () => {
             >
               <div className="flex items-center gap-2">
                 <Video className="w-5 h-5" />
-                Ambassador ({ambassadorSubmissions.filter(s => s.status === 'pending').length} pending)
+                Ambassador ({pendingSubmissions} pending)
               </div>
             </button>
           </div>
@@ -455,7 +476,7 @@ const Admin = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-amber-200/80 text-sm">Premium Users</p>
-                <p className="text-3xl font-bold text-white">{users.filter(u => u.is_premium).length}</p>
+                <p className="text-3xl font-bold text-white">{premiumCount}</p>
               </div>
               <Crown className="w-8 h-8 text-amber-400 opacity-50" />
             </div>
@@ -475,7 +496,7 @@ const Admin = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-200/80 text-sm">Free Users</p>
-                <p className="text-3xl font-bold text-white">{users.filter(u => !u.is_premium).length}</p>
+                <p className="text-3xl font-bold text-white">{freeCount}</p>
               </div>
               <TrendingUp className="w-8 h-8 text-green-400 opacity-50" />
             </div>
@@ -520,7 +541,7 @@ const Admin = () => {
                 key={u.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.05 }}
+                transition={{ delay: Math.min(idx * 0.02, 0.5) }}
                 className="bg-gradient-to-br from-purple-900/30 to-slate-900/30 rounded-xl border border-purple-700/30 overflow-hidden"
               >
                 {/* User Row */}
@@ -762,7 +783,7 @@ const Admin = () => {
                     key={schedule.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05 }}
+                    transition={{ delay: Math.min(idx * 0.02, 0.5) }}
                     className="bg-gradient-to-br from-purple-900/30 to-slate-900/30 rounded-xl border border-purple-700/30 p-6"
                   >
                     <div className="flex items-start justify-between">
@@ -942,7 +963,7 @@ const Admin = () => {
                     key={submission.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05 }}
+                    transition={{ delay: Math.min(idx * 0.02, 0.5) }}
                     className="bg-gradient-to-br from-purple-900/30 to-slate-900/30 rounded-xl border border-purple-700/30 p-6"
                   >
                     <div className="flex items-start justify-between gap-4">

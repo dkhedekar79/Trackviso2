@@ -291,24 +291,33 @@ async function listSchedules(adminUserId) {
       return { status: 500, body: { error: 'Failed to fetch schedules', details: schedulesError.message } };
     }
 
-    // Fetch user data separately for each unique user_id
+    // Fetch user data efficiently - use getAllUsers() to batch fetch instead of individual calls
     const uniqueUserIds = [...new Set(schedules.map(s => s.user_id))];
     const userMap = new Map();
 
-    for (const userId of uniqueUserIds) {
-      try {
-        const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
-        if (!userError && userData?.user) {
-          userMap.set(userId, {
-            email: userData.user.email || 'Unknown',
-            displayName: userData.user.user_metadata?.display_name || userData.user.email?.split('@')[0] || 'Unknown'
+    // Batch fetch all users once instead of individual calls
+    try {
+      const allAuthUsers = await getAllUsers();
+      allAuthUsers.forEach(user => {
+        if (uniqueUserIds.includes(user.id)) {
+          const displayName = user.user_metadata?.display_name || 
+                             (user.email ? user.email.split('@')[0] : 'Unknown');
+          userMap.set(user.id, {
+            email: user.email || 'Unknown',
+            displayName: displayName
           });
         }
-      } catch (e) {
-        console.warn(`Error fetching user ${userId}:`, e.message);
+      });
+    } catch (e) {
+      console.warn('Error batch fetching users for schedules:', e.message);
+    }
+
+    // Fill in any missing users with Unknown
+    uniqueUserIds.forEach(userId => {
+      if (!userMap.has(userId)) {
         userMap.set(userId, { email: 'Unknown', displayName: 'Unknown' });
       }
-    }
+    });
 
     const formattedSchedules = schedules.map(schedule => {
       const userInfo = userMap.get(schedule.user_id) || { email: 'Unknown', displayName: 'Unknown' };
@@ -393,24 +402,33 @@ async function listAmbassadorSubmissions(adminUserId, status = null) {
       return { status: 500, body: { error: 'Failed to fetch submissions', details: submissionsError.message } };
     }
 
-    // Fetch user data separately for each unique user_id
+    // Fetch user data efficiently - use getAllUsers() to batch fetch instead of individual calls
     const uniqueUserIds = [...new Set(submissions.map(s => s.user_id))];
     const userMap = new Map();
 
-    for (const userId of uniqueUserIds) {
-      try {
-        const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
-        if (!userError && userData?.user) {
-          userMap.set(userId, {
-            email: userData.user.email || 'Unknown',
-            displayName: userData.user.user_metadata?.display_name || userData.user.email?.split('@')[0] || 'Unknown'
+    // Batch fetch all users once instead of individual calls
+    try {
+      const allAuthUsers = await getAllUsers();
+      allAuthUsers.forEach(user => {
+        if (uniqueUserIds.includes(user.id)) {
+          const displayName = user.user_metadata?.display_name || 
+                             (user.email ? user.email.split('@')[0] : 'Unknown');
+          userMap.set(user.id, {
+            email: user.email || 'Unknown',
+            displayName: displayName
           });
         }
-      } catch (e) {
-        console.warn(`Error fetching user ${userId}:`, e.message);
+      });
+    } catch (e) {
+      console.warn('Error batch fetching users for submissions:', e.message);
+    }
+
+    // Fill in any missing users with Unknown
+    uniqueUserIds.forEach(userId => {
+      if (!userMap.has(userId)) {
         userMap.set(userId, { email: 'Unknown', displayName: 'Unknown' });
       }
-    }
+    });
 
     const formattedSubmissions = submissions.map(submission => {
       const userInfo = userMap.get(submission.user_id) || { email: 'Unknown', displayName: 'Unknown' };

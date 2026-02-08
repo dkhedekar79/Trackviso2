@@ -52,13 +52,13 @@ export const useSpotify = () => {
     window.addEventListener('storage', handleStorageChange);
     
     // Check periodically in case we're on the same page (storage events don't fire for same tab)
-    // More frequent checks right after page load to catch redirects
+    // Reduced frequency to avoid performance issues
     const interval = setInterval(() => {
       const storedToken = localStorage.getItem('spotify_access_token');
       if (storedToken && !accessToken) {
         loadToken();
       }
-    }, 100); // Check every 100ms for faster detection after redirect
+    }, 2000); // Check every 2 seconds instead of 100ms
     
     return () => {
       window.removeEventListener('storage', handleStorageChange);
