@@ -18,7 +18,7 @@ import { upsertUserSchedule, fetchUserSchedules, deleteUserSchedule } from "../u
 import { useAuth } from "../context/AuthContext";
 
 export default function AISchedule() {
-  const { canGenerateAISchedule, subscriptionPlan } = useSubscription();
+  const { canGenerateAISchedule, canRegenerateSchedule, subscriptionPlan } = useSubscription();
   const { awardScheduleCompletionXP } = useGamification();
   const { user } = useAuth();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -728,22 +728,46 @@ export default function AISchedule() {
             {currentSchedule?.isAIGenerated && (
               <div className="flex items-center gap-3">
                 <motion.button
-                  onClick={() => setIsEditModalOpen(true)}
-                  className="px-6 py-3 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white rounded-xl font-semibold transition-all shadow-lg shadow-violet-500/30 flex items-center gap-2"
+                  onClick={() => {
+                    if (canRegenerateSchedule()) {
+                      setIsEditModalOpen(true);
+                    } else {
+                      setShowUpgradeModal(true);
+                    }
+                  }}
+                  className={`px-6 py-3 text-white rounded-xl font-semibold transition-all shadow-lg flex items-center gap-2 ${
+                    canRegenerateSchedule() || subscriptionPlan === 'professor'
+                      ? 'bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-violet-500/30'
+                      : 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 shadow-amber-500/30'
+                  }`}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   <Sparkles className="w-5 h-5" />
-                  Edit & Regenerate
+                  {canRegenerateSchedule() || subscriptionPlan === 'professor' 
+                    ? 'Edit & Regenerate' 
+                    : 'Edit & Regenerate (Premium)'}
                 </motion.button>
                 <motion.button
-                  onClick={() => setIsResetModalOpen(true)}
-                  className="px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white rounded-xl font-semibold transition-all shadow-lg shadow-amber-500/30 flex items-center gap-2"
+                  onClick={() => {
+                    if (canRegenerateSchedule()) {
+                      setIsResetModalOpen(true);
+                    } else {
+                      setShowUpgradeModal(true);
+                    }
+                  }}
+                  className={`px-6 py-3 text-white rounded-xl font-semibold transition-all shadow-lg flex items-center gap-2 ${
+                    canRegenerateSchedule() || subscriptionPlan === 'professor'
+                      ? 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 shadow-amber-500/30'
+                      : 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 shadow-amber-500/30 opacity-75'
+                  }`}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   <RotateCcw className="w-5 h-5" />
-                  Reset & Regenerate
+                  {canRegenerateSchedule() || subscriptionPlan === 'professor'
+                    ? 'Reset & Regenerate'
+                    : 'Reset & Regenerate (Premium)'}
                 </motion.button>
               </div>
             )}
@@ -961,7 +985,9 @@ export default function AISchedule() {
       <AnimatePresence>
         {isResetModalOpen && currentSchedule?.isAIGenerated && currentSchedule?.setupData && (
           <AIScheduleSetup
-            onComplete={handleAISetupComplete}
+            onComplete={async (newSchedule) => {
+              await handleAISetupComplete(newSchedule);
+            }}
             onCancel={() => setIsResetModalOpen(false)}
             availableSubjects={availableSubjects}
             initialData={{

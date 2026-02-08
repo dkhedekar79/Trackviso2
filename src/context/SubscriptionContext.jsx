@@ -9,15 +9,18 @@ const defaultSubscriptionContext = {
     mockExamsUsed: 0,
     blurtTestsUsed: 0,
     aiSchedulesGenerated: 0,
+    scheduleRegenerationsUsed: 0,
     lastResetDate: null,
   },
   loading: true,
   canUseMockExam: () => false,
   canUseBlurtTest: () => false,
   canGenerateAISchedule: () => false,
+  canRegenerateSchedule: () => false,
   incrementMockExamUsage: async () => false,
   incrementBlurtTestUsage: async () => false,
   incrementAIScheduleUsage: async () => false,
+  incrementScheduleRegenerationUsage: async () => false,
   updateSubscriptionPlan: async () => {},
   getRemainingMockExams: () => 0,
   getRemainingBlurtTests: () => 0,
@@ -44,6 +47,7 @@ export const SubscriptionProvider = ({ children }) => {
     mockExamsUsed: 0,
     blurtTestsUsed: 0,
     aiSchedulesGenerated: 0,
+    scheduleRegenerationsUsed: 0,
     lastResetDate: null
   });
   const [loading, setLoading] = useState(true);
@@ -54,17 +58,20 @@ export const SubscriptionProvider = ({ children }) => {
         data: {
           mock_exams_used: 0,
           blurt_tests_used: 0,
+          schedule_regenerations_used: 0,
           usage_reset_date: new Date().toISOString()
         }
       });
 
       if (error) throw error;
 
-      setUsage({
+      setUsage(prev => ({
+        ...prev,
         mockExamsUsed: 0,
         blurtTestsUsed: 0,
+        scheduleRegenerationsUsed: 0,
         lastResetDate: new Date().toISOString()
-      });
+      }));
 
       return data.user;
     } catch (error) {
@@ -78,7 +85,7 @@ export const SubscriptionProvider = ({ children }) => {
     const loadSubscriptionData = async () => {
       if (!user) {
         setSubscriptionPlan('scholar');
-        setUsage({ mockExamsUsed: 0, blurtTestsUsed: 0, lastResetDate: null });
+        setUsage({ mockExamsUsed: 0, blurtTestsUsed: 0, aiSchedulesGenerated: 0, scheduleRegenerationsUsed: 0, lastResetDate: null });
         setLoading(false);
         return;
       }
@@ -96,12 +103,14 @@ export const SubscriptionProvider = ({ children }) => {
           const mockExamsUsed = currentUser.user_metadata?.mock_exams_used || 0;
           const blurtTestsUsed = currentUser.user_metadata?.blurt_tests_used || 0;
           const aiSchedulesGenerated = currentUser.user_metadata?.ai_schedules_generated || 0;
+          const scheduleRegenerationsUsed = currentUser.user_metadata?.schedule_regenerations_used || 0;
           const lastResetDate = currentUser.user_metadata?.usage_reset_date || null;
 
           setUsage({
             mockExamsUsed,
             blurtTestsUsed,
             aiSchedulesGenerated,
+            scheduleRegenerationsUsed,
             lastResetDate
           });
 
@@ -242,6 +251,26 @@ export const SubscriptionProvider = ({ children }) => {
     }
   };
 
+  const incrementScheduleRegenerationUsage = async () => {
+    if (subscriptionPlan === 'professor') return true; // Unlimited for premium
+    
+    const newCount = (usage.scheduleRegenerationsUsed || 0) + 1;
+    
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        data: { schedule_regenerations_used: newCount }
+      });
+      
+      if (error) throw error;
+      
+      setUsage(prev => ({ ...prev, scheduleRegenerationsUsed: newCount }));
+      return true;
+    } catch (error) {
+      console.error('Error incrementing schedule regeneration usage:', error);
+      return false;
+    }
+  };
+
   const canGenerateAISchedule = () => {
     if (subscriptionPlan === 'professor') return true;
     return (usage.aiSchedulesGenerated || 0) < 1;
@@ -255,6 +284,11 @@ export const SubscriptionProvider = ({ children }) => {
   const canUseBlurtTest = () => {
     if (subscriptionPlan === 'professor') return true;
     return usage.blurtTestsUsed < 1;
+  };
+
+  const canRegenerateSchedule = () => {
+    if (subscriptionPlan === 'professor') return true;
+    return (usage.scheduleRegenerationsUsed || 0) < 1;
   };
 
   const updateSubscriptionPlan = async (plan) => {
@@ -307,9 +341,11 @@ export const SubscriptionProvider = ({ children }) => {
         canUseMockExam,
         canUseBlurtTest,
         canGenerateAISchedule,
+        canRegenerateSchedule,
         incrementMockExamUsage,
         incrementBlurtTestUsage,
         incrementAIScheduleUsage,
+        incrementScheduleRegenerationUsage,
         updateSubscriptionPlan,
         getRemainingMockExams,
         getRemainingBlurtTests,

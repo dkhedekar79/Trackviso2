@@ -10,7 +10,7 @@ import { generateAISchedule } from "../utils/scheduleGeneratorApi";
 import { useSubscription } from "../context/SubscriptionContext";
 
 export default function AIScheduleSetup({ onComplete, onCancel, availableSubjects, initialData, existingScheduleId }) {
-  const { incrementAIScheduleUsage } = useSubscription();
+  const { incrementAIScheduleUsage, incrementScheduleRegenerationUsage, canRegenerateSchedule, subscriptionPlan } = useSubscription();
   const [currentStep, setCurrentStep] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStage, setGenerationStage] = useState(0);
@@ -280,7 +280,20 @@ export default function AIScheduleSetup({ onComplete, onCancel, availableSubject
       await new Promise(resolve => setTimeout(resolve, 3000));
 
       // Increment usage if successful
-      await incrementAIScheduleUsage();
+      // If regenerating (existingScheduleId exists), increment regeneration usage
+      // Otherwise, increment new schedule generation usage
+      if (existingScheduleId) {
+        // This is a regeneration - check limit and increment regeneration counter
+        if (subscriptionPlan !== 'professor' && !canRegenerateSchedule()) {
+          alert('You have used your free regeneration. Please upgrade to premium for unlimited regenerations.');
+          setIsGenerating(false);
+          return;
+        }
+        await incrementScheduleRegenerationUsage();
+      } else {
+        // This is a new schedule generation
+        await incrementAIScheduleUsage();
+      }
 
       onComplete(newSchedule);
     } catch (error) {

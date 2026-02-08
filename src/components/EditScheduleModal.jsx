@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles, FileText, Loader2 } from 'lucide-react';
+import { X, Sparkles, FileText, Loader2, Lock } from 'lucide-react';
 import { generateAISchedule } from '../utils/scheduleGeneratorApi';
+import { useSubscription } from '../context/SubscriptionContext';
+import PremiumUpgradeModal from './PremiumUpgradeModal';
 
 export default function EditScheduleModal({ 
   isOpen, 
@@ -9,16 +11,24 @@ export default function EditScheduleModal({
   schedule, 
   onScheduleUpdated 
 }) {
+  const { canRegenerateSchedule, incrementScheduleRegenerationUsage, subscriptionPlan } = useSubscription();
   const [instructions, setInstructions] = useState(schedule?.setupData?.instructions || '');
   const [busyTimes, setBusyTimes] = useState(schedule?.setupData?.busyTimes || '');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   if (!schedule || !schedule.setupData) {
     return null;
   }
 
   const handleRegenerate = async () => {
+    // Check if user can regenerate
+    if (!canRegenerateSchedule()) {
+      setShowUpgradeModal(true);
+      return;
+    }
+
     if (!instructions.trim() && !busyTimes.trim()) {
       setError('Please provide at least some instructions or busy times to regenerate the schedule.');
       return;
@@ -26,6 +36,11 @@ export default function EditScheduleModal({
 
     setIsGenerating(true);
     setError(null);
+
+    // Increment usage counter (only for free users)
+    if (subscriptionPlan !== 'professor') {
+      await incrementScheduleRegenerationUsage();
+    }
 
     try {
       // Get the original setup data
@@ -194,35 +209,56 @@ export default function EditScheduleModal({
             </div>
 
             {/* Footer */}
-            <div className="p-6 border-t border-purple-500/30 bg-white/5 flex items-center justify-end gap-4">
-              <button
-                onClick={onClose}
-                disabled={isGenerating}
-                className="px-6 py-3 bg-slate-700/50 hover:bg-slate-700 text-white rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleRegenerate}
-                disabled={isGenerating || (!instructions.trim() && !busyTimes.trim())}
-                className="px-8 py-3 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-violet-500/30 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Regenerating...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-5 h-5" />
-                    Regenerate Schedule
-                  </>
-                )}
-              </button>
+            <div className="p-6 border-t border-purple-500/30 bg-white/5 flex items-center justify-between">
+              {!canRegenerateSchedule() && subscriptionPlan !== 'professor' && (
+                <div className="flex items-center gap-2 text-amber-400 text-sm">
+                  <Lock className="w-4 h-4" />
+                  <span>You've used your free regeneration. Upgrade for unlimited!</span>
+                </div>
+              )}
+              <div className="flex items-center gap-4 ml-auto">
+                <button
+                  onClick={onClose}
+                  disabled={isGenerating}
+                  className="px-6 py-3 bg-slate-700/50 hover:bg-slate-700 text-white rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleRegenerate}
+                  disabled={isGenerating || (!instructions.trim() && !busyTimes.trim())}
+                  className={`px-8 py-3 rounded-xl font-bold transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                    !canRegenerateSchedule() && subscriptionPlan !== 'professor'
+                      ? 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white shadow-amber-500/30'
+                      : 'bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white shadow-violet-500/30'
+                  }`}
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Regenerating...
+                    </>
+                  ) : !canRegenerateSchedule() && subscriptionPlan !== 'professor' ? (
+                    <>
+                      <Lock className="w-5 h-5" />
+                      Upgrade to Regenerate
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-5 h-5" />
+                      Regenerate Schedule
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </motion.div>
         </motion.div>
       )}
+      <PremiumUpgradeModal 
+        isOpen={showUpgradeModal} 
+        onClose={() => setShowUpgradeModal(false)}
+      />
     </AnimatePresence>
   );
 }
