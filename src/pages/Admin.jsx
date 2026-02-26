@@ -42,6 +42,7 @@ const Admin = () => {
   const [ambassadorSubmissions, setAmbassadorSubmissions] = useState([]);
   const [ambassadorLoading, setAmbassadorLoading] = useState(false);
   const [submissionFilter, setSubmissionFilter] = useState('all'); // 'all', 'pending', 'approved', 'rejected'
+  const [premiumFilter, setPremiumFilter] = useState('all'); // 'all', 'premium', 'free'
   const [activeTab, setActiveTab] = useState('users'); // 'users', 'schedules', or 'ambassador'
   const [expandedSchedule, setExpandedSchedule] = useState(null); // Track which schedule is expanded
 
@@ -361,11 +362,14 @@ const Admin = () => {
   };
 
   // Memoize filtered users to prevent recalculation on every render
-  const filteredUsers = useMemo(() => 
-    users.filter(u =>
+  const filteredUsers = useMemo(() => {
+    let list = users.filter(u =>
       u.email.toLowerCase().includes(searchTerm.toLowerCase())
-    ), [users, searchTerm]
-  );
+    );
+    if (premiumFilter === 'premium') list = list.filter(u => u.is_premium);
+    if (premiumFilter === 'free') list = list.filter(u => !u.is_premium);
+    return list;
+  }, [users, searchTerm, premiumFilter]);
 
   // Memoize stats calculations
   const premiumCount = useMemo(() => users.filter(u => u.is_premium).length, [users]);
@@ -503,12 +507,12 @@ const Admin = () => {
           </div>
         </motion.div>
 
-        {/* Search */}
+        {/* Search & Premium filter */}
         {activeTab === 'users' && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6"
+            className="mb-6 space-y-4"
           >
             <div className="relative">
               <Search className="absolute left-3 top-3 w-5 h-5 text-purple-400" />
@@ -519,6 +523,48 @@ const Admin = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full bg-purple-900/30 border border-purple-700/50 rounded-lg pl-10 pr-4 py-3 text-white placeholder-purple-400/50 focus:outline-none focus:border-purple-600"
               />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm text-purple-300/80">Filter by plan:</span>
+              <div className="flex rounded-lg border border-purple-700/50 overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setPremiumFilter('all')}
+                  className={`px-4 py-2 text-sm font-medium transition ${
+                    premiumFilter === 'all'
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-purple-900/30 text-purple-300 hover:bg-purple-800/40'
+                  }`}
+                >
+                  All
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPremiumFilter('premium')}
+                  className={`px-4 py-2 text-sm font-medium transition flex items-center gap-1.5 ${
+                    premiumFilter === 'premium'
+                      ? 'bg-amber-600 text-white'
+                      : 'bg-purple-900/30 text-purple-300 hover:bg-purple-800/40'
+                  }`}
+                >
+                  <Crown className="w-4 h-4" />
+                  Premium
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPremiumFilter('free')}
+                  className={`px-4 py-2 text-sm font-medium transition ${
+                    premiumFilter === 'free'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-purple-900/30 text-purple-300 hover:bg-purple-800/40'
+                  }`}
+                >
+                  Free
+                </button>
+              </div>
+              <span className="text-sm text-purple-400/70">
+                Showing {filteredUsers.length} of {users.length}
+              </span>
             </div>
           </motion.div>
         )}
