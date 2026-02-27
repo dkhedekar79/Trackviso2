@@ -45,6 +45,7 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import RewardSystem from './components/RewardSystem';
 import PremiumGiftSystem from './components/PremiumGiftSystem';
 import CreddrPopup from './components/CreddrPopup';
+import HackNoticePopup from './components/HackNoticePopup';
 import './styles/index.css';
 
 
@@ -166,6 +167,7 @@ function App() {
                       <OfflineIndicator />
                       <Router>
                         <CreddrPopup />
+                        <HackNoticePopup />
                         <RewardSystem />
                         <PremiumGiftSystem />
                         <RouteCleanup />
