@@ -115,7 +115,7 @@ const MilestonePromoPopup = () => {
                   <Sparkles className="w-4 h-4 text-amber-300" />
                 </h2>
                 <p className="mt-1 text-sm text-amber-100/80">
-                  As a thank you, we&apos;re giving <span className="font-semibold">50% off</span> your first month of the Professor Plan.
+                  As a thank you, we&apos;re giving <span className="font-semibold">50% off</span> the Professor Plan <span className="font-semibold">forever</span>.
                 </p>
               </div>
             </div>
@@ -129,7 +129,8 @@ const MilestonePromoPopup = () => {
                 Only the <span className="underline decoration-amber-400/80">first 10 users</span> can claim this 50% discount.
               </p>
               <p className="text-xs text-slate-400">
-                Discount is automatically applied at checkout using our Stripe-powered payment system.
+                Use code <span className="font-mono text-amber-200 px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/30">{COUPON_CODE}</span> —
+                it&apos;s automatically applied at checkout via our Stripe-powered payment system.
               </p>
             </div>
 
