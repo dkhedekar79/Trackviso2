@@ -19,14 +19,22 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { userId } = req.body;
+    const { userId, couponId } = req.body;
 
     if (!userId) {
       return res.status(400).json({ error: 'User ID is required' });
     }
 
+    const metadata = {
+      userId: userId,
+    };
+
+    if (couponId) {
+      metadata.couponId = couponId;
+    }
+
     // Create Stripe Checkout Session
-    const session = await stripe.checkout.sessions.create({
+    const sessionConfig = {
       payment_method_types: ['card'],
       line_items: [
         {
@@ -48,10 +56,18 @@ export default async function handler(req, res) {
       success_url: `${process.env.VITE_FRONTEND_URL || process.env.FRONTEND_URL || 'https://trackviso-beta.vercel.app'}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.VITE_FRONTEND_URL || process.env.FRONTEND_URL || 'https://trackviso-beta.vercel.app'}/payment`,
       client_reference_id: userId,
-      metadata: {
-        userId: userId,
-      },
-    });
+      metadata,
+    };
+
+    if (couponId) {
+      sessionConfig.discounts = [
+        {
+          coupon: couponId,
+        },
+      ];
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig);
 
     res.status(200).json({ sessionId: session.id, url: session.url });
   } catch (error) {

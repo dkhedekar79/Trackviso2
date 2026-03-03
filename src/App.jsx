@@ -44,8 +44,7 @@ import { useOffline } from './hooks/useOffline';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import RewardSystem from './components/RewardSystem';
 import PremiumGiftSystem from './components/PremiumGiftSystem';
-import CreddrPopup from './components/CreddrPopup';
-import HackNoticePopup from './components/HackNoticePopup';
+import MilestonePromoPopup from './components/MilestonePromoPopup';
 import './styles/index.css';
 
 
@@ -166,8 +165,7 @@ function App() {
                     <DashboardProvider>
                       <OfflineIndicator />
                       <Router>
-                        <CreddrPopup />
-                        <HackNoticePopup />
+                        <MilestonePromoPopup />
                         <RewardSystem />
                         <PremiumGiftSystem />
                         <RouteCleanup />
