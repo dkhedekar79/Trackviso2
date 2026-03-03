@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 
 const PROMO_KEY = 'hasSeen500UsersPromo_v1';
 const COUPON_ID = 'LhVn3S9g';
+const COUPON_CODE = 'THANKS50';
 
 const MilestonePromoPopup = () => {
   const { user, isPremiumUser } = useAuth();
