@@ -29,18 +29,38 @@ async function updateUserSubscription(userId, plan) {
   }
 }
 
+function getRawBody(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on('data', (chunk) => chunks.push(chunk));
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('error', reject);
+  });
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   const sig = req.headers['stripe-signature'];
-  let event;
+  if (!sig) {
+    console.error('Webhook missing stripe-signature header');
+    return res.status(400).send('Missing stripe-signature');
+  }
 
+  let rawBody;
   try {
-    // Construct the event from the request body and signature
+    rawBody = await getRawBody(req);
+  } catch (err) {
+    console.error('Failed to read webhook body:', err.message);
+    return res.status(400).send('Invalid body');
+  }
+
+  let event;
+  try {
     event = stripe.webhooks.constructEvent(
-      req.body,
+      rawBody,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET
     );
@@ -113,10 +133,10 @@ export default async function handler(req, res) {
         console.log(`Unhandled event type ${event.type}`);
     }
 
-    res.status(200).json({ received: true });
+    return res.status(200).json({ received: true });
   } catch (error) {
     console.error('Error handling webhook:', error);
-    res.status(500).json({ error: 'Webhook handler failed' });
+    return res.status(500).json({ error: 'Webhook handler failed' });
   }
 }
 
