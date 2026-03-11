@@ -102,7 +102,7 @@ Please provide comprehensive but concise notes in this format:
 
 Use clear, simple language suitable for 13-14 year old students. Organize the information logically with headings and bullet points. Focus on the essential content needed to understand these topics at GCSE level.`;
 
-    const content = await generateAIContent(prompt, { preferredModel: 'gemini-2.5-flash' });
+    const content = await generateAIContent(prompt, { preferredModel: 'gemini-3.1-flash-lite-preview' });
 
     return {
       notes: content.trim(),
@@ -192,7 +192,7 @@ ${isSummaryExam ? '- There MUST be EXACTLY 10 questions.' : ''}
 
 Return ONLY the JSON object, no additional text.`;
 
-    const exam = await generateAIJSON(prompt, { preferredModel: 'gemini-2.5-flash' });
+    const exam = await generateAIJSON(prompt, { preferredModel: 'gemini-3.1-flash-lite-preview' });
 
     // Validate and fix exam structure
     if (!exam.questions || !Array.isArray(exam.questions)) {
@@ -326,7 +326,7 @@ Guidelines for marking:
 
 Return ONLY the JSON object, no additional text.`;
 
-    const marking = await generateAIJSON(prompt, { preferredModel: 'gemini-2.5-flash' });
+    const marking = await generateAIJSON(prompt, { preferredModel: 'gemini-3.1-flash-lite-preview' });
 
     // Validate and ensure all required fields exist
     if (typeof marking.marksAwarded !== 'number') {

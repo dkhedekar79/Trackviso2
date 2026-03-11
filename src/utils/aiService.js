@@ -6,7 +6,12 @@ import { GoogleGenAI } from "@google/genai";
  */
 
 // Model configurations - all Google/Gemini models
+// Ordered from preferred -> fallback
 const MODEL_CONFIGS = [
+  {
+    // Primary model for blurt mode + mock exams
+    name: 'gemini-3.1-flash-lite-preview',
+  },
   {
     name: 'gemini-3-flash',
   },
