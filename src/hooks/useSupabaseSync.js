@@ -100,13 +100,25 @@ export const useSupabaseUserStats = (userStats, setUserStats) => {
 
       const stats = await fetchUserStats();
       if (stats) {
+        let totalStudyTime = stats.total_study_time || 0;
+        // Reconcile total study time from study_sessions (fixes users stuck with stale total)
+        try {
+          const sessions = await fetchStudySessions();
+          const fromSessions = sessions.reduce((acc, s) => acc + (Number(s.duration_minutes) || 0), 0);
+          if (sessions.length > 0 && fromSessions !== totalStudyTime) {
+            totalStudyTime = fromSessions;
+            await updateUserStats({ total_study_time: fromSessions });
+          }
+        } catch (e) {
+          // ignore; keep stats as-is
+        }
         setUserStats((prev) => ({
           ...prev,
           xp: stats.xp || 0,
           level: stats.level || 1,
           prestigeLevel: stats.prestige_level || 0,
           totalSessions: stats.total_sessions || 0,
-          totalStudyTime: stats.total_study_time || 0,
+          totalStudyTime,
           currentStreak: stats.current_streak || 0,
           longestStreak: stats.longest_streak || 0,
           lastStudyDate: stats.last_study_date,

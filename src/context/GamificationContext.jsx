@@ -1565,16 +1565,17 @@ export const GamificationProvider = ({ children }) => {
           });
 
           if (supabaseSession) {
-            // Update other stats that aren't auto-calculated by the trigger
-            // The trigger handles: total_study_time, total_xp_earned, total_sessions
-            // IMPORTANT: Always sync XP - it's the source of truth that includes all XP sources
+            // Update stats including total_study_time so it stays correct even if DB trigger didn't run
+            // (e.g. trigger missing in some envs, or to fix users stuck with stale totals)
             const syncResult = await updateUserStats({ 
               xp: newStats.xp,  // Current XP (includes sessions, quests, achievements, etc.)
               level: newStats.level,
               current_streak: newStats.currentStreak,
               longest_streak: newStats.longestStreak,
               last_study_date: newStats.lastStudyDate,
-              total_sessions: newStats.totalSessions
+              total_sessions: newStats.totalSessions,
+              total_study_time: newStats.totalStudyTime,
+              total_xp_earned: newStats.totalXPEarned,
             });
             
             if (syncResult) {
