@@ -100,13 +100,15 @@ const PremiumGiftSystem = () => {
   const hiddenPages = ['/', '/login', '/signup', '/landing', '/terms', '/blog'];
   const isHiddenPage = hiddenPages.includes(location.pathname) || location.pathname.startsWith('/blog/');
 
-  // For debugging - remove if everything works
-  console.log('Gift System State:', { 
-    path: location.pathname, 
-    user: !!user, 
-    isHiddenPage, 
-    isPremium: isPremiumUser 
-  });
+  // Optional debug in development only
+  if (import.meta.env.DEV) {
+    console.log('Gift System State:', { 
+      path: location.pathname, 
+      user: !!user, 
+      isHiddenPage, 
+      isPremium: isPremiumUser 
+    });
+  }
 
   // Only show when logged in and not on hidden pages
   // (Removed isPremiumUser check temporarily to ensure visibility for debugging)

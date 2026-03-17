@@ -102,11 +102,15 @@ export async function generateAIContent(prompt, options = {}) {
     }
 
     try {
-      console.log(`Attempting to generate content with ${name}...`);
-      
+      if (import.meta.env.DEV) {
+        console.log(`Attempting to generate content with ${name}...`);
+      }
+
       const content = await callGemini(prompt, name);
 
-      console.log(`Successfully generated content with ${name}`);
+      if (import.meta.env.DEV) {
+        console.log(`Successfully generated content with ${name}`);
+      }
       return content;
     } catch (error) {
       console.error(`Error with ${name}:`, error.message);
