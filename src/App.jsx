@@ -17,6 +17,7 @@ import Insights from './pages/Insights';
 import Mastery from './pages/Mastery';
 
 import Resources from './pages/Resources';
+import Expand from './pages/Expand';
 import Settings from './pages/Settings';
 import Terms from './pages/Terms';
 import Landing from './pages/Landing';
@@ -319,6 +320,21 @@ function App() {
                       <Navbar />
                       <main className="flex-1 overflow-auto">
                         <Resources />
+                        <Footer withSidebar />
+                      </main>
+                    </div>
+                  </div>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/expand" element={
+                <ProtectedRoute>
+                  <div className="flex h-screen bg-[var(--app-bg)]">
+                    <Sidebar />
+                    <div className="flex-1 flex flex-col">
+                      <Navbar />
+                      <main className="flex-1 overflow-auto">
+                        <Expand />
                         <Footer withSidebar />
                       </main>
                     </div>
