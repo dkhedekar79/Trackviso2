@@ -87,7 +87,6 @@ export const ROUTES = {
   INSIGHTS: '/insights',
   MASTERY: '/mastery',
   RESOURCES: '/resources',
-  EXPAND: '/expand',
   SETTINGS: '/settings',
   LOGIN: '/login',
   SIGNUP: '/signup',

@@ -18,7 +18,6 @@ const Footer = ({ withSidebar = false }) => {
             <li><Link className="hover:text-[var(--on-primary)]" to="/study">Study</Link></li>
             <li><Link className="hover:text-[var(--on-primary)]" to="/subjects">Subjects</Link></li>
             <li><Link className="hover:text-[var(--on-primary)]" to="/resources">Resources</Link></li>
-            <li><Link className="hover:text-[var(--on-primary)]" to="/expand">Expand</Link></li>
           </ul>
         </div>
         <div>

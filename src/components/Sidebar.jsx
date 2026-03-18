@@ -15,7 +15,6 @@ const navItems = [
   { path: "/subjects", icon: BookIcon, label: "Subjects", color: "amber" },
   { path: "/tasks", icon: ListChecksIcon, label: "Tasks", color: "rose" },
   { path: "/schedule", icon: Sparkles, label: "AI Schedule", color: "violet" },
-  { path: "/expand", icon: Sparkles, label: "Expand", color: "violet" },
   { path: "/resources", icon: GraduationCap, label: "Resources", color: "indigo" },
 ];
 

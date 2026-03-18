@@ -161,7 +161,6 @@ const Navbar = () => {
       "/settings": "SETTINGS",
       "/insights": "INSIGHTS",
       "/resources": "RESOURCES",
-      "/expand": "EXPAND",
       "/mastery": "MASTERY",
     };
     return titles[location.pathname] || "";
