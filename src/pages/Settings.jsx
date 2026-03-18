@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Crown, FileText, Plus, X, Calendar, Edit2, Trash2, AlertTriangle, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import { useNavigate } from 'react-router-dom';
 import SEO from '../components/SEO';
+import { downloadAllUserData, importAllUserDataFromFile } from '../utils/dataExport';
 
 const Settings = () => {
   const { user, displayName, deleteUserAccount } = useAuth();
@@ -19,6 +20,10 @@ const Settings = () => {
   const [editingPatchNote, setEditingPatchNote] = useState(null);
   const [newPatchNote, setNewPatchNote] = useState({ title: '', description: '' });
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importError, setImportError] = useState('');
+  const importFileRef = useRef(null);
 
   const ADMIN_EMAIL = 'dskhedekar7@gmail.com';
 
@@ -36,6 +41,44 @@ const Settings = () => {
     } catch (error) {
       setDeleteError('Failed to delete account. Please try again.');
       setDeleteLoading(false);
+    }
+  };
+
+  const handleExportAll = async () => {
+    setExportLoading(true);
+    setImportError('');
+    try {
+      await downloadAllUserData();
+      alert('Export started. Your backup file should download shortly.');
+    } catch (error) {
+      setImportError(error?.message || 'Failed to export data');
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
+  const handleImportAll = async (file) => {
+    if (!file) return;
+
+    setImportLoading(true);
+    setImportError('');
+    try {
+      const confirmed = window.confirm(
+        'This will overwrite your current data (on this device and in your Supabase account) using the backup file. Continue?'
+      );
+      if (!confirmed) {
+        setImportLoading(false);
+        return;
+      }
+
+      await importAllUserDataFromFile(file, { overwrite: true });
+      alert('Import complete! Your data has been restored.');
+      window.location.reload();
+    } catch (error) {
+      setImportError(error?.message || 'Failed to import data');
+    } finally {
+      setImportLoading(false);
+      if (importFileRef.current) importFileRef.current.value = '';
     }
   };
 
@@ -310,6 +353,63 @@ const Settings = () => {
             <Sparkles className="w-5 h-5" />
             View Creddr Offer
           </button>
+        </motion.div>
+
+        {/* Data Backup / Restore Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.22 }}
+          className="bg-gradient-to-br from-indigo-900/40 to-slate-900/40 backdrop-blur-md rounded-2xl p-6 border border-indigo-700/30 mb-6"
+        >
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-3 rounded-lg bg-indigo-600/20">
+              <FileText className="w-6 h-6 text-indigo-400" />
+            </div>
+            <h2 className="text-2xl font-bold text-white">Data Backup & Restore</h2>
+          </div>
+
+          <p className="text-purple-200/70 mb-4">
+            Export a complete backup of your Trackviso data, then import it later to restore everything and sync it back to your account.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={handleExportAll}
+                disabled={exportLoading}
+                className="px-6 py-3 bg-indigo-600/20 border border-indigo-600/50 text-indigo-300 font-semibold rounded-lg hover:bg-indigo-600/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                {exportLoading ? 'Exporting…' : 'Export all data'}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => importFileRef.current?.click()}
+                disabled={importLoading}
+                className="px-6 py-3 bg-white/10 text-white font-semibold rounded-lg hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                {importLoading ? 'Importing…' : 'Import data'}
+              </button>
+
+              <input
+                ref={importFileRef}
+                type="file"
+                accept="application/json,.json"
+                className="hidden"
+                onChange={(e) => handleImportAll(e.target.files?.[0])}
+              />
+            </div>
+            {importError && (
+              <div className="mt-3 sm:mt-0 p-3 bg-red-900/40 border border-red-700/50 rounded-lg text-red-200 text-sm">
+                {importError}
+              </div>
+            )}
+          </div>
+
+          <p className="text-xs text-purple-300/60 mt-4">
+            Import overwrites your current data on this device and in Supabase. Consider exporting first as a safety backup.
+          </p>
         </motion.div>
 
         {/* Patch Notes Section */}
