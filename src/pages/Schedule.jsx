@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   ChevronLeft, ChevronRight, Sun, CloudSun, Moon, 
@@ -24,6 +24,8 @@ export default function AISchedule() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [schedules, setSchedules] = useState([]);
   const [currentSchedule, setCurrentSchedule] = useState(null);
+  const isHydratingSchedulesRef = useRef(false);
+  const scheduleSyncTimeoutRef = useRef(null);
 
   const handleToggleComplete = (blockId) => {
     setSchedules(prevSchedules => {
@@ -141,7 +143,9 @@ export default function AISchedule() {
                 
                 if (!existsInSupabase) {
                   // This schedule exists in localStorage but not in Supabase - sync it
-                  console.log('Syncing existing schedule to Supabase:', localSchedule.name);
+                  if (import.meta.env.DEV) {
+                    console.log('Syncing existing schedule to Supabase:', localSchedule.name);
+                  }
                   try {
                     const syncedSchedule = await upsertUserSchedule(localSchedule);
                     if (syncedSchedule) {
@@ -166,7 +170,9 @@ export default function AISchedule() {
             setSchedules(merged);
           } else if (localSchedules.length > 0) {
             // No Supabase schedules, but we have localStorage schedules - sync them all
-            console.log('No schedules in Supabase, syncing all localStorage schedules...');
+            if (import.meta.env.DEV) {
+              console.log('No schedules in Supabase, syncing all localStorage schedules...');
+            }
             const syncedSchedules = [];
             for (const localSchedule of localSchedules) {
               try {
@@ -190,7 +196,9 @@ export default function AISchedule() {
           console.error('Error loading schedules from Supabase:', error);
           // Continue with localStorage data, but try to sync them
           if (localSchedules.length > 0 && user) {
-            console.log('Error loading from Supabase, attempting to sync localStorage schedules...');
+            if (import.meta.env.DEV) {
+              console.log('Error loading from Supabase, attempting to sync localStorage schedules...');
+            }
             for (const localSchedule of localSchedules) {
               try {
                 await upsertUserSchedule(localSchedule);
@@ -208,27 +216,48 @@ export default function AISchedule() {
     }
     };
 
-    loadSchedules();
+    isHydratingSchedulesRef.current = true;
+    loadSchedules().finally(() => {
+      isHydratingSchedulesRef.current = false;
+    });
   }, [user]);
 
   // Sync schedules to both localStorage and Supabase
   useEffect(() => {
     if (schedules.length === 0) return;
+    if (isHydratingSchedulesRef.current) return;
 
-    // Always save to localStorage
-    localStorage.setItem("aiSchedules", JSON.stringify(schedules));
-
-    // Sync to Supabase if user is logged in
-    if (user) {
-      schedules.forEach(async (schedule) => {
-        try {
-          await upsertUserSchedule(schedule);
-        } catch (error) {
-          console.error('Error syncing schedule to Supabase:', error);
-        }
-      });
+    // Debounce to avoid firing supabase writes on every tiny block edit
+    if (scheduleSyncTimeoutRef.current) {
+      clearTimeout(scheduleSyncTimeoutRef.current);
     }
-  }, [schedules, user]);
+
+    scheduleSyncTimeoutRef.current = setTimeout(async () => {
+      // Always save to localStorage (debounced)
+      localStorage.setItem("aiSchedules", JSON.stringify(schedules));
+
+      if (!user) return;
+
+      // Only sync the currently selected schedule to reduce load
+      const scheduleToSync = currentSchedule
+        ? schedules.find((s) => s.id === currentSchedule.id)
+        : null;
+
+      if (scheduleToSync) {
+        try {
+          await upsertUserSchedule(scheduleToSync);
+        } catch (error) {
+          console.error('Error syncing selected schedule to Supabase:', error);
+        }
+      }
+    }, 600);
+
+    return () => {
+      if (scheduleSyncTimeoutRef.current) {
+        clearTimeout(scheduleSyncTimeoutRef.current);
+      }
+    };
+  }, [schedules, user, currentSchedule]);
 
   useEffect(() => {
     if (currentSchedule) {

@@ -171,12 +171,12 @@ const Navbar = () => {
   return (
     <>
       {/* Mouse trail effect - hidden on dashboard */}
-      {location.pathname !== "/dashboard" && (
+      {location.pathname !== "/dashboard" && location.pathname !== "/schedule" && (
         <MouseTrail mousePosition={mousePosition} isInNavbar={isInNavbar} />
       )}
 
       {/* Animated gradient line at top - hidden on dashboard */}
-      {location.pathname !== "/dashboard" && (
+      {location.pathname !== "/dashboard" && location.pathname !== "/schedule" && (
         <div className="fixed top-0 left-0 right-0 h-[3px] z-[60] overflow-hidden">
           <motion.div
             className="h-full w-[200%] bg-gradient-to-r from-amber-400 via-purple-500 via-pink-500 via-amber-400 to-purple-500"
@@ -206,7 +206,7 @@ const Navbar = () => {
         }`}
       >
         {/* Animated glow that follows mouse - hidden on dashboard */}
-        {location.pathname !== "/dashboard" && (
+        {location.pathname !== "/dashboard" && location.pathname !== "/schedule" && (
           <div 
             className="absolute inset-0 pointer-events-none transition-opacity duration-300"
             style={{
@@ -219,7 +219,7 @@ const Navbar = () => {
         )}
 
         {/* Subtle animated particles background - hidden on dashboard */}
-        {location.pathname !== "/dashboard" && (
+        {location.pathname !== "/dashboard" && location.pathname !== "/schedule" && (
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             {[...Array(8)].map((_, i) => (
               <motion.div
