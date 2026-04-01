@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { HelmetProvider } from 'react-helmet-async';
 import { AlertCircle } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { TimerProvider, useTimer } from './context/TimerContext';
+import { TimerProvider } from './context/TimerContext';
 import { GamificationProvider } from './context/GamificationContext';
 import ProtectedRoute from './routes/ProtectedRoute';
 import Navbar from './components/Navbar';
@@ -45,13 +45,14 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import RewardSystem from './components/RewardSystem';
 import PremiumGiftSystem from './components/PremiumGiftSystem';
 import MilestonePromoPopup from './components/MilestonePromoPopup';
+import FloatingStudyTimer from './components/FloatingStudyTimer';
+import CrossDeviceStudySync from './components/CrossDeviceStudySync';
 import './styles/index.css';
 
 
 const RouteCleanup = () => {
   const location = useLocation();
-  const { isRunning, stopTimer, resetTimer } = useTimer();
-  
+
   // Capture referral code from URL
   React.useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -68,12 +69,6 @@ const RouteCleanup = () => {
     }
   }, [location]);
 
-  React.useEffect(() => {
-    if (location.pathname !== '/study' && isRunning) {
-      try { stopTimer(); } catch {}
-      try { resetTimer(); } catch {}
-    }
-  }, [location.pathname, isRunning, stopTimer, resetTimer]);
   return null;
 };
 
@@ -169,6 +164,8 @@ function App() {
                         <RewardSystem />
                         <PremiumGiftSystem />
                         <RouteCleanup />
+                        <FloatingStudyTimer />
+                        <CrossDeviceStudySync />
                           <WebsiteTimeTracker />
                           <KeyboardShortcutsHandler />
                           <OnboardingWrapper>

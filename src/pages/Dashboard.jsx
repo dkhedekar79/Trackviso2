@@ -177,6 +177,16 @@ export default function Dashboard() {
     if (savedSessions) setStudySessions(JSON.parse(savedSessions));
     if (savedTasks) setTasks(JSON.parse(savedTasks));
   }, []);
+
+  useEffect(() => {
+    const reloadSessions = () => {
+      const raw = localStorage.getItem("studySessions");
+      if (raw) setStudySessions(JSON.parse(raw));
+    };
+    window.addEventListener("trackviso-study-sessions-updated", reloadSessions);
+    return () =>
+      window.removeEventListener("trackviso-study-sessions-updated", reloadSessions);
+  }, []);
   // Calculate study statistics, streak, and completed tasks
   useEffect(() => {
     const now = new Date();

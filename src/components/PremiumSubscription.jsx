@@ -1,9 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle, Crown, Zap, TrendingUp, Award } from 'lucide-react';
+import { CheckCircle, Crown, Zap, TrendingUp, Award, RefreshCw } from 'lucide-react';
 
 const PremiumSubscription = () => {
   const benefits = [
+    { icon: <RefreshCw className="w-6 h-6 text-cyan-400" />, text: "Cross-device sync for study sessions, subjects, and tasks" },
     { icon: <CheckCircle className="w-6 h-6 text-emerald-400" />, text: "Unlock all Flashcards, Quick Quizzes, and Mock Exams" },
     { icon: <Zap className="w-6 h-6 text-purple-400" />, text: "Ad-free learning experience" },
     { icon: <TrendingUp className="w-6 h-6 text-blue-400" />, text: "Advanced progress tracking and insights" },

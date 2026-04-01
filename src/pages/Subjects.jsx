@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus,
@@ -23,7 +23,7 @@ import { useTimer } from '../context/TimerContext';
 import { useGamification } from '../context/GamificationContext';
 import { useAuth } from '../context/AuthContext';
 import AdSense from '../components/AdSense';
-// Supabase syncing removed - using localStorage only
+// Subjects persist in localStorage; Professor plan syncs to Supabase via CrossDeviceStudySync
 
 // Map icon names to actual Lucide React components
 const ICON_COMPONENTS = {
@@ -78,69 +78,32 @@ const Subjects = () => {
   const { userStats } = useGamification();
   const { user } = useAuth();
 
-  // Load subjects from localStorage only (no Supabase)
-  useEffect(() => {
-    const loadSubjects = () => {
-      try {
-        // Try loading from primary storage first
-        let savedSubjectsStr = localStorage.getItem('subjects');
-        
-        // If primary is empty/missing, try backup
-        if (!savedSubjectsStr || savedSubjectsStr === '[]') {
-          const backupStr = localStorage.getItem('subjects_backup');
-          if (backupStr && backupStr !== '[]') {
-            console.log('Loading subjects from backup');
-            savedSubjectsStr = backupStr;
-            // Restore backup to primary
-            localStorage.setItem('subjects', backupStr);
-          }
+  const loadSubjects = useCallback(() => {
+    try {
+      let savedSubjectsStr = localStorage.getItem('subjects');
+
+      if (!savedSubjectsStr || savedSubjectsStr === '[]') {
+        const backupStr = localStorage.getItem('subjects_backup');
+        if (backupStr && backupStr !== '[]') {
+          console.log('Loading subjects from backup');
+          savedSubjectsStr = backupStr;
+          localStorage.setItem('subjects', backupStr);
         }
-        
-        if (!savedSubjectsStr || savedSubjectsStr === '[]') {
-          setSubjects([]);
-          return;
-        }
-        
-        const savedSubjects = JSON.parse(savedSubjectsStr);
-        if (!Array.isArray(savedSubjects)) {
-          console.warn('Subjects data is not an array, trying backup...');
-          // Try backup
-          const backupStr = localStorage.getItem('subjects_backup');
-          if (backupStr) {
-            try {
-              const backup = JSON.parse(backupStr);
-              if (Array.isArray(backup) && backup.length > 0) {
-                const subjectsWithIcons = backup.map(subject => ({
-                  ...subject,
-                  icon: ICON_COMPONENTS[subject.iconName] || BookOpen,
-                }));
-                setSubjects(subjectsWithIcons);
-                // Restore backup
-                localStorage.setItem('subjects', backupStr);
-                return;
-              }
-            } catch (e) {
-              console.error('Backup also invalid:', e);
-            }
-          }
-          setSubjects([]);
-          return;
-        }
-        
-        const subjectsWithIcons = savedSubjects.map(subject => ({
-          ...subject,
-          icon: ICON_COMPONENTS[subject.iconName] || BookOpen,
-        }));
-        setSubjects(subjectsWithIcons);
-      } catch (error) {
-        console.error('Error loading subjects:', error);
-        // Try backup on error
-        try {
-          const backupStr = localStorage.getItem('subjects_backup');
-          if (backupStr) {
+      }
+
+      if (!savedSubjectsStr || savedSubjectsStr === '[]') {
+        setSubjects([]);
+        return;
+      }
+
+      const savedSubjects = JSON.parse(savedSubjectsStr);
+      if (!Array.isArray(savedSubjects)) {
+        console.warn('Subjects data is not an array, trying backup...');
+        const backupStr = localStorage.getItem('subjects_backup');
+        if (backupStr) {
+          try {
             const backup = JSON.parse(backupStr);
             if (Array.isArray(backup) && backup.length > 0) {
-              console.log('Loaded subjects from backup after error');
               const subjectsWithIcons = backup.map(subject => ({
                 ...subject,
                 icon: ICON_COMPONENTS[subject.iconName] || BookOpen,
@@ -149,29 +112,62 @@ const Subjects = () => {
               localStorage.setItem('subjects', backupStr);
               return;
             }
+          } catch (e) {
+            console.error('Backup also invalid:', e);
           }
-        } catch (e) {
-          console.error('Backup also failed:', e);
         }
         setSubjects([]);
+        return;
       }
-    };
 
+      const subjectsWithIcons = savedSubjects.map(subject => ({
+        ...subject,
+        icon: ICON_COMPONENTS[subject.iconName] || BookOpen,
+      }));
+      setSubjects(subjectsWithIcons);
+    } catch (error) {
+      console.error('Error loading subjects:', error);
+      try {
+        const backupStr = localStorage.getItem('subjects_backup');
+        if (backupStr) {
+          const backup = JSON.parse(backupStr);
+          if (Array.isArray(backup) && backup.length > 0) {
+            console.log('Loaded subjects from backup after error');
+            const subjectsWithIcons = backup.map(subject => ({
+              ...subject,
+              icon: ICON_COMPONENTS[subject.iconName] || BookOpen,
+            }));
+            setSubjects(subjectsWithIcons);
+            localStorage.setItem('subjects', backupStr);
+            return;
+          }
+        }
+      } catch (e) {
+        console.error('Backup also failed:', e);
+      }
+      setSubjects([]);
+    }
+  }, []);
+
+  useEffect(() => {
     loadSubjects();
-    
-    // Listen for storage events (in case subjects are updated in another tab)
+
     const handleStorageChange = (e) => {
       if (e.key === 'subjects' || e.key === 'subjects_backup') {
         loadSubjects();
       }
     };
-    
+
+    const onStudyStorageSync = () => loadSubjects();
+
     window.addEventListener('storage', handleStorageChange);
-    
+    window.addEventListener('trackviso-local-study-storage-updated', onStudyStorageSync);
+
     return () => {
       window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('trackviso-local-study-storage-updated', onStudyStorageSync);
     };
-  }, []); // Only run on mount
+  }, [loadSubjects]);
 
   // Save subjects to localStorage whenever they change (reactive save)
   useEffect(() => {

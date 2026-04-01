@@ -775,7 +775,7 @@ export default function AISchedule() {
                   <Sparkles className="w-5 h-5" />
                   {canRegenerateSchedule() || subscriptionPlan === 'professor' 
                     ? 'Edit & Regenerate' 
-                    : 'Edit & Regenerate (Premium)'}
+                    : 'Edit & Regenerate (Premium — includes cross-device study sync)'}
                 </motion.button>
                 <motion.button
                   onClick={() => {
@@ -796,7 +796,7 @@ export default function AISchedule() {
                   <RotateCcw className="w-5 h-5" />
                   {canRegenerateSchedule() || subscriptionPlan === 'professor'
                     ? 'Reset & Regenerate'
-                    : 'Reset & Regenerate (Premium)'}
+                    : 'Reset & Regenerate (Premium — includes cross-device study sync)'}
                 </motion.button>
               </div>
             )}

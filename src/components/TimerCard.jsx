@@ -21,7 +21,8 @@ const TimerCard = ({ variant = 'full', className = '' }) => {
     setTimerMode,
     setTimerSubject,
     setCustomMinutes,
-    getActualElapsedTime
+    getActualElapsedTime,
+    getPomodoroWorkSeconds
   } = useTimer();
 
   const {
@@ -69,8 +70,13 @@ const TimerCard = ({ variant = 'full', className = '' }) => {
       return;
     }
 
-    const duration = mode === 'stopwatch' ? stopwatchSeconds : getActualElapsedTime();
-    const durationMinutes = Math.max(1, Math.round(duration / 60)); // Minimum 1 minute
+    const durationSeconds =
+      mode === 'pomodoro'
+        ? getPomodoroWorkSeconds()
+        : mode === 'stopwatch'
+          ? stopwatchSeconds
+          : getActualElapsedTime();
+    const durationMinutes = Math.max(1, Math.round(durationSeconds / 60)); // Minimum 1 minute
 
     // Add study session to gamification system
     const sessionData = {

@@ -231,7 +231,7 @@ const StreakProtectionModal = ({ isOpen, onClose, onUseSaver, saversLeft, streak
         
         {saversLeft <= 0 && (
           <p className="text-sm text-gray-500 mt-3">
-            Get more streak savers with premium!
+            Get more streak savers and cross-device study sync with Professor!
           </p>
         )}
       </motion.div>

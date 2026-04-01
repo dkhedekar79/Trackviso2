@@ -86,6 +86,16 @@ export default function Insights() {
     if (savedTasks) setTasks(JSON.parse(savedTasks));
   }, []);
 
+  useEffect(() => {
+    const reloadSessions = () => {
+      const raw = localStorage.getItem("studySessions");
+      if (raw) setStudySessions(JSON.parse(raw));
+    };
+    window.addEventListener("trackviso-study-sessions-updated", reloadSessions);
+    return () =>
+      window.removeEventListener("trackviso-study-sessions-updated", reloadSessions);
+  }, []);
+
   // Calculate insights based on time range
   const getFilteredSessions = () => {
     const now = new Date();
@@ -387,13 +397,9 @@ export default function Insights() {
   // Study Consistency Score
   const getStudyConsistencyScore = () => {
     if (filteredSessions.length === 0) return 0;
-    
-    const studyDates = [...new Set(
-      filteredSessions.map(session => 
-        new Date(session.timestamp).toDateString()
-      )
-    )];
-    
+
+    const now = new Date();
+    let sessionsForConsistency = filteredSessions;
     let totalDays;
     switch (timeRange) {
       case 'week':
@@ -403,13 +409,29 @@ export default function Insights() {
         totalDays = 30;
         break;
       case 'all':
-        totalDays = Math.max(studyDates.length, 1);
+        // Match "out of 365 days" in UI: share of days studied in the last 365 calendar days
+        totalDays = 365;
+        const windowStart = new Date(now);
+        windowStart.setHours(0, 0, 0, 0);
+        windowStart.setDate(windowStart.getDate() - 364);
+        sessionsForConsistency = filteredSessions.filter(
+          (s) => new Date(s.timestamp) >= windowStart
+        );
+        if (sessionsForConsistency.length === 0) return 0;
         break;
       default:
         totalDays = 7;
     }
-    
-    return (studyDates.length / totalDays) * 100;
+
+    const studyDates = [
+      ...new Set(
+        sessionsForConsistency.map((session) =>
+          new Date(session.timestamp).toDateString(),
+        ),
+      ),
+    ];
+
+    return Math.min(100, (studyDates.length / totalDays) * 100);
   };
 
   const consistencyScore = getStudyConsistencyScore();
@@ -2429,6 +2451,9 @@ export default function Insights() {
                     <div className="text-center">
                       <Lock className="w-12 h-12 text-yellow-400 mx-auto mb-3" />
                       <div className="text-white font-semibold mb-2">Premium Feature</div>
+                      <div className="text-purple-200/65 text-[11px] mb-2 max-w-xs mx-auto leading-snug">
+                        Professor Plan includes cross-device syncing for your study data.
+                      </div>
                       <div className="text-purple-200/80 text-sm">Unlock to discover your optimal study times</div>
                     </div>
                   </div>
@@ -2511,6 +2536,9 @@ export default function Insights() {
                     <div className="text-center">
                       <Lock className="w-12 h-12 text-yellow-400 mx-auto mb-3" />
                       <div className="text-white font-semibold mb-2">Premium Feature</div>
+                      <div className="text-purple-200/65 text-[11px] mb-2 max-w-xs mx-auto leading-snug">
+                        Professor Plan includes cross-device syncing for your study data.
+                      </div>
                       <div className="text-purple-200/80 text-sm">Unlock to predict your exam performance</div>
                     </div>
                   </div>
@@ -2594,6 +2622,9 @@ export default function Insights() {
                     <div className="text-center">
                       <Lock className="w-12 h-12 text-yellow-400 mx-auto mb-3" />
                       <div className="text-white font-semibold mb-2">Premium Feature</div>
+                      <div className="text-purple-200/65 text-[11px] mb-2 max-w-xs mx-auto leading-snug">
+                        Professor Plan includes cross-device syncing for your study data.
+                      </div>
                       <div className="text-purple-200/80 text-sm">Unlock to analyze memory retention</div>
                     </div>
                   </div>
@@ -2670,6 +2701,9 @@ export default function Insights() {
                     <div className="text-center">
                       <Lock className="w-12 h-12 text-yellow-400 mx-auto mb-3" />
                       <div className="text-white font-semibold mb-2">Premium Feature</div>
+                      <div className="text-purple-200/65 text-[11px] mb-2 max-w-xs mx-auto leading-snug">
+                        Professor Plan includes cross-device syncing for your study data.
+                      </div>
                       <div className="text-purple-200/80 text-sm">Unlock intelligent pattern analysis</div>
                     </div>
                   </div>
@@ -2754,6 +2788,9 @@ export default function Insights() {
                     <div className="text-center">
                       <Lock className="w-12 h-12 text-yellow-400 mx-auto mb-3" />
                       <div className="text-white font-semibold mb-2">Premium Feature</div>
+                      <div className="text-purple-200/65 text-[11px] mb-2 max-w-xs mx-auto leading-snug">
+                        Professor Plan includes cross-device syncing for your study data.
+                      </div>
                       <div className="text-purple-200/80 text-sm">Unlock advanced focus analysis</div>
                     </div>
                   </div>

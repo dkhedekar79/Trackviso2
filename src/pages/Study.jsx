@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import SEO from "../components/SEO";
@@ -76,6 +76,8 @@ const Study = () => {
   const [studySessions, setStudySessions] = useState([]);
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
+  const [autoTrackOnTimerComplete, setAutoTrackOnTimerComplete] = useState(false);
+  const [autoTrackPomodoroCycles, setAutoTrackPomodoroCycles] = useState(4);
   // Local input state for custom minutes
   const [customMinutesInput, setCustomMinutesInput] = useState("25");
   // Local high-accuracy timer state
@@ -85,6 +87,17 @@ const Study = () => {
   const pausedAccumulatedRef = useRef(0);
   const pomodoroPhaseRef = useRef("work");
   const totalPomodoroTimeRef = useRef(0); // Track total WORK time across all Pomodoro phases (breaks don't count)
+  const handleSaveSessionRef = useRef(null);
+  const autoSaveLockRef = useRef(false);
+  const autoTrackPrefsRef = useRef({
+    autoTrackOnTimerComplete: false,
+    autoTrackPomodoroCycles: 4,
+    mode: "pomodoro",
+  });
+  const pauseStopRef = useRef({
+    pauseLocalTimer: () => {},
+    stopTimer: () => {},
+  });
 
   // Timer context (kept for global sync but display uses local timer)
   const {
@@ -105,7 +118,9 @@ const Study = () => {
     setCustomMinutes,
     customMinutes,
     getActualElapsedTime,
+    getPomodoroWorkSeconds,
     setOnCycleComplete,
+    setOnCustomTimerComplete,
     clearPhaseNotification,
     skipBreak,
     playNotificationSound,
@@ -182,13 +197,13 @@ const Study = () => {
     if (customMinutes) setCustomMinutesInput(String(customMinutes));
   }, [customMinutes]);
 
-  // Cleanup timers on unmount to avoid leaks and lag when navigating away
+  // Clear local interval on unmount only; global timer keeps running if user navigates away
   useEffect(() => {
     return () => {
-      try { if (intervalRef.current) clearInterval(intervalRef.current); } catch {}
-      try { pauseLocalTimer?.(); } catch {}
-      try { resetLocalTimer?.(); } catch {}
-      try { stopTimer?.(); } catch {}
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
     };
   }, []);
 
@@ -330,7 +345,57 @@ const Study = () => {
     phaseCompletedRef.current = false;
     totalPomodoroTimeRef.current = 0; // Reset total Pomodoro time
   };
-  
+
+  pauseStopRef.current = { pauseLocalTimer, stopTimer };
+
+  // Keep local tick interval in sync with global timer when running (start, resume, return to Study)
+  useEffect(() => {
+    if (!isRunning) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      return undefined;
+    }
+
+    let elapsed = 0;
+    if (mode === "stopwatch") {
+      elapsed = getActualElapsedTime();
+    } else if (mode === "pomodoro") {
+      setLocalPomodoroPhase(isPomodoroBreak ? "break" : "work");
+      setLocalPomodoroCount(pomodoroCount);
+      const phaseDur = isPomodoroBreak ? 5 * 60 : 25 * 60;
+      elapsed = Math.max(0, phaseDur - secondsLeft);
+      pomodoroPhaseRef.current = isPomodoroBreak ? "break" : "work";
+      totalPomodoroTimeRef.current =
+        totalCyclesCompleted * 25 * 60 + (isPomodoroBreak ? 25 * 60 : 0);
+    } else {
+      const phaseDur = (customMinutes || 25) * 60;
+      elapsed = Math.max(0, phaseDur - secondsLeft);
+    }
+
+    phaseCompletedRef.current = false;
+    setElapsedSeconds(elapsed);
+    pausedAccumulatedRef.current = elapsed;
+    const now = Date.now();
+    startMsRef.current = now - elapsed * 1000;
+
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      const diff = Date.now() - startMsRef.current;
+      setElapsedSeconds(Math.floor(diff / 1000));
+    }, 100);
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+    // Intentionally depend only on isRunning: on toggle we realign from context; avoids resetting every tick
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRunning]);
+
   // Auto-transition between Pomodoro work/break phases
   useEffect(() => {
     if (mode !== "pomodoro" || !isRunning) return;
@@ -455,16 +520,93 @@ const Study = () => {
     }
   }, [location.state, setTimerMode, setCustomMinutes, setTimerSubject]);
 
-  // Load data from localStorage
-  useEffect(() => {
-    const savedSubjects = localStorage.getItem("subjects");
-    const savedSessions = localStorage.getItem("studySessions");
-    const savedTasks = localStorage.getItem("tasks");
-
-    if (savedSubjects) setSubjects(JSON.parse(savedSubjects));
-    if (savedSessions) setStudySessions(JSON.parse(savedSessions));
-    if (savedTasks) setTasks(JSON.parse(savedTasks));
+  const reloadLocalStudyData = useCallback(() => {
+    try {
+      const savedSubjects = localStorage.getItem("subjects");
+      const savedSessions = localStorage.getItem("studySessions");
+      const savedTasks = localStorage.getItem("tasks");
+      if (savedSubjects) setSubjects(JSON.parse(savedSubjects));
+      if (savedSessions) setStudySessions(JSON.parse(savedSessions));
+      if (savedTasks) setTasks(JSON.parse(savedTasks));
+    } catch (e) {
+      console.error("reloadLocalStudyData", e);
+    }
   }, []);
+
+  useEffect(() => {
+    reloadLocalStudyData();
+  }, [reloadLocalStudyData]);
+
+  useEffect(() => {
+    const onSessions = () => {
+      try {
+        const raw = localStorage.getItem("studySessions");
+        if (raw) setStudySessions(JSON.parse(raw));
+      } catch (_) {}
+    };
+    window.addEventListener("trackviso-study-sessions-updated", onSessions);
+    window.addEventListener("trackviso-local-study-storage-updated", reloadLocalStudyData);
+    return () => {
+      window.removeEventListener("trackviso-study-sessions-updated", onSessions);
+      window.removeEventListener("trackviso-local-study-storage-updated", reloadLocalStudyData);
+    };
+  }, [reloadLocalStudyData]);
+
+  useEffect(() => {
+    setOnCustomTimerComplete(() => {
+      const { autoTrackOnTimerComplete, mode } = autoTrackPrefsRef.current;
+      if (
+        !autoTrackOnTimerComplete ||
+        mode !== "custom" ||
+        !handleSaveSessionRef.current
+      ) {
+        return;
+      }
+      if (autoSaveLockRef.current) return;
+      autoSaveLockRef.current = true;
+      setTimeout(() => {
+        try {
+          pauseStopRef.current.pauseLocalTimer();
+          handleSaveSessionRef.current?.();
+        } finally {
+          autoSaveLockRef.current = false;
+        }
+      }, 0);
+    });
+    return () => setOnCustomTimerComplete(null);
+  }, [setOnCustomTimerComplete]);
+
+  useEffect(() => {
+    setOnCycleComplete((completedCount) => {
+      const { autoTrackOnTimerComplete, autoTrackPomodoroCycles, mode } =
+        autoTrackPrefsRef.current;
+      if (
+        !subject ||
+        !autoTrackOnTimerComplete ||
+        mode !== "pomodoro" ||
+        !handleSaveSessionRef.current
+      ) {
+        return;
+      }
+      const target = Math.max(
+        1,
+        Math.min(50, Number(autoTrackPomodoroCycles) || 4),
+      );
+      if (completedCount < target) return;
+      if (autoSaveLockRef.current) return;
+      autoSaveLockRef.current = true;
+      setTimeout(() => {
+        try {
+          pauseStopRef.current.pauseLocalTimer();
+          pauseStopRef.current.stopTimer();
+          handleSaveSessionRef.current?.();
+        } finally {
+          autoSaveLockRef.current = false;
+        }
+      }, 0);
+    });
+    return () => setOnCycleComplete(null);
+  }, [setOnCycleComplete, subject]);
 
   // Set subject when component mounts
   useEffect(() => {
@@ -643,6 +785,59 @@ const Study = () => {
   const streak = getStreak();
   const weeklyProgress = getWeeklyProgress();
 
+  autoTrackPrefsRef.current = {
+    autoTrackOnTimerComplete,
+    autoTrackPomodoroCycles,
+    mode,
+  };
+
+  const autoTrackPanel =
+    subject && (mode === "custom" || mode === "pomodoro") ? (
+      <div className="w-full max-w-md mx-auto mb-6 p-4 rounded-xl border border-purple-500/25 bg-purple-950/20 backdrop-blur-sm text-left">
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            className="mt-1 rounded border-purple-500/50 bg-purple-900/40 text-purple-500 focus:ring-purple-500"
+            checked={autoTrackOnTimerComplete}
+            onChange={(e) => setAutoTrackOnTimerComplete(e.target.checked)}
+            disabled={isRunning}
+          />
+          <div>
+            <span className="text-white font-medium block">
+              Auto-save session when goal is reached
+            </span>
+            <span className="text-purple-300/70 text-xs mt-1 block">
+              {mode === "custom"
+                ? "Saves and resets when your custom countdown hits zero."
+                : "Stops the timer and logs a session after completed Pomodoro cycles (work + break)."}
+            </span>
+          </div>
+        </label>
+        {mode === "pomodoro" && autoTrackOnTimerComplete && (
+          <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-purple-200">
+            <span>After</span>
+            <input
+              type="number"
+              min={1}
+              max={50}
+              value={autoTrackPomodoroCycles}
+              onChange={(e) =>
+                setAutoTrackPomodoroCycles(
+                  Math.max(
+                    1,
+                    Math.min(50, parseInt(e.target.value, 10) || 1),
+                  ),
+                )
+              }
+              disabled={isRunning}
+              className="w-16 px-2 py-1 rounded-lg bg-purple-900/50 border border-purple-600/40 text-white text-center focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+            <span>full cycles (each = 25 min work + 5 min break)</span>
+          </div>
+        )}
+      </div>
+    ) : null;
+
   const handleCancelStudy = () => {
     try { pauseLocalTimer?.(); } catch {}
     try { stopTimer?.(); } catch {}
@@ -678,6 +873,7 @@ const Study = () => {
 
   // If no subject is selected, show subject selection page
   if (!subject) {
+    handleSaveSessionRef.current = null;
     return (
       <>
         <SEO 
@@ -777,18 +973,9 @@ const Study = () => {
   };
 
   const handleSaveSession = () => {
-    // For Pomodoro mode, calculate total time including all completed work phases and current phase
-    let totalSessionSeconds = elapsedSeconds;
-    if (mode === "pomodoro") {
-      // Add total accumulated WORK time from completed phases
-      totalSessionSeconds = totalPomodoroTimeRef.current;
-      
-      // Add current phase time only if it's a work phase (breaks don't count as study time)
-      if (localPomodoroPhase === "work") {
-        totalSessionSeconds += elapsedSeconds;
-      }
-      // If ending during break, don't add the break time to study time
-    }
+    // Pomodoro: cumulative work time only (all cycles), from timer context — not break time
+    let totalSessionSeconds =
+      mode === "pomodoro" ? getPomodoroWorkSeconds() : elapsedSeconds;
     
     // Ensure we have a valid duration - use minimum 1 minute if session was very short
     const sessionDurationMinutes = Math.max(
@@ -863,6 +1050,8 @@ const Study = () => {
     // The subject remains in the URL so user can continue studying
   };
 
+  handleSaveSessionRef.current = handleSaveSession;
+
   const deleteStudySession = (index) => {
     const updatedSessions = studySessions.filter((_, i) => i !== index);
     localStorage.setItem("studySessions", JSON.stringify(updatedSessions));
@@ -884,10 +1073,17 @@ const Study = () => {
     const sessionId = `session-${Date.now()}`;
 
     // Save the session
+    const practiceSeconds =
+      mode === "pomodoro"
+        ? getPomodoroWorkSeconds()
+        : mode === "stopwatch"
+          ? getActualElapsedTime()
+          : elapsedSeconds;
+
     const sessionData = {
       id: sessionId,
       subjectName: currentSubject,
-      durationMinutes: Math.max(1, Math.round((totalPomodoroTimeRef.current / 60) * 100) / 100),
+      durationMinutes: Math.max(1, Math.round((practiceSeconds / 60) * 100) / 100),
       timestamp: new Date().toISOString(),
       notes: sessionNotes,
       task: currentTask,
@@ -1750,7 +1946,7 @@ const Study = () => {
                     <div className="mt-6 text-center py-6 bg-gradient-to-br from-purple-900/30 to-slate-900/30 rounded-lg border-2 border-purple-500/30">
                       <h4 className="text-lg font-bold text-white mb-2">Unlock More Wallpapers</h4>
                       <p className="text-purple-300/80 mb-4 text-sm max-w-md mx-auto">
-                        Upgrade to Professor Plan to access all animated wallpapers.
+                        Upgrade to Professor Plan for cross-device study sync, animated wallpapers, and more.
                       </p>
                       <button
                         onClick={() => {
@@ -1904,6 +2100,8 @@ const Study = () => {
                       </div>
                     </div>
                   )}
+
+                  {autoTrackPanel}
 
                   {/* Large Timer Display */}
                   <div className="relative mb-12 w-[320px] h-[320px]">
@@ -2208,6 +2406,8 @@ const Study = () => {
                         </div>
                       </div>
                     )}
+
+                    {autoTrackPanel}
 
                     {/* Timer Display */}
                     <div className="relative mb-8 w-[160px] h-[160px]">

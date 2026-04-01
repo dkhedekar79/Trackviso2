@@ -118,7 +118,7 @@ const PremiumGiftSystem = () => {
     {
       id: 'referral',
       title: 'Referral Program',
-      description: 'Invite 3 friends who reach level 10 and get permanent premium access.',
+      description: 'Invite 3 friends who reach level 10 and get permanent premium access (includes cross-device study sync).',
       icon: <Users className="w-6 h-6" />,
       gradient: 'from-blue-500/20 to-cyan-500/20',
       iconColor: 'text-blue-500',

@@ -226,7 +226,7 @@ const Unsupported = () => {
                   More Features
                 </h3>
                 <p className="text-purple-200/80 text-sm">
-                  Access all gamification features, advanced insights, and study modes designed for desktop productivity.
+                  Access all gamification features, advanced insights, cross-device study sync with Professor, and study modes designed for desktop productivity.
                 </p>
               </motion.div>
             </div>

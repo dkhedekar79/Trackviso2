@@ -1097,6 +1097,10 @@ const Landing = () => {
                   <span>Enhanced Analytics</span>
                 </li>
                 <li className="flex items-center space-x-3">
+                  <Sparkles className="w-5 h-5 text-yellow-300" />
+                  <span>Cross-device sync for sessions, subjects & tasks</span>
+                </li>
+                <li className="flex items-center space-x-3">
                   <Zap className="w-5 h-5 text-yellow-300" />
                   <span>8K Animated Wallpapers</span>
                 </li>

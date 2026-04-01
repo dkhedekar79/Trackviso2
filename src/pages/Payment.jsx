@@ -80,7 +80,7 @@ const Payment = () => {
             Upgrade to Professor Plan
           </h1>
           <p className="text-white/70 text-xl">
-            Unlock unlimited Mock Exams and Blurt Tests
+            Unlock unlimited Mock Exams, Blurt Tests, and cross-device study sync
           </p>
         </motion.div>
 
@@ -108,7 +108,7 @@ const Payment = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Lock className="w-5 h-5 text-gray-400" />
-                <span className="text-white/50">Limited features</span>
+                <span className="text-white/50">No cross-device study sync</span>
               </div>
             </div>
             <div className="text-3xl font-bold text-white">£0<span className="text-lg text-white/60">/month</span></div>
@@ -130,6 +130,10 @@ const Payment = () => {
               Professor Plan
             </h3>
             <div className="space-y-3 mb-6">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-yellow-400" />
+                <span className="text-white font-semibold">Cross-device sync for sessions, subjects & tasks</span>
+              </div>
               <div className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-yellow-400" />
                 <span className="text-white font-semibold">Unlimited Mock Exams</span>

@@ -416,6 +416,7 @@ const Skillpulse = () => {
                     <ul className="space-y-1 text-purple-700">
                       <li>• Earn gems from studying, quests, or jackpots.</li>
                       <li>• Spend gems on streak savers, boosts, or cosmetic upgrades.</li>
+                      <li>• Premium (Professor) includes cross-device syncing for sessions, subjects, and tasks.</li>
                       <li>• Premium users get extra perks + higher rewards.</li>
                     </ul>
                   </div>

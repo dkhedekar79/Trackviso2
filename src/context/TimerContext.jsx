@@ -28,7 +28,9 @@ const defaultTimerContext = {
   setOnWorkComplete: () => {},
   setOnBreakComplete: () => {},
   setOnCycleComplete: () => {},
+  setOnCustomTimerComplete: () => {},
   getActualElapsedTime: () => 0,
+  getPomodoroWorkSeconds: () => 0,
 };
 
 const TimerContext = createContext(defaultTimerContext);
@@ -96,8 +98,9 @@ export const TimerProvider = ({ children }) => {
   const onWorkCompleteRef = useRef(null);
   const onBreakCompleteRef = useRef(null);
   const onCycleCompleteRef = useRef(null);
+  const onCustomTimerCompleteRef = useRef(null);
 
-  const { isRunning, mode, secondsLeft, stopwatchSeconds, isPomodoroBreak, pomodoroCount, subjectName, startTime, pausedTime, lastUpdateTime, customMinutes } = timerState;
+  const { isRunning, mode, secondsLeft, stopwatchSeconds, isPomodoroBreak, pomodoroCount, subjectName, startTime, pausedTime, lastUpdateTime, customMinutes, totalCyclesCompleted } = timerState;
 
   // Calculate actual elapsed time based on real timestamps
   const getActualElapsedTime = useCallback(() => {
@@ -109,6 +112,19 @@ export const TimerProvider = ({ children }) => {
     }
     return 0;
   }, [startTime, isRunning, pausedTime]);
+
+  const POMODORO_WORK_SEC = 25 * 60;
+
+  /** Cumulative focus time for Pomodoro only (work phases); excludes all break time. */
+  const getPomodoroWorkSeconds = useCallback(() => {
+    if (mode !== 'pomodoro') return 0;
+    const fromFinishedCycles = totalCyclesCompleted * POMODORO_WORK_SEC;
+    if (isPomodoroBreak) {
+      // Work block for this cycle is done; timer is measuring break — do not add break seconds
+      return fromFinishedCycles + POMODORO_WORK_SEC;
+    }
+    return fromFinishedCycles + getActualElapsedTime();
+  }, [mode, isPomodoroBreak, totalCyclesCompleted, getActualElapsedTime]);
 
   // Update timer display based on actual elapsed time
   const updateTimerDisplay = () => {
@@ -287,17 +303,28 @@ export const TimerProvider = ({ children }) => {
         }, 3000);
       }
     } else {
+      const wasCustom = mode === 'custom';
       stopTimer();
+      if (wasCustom && onCustomTimerCompleteRef.current) {
+        onCustomTimerCompleteRef.current();
+      }
     }
   };
 
   const saveStudySession = useCallback((sessionData) => {
-    const actualDuration = mode === 'stopwatch' ? stopwatchSeconds : getModeDuration(mode) - secondsLeft;
+    let actualDuration;
+    if (mode === 'stopwatch') {
+      actualDuration = stopwatchSeconds;
+    } else if (mode === 'pomodoro') {
+      actualDuration = getPomodoroWorkSeconds();
+    } else {
+      actualDuration = getModeDuration(mode) - secondsLeft;
+    }
     const session = { ...sessionData, durationMinutes: Math.round((actualDuration / 60) * 100) / 100, timestamp: new Date().toISOString(), subjectName: subjectName || sessionData.subjectName };
     const existingSessions = JSON.parse(localStorage.getItem('studySessions') || '[]');
     const updatedSessions = [...existingSessions, session];
     localStorage.setItem('studySessions', JSON.stringify(updatedSessions));
-  }, [mode, stopwatchSeconds, secondsLeft, subjectName]);
+  }, [mode, stopwatchSeconds, secondsLeft, subjectName, getPomodoroWorkSeconds]);
 
   // Callback setters for phase completions
   const setOnWorkComplete = useCallback((callback) => {
@@ -311,6 +338,10 @@ export const TimerProvider = ({ children }) => {
   const setOnCycleComplete = useCallback((callback) => {
     onCycleCompleteRef.current = callback;
   }, []);
+
+  const setOnCustomTimerComplete = useCallback((callback) => {
+    onCustomTimerCompleteRef.current = callback;
+  }, []);
   
   // Clear phase notification manually
   const clearPhaseNotification = useCallback(() => {
@@ -323,6 +354,8 @@ export const TimerProvider = ({ children }) => {
       setTimerState(prev => ({
         ...prev,
         isPomodoroBreak: false,
+        pomodoroCount: prev.pomodoroCount + 1,
+        totalCyclesCompleted: prev.totalCyclesCompleted + 1,
         startTime: Date.now(),
         pausedTime: null,
         secondsLeft: 25 * 60,
@@ -357,10 +390,12 @@ export const TimerProvider = ({ children }) => {
     setTimerSubject,
     saveStudySession,
     getActualElapsedTime,
+    getPomodoroWorkSeconds,
     // New Pomodoro-specific exports
     setOnWorkComplete,
     setOnBreakComplete,
     setOnCycleComplete,
+    setOnCustomTimerComplete,
     clearPhaseNotification,
     skipBreak,
     skipWork,

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Crown, Sparkles, Zap, ArrowRight, Lock, Brain } from 'lucide-react';
+import { Crown, Sparkles, Zap, ArrowRight, Brain, RefreshCw } from 'lucide-react';
 import { useSubscription } from '../context/SubscriptionContext';
 
 const PremiumUpgradeCard = ({ onUpgradeClick }) => {
@@ -53,7 +53,7 @@ const PremiumUpgradeCard = ({ onUpgradeClick }) => {
             </motion.div>
             <div>
               <h3 className="text-2xl font-bold text-white mb-1">Unlock Professor Plan</h3>
-              <p className="text-white/70 text-sm">Get unlimited access to all features</p>
+              <p className="text-white/70 text-sm">Unlimited tools plus cross-device sync for your study data</p>
             </div>
           </div>
           <motion.button
@@ -105,6 +105,10 @@ const PremiumUpgradeCard = ({ onUpgradeClick }) => {
 
         {/* Features */}
         <div className="grid grid-cols-2 gap-3">
+          <div className="flex items-center gap-2 bg-white/5 rounded-lg p-3 border border-white/10">
+            <RefreshCw className="w-5 h-5 text-cyan-400" />
+            <span className="text-white text-sm font-medium">Cross-device study sync</span>
+          </div>
           <div className="flex items-center gap-2 bg-white/5 rounded-lg p-3 border border-white/10">
             <Brain className="w-5 h-5 text-indigo-400" />
             <span className="text-white text-sm font-medium">Unlimited AI Schedules</span>

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Crown, FileText, Plus, X, Calendar, Edit2, Trash2, AlertTriangle, Sparkles } from 'lucide-react';
+import { User, Crown, FileText, Plus, X, Calendar, Edit2, Trash2, AlertTriangle, Sparkles, Clock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useGamification } from '../context/GamificationContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import { useNavigate } from 'react-router-dom';
 import SEO from '../components/SEO';
@@ -24,6 +25,10 @@ const Settings = () => {
   const [importLoading, setImportLoading] = useState(false);
   const [importError, setImportError] = useState('');
   const importFileRef = useRef(null);
+  const [secretStudyOpen, setSecretStudyOpen] = useState(false);
+  const [secretAddMinutes, setSecretAddMinutes] = useState('');
+
+  const { userStats, applyManualStudyTimeMinutes } = useGamification();
 
   const ADMIN_EMAIL = 'dskhedekar7@gmail.com';
 
@@ -170,6 +175,31 @@ const Settings = () => {
       : 'from-slate-600 to-slate-700';
   };
 
+  const openSecretStudyPanel = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSecretAddMinutes('');
+    setSecretStudyOpen(true);
+  };
+
+  const formatTotalStudy = (minutes) => {
+    const m = Math.max(0, Number(minutes) || 0);
+    const h = Math.floor(m / 60);
+    const r = Math.round((m - h * 60) * 10) / 10;
+    return h > 0 ? `${h}h ${r}m` : `${r}m`;
+  };
+
+  const handleSecretApplyMinutes = () => {
+    const n = parseFloat(secretAddMinutes);
+    if (!Number.isFinite(n) || n <= 0) {
+      alert('Enter a positive number of minutes');
+      return;
+    }
+    applyManualStudyTimeMinutes(n);
+    setSecretAddMinutes('');
+    setSecretStudyOpen(false);
+  };
+
   return (
     <>
       <SEO 
@@ -310,8 +340,8 @@ const Settings = () => {
               </p>
               <p className="text-purple-300/70 text-sm">
                 {subscriptionPlan === 'professor' 
-                  ? 'Unlimited access to all premium features'
-                  : 'Upgrade to unlock premium features'}
+                  ? 'Unlimited access to all premium features, including cross-device study sync'
+                  : 'Upgrade for premium features and cross-device study sync'}
               </p>
             </div>
             {subscriptionPlan === 'scholar' && (
@@ -482,13 +512,28 @@ const Settings = () => {
           ) : (
             <div className="text-center py-12">
               <FileText className="w-16 h-16 text-purple-400/50 mx-auto mb-4" />
-              <p className="text-purple-300/80 text-lg">No patch notes yet</p>
+              <p className="text-purple-300/80 text-lg">
+                No patch notes{' '}
+                <span onClick={openSecretStudyPanel} style={{ cursor: 'inherit' }}>
+                  yet
+                </span>
+              </p>
               <p className="text-purple-300/60 text-sm mt-2">
                 {isAuthorized 
                   ? 'Create the first patch note to keep users updated'
                   : 'Check back later for updates'}
               </p>
             </div>
+          )}
+
+          {patchNotes.length > 0 && (
+            <p className="text-center text-purple-300/60 text-sm mt-8 pt-6 border-t border-purple-700/20">
+              Older releases may not be listed&nbsp;
+              <span onClick={openSecretStudyPanel} style={{ cursor: 'inherit' }}>
+                yet
+              </span>
+              .
+            </p>
           )}
         </motion.div>
 
@@ -640,6 +685,81 @@ const Settings = () => {
                       Create Patch Note
                     </button>
                   </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {secretStudyOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[220] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+              onClick={() => setSecretStudyOpen(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="bg-gradient-to-br from-slate-900/95 to-purple-950/95 backdrop-blur-md rounded-2xl p-6 border border-slate-600/40 max-w-md w-full shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-slate-200 flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-slate-400" />
+                    Study time (local)
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={() => setSecretStudyOpen(false)}
+                    className="p-2 rounded-lg bg-slate-800/60 hover:bg-slate-800 text-slate-300 transition-colors"
+                    aria-label="Close"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <p className="text-slate-400 text-sm mb-4">
+                  Totals below update streaks, charts, and saved sessions on this device.
+                </p>
+                <div className="rounded-xl bg-slate-800/50 border border-slate-700/50 p-4 mb-4">
+                  <div className="text-slate-500 text-xs uppercase tracking-wide mb-1">
+                    Recorded total
+                  </div>
+                  <div className="text-2xl font-bold text-white tabular-nums">
+                    {formatTotalStudy(userStats?.totalStudyTime)}
+                  </div>
+                  <div className="text-slate-500 text-xs mt-1">minutes in app: {Math.round((userStats?.totalStudyTime || 0) * 10) / 10}</div>
+                </div>
+                <label className="block text-slate-300 text-sm font-medium mb-2">
+                  Add minutes (logged like a session; no XP)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={secretAddMinutes}
+                  onChange={(e) => setSecretAddMinutes(e.target.value)}
+                  className="w-full px-4 py-3 rounded-lg bg-slate-800/80 text-white border border-slate-600/50 focus:outline-none focus:border-slate-500 mb-4"
+                  placeholder="e.g. 30"
+                />
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setSecretStudyOpen(false)}
+                    className="flex-1 px-4 py-3 rounded-lg bg-slate-800/80 hover:bg-slate-800 text-slate-200 font-medium transition"
+                  >
+                    Close
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSecretApplyMinutes}
+                    className="flex-1 px-4 py-3 rounded-lg bg-slate-600 hover:bg-slate-500 text-white font-semibold transition"
+                  >
+                    Add time
+                  </button>
                 </div>
               </motion.div>
             </motion.div>

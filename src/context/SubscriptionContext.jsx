@@ -26,6 +26,7 @@ const defaultSubscriptionContext = {
   getRemainingBlurtTests: () => 0,
   getHoursUntilReset: () => 24,
   resetDailyUsage: async () => {},
+  hasCrossDeviceStudySync: false,
 };
 
 const SubscriptionContext = createContext(defaultSubscriptionContext);
@@ -350,7 +351,8 @@ export const SubscriptionProvider = ({ children }) => {
         getRemainingMockExams,
         getRemainingBlurtTests,
         getHoursUntilReset,
-        resetDailyUsage
+        resetDailyUsage,
+        hasCrossDeviceStudySync: subscriptionPlan === 'professor',
       }}
     >
       {children}

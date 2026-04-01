@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Crown, Sparkles, Zap, CheckCircle, Lock, ArrowRight, Star, Brain } from 'lucide-react';
+import { X, Crown, Sparkles, Zap, CheckCircle, Lock, ArrowRight, Star, Brain, RefreshCw } from 'lucide-react';
 import { useSubscription } from '../context/SubscriptionContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -12,6 +12,7 @@ const PremiumUpgradeModal = ({ isOpen, onClose, feature = null }) => {
   if (!isOpen) return null;
 
   const features = [
+    { icon: RefreshCw, text: 'Cross-device sync for study sessions, subjects & tasks', color: 'text-cyan-400' },
     { icon: Brain, text: 'Unlimited AI Study Schedules', color: 'text-indigo-400' },
     { icon: Zap, text: 'Unlimited Mock Exams', color: 'text-red-400' },
     { icon: Sparkles, text: 'Unlimited Blurt Tests', color: 'text-amber-400' },
@@ -94,7 +95,7 @@ const PremiumUpgradeModal = ({ isOpen, onClose, feature = null }) => {
               <p className="text-white/70 text-lg">
                 {feature === 'mock_exam' && 'You\'ve used your free Mock Exam today'}
                 {feature === 'blurt_test' && 'You\'ve used your free Blurt Test today'}
-                {!feature && 'Upgrade to unlock unlimited features'}
+                {!feature && 'Upgrade to unlock unlimited features, cross-device study sync, and more'}
               </p>
             </div>
 

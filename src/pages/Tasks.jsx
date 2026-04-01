@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Sidebar from "../components/Sidebar";
 import { 
   Pencil, 
@@ -215,9 +215,7 @@ export default function Tasks() {
     return nextDate;
   };
 
-  // Load subjects and tasks from localStorage on mount
-  useEffect(() => {
-    // Load subjects
+  const reloadSubjectsAndTasks = useCallback(() => {
     const savedSubjects = localStorage.getItem("subjects");
     if (savedSubjects) {
       try {
@@ -229,10 +227,7 @@ export default function Tasks() {
         console.error('Error parsing subjects:', error);
       }
     }
-    // Don't create default subjects here - let user create them in Subjects page
-    // This prevents overwriting user's custom subjects
 
-    // Load tasks
     const savedTasks = localStorage.getItem("tasks");
     if (savedTasks) {
       try {
@@ -245,6 +240,16 @@ export default function Tasks() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    reloadSubjectsAndTasks();
+  }, [reloadSubjectsAndTasks]);
+
+  useEffect(() => {
+    const onStudyStorageSync = () => reloadSubjectsAndTasks();
+    window.addEventListener("trackviso-local-study-storage-updated", onStudyStorageSync);
+    return () => window.removeEventListener("trackviso-local-study-storage-updated", onStudyStorageSync);
+  }, [reloadSubjectsAndTasks]);
 
   // Save tasks to localStorage whenever they change
   useEffect(() => {

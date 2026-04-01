@@ -179,13 +179,20 @@ export const addStudySession = async (sessionData) => {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) return null;
 
+  const row = {
+    user_id: session.user.id,
+    subject_name: sessionData.subject_name ?? sessionData.subjectName,
+    duration_minutes: sessionData.duration_minutes ?? sessionData.durationMinutes,
+    difficulty: sessionData.difficulty ?? 1.0,
+    mood: sessionData.mood ?? 'neutral',
+    xp_earned: sessionData.xp_earned ?? sessionData.xpEarned ?? null,
+    bonuses: sessionData.bonuses ?? null,
+    timestamp: sessionData.timestamp || new Date().toISOString(),
+  };
+
   const { data, error } = await supabase
     .from('study_sessions')
-    .insert([{
-      user_id: session.user.id,
-      ...sessionData,
-      timestamp: new Date().toISOString(),
-    }])
+    .insert([row])
     .select()
     .single();
 

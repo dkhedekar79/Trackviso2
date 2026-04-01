@@ -109,7 +109,7 @@ const PaymentSuccess = () => {
         </motion.div>
         <h1 className="text-4xl font-bold text-white mb-4">Payment Successful!</h1>
         <p className="text-white/70 text-lg mb-8">
-          Welcome to the Professor Plan. You now have unlimited access to all features!
+          Welcome to the Professor Plan. You now have unlimited access to all features, including cross-device syncing for your study sessions, subjects, and tasks.
         </p>
         <motion.button
           whileHover={{ scale: 1.05 }}
@@ -117,7 +117,7 @@ const PaymentSuccess = () => {
           onClick={() => navigate('/mastery')}
           className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition"
         >
-          Start Using Premium Features
+          Start Using Premium Features & Sync
         </motion.button>
       </motion.div>
     </div>

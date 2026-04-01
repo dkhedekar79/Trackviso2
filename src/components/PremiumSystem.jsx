@@ -4,7 +4,7 @@ import {
   Crown, Star, Zap, Shield, Sparkles, Gift, Gem, Flame,
   TrendingUp, Award, Lock, Unlock, CheckCircle, X, Plus,
   Calendar, Clock, Users, BookOpen, Target, Trophy, Heart,
-  BarChart3
+  BarChart3, RefreshCw
 } from 'lucide-react';
 import { useGamification } from '../context/GamificationContext';
 import { AnimatedProgressBar } from './RewardAnimations';
@@ -23,6 +23,7 @@ const PREMIUM_PLANS = {
     badge: '📚',
     description: 'Perfect for dedicated students',
     features: [
+      { id: 'cross_device_sync', name: 'Cross-device study sync', icon: RefreshCw, premium: true },
       { id: 'xp_multiplier', name: '1.5x XP Multiplier', icon: Star, premium: true },
       { id: 'streak_savers', name: '5 Streak Savers/month', icon: Shield, premium: true },
       { id: 'exclusive_themes', name: '3 Exclusive Themes', icon: Sparkles, premium: true },
@@ -49,6 +50,7 @@ const PREMIUM_PLANS = {
     description: 'For serious academic achievers',
     popular: true,
     features: [
+      { id: 'cross_device_sync_elite', name: 'Cross-device study sync', icon: RefreshCw, premium: true },
       { id: 'xp_multiplier', name: '2x XP Multiplier', icon: Star, premium: true },
       { id: 'streak_savers', name: '10 Streak Savers/month', icon: Shield, premium: true },
       { id: 'exclusive_themes', name: '10 Exclusive Themes', icon: Sparkles, premium: true },
@@ -77,6 +79,7 @@ const PREMIUM_PLANS = {
     badge: '🏆',
     description: 'Ultimate experience for legends',
     features: [
+      { id: 'cross_device_sync_legend', name: 'Cross-device study sync', icon: RefreshCw, premium: true },
       { id: 'xp_multiplier', name: '3x XP Multiplier', icon: Star, premium: true },
       { id: 'streak_savers', name: 'Unlimited Streak Savers', icon: Shield, premium: true },
       { id: 'exclusive_themes', name: 'All Exclusive Themes', icon: Sparkles, premium: true },

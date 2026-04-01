@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
 import logger from '../utils/logger';
 import { APP_CONFIG } from '../constants/appConfig';
 import { supabase } from '../supabaseClient';
+import { useSubscription } from './SubscriptionContext';
 
 // Provide default value to prevent initialization errors
 // Note: Most functions will be no-ops, but this prevents crashes
@@ -82,6 +83,7 @@ const defaultGamificationContext = {
   getStudyTimeProgress: () => ({ current: 0, next: 100, percentage: 0 }),
   resetUserStats: async () => {},
   refreshQuestProgress: () => {},
+  applyManualStudyTimeMinutes: () => 0,
 };
 
 const GamificationContext = createContext(defaultGamificationContext);
@@ -93,6 +95,7 @@ export const useGamification = () => {
 };
 
 export const GamificationProvider = ({ children }) => {
+  const { subscriptionPlan } = useSubscription();
   const [userStats, setUserStats] = useState(() => {
     // Initialize from localStorage as fallback
     const saved = localStorage.getItem("userStats");
@@ -1547,14 +1550,12 @@ export const GamificationProvider = ({ children }) => {
         updateQuestProgress("double_days");
       }, 100);
 
-      // Save to Supabase asynchronously
-      // Note: The database trigger will automatically update total_study_time and total_xp_earned
-      // from the study_sessions table, so we don't need to manually update those here
+      // Save session + stats to Supabase only for Professor (cross-device study sync is premium)
       (async () => {
+        if (subscriptionPlan !== 'professor') return;
         try {
           const { addStudySession: addSupabaseSession, updateUserStats } = await import('../utils/supabaseDb');
           
-          // Save session to Supabase - this will trigger the database function to update totals
           const supabaseSession = await addSupabaseSession({
             subject_name: session.subjectName,
             duration_minutes: session.durationMinutes,
@@ -1565,10 +1566,8 @@ export const GamificationProvider = ({ children }) => {
           });
 
           if (supabaseSession) {
-            // Update stats including total_study_time so it stays correct even if DB trigger didn't run
-            // (e.g. trigger missing in some envs, or to fix users stuck with stale totals)
             const syncResult = await updateUserStats({ 
-              xp: newStats.xp,  // Current XP (includes sessions, quests, achievements, etc.)
+              xp: newStats.xp,
               level: newStats.level,
               current_streak: newStats.currentStreak,
               longest_streak: newStats.longestStreak,
@@ -2276,6 +2275,62 @@ export const GamificationProvider = ({ children }) => {
   };
 
 
+  /** Adds study minutes to totals and local session logs only (no XP, no quests). */
+  const applyManualStudyTimeMinutes = useCallback((minutes) => {
+    const m = Math.max(0, Number(minutes));
+    if (!Number.isFinite(m) || m <= 0) return 0;
+
+    const id = `manual-${Date.now()}`;
+    const entry = {
+      id,
+      subjectName: "Recorded time",
+      durationMinutes: Math.round(m * 100) / 100,
+      timestamp: new Date().toISOString(),
+      notes: "",
+      mood: "neutral",
+      difficulty: 1,
+      xpEarned: 0,
+      manualAdjust: true,
+    };
+
+    setUserStats((prev) => ({
+      ...prev,
+      totalStudyTime: Math.round(((prev.totalStudyTime || 0) + m) * 100) / 100,
+      sessionHistory: [entry, ...(prev.sessionHistory || [])].slice(0, 200),
+    }));
+
+    try {
+      const raw = localStorage.getItem("studySessions");
+      const sessions = raw ? JSON.parse(raw) : [];
+      sessions.push({ ...entry, task: null, isTaskComplete: false });
+      localStorage.setItem("studySessions", JSON.stringify(sessions));
+      window.dispatchEvent(new CustomEvent("trackviso-study-sessions-updated"));
+    } catch (e) {
+      logger.error("applyManualStudyTimeMinutes studySessions", e);
+    }
+
+    if (subscriptionPlan === 'professor') {
+      (async () => {
+        try {
+          const { addStudySession: addSupabaseSession } = await import('../utils/supabaseDb');
+          await addSupabaseSession({
+            subject_name: entry.subjectName,
+            duration_minutes: entry.durationMinutes,
+            difficulty: entry.difficulty,
+            mood: entry.mood,
+            xp_earned: 0,
+            bonuses: null,
+            timestamp: entry.timestamp,
+          });
+        } catch (e) {
+          logger.error('applyManualStudyTimeMinutes Supabase', e);
+        }
+      })();
+    }
+
+    return m;
+  }, [subscriptionPlan]);
+
   // Debug function to reset user stats - COMPLETELY RESET EVERYTHING
   const resetUserStats = async () => {
     try {
@@ -2438,6 +2493,7 @@ export const GamificationProvider = ({ children }) => {
     getStudyTimeProgress,
     resetUserStats, // Debug function
     refreshQuestProgress, // Refresh quest progress from current stats
+    applyManualStudyTimeMinutes,
   };
 
   return (

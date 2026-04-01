@@ -123,7 +123,7 @@ const MilestonePromoPopup = () => {
 
             <div className="space-y-3 text-sm text-slate-200">
               <p>
-                Use this limited-time celebration offer to unlock unlimited mock exams, blurt tests, and all premium study tools.
+                Use this limited-time celebration offer to unlock unlimited mock exams, blurt tests, cross-device study sync, and all premium study tools.
               </p>
               <p className="text-amber-200 font-semibold flex items-center gap-1.5">
                 <Crown className="w-4 h-4 text-amber-300" />
