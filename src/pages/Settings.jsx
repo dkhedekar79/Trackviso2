@@ -27,8 +27,9 @@ const Settings = () => {
   const importFileRef = useRef(null);
   const [secretStudyOpen, setSecretStudyOpen] = useState(false);
   const [secretAddMinutes, setSecretAddMinutes] = useState('');
+  const [secretRemoveMinutes, setSecretRemoveMinutes] = useState('');
 
-  const { userStats, applyManualStudyTimeMinutes } = useGamification();
+  const { userStats, applyManualStudyTimeMinutes, removeManualStudyTimeMinutes } = useGamification();
 
   const ADMIN_EMAIL = 'dskhedekar7@gmail.com';
 
@@ -179,6 +180,7 @@ const Settings = () => {
     e.preventDefault();
     e.stopPropagation();
     setSecretAddMinutes('');
+    setSecretRemoveMinutes('');
     setSecretStudyOpen(true);
   };
 
@@ -197,6 +199,17 @@ const Settings = () => {
     }
     applyManualStudyTimeMinutes(n);
     setSecretAddMinutes('');
+    setSecretStudyOpen(false);
+  };
+
+  const handleSecretRemoveMinutes = () => {
+    const n = parseFloat(secretRemoveMinutes);
+    if (!Number.isFinite(n) || n <= 0) {
+      alert('Enter a positive number of minutes');
+      return;
+    }
+    removeManualStudyTimeMinutes(n);
+    setSecretRemoveMinutes('');
     setSecretStudyOpen(false);
   };
 
@@ -722,7 +735,7 @@ const Settings = () => {
                   </button>
                 </div>
                 <p className="text-slate-400 text-sm mb-4">
-                  Totals below update streaks, charts, and saved sessions on this device.
+                  Totals below only adjust your recorded total study time (does not create sessions, so Insights won’t change).
                 </p>
                 <div className="rounded-xl bg-slate-800/50 border border-slate-700/50 p-4 mb-4">
                   <div className="text-slate-500 text-xs uppercase tracking-wide mb-1">
@@ -734,7 +747,7 @@ const Settings = () => {
                   <div className="text-slate-500 text-xs mt-1">minutes in app: {Math.round((userStats?.totalStudyTime || 0) * 10) / 10}</div>
                 </div>
                 <label className="block text-slate-300 text-sm font-medium mb-2">
-                  Add minutes (logged like a session; no XP)
+                  Add minutes (total only; no sessions)
                 </label>
                 <input
                   type="number"
@@ -744,6 +757,18 @@ const Settings = () => {
                   onChange={(e) => setSecretAddMinutes(e.target.value)}
                   className="w-full px-4 py-3 rounded-lg bg-slate-800/80 text-white border border-slate-600/50 focus:outline-none focus:border-slate-500 mb-4"
                   placeholder="e.g. 30"
+                />
+                <label className="block text-slate-300 text-sm font-medium mb-2">
+                  Remove minutes (total only)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={secretRemoveMinutes}
+                  onChange={(e) => setSecretRemoveMinutes(e.target.value)}
+                  className="w-full px-4 py-3 rounded-lg bg-slate-800/80 text-white border border-slate-600/50 focus:outline-none focus:border-slate-500 mb-4"
+                  placeholder="e.g. 15"
                 />
                 <div className="flex gap-3">
                   <button
@@ -759,6 +784,13 @@ const Settings = () => {
                     className="flex-1 px-4 py-3 rounded-lg bg-slate-600 hover:bg-slate-500 text-white font-semibold transition"
                   >
                     Add time
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSecretRemoveMinutes}
+                    className="flex-1 px-4 py-3 rounded-lg bg-rose-700/80 hover:bg-rose-700 text-white font-semibold transition"
+                  >
+                    Remove time
                   </button>
                 </div>
               </motion.div>

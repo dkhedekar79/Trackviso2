@@ -84,6 +84,7 @@ const defaultGamificationContext = {
   resetUserStats: async () => {},
   refreshQuestProgress: () => {},
   applyManualStudyTimeMinutes: () => 0,
+  removeManualStudyTimeMinutes: () => 0,
 };
 
 const GamificationContext = createContext(defaultGamificationContext);
@@ -333,14 +334,25 @@ export const GamificationProvider = ({ children }) => {
     }
   }, [userStats.xp, userStats.level]);
 
-  // Sync XP to Supabase whenever it changes (debounced)
-  // This ensures the leaderboard always shows the current XP value
-  // XP is the source of truth - includes XP from sessions, quests, achievements, etc.
-  const lastSyncedXPRef = useRef(null);
+  // Sync leaderboard-relevant stats to Supabase (debounced)
+  // Keeps XP/level and totals fresh without enabling cross-device session sync for free users.
+  const lastSyncedStatsRef = useRef(null);
   useEffect(() => {
-    // Only sync if XP is defined (including 0) and has actually changed
     if (userStats.xp === undefined || userStats.xp === null) return;
-    if (lastSyncedXPRef.current === userStats.xp) return; // Skip if already synced
+
+    const syncSnapshot = {
+      xp: userStats.xp || 0,
+      level: userStats.level || 1,
+      total_study_time: userStats.totalStudyTime || 0,
+      total_sessions: userStats.totalSessions || 0,
+      total_xp_earned: userStats.totalXPEarned || userStats.xp || 0,
+      current_streak: userStats.currentStreak || 0,
+      longest_streak: userStats.longestStreak || 0,
+      last_study_date: userStats.lastStudyDate || null,
+    };
+
+    const snapshotKey = JSON.stringify(syncSnapshot);
+    if (lastSyncedStatsRef.current === snapshotKey) return;
 
     const syncXPTimeout = setTimeout(async () => {
       try {
@@ -351,21 +363,11 @@ export const GamificationProvider = ({ children }) => {
         }
 
         const { updateUserStats, checkReferralCompletion } = await import('../utils/supabaseDb');
-        // Keep leaderboard-related totals fresh for all users (doesn't enable cross-device sync)
-        const result = await updateUserStats({
-          xp: userStats.xp || 0,
-          level: userStats.level || 1,
-          total_study_time: userStats.totalStudyTime || 0,
-          total_sessions: userStats.totalSessions || 0,
-          total_xp_earned: userStats.totalXPEarned || userStats.xp || 0,
-          current_streak: userStats.currentStreak || 0,
-          longest_streak: userStats.longestStreak || 0,
-          last_study_date: userStats.lastStudyDate || null,
-        });
+        const result = await updateUserStats(syncSnapshot);
         
         if (result) {
-          lastSyncedXPRef.current = userStats.xp;
-          logger.log('✅ XP synced to Supabase:', userStats.xp, 'Level:', userStats.level);
+          lastSyncedStatsRef.current = snapshotKey;
+          logger.log('✅ Stats synced to Supabase:', { xp: syncSnapshot.xp, level: syncSnapshot.level, totalStudyTime: syncSnapshot.total_study_time });
           
           // Check referral completion when level changes (especially when reaching level 10)
           if (userStats.level >= 10) {
@@ -382,7 +384,16 @@ export const GamificationProvider = ({ children }) => {
     }, 1500); // Debounce by 1.5 seconds to avoid too many requests
 
     return () => clearTimeout(syncXPTimeout);
-  }, [userStats.xp, userStats.level]);
+  }, [
+    userStats.xp,
+    userStats.level,
+    userStats.totalStudyTime,
+    userStats.totalSessions,
+    userStats.totalXPEarned,
+    userStats.currentStreak,
+    userStats.longestStreak,
+    userStats.lastStudyDate,
+  ]);
 
   // Advanced XP calculation with variable rewards
   // Base rate: 10 XP per minute (600 XP per hour)
@@ -2282,61 +2293,34 @@ export const GamificationProvider = ({ children }) => {
   };
 
 
-  /** Adds study minutes to totals and local session logs only (no XP, no quests). */
+  /**
+   * Secret adjustment: modifies total study time only.
+   * Intentionally does NOT write to local studySessions (Insights) or sessionHistory.
+   */
   const applyManualStudyTimeMinutes = useCallback((minutes) => {
     const m = Math.max(0, Number(minutes));
     if (!Number.isFinite(m) || m <= 0) return 0;
 
-    const id = `manual-${Date.now()}`;
-    const entry = {
-      id,
-      subjectName: "Recorded time",
-      durationMinutes: Math.round(m * 100) / 100,
-      timestamp: new Date().toISOString(),
-      notes: "",
-      mood: "neutral",
-      difficulty: 1,
-      xpEarned: 0,
-      manualAdjust: true,
-    };
-
     setUserStats((prev) => ({
       ...prev,
       totalStudyTime: Math.round(((prev.totalStudyTime || 0) + m) * 100) / 100,
-      sessionHistory: [entry, ...(prev.sessionHistory || [])].slice(0, 200),
     }));
 
-    try {
-      const raw = localStorage.getItem("studySessions");
-      const sessions = raw ? JSON.parse(raw) : [];
-      sessions.push({ ...entry, task: null, isTaskComplete: false });
-      localStorage.setItem("studySessions", JSON.stringify(sessions));
-      window.dispatchEvent(new CustomEvent("trackviso-study-sessions-updated"));
-    } catch (e) {
-      logger.error("applyManualStudyTimeMinutes studySessions", e);
-    }
+    return m;
+  }, []);
 
-    if (subscriptionPlan === 'professor') {
-      (async () => {
-        try {
-          const { addStudySession: addSupabaseSession } = await import('../utils/supabaseDb');
-          await addSupabaseSession({
-            subject_name: entry.subjectName,
-            duration_minutes: entry.durationMinutes,
-            difficulty: entry.difficulty,
-            mood: entry.mood,
-            xp_earned: 0,
-            bonuses: null,
-            timestamp: entry.timestamp,
-          });
-        } catch (e) {
-          logger.error('applyManualStudyTimeMinutes Supabase', e);
-        }
-      })();
-    }
+  /** Removes minutes from total study time only (clamped at 0). */
+  const removeManualStudyTimeMinutes = useCallback((minutes) => {
+    const m = Math.max(0, Number(minutes));
+    if (!Number.isFinite(m) || m <= 0) return 0;
+
+    setUserStats((prev) => ({
+      ...prev,
+      totalStudyTime: Math.max(0, Math.round(((prev.totalStudyTime || 0) - m) * 100) / 100),
+    }));
 
     return m;
-  }, [subscriptionPlan]);
+  }, []);
 
   // Debug function to reset user stats - COMPLETELY RESET EVERYTHING
   const resetUserStats = async () => {
@@ -2501,6 +2485,7 @@ export const GamificationProvider = ({ children }) => {
     resetUserStats, // Debug function
     refreshQuestProgress, // Refresh quest progress from current stats
     applyManualStudyTimeMinutes,
+    removeManualStudyTimeMinutes,
   };
 
   return (
