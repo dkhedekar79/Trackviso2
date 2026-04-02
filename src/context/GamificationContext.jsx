@@ -351,9 +351,16 @@ export const GamificationProvider = ({ children }) => {
         }
 
         const { updateUserStats, checkReferralCompletion } = await import('../utils/supabaseDb');
+        // Keep leaderboard-related totals fresh for all users (doesn't enable cross-device sync)
         const result = await updateUserStats({
           xp: userStats.xp || 0,
-          level: userStats.level || 1
+          level: userStats.level || 1,
+          total_study_time: userStats.totalStudyTime || 0,
+          total_sessions: userStats.totalSessions || 0,
+          total_xp_earned: userStats.totalXPEarned || userStats.xp || 0,
+          current_streak: userStats.currentStreak || 0,
+          longest_streak: userStats.longestStreak || 0,
+          last_study_date: userStats.lastStudyDate || null,
         });
         
         if (result) {
