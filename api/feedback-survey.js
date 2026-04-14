@@ -42,12 +42,17 @@ export default async function handler(req, res) {
     bugs = '',
     not_as_good: notAsGood = '',
     premium_blockers: premiumBlockers = '',
-    website_time_minutes: websiteTimeMinutes = null,
+    total_study_time_minutes: totalStudyTimeMinutes = null,
   } = req.body || {};
 
   const admin = createClient(supabaseUrl, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
+
+  const studyMins =
+    typeof totalStudyTimeMinutes === 'number' && Number.isFinite(totalStudyTimeMinutes)
+      ? Math.floor(totalStudyTimeMinutes)
+      : null;
 
   const { data, error } = await admin
     .from('user_feedback_surveys')
@@ -55,10 +60,7 @@ export default async function handler(req, res) {
       {
         user_id: user.id,
         user_email: user.email || null,
-        website_time_minutes:
-          typeof websiteTimeMinutes === 'number' && Number.isFinite(websiteTimeMinutes)
-            ? Math.floor(websiteTimeMinutes)
-            : null,
+        total_study_time_minutes: studyMins,
         improvements: String(improvements || '').slice(0, 8000),
         bugs: String(bugs || '').slice(0, 8000),
         not_as_good: String(notAsGood || '').slice(0, 8000),

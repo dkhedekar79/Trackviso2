@@ -1170,8 +1170,9 @@ const Admin = () => {
           >
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-purple-200/80 text-sm max-w-2xl">
-                In-app product survey responses (users with more than 20 minutes on-site time). Run migration{' '}
-                <code className="text-purple-300/90">013_user_feedback_surveys.sql</code> if this list fails to load.
+                In-app product survey responses (shown to users with more than 20 minutes recorded study time). Apply
+                migrations <code className="text-purple-300/90">013</code> and <code className="text-purple-300/90">014</code>{' '}
+                if this list fails to load.
               </p>
               <button
                 type="button"
@@ -1216,9 +1217,11 @@ const Admin = () => {
                         </p>
                         <p className="text-xs text-purple-300/60">
                           {s.createdAt ? new Date(s.createdAt).toLocaleString() : ''}
-                          {typeof s.websiteTimeMinutes === 'number'
-                            ? ` · ~${s.websiteTimeMinutes} min on site`
-                            : ''}
+                          {typeof s.totalStudyTimeMinutes === 'number'
+                            ? ` · ~${s.totalStudyTimeMinutes} min study time`
+                            : typeof s.websiteTimeMinutes === 'number'
+                              ? ` · ~${s.websiteTimeMinutes} min (legacy)`
+                              : ''}
                         </p>
                       </div>
                       {expanded ? (

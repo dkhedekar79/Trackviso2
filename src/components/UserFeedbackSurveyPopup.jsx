@@ -6,12 +6,12 @@ import { supabase } from '../supabaseClient';
 import logger from '../utils/logger';
 
 const STORAGE_KEY = 'trackviso-feedback-survey-v1';
-const MIN_WEBSITE_MINUTES = 20;
+const MIN_STUDY_MINUTES = 20;
 
 export default function UserFeedbackSurveyPopup() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
-  const [websiteMinutes, setWebsiteMinutes] = useState(null);
+  const [studyMinutes, setStudyMinutes] = useState(null);
   const [improvements, setImprovements] = useState('');
   const [bugs, setBugs] = useState('');
   const [notAsGood, setNotAsGood] = useState('');
@@ -39,19 +39,19 @@ export default function UserFeedbackSurveyPopup() {
 
         const { data, error } = await supabase
           .from('user_stats')
-          .select('website_time_minutes')
+          .select('total_study_time')
           .eq('user_id', user.id)
           .maybeSingle();
 
         if (cancelled) return;
         if (error) {
-          logger.warn('Feedback survey: could not load website time', error.message);
+          logger.warn('Feedback survey: could not load study time', error.message);
           return;
         }
 
-        const mins = Number(data?.website_time_minutes) || 0;
-        setWebsiteMinutes(mins);
-        if (mins > MIN_WEBSITE_MINUTES) {
+        const mins = Number(data?.total_study_time) || 0;
+        setStudyMinutes(mins);
+        if (mins > MIN_STUDY_MINUTES) {
           setOpen(true);
         }
       } catch (e) {
@@ -92,7 +92,7 @@ export default function UserFeedbackSurveyPopup() {
           bugs,
           not_as_good: notAsGood,
           premium_blockers: premiumBlockers,
-          website_time_minutes: websiteMinutes,
+          total_study_time_minutes: studyMinutes,
         }),
       });
 
@@ -152,7 +152,7 @@ export default function UserFeedbackSurveyPopup() {
                     Thank you for using Trackviso
                   </h2>
                   <p className="mt-2 text-sm leading-relaxed text-purple-200/85">
-                    You&apos;ve spent a good amount of time here — we&apos;d love your honest input so we can
+                    You&apos;ve logged a good amount of study time — we&apos;d love your honest input so we can
                     improve. This is optional; skip anytime.
                   </p>
                 </div>
