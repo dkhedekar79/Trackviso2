@@ -515,6 +515,46 @@ async function updateAmbassadorSubmission(adminUserId, submissionId, action, fee
   }
 }
 
+// ========== FEEDBACK SURVEYS RESOURCE ==========
+async function listFeedbackSurveys(adminUserId) {
+  try {
+    const isAdmin = await verifyAdmin(adminUserId);
+    if (!isAdmin) {
+      return { status: 403, body: { error: 'Unauthorized: Not an admin' } };
+    }
+
+    const { data, error } = await supabase
+      .from('user_feedback_surveys')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(500);
+
+    if (error) {
+      return { status: 500, body: { error: error.message || 'Failed to load feedback surveys' } };
+    }
+
+    const surveys = (data || []).map((row) => ({
+      id: row.id,
+      userId: row.user_id,
+      userEmail: row.user_email,
+      websiteTimeMinutes: row.website_time_minutes,
+      improvements: row.improvements,
+      bugs: row.bugs,
+      notAsGood: row.not_as_good,
+      premiumBlockers: row.premium_blockers,
+      createdAt: row.created_at,
+    }));
+
+    return {
+      status: 200,
+      body: { surveys, total: surveys.length },
+    };
+  } catch (error) {
+    console.error('Error in listFeedbackSurveys:', error);
+    return { status: 500, body: { error: error.message } };
+  }
+}
+
 // ========== RECALCULATE STATS RESOURCE ==========
 async function recalculateStats(adminUserId) {
   try {
@@ -710,6 +750,13 @@ export default async function handler(req, res) {
         }
         break;
 
+      case 'feedback-surveys':
+        if (method === 'GET') {
+          const result = await listFeedbackSurveys(adminUserId);
+          return res.status(result.status).json(result.body);
+        }
+        break;
+
       case 'recalculate-stats':
         if (method === 'POST') {
           const result = await recalculateStats(adminUserId);
@@ -718,7 +765,7 @@ export default async function handler(req, res) {
         break;
 
       default:
-        return res.status(400).json({ error: 'Invalid resource. Valid resources: users, schedules, ambassador-submissions, recalculate-stats, initialize' });
+        return res.status(400).json({ error: 'Invalid resource. Valid resources: users, schedules, ambassador-submissions, feedback-surveys, recalculate-stats, initialize' });
     }
 
     return res.status(405).json({ error: 'Method not allowed for this resource' });

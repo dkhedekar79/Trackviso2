@@ -186,6 +186,7 @@ export const GamificationProvider = ({ children }) => {
   const [activeAnimations, setActiveAnimations] = useState([]);
   const achievementsInProgress = useRef(new Set());
   const handleLevelUpRef = useRef(null);
+  const lastSyncedXPRef = useRef(null);
 
   // Load initial XP from Supabase on mount to ensure we have the latest value
   useEffect(() => {

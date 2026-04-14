@@ -47,6 +47,7 @@ import PremiumGiftSystem from './components/PremiumGiftSystem';
 import MilestonePromoPopup from './components/MilestonePromoPopup';
 import FloatingStudyTimer from './components/FloatingStudyTimer';
 import CrossDeviceStudySync from './components/CrossDeviceStudySync';
+import UserFeedbackSurveyPopup from './components/UserFeedbackSurveyPopup';
 import './styles/index.css';
 
 
@@ -161,6 +162,7 @@ function App() {
                       <OfflineIndicator />
                       <Router>
                         <MilestonePromoPopup />
+                        <UserFeedbackSurveyPopup />
                         <RewardSystem />
                         <PremiumGiftSystem />
                         <RouteCleanup />

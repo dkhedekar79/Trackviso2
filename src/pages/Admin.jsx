@@ -23,7 +23,8 @@ import {
   XCircle,
   ExternalLink,
   ChevronUp,
-  Eye
+  Eye,
+  MessageSquare
 } from 'lucide-react';
 import AIScheduleViews from '../components/AIScheduleViews';
 
@@ -43,8 +44,11 @@ const Admin = () => {
   const [ambassadorLoading, setAmbassadorLoading] = useState(false);
   const [submissionFilter, setSubmissionFilter] = useState('all'); // 'all', 'pending', 'approved', 'rejected'
   const [premiumFilter, setPremiumFilter] = useState('all'); // 'all', 'premium', 'free'
-  const [activeTab, setActiveTab] = useState('users'); // 'users', 'schedules', or 'ambassador'
+  const [activeTab, setActiveTab] = useState('users'); // 'users', 'schedules', 'ambassador', or 'feedback'
   const [expandedSchedule, setExpandedSchedule] = useState(null); // Track which schedule is expanded
+  const [feedbackSurveys, setFeedbackSurveys] = useState([]);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [expandedFeedbackId, setExpandedFeedbackId] = useState(null);
 
   // Redirect if not admin - check email specifically
   useEffect(() => {
@@ -78,6 +82,36 @@ const Admin = () => {
       loadAmbassadorSubmissions('all');
     }
   }, [isAdmin, user, activeTab]);
+
+  const loadFeedbackSurveys = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      setFeedbackLoading(true);
+      const response = await fetch('/api/admin?resource=feedback-surveys', {
+        headers: { 'x-admin-user-id': user.id },
+      });
+      const contentType = response.headers.get('content-type') || '';
+      const parseBody = async () => {
+        if (contentType.includes('application/json')) return await response.json();
+        const text = await response.text();
+        try {
+          return JSON.parse(text);
+        } catch {
+          return { error: text || 'Unknown error' };
+        }
+      };
+      const body = await parseBody();
+      if (response.ok) {
+        setFeedbackSurveys(body.surveys || []);
+      } else {
+        console.error('Error loading feedback surveys:', body?.error || response.status);
+      }
+    } catch (e) {
+      console.error('Error loading feedback surveys:', e);
+    } finally {
+      setFeedbackLoading(false);
+    }
+  }, [user]);
 
   const loadUsers = useCallback(async () => {
     try {
@@ -455,6 +489,24 @@ const Admin = () => {
               <div className="flex items-center gap-2">
                 <Video className="w-5 h-5" />
                 Ambassador ({pendingSubmissions} pending)
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('feedback');
+                setExpandedFeedbackId(null);
+                loadFeedbackSurveys();
+              }}
+              className={`px-6 py-3 font-semibold transition ${
+                activeTab === 'feedback'
+                  ? 'text-purple-400 border-b-2 border-purple-400'
+                  : 'text-purple-300/60 hover:text-purple-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <MessageSquare className="w-5 h-5" />
+                Feedback ({feedbackSurveys.length})
               </div>
             </button>
           </div>
@@ -1109,9 +1161,109 @@ const Admin = () => {
             )}
           </motion.div>
         )}
+
+        {activeTab === 'feedback' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="space-y-4"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-purple-200/80 text-sm max-w-2xl">
+                In-app product survey responses (users with more than 20 minutes on-site time). Run migration{' '}
+                <code className="text-purple-300/90">013_user_feedback_surveys.sql</code> if this list fails to load.
+              </p>
+              <button
+                type="button"
+                onClick={() => loadFeedbackSurveys()}
+                disabled={feedbackLoading}
+                className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-sm font-semibold disabled:opacity-50 transition"
+              >
+                {feedbackLoading ? 'Refreshing…' : 'Refresh'}
+              </button>
+            </div>
+
+            {feedbackLoading ? (
+              <div className="text-center py-12 bg-purple-900/20 rounded-xl border border-purple-700/30">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4" />
+                <p className="text-purple-300">Loading feedback…</p>
+              </div>
+            ) : feedbackSurveys.length === 0 ? (
+              <div className="text-center py-12 bg-purple-900/20 rounded-xl border border-purple-700/30">
+                <MessageSquare className="w-12 h-12 text-purple-400/50 mx-auto mb-3" />
+                <p className="text-purple-300">No survey responses yet</p>
+              </div>
+            ) : (
+              feedbackSurveys.map((s, idx) => {
+                const expanded = expandedFeedbackId === s.id;
+                return (
+                  <motion.div
+                    key={s.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: Math.min(idx * 0.02, 0.5) }}
+                    className="bg-gradient-to-br from-purple-900/30 to-slate-900/30 rounded-xl border border-purple-700/30 overflow-hidden"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setExpandedFeedbackId(expanded ? null : s.id)}
+                      className="w-full px-6 py-4 flex items-center gap-4 hover:bg-purple-900/20 transition text-left"
+                    >
+                      <MessageSquare className="w-5 h-5 text-purple-400 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white font-semibold truncate">
+                          {s.userEmail || s.userId?.slice(0, 8) || 'Unknown'}
+                        </p>
+                        <p className="text-xs text-purple-300/60">
+                          {s.createdAt ? new Date(s.createdAt).toLocaleString() : ''}
+                          {typeof s.websiteTimeMinutes === 'number'
+                            ? ` · ~${s.websiteTimeMinutes} min on site`
+                            : ''}
+                        </p>
+                      </div>
+                      {expanded ? (
+                        <ChevronUp className="w-5 h-5 text-purple-400" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5 text-purple-400" />
+                      )}
+                    </button>
+                    <AnimatePresence>
+                      {expanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="border-t border-purple-700/30 bg-slate-950/40"
+                        >
+                          <div className="p-6 space-y-4 text-sm">
+                            <SurveyBlock label="What could improve?" text={s.improvements} />
+                            <SurveyBlock label="Bugs" text={s.bugs} />
+                            <SurveyBlock label="Not as good as hoped" text={s.notAsGood} />
+                            <SurveyBlock label="Premium blockers" text={s.premiumBlockers} />
+                            <p className="text-xs text-purple-400/60 font-mono break-all">User ID: {s.userId}</p>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                );
+              })
+            )}
+          </motion.div>
+        )}
       </div>
     </div>
   );
 };
+
+function SurveyBlock({ label, text }) {
+  const body = (text || '').trim() || '—';
+  return (
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-wide text-purple-300/70 mb-1">{label}</p>
+      <p className="text-purple-100/90 whitespace-pre-wrap">{body}</p>
+    </div>
+  );
+}
 
 export default Admin;
