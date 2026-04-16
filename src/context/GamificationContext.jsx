@@ -199,34 +199,40 @@ export const GamificationProvider = ({ children }) => {
         const stats = await fetchUserStats();
         
         if (stats && stats.xp !== undefined && stats.xp !== null) {
-          // Only update if Supabase has a higher XP (to avoid overwriting with stale data)
-          // Or if local XP is 0/undefined, use Supabase value
+          // Keep progression fields in sync across browsers/devices.
           const currentXP = userStats.xp || 0;
           const supabaseXP = stats.xp || 0;
-          
-          if (supabaseXP > currentXP || currentXP === 0) {
-            logger.log('📥 Loading XP from Supabase:', supabaseXP);
-            const calculatedLevel = getLevelFromXP(supabaseXP);
-            const oldLevel = userStats.level || 1;
-            
-            setUserStats(prev => ({
-              ...prev,
-              xp: supabaseXP,
-              level: calculatedLevel,
-            }));
-            lastSyncedXPRef.current = supabaseXP;
-            
-            // If level increased, trigger level up notification
-            if (calculatedLevel > oldLevel) {
-              setTimeout(() => {
-                if (handleLevelUpRef.current) {
-                  handleLevelUpRef.current(calculatedLevel);
-                }
-              }, 200);
-            }
+          const shouldUseSupabaseXP = supabaseXP > currentXP || currentXP === 0;
+          const mergedXP = shouldUseSupabaseXP ? supabaseXP : currentXP;
+          const calculatedLevel = getLevelFromXP(mergedXP);
+          const oldLevel = userStats.level || 1;
+
+          setUserStats(prev => ({
+            ...prev,
+            xp: mergedXP,
+            level: calculatedLevel,
+            currentStreak: stats.current_streak ?? prev.currentStreak ?? 0,
+            longestStreak: stats.longest_streak ?? prev.longestStreak ?? 0,
+            lastStudyDate: stats.last_study_date ?? prev.lastStudyDate ?? null,
+            totalSessions: Math.max(prev.totalSessions || 0, stats.total_sessions || 0),
+            totalStudyTime: Math.max(prev.totalStudyTime || 0, stats.total_study_time || 0),
+            totalXPEarned: Math.max(prev.totalXPEarned || 0, stats.total_xp_earned || mergedXP || 0),
+          }));
+          lastSyncedXPRef.current = mergedXP;
+
+          if (shouldUseSupabaseXP) {
+            logger.log('📥 Loading progression fields from Supabase');
           } else {
-            // Local XP is higher, sync it to Supabase
             logger.log('📤 Local XP is higher, will sync to Supabase:', currentXP);
+          }
+
+          // If level increased, trigger level up notification
+          if (calculatedLevel > oldLevel) {
+            setTimeout(() => {
+              if (handleLevelUpRef.current) {
+                handleLevelUpRef.current(calculatedLevel);
+              }
+            }, 200);
           }
         }
       } catch (error) {

@@ -1241,8 +1241,8 @@ const Admin = () => {
                           <div className="p-6 space-y-4 text-sm">
                             <SurveyBlock label="What could improve?" text={s.improvements} />
                             <SurveyBlock label="Bugs" text={s.bugs} />
-                            <SurveyBlock label="Not as good as hoped" text={s.notAsGood} />
-                            <SurveyBlock label="Premium blockers" text={s.premiumBlockers} />
+                            <SurveyBlock label="Did not meet expectations" text={s.notAsGood} />
+                            <SurveyBlock label="Premium blockers (optional)" text={s.premiumBlockers} />
                             <p className="text-xs text-purple-400/60 font-mono break-all">User ID: {s.userId}</p>
                           </div>
                         </motion.div>

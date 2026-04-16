@@ -119,6 +119,21 @@ const ambientImages = [
         name: 'Dreamy times',
         path: '/ambient-images/daydream.jpg'
       },
+      {
+        id: 'neon-rain-1',
+        name: 'Neon Rain',
+        data: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1920 1080'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%230f172a'/%3E%3Cstop offset='0.5' stop-color='%2331227a'/%3E%3Cstop offset='1' stop-color='%23ec4899'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1920' height='1080' fill='url(%23g)'/%3E%3Cg stroke='%23ffffff22' stroke-width='2'%3E%3Cpath d='M120 0v1080M380 0v1080M640 0v1080M900 0v1080M1160 0v1080M1420 0v1080M1680 0v1080'/%3E%3C/g%3E%3C/svg%3E"
+      },
+      {
+        id: 'sunrise-mist-1',
+        name: 'Sunrise Mist',
+        data: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1920 1080'%3E%3Cdefs%3E%3CradialGradient id='r' cx='50%25' cy='15%25' r='80%25'%3E%3Cstop stop-color='%23fef3c7'/%3E%3Cstop offset='0.45' stop-color='%23fdba74'/%3E%3Cstop offset='1' stop-color='%231e293b'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='1920' height='1080' fill='url(%23r)'/%3E%3Cg fill='%23ffffff1a'%3E%3Cellipse cx='350' cy='820' rx='420' ry='120'/%3E%3Cellipse cx='960' cy='860' rx='520' ry='130'/%3E%3Cellipse cx='1560' cy='820' rx='420' ry='120'/%3E%3C/g%3E%3C/svg%3E"
+      },
+      {
+        id: 'deep-space-1',
+        name: 'Deep Space',
+        data: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1920 1080'%3E%3Cdefs%3E%3ClinearGradient id='s' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23020117'/%3E%3Cstop offset='1' stop-color='%231b1c3a'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1920' height='1080' fill='url(%23s)'/%3E%3Cg fill='%23ffffffaa'%3E%3Ccircle cx='180' cy='120' r='2'/%3E%3Ccircle cx='360' cy='260' r='1.5'/%3E%3Ccircle cx='590' cy='170' r='2.5'/%3E%3Ccircle cx='820' cy='90' r='1.5'/%3E%3Ccircle cx='1040' cy='240' r='2'/%3E%3Ccircle cx='1320' cy='140' r='1.5'/%3E%3Ccircle cx='1540' cy='220' r='2.5'/%3E%3Ccircle cx='1740' cy='110' r='1.5'/%3E%3C/g%3E%3C/svg%3E"
+      },
       
       
   // Add your ambient mode background images here

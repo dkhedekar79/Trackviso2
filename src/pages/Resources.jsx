@@ -32,12 +32,25 @@ const LEVELS = ["GCSE", "IGCSE", "A Level"];
 const SUBJECTS = [
   "Mathematics",
   "English Language",
+  "English Literature",
   "Biology",
   "Chemistry",
   "Physics",
+  "Business",
+  "Economics",
+  "Computer Science",
+  "History",
+  "Geography",
+  "French",
+  "Spanish",
+  "Accounting",
+  "ICT",
+  "Environmental Management",
+  "Travel and Tourism",
+  "Human Biology",
 ];
 
-const BOARDS = ["AQA", "Edexcel", "OCR", "WJEC", "Eduqas"];
+const BOARDS = ["AQA", "Edexcel", "OCR", "WJEC", "Eduqas", "Cambridge"];
 const TYPES = [
   { key: "all", label: "All", icon: Grid3x3 },
   { key: "past_paper", label: "Past Papers", icon: FileText },
@@ -85,9 +98,16 @@ const SPEC_LINKS = [
   { level: "IGCSE", subject: "Chemistry", board: "Cambridge", title: "Cambridge IGCSE Chemistry (0620) - Specification", url: "https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-igcse-chemistry-0620/", type: "specification" },
   { level: "IGCSE", subject: "Physics", board: "Cambridge", title: "Cambridge IGCSE Physics (0625) - Specification", url: "https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-igcse-physics-0625/", type: "specification" },
   { level: "IGCSE", subject: "Mathematics", board: "Edexcel", title: "Edexcel IGCSE Mathematics A/B - Specification", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-mathematics-a-2016.html", type: "specification" },
+  { level: "IGCSE", subject: "English Language", board: "Edexcel", title: "Edexcel IGCSE English Language A - Specification", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-english-language-a-2016.html", type: "specification" },
+  { level: "IGCSE", subject: "English Literature", board: "Edexcel", title: "Edexcel IGCSE English Literature - Specification", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-english-literature-2016.html", type: "specification" },
   { level: "IGCSE", subject: "Biology", board: "Edexcel", title: "Edexcel IGCSE Biology - Specification", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-biology-2017.html", type: "specification" },
   { level: "IGCSE", subject: "Chemistry", board: "Edexcel", title: "Edexcel IGCSE Chemistry - Specification", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-chemistry-2017.html", type: "specification" },
   { level: "IGCSE", subject: "Physics", board: "Edexcel", title: "Edexcel IGCSE Physics - Specification", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-physics-2017.html", type: "specification" },
+  { level: "IGCSE", subject: "Business", board: "Edexcel", title: "Edexcel IGCSE Business - Specification", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-business-2017.html", type: "specification" },
+  { level: "IGCSE", subject: "Economics", board: "Edexcel", title: "Edexcel IGCSE Economics - Specification", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-economics-2017.html", type: "specification" },
+  { level: "IGCSE", subject: "Computer Science", board: "Edexcel", title: "Edexcel IGCSE Computer Science - Specification", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-computer-science-2017.html", type: "specification" },
+  { level: "IGCSE", subject: "History", board: "Edexcel", title: "Edexcel IGCSE History - Specification", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-history-2017.html", type: "specification" },
+  { level: "IGCSE", subject: "Geography", board: "Edexcel", title: "Edexcel IGCSE Geography - Specification", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-geography-2017.html", type: "specification" },
 ];
 
 // Past paper hubs
@@ -120,9 +140,16 @@ const PAST_BASES = [
   { level: "IGCSE", subject: "Chemistry", board: "Cambridge", title: "Cambridge IGCSE Chemistry - Past papers & mark schemes", url: "https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-igcse-chemistry-0620/past-papers/", type: "past_paper" },
   { level: "IGCSE", subject: "Physics", board: "Cambridge", title: "Cambridge IGCSE Physics - Past papers & mark schemes", url: "https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-igcse-physics-0625/past-papers/", type: "past_paper" },
   { level: "IGCSE", subject: "Mathematics", board: "Edexcel", title: "Edexcel IGCSE Mathematics - Past papers & mark schemes", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-mathematics-a-2016.coursematerials.html#filterQuery=category:Pearson-UK:Category%2FExam-materials", type: "past_paper" },
+  { level: "IGCSE", subject: "English Language", board: "Edexcel", title: "Edexcel IGCSE English Language A - Past papers & mark schemes", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-english-language-a-2016.coursematerials.html#filterQuery=category:Pearson-UK:Category%2FExam-materials", type: "past_paper" },
+  { level: "IGCSE", subject: "English Literature", board: "Edexcel", title: "Edexcel IGCSE English Literature - Past papers & mark schemes", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-english-literature-2016.coursematerials.html#filterQuery=category:Pearson-UK:Category%2FExam-materials", type: "past_paper" },
   { level: "IGCSE", subject: "Biology", board: "Edexcel", title: "Edexcel IGCSE Biology - Past papers & mark schemes", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-biology-2017.coursematerials.html#filterQuery=category:Pearson-UK:Category%2FExam-materials", type: "past_paper" },
   { level: "IGCSE", subject: "Chemistry", board: "Edexcel", title: "Edexcel IGCSE Chemistry - Past papers & mark schemes", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-chemistry-2017.coursematerials.html#filterQuery=category:Pearson-UK:Category%2FExam-materials", type: "past_paper" },
   { level: "IGCSE", subject: "Physics", board: "Edexcel", title: "Edexcel IGCSE Physics - Past papers & mark schemes", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-physics-2017.coursematerials.html#filterQuery=category:Pearson-UK:Category%2FExam-materials", type: "past_paper" },
+  { level: "IGCSE", subject: "Business", board: "Edexcel", title: "Edexcel IGCSE Business - Past papers & mark schemes", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-business-2017.coursematerials.html#filterQuery=category:Pearson-UK:Category%2FExam-materials", type: "past_paper" },
+  { level: "IGCSE", subject: "Economics", board: "Edexcel", title: "Edexcel IGCSE Economics - Past papers & mark schemes", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-economics-2017.coursematerials.html#filterQuery=category:Pearson-UK:Category%2FExam-materials", type: "past_paper" },
+  { level: "IGCSE", subject: "Computer Science", board: "Edexcel", title: "Edexcel IGCSE Computer Science - Past papers & mark schemes", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-computer-science-2017.coursematerials.html#filterQuery=category:Pearson-UK:Category%2FExam-materials", type: "past_paper" },
+  { level: "IGCSE", subject: "History", board: "Edexcel", title: "Edexcel IGCSE History - Past papers & mark schemes", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-history-2017.coursematerials.html#filterQuery=category:Pearson-UK:Category%2FExam-materials", type: "past_paper" },
+  { level: "IGCSE", subject: "Geography", board: "Edexcel", title: "Edexcel IGCSE Geography - Past papers & mark schemes", url: "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses-and-edexcel-certificates/international-gcse-geography-2017.coursematerials.html#filterQuery=category:Pearson-UK:Category%2FExam-materials", type: "past_paper" },
 ];
 
 // New content: Video resources
@@ -137,6 +164,20 @@ const VIDEO_RESOURCES = [
   { level: "IGCSE", subject: "Biology", board: "All", title: "IGCSE Biology - All Topics Covered", url: "https://www.youtube.com/results?search_query=igcse+biology+revision", type: "video", description: "Comprehensive IGCSE Biology revision videos" },
   { level: "IGCSE", subject: "Chemistry", board: "All", title: "IGCSE Chemistry Revision Guide", url: "https://www.youtube.com/results?search_query=igcse+chemistry+revision", type: "video", description: "Complete IGCSE Chemistry revision playlist" },
   { level: "IGCSE", subject: "Physics", board: "All", title: "IGCSE Physics Explained - All Topics", url: "https://www.youtube.com/results?search_query=igcse+physics+explained", type: "video", description: "Clear explanations of IGCSE Physics concepts" },
+  { level: "IGCSE", subject: "English Language", board: "All", title: "IGCSE English Language Revision", url: "https://www.youtube.com/results?search_query=igcse+english+language+revision", type: "video", description: "Past paper walkthroughs and writing technique for IGCSE English Language" },
+  { level: "IGCSE", subject: "English Literature", board: "All", title: "IGCSE English Literature Revision", url: "https://www.youtube.com/results?search_query=igcse+english+literature+revision", type: "video", description: "Poetry, prose and essay structure support for IGCSE English Literature" },
+  { level: "IGCSE", subject: "Business", board: "All", title: "IGCSE Business Studies Revision", url: "https://www.youtube.com/results?search_query=igcse+business+studies+revision", type: "video", description: "Core theory and exam-style practice for IGCSE Business" },
+  { level: "IGCSE", subject: "Economics", board: "All", title: "IGCSE Economics Revision", url: "https://www.youtube.com/results?search_query=igcse+economics+revision", type: "video", description: "Diagram-heavy topic explainers and exam prep for IGCSE Economics" },
+  { level: "IGCSE", subject: "Computer Science", board: "All", title: "IGCSE Computer Science Revision", url: "https://www.youtube.com/results?search_query=igcse+computer+science+revision", type: "video", description: "Theory plus pseudocode/programming help for IGCSE Computer Science" },
+  { level: "IGCSE", subject: "History", board: "All", title: "IGCSE History Revision", url: "https://www.youtube.com/results?search_query=igcse+history+revision", type: "video", description: "Topic summaries, source analysis, and essay planning for IGCSE History" },
+  { level: "IGCSE", subject: "Geography", board: "All", title: "IGCSE Geography Revision", url: "https://www.youtube.com/results?search_query=igcse+geography+revision", type: "video", description: "Case studies, map skills, and exam techniques for IGCSE Geography" },
+  { level: "IGCSE", subject: "French", board: "All", title: "IGCSE French Revision", url: "https://www.youtube.com/results?search_query=igcse+french+revision", type: "video", description: "Vocabulary, grammar and speaking/listening support for IGCSE French" },
+  { level: "IGCSE", subject: "Spanish", board: "All", title: "IGCSE Spanish Revision", url: "https://www.youtube.com/results?search_query=igcse+spanish+revision", type: "video", description: "Vocabulary, grammar and exam practice for IGCSE Spanish" },
+  { level: "IGCSE", subject: "Accounting", board: "All", title: "IGCSE Accounting Revision", url: "https://www.youtube.com/results?search_query=igcse+accounting+revision", type: "video", description: "Ledger practice, financial statements and exam technique for IGCSE Accounting" },
+  { level: "IGCSE", subject: "ICT", board: "All", title: "IGCSE ICT Revision", url: "https://www.youtube.com/results?search_query=igcse+ict+revision", type: "video", description: "Theory concepts and practical ICT exam support for IGCSE learners" },
+  { level: "IGCSE", subject: "Environmental Management", board: "All", title: "IGCSE Environmental Management Revision", url: "https://www.youtube.com/results?search_query=igcse+environmental+management+revision", type: "video", description: "Topic explainers and case studies for IGCSE Environmental Management" },
+  { level: "IGCSE", subject: "Travel and Tourism", board: "All", title: "IGCSE Travel and Tourism Revision", url: "https://www.youtube.com/results?search_query=igcse+travel+and+tourism+revision", type: "video", description: "Destination studies, industry concepts and exam prep for IGCSE Travel and Tourism" },
+  { level: "IGCSE", subject: "Human Biology", board: "All", title: "IGCSE Human Biology Revision", url: "https://www.youtube.com/results?search_query=igcse+human+biology+revision", type: "video", description: "Human biology topic walkthroughs and revision support for IGCSE" },
 ];
 
 // New content: Study tips with real URLs
@@ -159,9 +200,22 @@ function getPastPaperDownloadUrl(base, year) {
   const subjectMap = {
     'Mathematics': 'maths',
     'English Language': 'english',
+    'English Literature': 'english',
     'Biology': 'biology',
     'Chemistry': 'chemistry',
     'Physics': 'physics',
+    'Business': 'business-studies',
+    'Economics': 'economics',
+    'Computer Science': 'computer-science',
+    'History': 'history',
+    'Geography': 'geography',
+    'French': 'french',
+    'Spanish': 'spanish',
+    'Accounting': 'accounting',
+    'ICT': 'ict',
+    'Environmental Management': 'environmental-management',
+    'Travel and Tourism': 'travel-and-tourism',
+    'Human Biology': 'human-biology',
   };
   
   const levelMap = {

@@ -89,6 +89,8 @@ const Study = () => {
   const totalPomodoroTimeRef = useRef(0); // Track total WORK time across all Pomodoro phases (breaks don't count)
   const handleSaveSessionRef = useRef(null);
   const autoSaveLockRef = useRef(false);
+  const saveInProgressRef = useRef(false);
+  const lastSavedSignatureRef = useRef(null);
   const autoTrackPrefsRef = useRef({
     autoTrackOnTimerComplete: false,
     autoTrackPomodoroCycles: 4,
@@ -286,19 +288,6 @@ const Study = () => {
     }
   }, [selectedAmbientVideo]);
 
-  // Clear video selection if user is not premium (but allow first video)
-  useEffect(() => {
-    if (!isPremium && selectedAmbientVideo) {
-      // Check if selected video is the first one (free)
-      const firstVideoId = ambientVideos.length > 0 ? ambientVideos[0].id : null;
-      if (selectedAmbientVideo !== firstVideoId) {
-        // Only clear if it's not the first video
-        setSelectedAmbientVideo(null);
-        localStorage.removeItem('selectedAmbientVideo');
-      }
-    }
-  }, [isPremium, selectedAmbientVideo, ambientVideos]);
-
   // Track if we just completed a phase (to avoid double triggering)
   const phaseCompletedRef = useRef(false);
   const [localPomodoroPhase, setLocalPomodoroPhase] = useState("work"); // "work" or "break"
@@ -347,6 +336,36 @@ const Study = () => {
   };
 
   pauseStopRef.current = { pauseLocalTimer, stopTimer };
+
+  const getReliableSessionSeconds = useCallback(() => {
+    if (mode === "pomodoro") {
+      const localPomodoroSeconds =
+        (totalPomodoroTimeRef.current || 0) +
+        (localPomodoroPhase === "work" ? elapsedSeconds : 0);
+      const contextPomodoroSeconds = Number(getPomodoroWorkSeconds?.() || 0);
+      return Math.max(0, localPomodoroSeconds, contextPomodoroSeconds);
+    }
+
+    if (mode === "stopwatch") {
+      const contextElapsed = Number(getActualElapsedTime?.() || 0);
+      return Math.max(0, elapsedSeconds, stopwatchSeconds || 0, contextElapsed);
+    }
+
+    const configuredSeconds = (customMinutes || 25) * 60;
+    const contextElapsed = Math.max(0, configuredSeconds - (secondsLeft || 0));
+    const localElapsed = Number(elapsedSeconds || 0);
+    const timerElapsed = Number(getActualElapsedTime?.() || 0);
+    return Math.max(0, localElapsed, contextElapsed, timerElapsed);
+  }, [
+    mode,
+    localPomodoroPhase,
+    elapsedSeconds,
+    getPomodoroWorkSeconds,
+    getActualElapsedTime,
+    stopwatchSeconds,
+    customMinutes,
+    secondsLeft,
+  ]);
 
   // Keep local tick interval in sync with global timer when running (start, resume, return to Study)
   useEffect(() => {
@@ -973,39 +992,57 @@ const Study = () => {
   };
 
   const handleSaveSession = () => {
-    // Pomodoro: cumulative work time only (all cycles), from timer context — not break time
-    let totalSessionSeconds =
-      mode === "pomodoro" ? getPomodoroWorkSeconds() : elapsedSeconds;
-    
-    // Ensure we have a valid duration - use minimum 1 minute if session was very short
-    const sessionDurationMinutes = Math.max(
-      1,
-      Math.round((totalSessionSeconds / 60) * 100) / 100,
-    );
+    if (saveInProgressRef.current) return;
 
-    // Save session data based on actual elapsedSeconds
-    const sessionId = `session-${Date.now()}`;
-    const sessionData = {
-      id: sessionId,
-      subjectName: subject,
-      durationMinutes: sessionDurationMinutes,
-      timestamp: new Date().toISOString(),
-      notes: sessionNotes,
-      task: currentTask,
-      mood: sessionMood,
-      reflection: sessionReflection,
-      difficulty: sessionDifficulty,
-      topicsStudied: topicsStudied,
-      isTaskComplete,
-    };
+    const totalSessionSeconds = getReliableSessionSeconds();
+    const sessionDurationMinutes = Math.round((totalSessionSeconds / 60) * 100) / 100;
+    if (!Number.isFinite(sessionDurationMinutes) || sessionDurationMinutes <= 0) {
+      addReward({
+        type: "XP_EARNED",
+        title: "Session too short",
+        description: "No tracked time yet. Keep the timer running a bit longer.",
+        tier: "common",
+      });
+      return;
+    }
 
-    // Add to gamification system (handles XP and quest updates internally)
-    const sessionResult = addStudySession(sessionData);
+    const dedupeSignature = `${subject || "unknown"}|${sessionDurationMinutes}|${mode}|${Math.floor(
+      Date.now() / 2000,
+    )}`;
+    if (lastSavedSignatureRef.current === dedupeSignature) {
+      return;
+    }
+    lastSavedSignatureRef.current = dedupeSignature;
+    saveInProgressRef.current = true;
 
-    // Update study sessions in localStorage with enriched data
-    const updatedSessions = [...studySessions, sessionResult];
-    localStorage.setItem("studySessions", JSON.stringify(updatedSessions));
-    setStudySessions(updatedSessions);
+    try {
+      // Save session data based on actual elapsedSeconds
+      const sessionId = `session-${Date.now()}`;
+      const sessionData = {
+        id: sessionId,
+        subjectName: subject,
+        durationMinutes: sessionDurationMinutes,
+        timestamp: new Date().toISOString(),
+        notes: sessionNotes,
+        task: currentTask,
+        mood: sessionMood,
+        reflection: sessionReflection,
+        difficulty: sessionDifficulty,
+        topicsStudied: topicsStudied,
+        isTaskComplete,
+      };
+
+      // Add to gamification system (handles XP and quest updates internally)
+      const sessionResult = addStudySession(sessionData);
+
+      // Update study sessions in localStorage with enriched data
+      const existingIndex = studySessions.findIndex((s) => s.id === sessionResult.id);
+      const updatedSessions =
+        existingIndex >= 0
+          ? studySessions.map((s, i) => (i === existingIndex ? sessionResult : s))
+          : [...studySessions, sessionResult];
+      localStorage.setItem("studySessions", JSON.stringify(updatedSessions));
+      setStudySessions(updatedSessions);
 
     // Update task if completed
     if (isTaskComplete && currentTask) {
@@ -1046,8 +1083,13 @@ const Study = () => {
     // Show rewards for a few seconds then allow continuing
     setShowRewards(true);
 
-    // Stay on the study page instead of going to subject selection
-    // The subject remains in the URL so user can continue studying
+      // Stay on the study page instead of going to subject selection
+      // The subject remains in the URL so user can continue studying
+    } finally {
+      setTimeout(() => {
+        saveInProgressRef.current = false;
+      }, 400);
+    }
   };
 
   handleSaveSessionRef.current = handleSaveSession;
@@ -1073,17 +1115,12 @@ const Study = () => {
     const sessionId = `session-${Date.now()}`;
 
     // Save the session
-    const practiceSeconds =
-      mode === "pomodoro"
-        ? getPomodoroWorkSeconds()
-        : mode === "stopwatch"
-          ? getActualElapsedTime()
-          : elapsedSeconds;
+    const practiceSeconds = getReliableSessionSeconds();
 
     const sessionData = {
       id: sessionId,
       subjectName: currentSubject,
-      durationMinutes: Math.max(1, Math.round((practiceSeconds / 60) * 100) / 100),
+      durationMinutes: Math.max(0.01, Math.round((practiceSeconds / 60) * 100) / 100),
       timestamp: new Date().toISOString(),
       notes: sessionNotes,
       task: currentTask,
@@ -1840,10 +1877,8 @@ const Study = () => {
                   
                   {ambientVideos.length > 0 ? (
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {ambientVideos.map((video, index) => {
-                        const isFirstVideo = index === 0;
-                        const isPremiumVideo = !isFirstVideo;
-                        const isLocked = isPremiumVideo && !isPremium;
+                      {ambientVideos.map((video) => {
+                        const isLocked = false;
                         
                         return (
                           <motion.div
@@ -1944,26 +1979,10 @@ const Study = () => {
                   
                   {!isPremium && ambientVideos.length > 1 && (
                     <div className="mt-6 text-center py-6 bg-gradient-to-br from-purple-900/30 to-slate-900/30 rounded-lg border-2 border-purple-500/30">
-                      <h4 className="text-lg font-bold text-white mb-2">Unlock More Wallpapers</h4>
-                      <p className="text-purple-300/80 mb-4 text-sm max-w-md mx-auto">
-                        Upgrade to Professor Plan for cross-device study sync, animated wallpapers, and more.
+                      <h4 className="text-lg font-bold text-white mb-2">All Wallpapers Unlocked</h4>
+                      <p className="text-purple-300/80 mb-2 text-sm max-w-md mx-auto">
+                        You can now use every Ambivert wallpaper and animated background on the free plan.
                       </p>
-                      <button
-                        onClick={() => {
-                          // Pause session and exit ambient mode
-                          pauseLocalTimer();
-                          stopTimer();
-                          setIsAmbientMode(false);
-                          setShowAmbientGallery(false);
-                          if (document.exitFullscreen) {
-                            document.exitFullscreen().catch(err => console.log(err));
-                          }
-                          setShowPremiumModal(true);
-                        }}
-                        className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-purple-500/50 transition-all"
-                      >
-                        Upgrade to Premium
-                      </button>
                     </div>
                   )}
                 </div>
