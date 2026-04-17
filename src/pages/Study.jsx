@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import SEO from "../components/SEO";
@@ -132,6 +132,7 @@ const Study = () => {
   const {
     userStats,
     addStudySession,
+    revertStudySession,
     updateQuestProgress,
     awardXP,
     grantXP,
@@ -379,19 +380,28 @@ const Study = () => {
 
     let elapsed = 0;
     if (mode === "stopwatch") {
-      elapsed = getActualElapsedTime();
+      elapsed = Math.max(0, Number(getActualElapsedTime?.() || 0));
     } else if (mode === "pomodoro") {
       setLocalPomodoroPhase(isPomodoroBreak ? "break" : "work");
       setLocalPomodoroCount(pomodoroCount);
       const phaseDur = isPomodoroBreak ? 5 * 60 : 25 * 60;
-      elapsed = Math.max(0, phaseDur - secondsLeft);
+      const fromRemaining = Math.max(0, phaseDur - secondsLeft);
+      const fromWall = Math.max(0, Number(getActualElapsedTime?.() || 0));
+      elapsed = Math.max(fromRemaining, fromWall);
       pomodoroPhaseRef.current = isPomodoroBreak ? "break" : "work";
       totalPomodoroTimeRef.current =
         totalCyclesCompleted * 25 * 60 + (isPomodoroBreak ? 25 * 60 : 0);
     } else {
       const phaseDur = (customMinutes || 25) * 60;
-      elapsed = Math.max(0, phaseDur - secondsLeft);
+      const fromRemaining = Math.max(0, phaseDur - secondsLeft);
+      const fromWall = Math.max(0, Number(getActualElapsedTime?.() || 0));
+      elapsed = Math.max(fromRemaining, fromWall);
     }
+
+    // Resume after pause: context `secondsLeft` can be one frame stale (shows full phase),
+    // which would zero out local elapsed — keep wall + paused accumulation.
+    const preserved = Math.max(0, Number(pausedAccumulatedRef.current || 0));
+    elapsed = Math.max(elapsed, preserved);
 
     phaseCompletedRef.current = false;
     setElapsedSeconds(elapsed);
@@ -508,6 +518,20 @@ const Study = () => {
   };
 
   const subject = getSubjectFromURL();
+
+  /** Newest-first; studySessions in localStorage are typically oldest-first (append). */
+  const recentStudyLogsForSubject = useMemo(() => {
+    const sub = String(subject || "").trim();
+    if (!sub) return [];
+    return studySessions
+      .filter((session) => String(session.subjectName || "").trim() === sub)
+      .slice()
+      .sort((a, b) => {
+        const ta = new Date(a.timestamp || 0).getTime();
+        const tb = new Date(b.timestamp || 0).getTime();
+        return tb - ta;
+      });
+  }, [studySessions, subject]);
 
   // Handle incoming state from AI Schedule
   useEffect(() => {
@@ -1043,6 +1067,9 @@ const Study = () => {
           : [...studySessions, sessionResult];
       localStorage.setItem("studySessions", JSON.stringify(updatedSessions));
       setStudySessions(updatedSessions);
+      try {
+        window.dispatchEvent(new CustomEvent("trackviso-study-sessions-updated"));
+      } catch (_) {}
 
     // Update task if completed
     if (isTaskComplete && currentTask) {
@@ -1094,10 +1121,31 @@ const Study = () => {
 
   handleSaveSessionRef.current = handleSaveSession;
 
-  const deleteStudySession = (index) => {
-    const updatedSessions = studySessions.filter((_, i) => i !== index);
+  const deleteStudySession = (session) => {
+    if (!session) return;
+    const mins = Number(session.durationMinutes) || 0;
+    const xp = Number(session.xpEarned) || 0;
+    const ok = window.confirm(
+      `Remove this study log (${mins.toFixed(1)} min)?\n\n` +
+        "It will be removed from this list and from subject time totals. " +
+        (xp > 0
+          ? `About ${xp} XP from this session will be rolled back in your profile stats. `
+          : "") +
+        "Daily quest progress is not changed.",
+    );
+    if (!ok) return;
+
+    revertStudySession(session);
+
+    const updatedSessions =
+      session.id != null
+        ? studySessions.filter((s) => s.id !== session.id)
+        : studySessions.filter((s) => s !== session);
     localStorage.setItem("studySessions", JSON.stringify(updatedSessions));
     setStudySessions(updatedSessions);
+    try {
+      window.dispatchEvent(new CustomEvent("trackviso-study-sessions-updated"));
+    } catch (_) {}
   };
 
   const handleTaskSelection = (taskName) => {
@@ -1135,6 +1183,9 @@ const Study = () => {
     const updatedSessions = [...studySessions, sessionResult];
     localStorage.setItem("studySessions", JSON.stringify(updatedSessions));
     setStudySessions(updatedSessions);
+    try {
+      window.dispatchEvent(new CustomEvent("trackviso-study-sessions-updated"));
+    } catch (_) {}
 
     // Show completion success with rewards
     addReward({
@@ -2728,19 +2779,17 @@ const Study = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.4 }}
                 >
-                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-white mb-1 flex items-center gap-2">
                     <BookOpen className="w-5 h-5 text-purple-400" />
                     Recent Study Logs
                   </h3>
-                  <div className="max-h-[300px] overflow-y-auto">
-                    {studySessions.filter(
-                      (session) => session.subjectName === subject,
-                    ).length > 0 ? (
+                  <p className="text-xs text-purple-300/60 mb-3">
+                    Newest first — scroll to see your full history for this subject.
+                  </p>
+                  <div className="max-h-[min(55vh,520px)] overflow-y-auto pr-1">
+                    {recentStudyLogsForSubject.length > 0 ? (
                       <div className="space-y-3">
-                        {studySessions
-                          .filter((session) => session.subjectName === subject)
-                          .slice(0, 5)
-                          .map((session, index) => {
+                        {recentStudyLogsForSubject.map((session, index) => {
                             const moodEmoji =
                               {
                                 great: "😄",
@@ -2751,7 +2800,7 @@ const Study = () => {
 
                             return (
                               <motion.div
-                                key={index}
+                                key={session.id || `log-${session.timestamp}-${index}`}
                                 className="p-3 rounded-lg bg-purple-800/20 border border-purple-700/30 hover:bg-purple-800/40 transition-all"
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
@@ -2806,11 +2855,7 @@ const Study = () => {
                                 </div>
 
                                 <motion.button
-                                  onClick={() =>
-                                    deleteStudySession(
-                                      studySessions.indexOf(session),
-                                    )
-                                  }
+                                  onClick={() => deleteStudySession(session)}
                                   className="mt-2 p-1 rounded hover:bg-red-600/30 transition text-red-400 hover:text-red-300"
                                   title="Delete session"
                                   whileHover={{ scale: 1.2 }}

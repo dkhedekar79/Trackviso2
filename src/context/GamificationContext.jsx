@@ -60,6 +60,7 @@ const defaultGamificationContext = {
   useStreakSaver: () => false,
   addReward: () => {},
   addStudySession: () => {},
+  revertStudySession: () => false,
   getUserRank: () => "Rookie Scholar",
   getXPProgress: () => ({ current: 0, next: 100, percentage: 0 }),
   getStudyTimeForLevel: () => 0,
@@ -1620,6 +1621,52 @@ export const GamificationProvider = ({ children }) => {
     return enhancedSession;
   };
 
+  /**
+   * Undo the gamification deltas from a saved session when the user removes that log.
+   * Does not touch quest progress (best-effort; quests may stay slightly ahead).
+   */
+  const revertStudySession = (session) => {
+    if (!session) return false;
+    const xp = Math.max(0, Number(session.xpEarned) || 0);
+    const mins = Math.max(0, Number(session.durationMinutes) || 0);
+    const sub = String(session.subjectName || "").trim();
+
+    setUserStats((prev) => {
+      const prevXP = prev.xp || 0;
+      const newXP = Math.max(0, prevXP - xp);
+      const newLevel = getLevelFromXP(newXP);
+
+      const hist = [...(prev.sessionHistory || [])];
+      const idx = hist.findIndex((s) =>
+        session.id != null && s.id != null
+          ? s.id === session.id
+          : s.timestamp === session.timestamp &&
+            String(s.subjectName || "").trim() === sub &&
+            Math.abs(Number(s.durationMinutes || 0) - mins) < 0.0001,
+      );
+      if (idx >= 0) hist.splice(idx, 1);
+
+      const mastery = { ...(prev.subjectMastery || {}) };
+      if (sub && mins > 0) {
+        mastery[sub] = Math.max(0, (mastery[sub] || 0) - mins);
+      }
+
+      return {
+        ...prev,
+        xp: newXP,
+        level: newLevel,
+        totalSessions: Math.max(0, (prev.totalSessions || 0) - 1),
+        totalStudyTime: Math.max(0, (prev.totalStudyTime || 0) - mins),
+        totalXPEarned: Math.max(0, (prev.totalXPEarned || 0) - xp),
+        weeklyXP: Math.max(0, (prev.weeklyXP || 0) - xp),
+        sessionHistory: hist,
+        subjectMastery: mastery,
+      };
+    });
+
+    return true;
+  };
+
   // Daily quest templates
   // Balanced to give 60-150 XP each (roughly 10-25% of an hour's study)
   // Average study session: 600 XP/hour, so quests give ~10-25% bonus
@@ -2467,6 +2514,7 @@ export const GamificationProvider = ({ children }) => {
     useStreakSaver,
     addReward,
     addStudySession,
+    revertStudySession,
     getUserRank,
     getXPProgress,
     getStudyTimeForLevel,
