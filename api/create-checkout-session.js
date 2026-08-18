@@ -19,14 +19,18 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { userId, couponId } = req.body;
+    const { userId, couponId, billingPeriod } = req.body;
 
     if (!userId) {
       return res.status(400).json({ error: 'User ID is required' });
     }
 
+    // 'yearly' gives 2 months free vs the monthly plan (£4.99 x 12 = £59.88)
+    const isYearly = billingPeriod === 'yearly';
+
     const metadata = {
       userId: userId,
+      billingPeriod: isYearly ? 'yearly' : 'monthly',
     };
 
     if (couponId) {
@@ -41,13 +45,15 @@ export default async function handler(req, res) {
           price_data: {
             currency: 'gbp',
             product_data: {
-              name: 'Professor Plan',
-              description: 'Unlimited Mock Exams and Blurt Tests',
+              name: isYearly ? 'Professor Plan (Yearly)' : 'Professor Plan (Monthly)',
+              description: isYearly
+                ? 'Unlimited Mock Exams and Blurt Tests — 2 months free'
+                : 'Unlimited Mock Exams and Blurt Tests',
             },
             recurring: {
-              interval: 'month',
+              interval: isYearly ? 'year' : 'month',
             },
-            unit_amount: 499, // £4.99 in pence
+            unit_amount: isYearly ? 4999 : 499, // £49.99/year or £4.99/month in pence
           },
           quantity: 1,
         },

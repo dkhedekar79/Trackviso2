@@ -468,7 +468,8 @@ const OnboardingFlow = ({ onComplete }) => {
                       {selectedPlan === 'premium' && <Check className="w-4 h-4 text-white" />}
                     </div>
                   </div>
-                  <p className="text-3xl font-bold text-white mb-4">$4.99<span className="text-sm font-normal text-purple-300">/mo</span></p>
+                  <p className="text-3xl font-bold text-white mb-1">£4.99<span className="text-sm font-normal text-purple-300">/mo</span></p>
+                  <p className="text-sm font-semibold text-yellow-300 mb-4">or £49.99/yr — 2 months free</p>
                   <ul className="space-y-2 text-sm text-purple-200/80">
                     <li className="flex items-center gap-2">
                       <Check className="w-4 h-4 text-yellow-400" /> Everything in Scholar

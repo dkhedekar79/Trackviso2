@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { AlertCircle } from 'lucide-react';
@@ -8,33 +8,34 @@ import { GamificationProvider } from './context/GamificationContext';
 import ProtectedRoute from './routes/ProtectedRoute';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
-import Dashboard from './pages/Dashboard';
-import Subjects from './pages/Subjects';
-import Study from './pages/Study';
-import Tasks from './pages/Tasks';
-import AISchedule from './pages/Schedule';
-import Insights from './pages/Insights';
-import Mastery from './pages/Mastery';
-
-import Resources from './pages/Resources';
-import Settings from './pages/Settings';
-import Terms from './pages/Terms';
-import Landing from './pages/Landing';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import Payment from './pages/Payment';
-import PaymentSuccess from './pages/PaymentSuccess';
+// Lazy-load page routes so the initial bundle stays small and the app
+// starts/feels faster (each page is only fetched when it's first visited).
+const Dashboard = React.lazy(() => import('./pages/Dashboard'));
+const Subjects = React.lazy(() => import('./pages/Subjects'));
+const Study = React.lazy(() => import('./pages/Study'));
+const Tasks = React.lazy(() => import('./pages/Tasks'));
+const AISchedule = React.lazy(() => import('./pages/Schedule'));
+const Insights = React.lazy(() => import('./pages/Insights'));
+const Mastery = React.lazy(() => import('./pages/Mastery'));
+const Resources = React.lazy(() => import('./pages/Resources'));
+const Settings = React.lazy(() => import('./pages/Settings'));
+const Terms = React.lazy(() => import('./pages/Terms'));
+const Landing = React.lazy(() => import('./pages/Landing'));
+const Login = React.lazy(() => import('./pages/Login'));
+const Signup = React.lazy(() => import('./pages/Signup'));
+const Payment = React.lazy(() => import('./pages/Payment'));
+const PaymentSuccess = React.lazy(() => import('./pages/PaymentSuccess'));
+const Blog = React.lazy(() => import('./pages/Blog'));
+const BlogPost = React.lazy(() => import('./pages/BlogPost'));
 import OnboardingFlow from "./components/OnboardingFlow";
 import Footer from './components/Footer';
-import Blog from './pages/Blog';
-import BlogPost from './pages/BlogPost';
 import { ThemeProvider } from './context/ThemeContext';
 import { DashboardProvider } from './context/DashboardContext';
 import { SubscriptionProvider } from './context/SubscriptionContext';
 import { AdminProvider } from './context/AdminContext';
-import Admin from './pages/Admin';
+const Admin = React.lazy(() => import('./pages/Admin'));
 import Unsupported from './pages/Unsupported';
-import NotFound from './pages/NotFound';
+const NotFound = React.lazy(() => import('./pages/NotFound'));
 import { isMobileDevice } from './utils/deviceDetection';
 import { useWebsiteTimeTracker } from './hooks/useWebsiteTimeTracker';
 import LoadingScreen from './components/LoadingScreen';
@@ -171,6 +172,7 @@ function App() {
                           <WebsiteTimeTracker />
                           <KeyboardShortcutsHandler />
                           <OnboardingWrapper>
+                    <Suspense fallback={<LoadingScreen />}>
                     <Routes>
               {/* Public Routes */}
               <Route path="/" element={<div className="flex flex-col min-h-screen"><main className="flex-1"><Landing /><Footer /></main></div>} />
@@ -354,6 +356,7 @@ function App() {
               {/* 404 Route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+                    </Suspense>
                           </OnboardingWrapper>
                       </Router>
                     </DashboardProvider>

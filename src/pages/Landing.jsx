@@ -1072,7 +1072,8 @@ const Landing = () => {
               </div>
               <div className="text-center mb-8">
                 <h3 className="text-3xl font-bold mb-4">The Professor</h3>
-                <div className="text-5xl font-bold mb-4">£4.99<span className="text-lg text-amber-200/80">/month</span></div>
+                <div className="text-5xl font-bold mb-2">£4.99<span className="text-lg text-amber-200/80">/month</span></div>
+                <p className="text-amber-200/80 font-semibold mb-4">or £49.99/year — 2 months free</p>
                 <p className="text-amber-200/80">Unlock unlimited AI power</p>
               </div>
               <ul className="space-y-4 mb-10">

@@ -163,11 +163,13 @@ const PremiumUpgradeModal = ({ isOpen, onClose, feature = null }) => {
             {/* Pricing */}
             <div className="text-center mb-8">
               <div className="inline-block bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-8 mb-6">
-                <p className="text-white/80 text-sm mb-2">Only</p>
+                <p className="text-white/80 text-sm mb-2">From</p>
                 <div className="flex items-baseline justify-center gap-2">
                   <span className="text-6xl font-bold text-white">£4.99</span>
                   <span className="text-white/70 text-xl">/month</span>
                 </div>
+                <p className="text-white/90 text-sm mt-3 font-medium">or £49.99/year</p>
+                <p className="text-emerald-300 text-sm mt-1 font-semibold">2 months free with yearly billing</p>
                 <p className="text-white/60 text-sm mt-2">Cancel anytime</p>
               </div>
             </div>

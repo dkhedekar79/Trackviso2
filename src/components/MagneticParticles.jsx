@@ -128,10 +128,39 @@ const MagneticParticles = () => {
       }
 
       ctx.globalAlpha = 1;
-      requestAnimationFrame(animate);
+      animationFrameId = requestAnimationFrame(animate);
     };
 
-    animate();
+    let animationFrameId = null;
+    let isVisible = true;
+
+    const start = () => {
+      if (!isVisible || animationFrameId !== null) return;
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    const stop = () => {
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
+    };
+
+    // Pause the particle loop whenever it's scrolled off screen so it stops
+    // consuming CPU on long pages.
+    const observer = 'IntersectionObserver' in window
+      ? new IntersectionObserver((entries) => {
+          isVisible = entries[0].isIntersecting;
+          if (isVisible) {
+            start();
+          } else {
+            stop();
+          }
+        })
+      : null;
+
+    if (observer) observer.observe(canvas);
+    start();
 
     const handleResize = () => {
       const rect = canvas.getBoundingClientRect();
@@ -142,6 +171,8 @@ const MagneticParticles = () => {
     window.addEventListener('resize', handleResize);
 
     return () => {
+      stop();
+      if (observer) observer.disconnect();
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('resize', handleResize);

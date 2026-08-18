@@ -143,9 +143,10 @@ html { scroll-behavior: smooth; }
   box-shadow: 0 20px 40px rgba(168, 85, 247, 0.3);
 }
 
-/* Smooth section transitions */
+/* Avoid transitioning every property on every section — this was a major
+   source of jank when combined with scroll reveal animations. */
 section {
-  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.25s ease;
 }
 
 /* Background blur for frosted glass effect */
@@ -246,4 +247,17 @@ section {
 
 .animation-delay-4000 {
   animation-delay: 4s;
+}
+
+/* Respect users who prefer reduced motion and cut expensive infinite
+   animations/transitions that otherwise run continuously. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

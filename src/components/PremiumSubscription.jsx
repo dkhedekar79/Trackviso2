@@ -74,8 +74,11 @@ const PremiumSubscription = () => {
         </div>
 
         <div className="text-center">
-          <p className="text-white text-5xl font-extrabold mb-4">
-            £5<span className="text-purple-300 text-xl font-medium">/month</span>
+          <p className="text-white text-5xl font-extrabold mb-2">
+            £4.99<span className="text-purple-300 text-xl font-medium">/month</span>
+          </p>
+          <p className="text-yellow-300 font-semibold mb-4">
+            or £49.99/year — 2 months free
           </p>
           <motion.button
             whileHover={{ scale: 1.05, boxShadow: "0 0 35px rgba(168, 85, 247, 0.8)" }}

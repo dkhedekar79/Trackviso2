@@ -10,6 +10,7 @@ const Payment = () => {
   const { updateSubscriptionPlan } = useSubscription();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [billingPeriod, setBillingPeriod] = useState('monthly'); // 'monthly' | 'yearly'
 
   const handlePayment = async () => {
     setLoading(true);
@@ -26,7 +27,7 @@ const Payment = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ userId: user.id }),
+        body: JSON.stringify({ userId: user.id, billingPeriod }),
       });
 
       if (!response.ok) {
@@ -82,6 +83,43 @@ const Payment = () => {
           <p className="text-white/70 text-xl">
             Unlock unlimited Mock Exams, Blurt Tests, and cross-device study sync
           </p>
+        </motion.div>
+
+        {/* Billing period toggle */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex justify-center mb-8"
+        >
+          <div className="inline-flex items-center gap-1 bg-white/5 border border-white/10 rounded-full p-1">
+            <button
+              onClick={() => setBillingPeriod('monthly')}
+              className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors ${
+                billingPeriod === 'monthly'
+                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                  : 'text-white/70 hover:text-white'
+              }`}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setBillingPeriod('yearly')}
+              className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors flex items-center gap-2 ${
+                billingPeriod === 'yearly'
+                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                  : 'text-white/70 hover:text-white'
+              }`}
+            >
+              Yearly
+              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                billingPeriod === 'yearly'
+                  ? 'bg-white/20 text-white'
+                  : 'bg-emerald-500/20 text-emerald-300'
+              }`}>
+                2 months free
+              </span>
+            </button>
+          </div>
         </motion.div>
 
         {/* Plan Comparison */}
@@ -151,7 +189,15 @@ const Payment = () => {
                 <span className="text-white font-semibold">Enhanced Analytics</span>
               </div>
             </div>
-            <div className="text-3xl font-bold text-white">£4.99<span className="text-lg text-white/60">/month</span></div>
+            <div className="text-3xl font-bold text-white">
+              {billingPeriod === 'monthly' ? '£4.99' : '£49.99'}
+              <span className="text-lg text-white/60">/{billingPeriod === 'monthly' ? 'month' : 'year'}</span>
+            </div>
+            {billingPeriod === 'yearly' && (
+              <p className="mt-2 text-sm font-semibold text-emerald-300">
+                Save £9.89 — 2 months free
+              </p>
+            )}
           </motion.div>
         </div>
 
@@ -169,7 +215,11 @@ const Payment = () => {
             disabled={loading}
             className="w-full max-w-md mx-auto bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 text-white font-bold py-4 px-8 rounded-xl shadow-lg hover:shadow-purple-500/50 transition-all text-lg disabled:opacity-50"
           >
-            {loading ? 'Processing...' : 'Proceed to Payment'}
+            {loading
+              ? 'Processing...'
+              : billingPeriod === 'yearly'
+                ? 'Proceed to Payment — £49.99/year'
+                : 'Proceed to Payment — £4.99/month'}
           </motion.button>
           <p className="text-white/50 text-sm mt-4">
             🔒 Secure payment powered by Stripe
