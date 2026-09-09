@@ -1170,7 +1170,7 @@ const Admin = () => {
           >
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-purple-200/80 text-sm max-w-2xl">
-                In-app product survey responses (shown to users with more than 20 minutes recorded study time). Apply
+                In-app product survey responses (shown to users after 10 minutes of active app usage). Apply
                 migrations <code className="text-purple-300/90">013</code> and <code className="text-purple-300/90">014</code>{' '}
                 if this list fails to load.
               </p>
@@ -1217,10 +1217,10 @@ const Admin = () => {
                         </p>
                         <p className="text-xs text-purple-300/60">
                           {s.createdAt ? new Date(s.createdAt).toLocaleString() : ''}
-                          {typeof s.totalStudyTimeMinutes === 'number'
-                            ? ` · ~${s.totalStudyTimeMinutes} min study time`
-                            : typeof s.websiteTimeMinutes === 'number'
-                              ? ` · ~${s.websiteTimeMinutes} min (legacy)`
+                          {typeof s.websiteTimeMinutes === 'number'
+                            ? ` · ~${s.websiteTimeMinutes} min in-app`
+                            : typeof s.totalStudyTimeMinutes === 'number'
+                              ? ` · ~${s.totalStudyTimeMinutes} min study time`
                               : ''}
                         </p>
                       </div>

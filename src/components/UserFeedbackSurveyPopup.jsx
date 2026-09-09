@@ -6,12 +6,14 @@ import { supabase } from '../supabaseClient';
 import logger from '../utils/logger';
 
 const STORAGE_KEY = 'trackviso-feedback-survey-v1';
-const MIN_STUDY_MINUTES = 20;
+// Show the survey after 10 minutes of active (tab-visible) app usage.
+// Time spent with the tab hidden or the window unfocused does not count.
+const ACTIVE_TIME_MS = 10 * 60 * 1000;
+const TICK_MS = 15 * 1000;
 
 export default function UserFeedbackSurveyPopup() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
-  const [studyMinutes, setStudyMinutes] = useState(null);
   const [improvements, setImprovements] = useState('');
   const [bugs, setBugs] = useState('');
   const [notAsGood, setNotAsGood] = useState('');
@@ -27,40 +29,62 @@ export default function UserFeedbackSurveyPopup() {
   }, []);
 
   useEffect(() => {
-    if (!user?.id) return;
-    if (typeof window === 'undefined') return;
+    if (!user?.id) return undefined;
+    if (typeof window === 'undefined') return undefined;
 
     let cancelled = false;
+    let activeMs = 0;
+    let segmentStart = Date.now();
 
-    (async () => {
-      try {
-        const status = localStorage.getItem(STORAGE_KEY);
-        if (status === 'done' || status === 'skipped') return;
+    const isSegmentActive = () => {
+      // A segment counts only when the tab is visible AND the window is focused.
+      return !document.hidden && document.hasFocus();
+    };
 
-        const { data, error } = await supabase
-          .from('user_stats')
-          .select('total_study_time')
-          .eq('user_id', user.id)
-          .maybeSingle();
+    const commitSegment = () => {
+      if (isSegmentActive()) {
+        activeMs += Date.now() - segmentStart;
+      }
+      segmentStart = Date.now();
+    };
 
-        if (cancelled) return;
-        if (error) {
-          logger.warn('Feedback survey: could not load study time', error.message);
-          return;
+    const onVisibilityOrFocusChange = () => {
+      // When the page becomes hidden/unfocused, bank the active time.
+      commitSegment();
+    };
+
+    const tick = () => {
+      if (cancelled) return;
+      commitSegment();
+
+      if (activeMs >= ACTIVE_TIME_MS) {
+        let seen;
+        try {
+          seen = localStorage.getItem(STORAGE_KEY);
+        } catch {
+          seen = null;
         }
-
-        const mins = Number(data?.total_study_time) || 0;
-        setStudyMinutes(mins);
-        if (mins > MIN_STUDY_MINUTES) {
+        if (seen !== 'done' && seen !== 'skipped') {
           setOpen(true);
         }
-      } catch (e) {
-        logger.warn('Feedback survey init', e);
+        clearInterval(interval);
+        document.removeEventListener('visibilitychange', onVisibilityOrFocusChange);
+        window.removeEventListener('focus', onVisibilityOrFocusChange);
+        window.removeEventListener('blur', onVisibilityOrFocusChange);
       }
-    })();
+    };
+
+    const interval = setInterval(tick, TICK_MS);
+    document.addEventListener('visibilitychange', onVisibilityOrFocusChange);
+    window.addEventListener('focus', onVisibilityOrFocusChange);
+    window.addEventListener('blur', onVisibilityOrFocusChange);
 
     return () => {
       cancelled = true;
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisibilityOrFocusChange);
+      window.removeEventListener('focus', onVisibilityOrFocusChange);
+      window.removeEventListener('blur', onVisibilityOrFocusChange);
     };
   }, [user?.id]);
 
@@ -92,7 +116,7 @@ export default function UserFeedbackSurveyPopup() {
           bugs,
           not_as_good: notAsGood,
           premium_blockers: premiumBlockers,
-          total_study_time_minutes: studyMinutes,
+          website_time_minutes: 10,
         }),
       });
 
@@ -149,11 +173,11 @@ export default function UserFeedbackSurveyPopup() {
                     id="feedback-survey-title"
                     className="text-xl font-bold text-white sm:text-2xl"
                   >
-                    Thank you for using Trackviso
+                    Quick feedback?
                   </h2>
                   <p className="mt-2 text-sm leading-relaxed text-purple-200/85">
-                    You&apos;ve logged a good amount of study time — we&apos;d love your honest input so we can
-                    improve. This is optional; skip anytime.
+                    You&apos;ve spent 10 minutes in Trackviso — tell us how we can make it better.
+                    Only a few short questions, and it goes straight to the team.
                   </p>
                 </div>
               </div>
@@ -178,7 +202,7 @@ export default function UserFeedbackSurveyPopup() {
                   placeholder="Expectations vs reality…"
                 />
                 <Field
-                  label="What’s stopping you from going Premium (Professor)?"
+                  label="What’s stopping you from going Premium (Professor)? (optional)"
                   value={premiumBlockers}
                   onChange={setPremiumBlockers}
                   placeholder="Price, value, missing features…"
