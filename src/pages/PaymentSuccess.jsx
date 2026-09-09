@@ -10,6 +10,7 @@ const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
   const { updateSubscriptionPlan } = useSubscription();
   const { user } = useAuth();
+  const [isTrial, setIsTrial] = useState(false);
   const [verifying, setVerifying] = useState(true);
   const [verified, setVerified] = useState(false);
   const [error, setError] = useState(null);
@@ -24,16 +25,25 @@ const PaymentSuccess = () => {
       }
 
       try {
-        // Verify payment with backend
-        const response = await fetch(`/api/verify-payment?session_id=${sessionId}`);
+        const { data: { session } } = await import('../supabaseClient').then(({ supabase }) => supabase.auth.getSession());
+        if (!session?.access_token) {
+          throw new Error('Your session has expired. Please sign in again.');
+        }
+
+        // Verify payment with the backend using the signed-in user's session.
+        const response = await fetch(`/api/verify-payment?session_id=${sessionId}`, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
         const data = await response.json();
 
         if (data.success) {
           setVerified(true);
-          // Update subscription plan in context
+          setIsTrial(data.trial === true || searchParams.get('trial') === 'true');
+          // Refresh local auth metadata after the webhook/checkout completes.
           if (user) {
             await updateSubscriptionPlan('professor');
           }
+
         } else {
           setError('Payment verification failed');
         }
@@ -107,9 +117,13 @@ const PaymentSuccess = () => {
         >
           <Crown className="w-12 h-12 text-yellow-400 mx-auto" />
         </motion.div>
-        <h1 className="text-4xl font-bold text-white mb-4">Payment Successful!</h1>
+        <h1 className="text-4xl font-bold text-white mb-4">
+          {isTrial ? 'Your free trial is live!' : 'Payment Successful!'}
+        </h1>
         <p className="text-white/70 text-lg mb-8">
-          Welcome to the Professor Plan. You now have unlimited access to all features, including cross-device syncing for your study sessions, subjects, and tasks.
+          {isTrial
+            ? 'Welcome to seven days of Professor access. Enjoy unlimited study tools, cross-device sync, and your exclusive 1-to-1 Trackviso support.'
+            : 'Welcome to the Professor Plan. You now have unlimited access to all features, including cross-device syncing for your study sessions, subjects, and tasks.'}
         </p>
         <motion.button
           whileHover={{ scale: 1.05 }}

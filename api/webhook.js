@@ -7,11 +7,16 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY
 );
 
-async function updateUserSubscription(userId, plan) {
+async function updateUserSubscription(userId, plan, metadata = {}) {
   try {
-    // Update user metadata in Supabase Auth
+    // Update user metadata in Supabase Auth. Keep unrelated profile metadata intact.
+    const { data: existingUserData, error: existingUserError } = await supabase.auth.admin.getUserById(userId);
+    if (existingUserError) throw existingUserError;
+
     const { data, error } = await supabase.auth.admin.updateUserById(userId, {
       user_metadata: {
+        ...(existingUserData.user?.user_metadata || {}),
+        ...metadata,
         subscription_plan: plan,
         is_premium: plan === 'professor',
       }
@@ -77,8 +82,21 @@ export default async function handler(req, res) {
         const userId = session.client_reference_id || session.metadata?.userId;
 
         if (userId) {
-          await updateUserSubscription(userId, 'professor');
-          console.log(`Subscription activated for user: ${userId}`);
+          const isTrial = session.metadata?.trial === 'true';
+          const trialStartedAt = isTrial ? new Date().toISOString() : undefined;
+          const trialEndsAt = isTrial
+            ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+            : undefined;
+
+          await updateUserSubscription(userId, 'professor', {
+            ...(isTrial ? {
+              trial_used: true,
+              trial_started_at: trialStartedAt,
+              trial_ends_at: trialEndsAt,
+              trial_subscription_id: typeof session.subscription === 'string' ? session.subscription : null,
+            } : {}),
+          });
+          console.log(`${isTrial ? 'Trial started' : 'Subscription activated'} for user: ${userId}`);
         }
         break;
       }
@@ -99,11 +117,23 @@ export default async function handler(req, res) {
         const userId = subscription.metadata?.userId;
 
         // If subscription is active, ensure user is on professor plan
-        if (subscription.status === 'active' && userId) {
-          await updateUserSubscription(userId, 'professor');
+        if ((subscription.status === 'active' || subscription.status === 'trialing') && userId) {
+          const isTrial = subscription.status === 'trialing' || subscription.metadata?.trial === 'true';
+          await updateUserSubscription(userId, 'professor', {
+            ...(isTrial ? {
+              trial_used: true,
+              trial_started_at: subscription.trial_start
+                ? new Date(subscription.trial_start * 1000).toISOString()
+                : undefined,
+              trial_ends_at: subscription.trial_end
+                ? new Date(subscription.trial_end * 1000).toISOString()
+                : undefined,
+              trial_subscription_id: subscription.id,
+            } : {}),
+          });
           console.log(`Subscription updated for user: ${userId}`);
         } else if (subscription.status !== 'active' && userId) {
-          // If subscription is not active, downgrade to scholar
+          // Trial expiry, cancellation, or an unpaid subscription removes premium access.
           await updateUserSubscription(userId, 'scholar');
           console.log(`Subscription deactivated for user: ${userId}`);
         }

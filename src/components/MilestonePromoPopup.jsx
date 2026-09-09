@@ -4,6 +4,7 @@ import { Gift, X, Crown, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const PROMO_KEY = 'hasSeen500UsersPromo_v1';
+const TRIAL_OFFER_KEY = 'trackviso-trial-offer-seen-v1';
 const COUPON_ID = 'LhVn3S9g';
 const COUPON_CODE = 'THANKS50';
 
@@ -19,7 +20,8 @@ const MilestonePromoPopup = () => {
 
     try {
       const hasSeen = localStorage.getItem(PROMO_KEY) === 'true';
-      if (!hasSeen) {
+      const hasSeenTrialOffer = JSON.parse(localStorage.getItem(TRIAL_OFFER_KEY) || '[]').includes(user.id);
+      if (!hasSeen && !hasSeenTrialOffer) {
         setIsOpen(true);
       }
     } catch {

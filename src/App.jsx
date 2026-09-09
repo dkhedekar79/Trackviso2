@@ -49,6 +49,7 @@ import MilestonePromoPopup from './components/MilestonePromoPopup';
 import FloatingStudyTimer from './components/FloatingStudyTimer';
 import CrossDeviceStudySync from './components/CrossDeviceStudySync';
 import UserFeedbackSurveyPopup from './components/UserFeedbackSurveyPopup';
+import TrialOfferPopup from './components/TrialOfferPopup';
 import './styles/index.css';
 
 
@@ -162,6 +163,7 @@ function App() {
                     <DashboardProvider>
                       <OfflineIndicator />
                       <Router>
+                        <TrialOfferPopup />
                         <MilestonePromoPopup />
                         <UserFeedbackSurveyPopup />
                         <RewardSystem />
