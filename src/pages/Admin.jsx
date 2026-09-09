@@ -1240,6 +1240,7 @@ const Admin = () => {
                         >
                           <div className="p-6 space-y-4 text-sm">
                             <SurveyBlock label="What could improve?" text={s.improvements} />
+                            <SurveyBlock label="Feature requests" text={s.featureRequests} />
                             <SurveyBlock label="Bugs" text={s.bugs} />
                             <SurveyBlock label="Did not meet expectations" text={s.notAsGood} />
                             <SurveyBlock label="Premium blockers (optional)" text={s.premiumBlockers} />

@@ -540,6 +540,7 @@ async function listFeedbackSurveys(adminUserId) {
       websiteTimeMinutes: row.website_time_minutes,
       totalStudyTimeMinutes: row.total_study_time_minutes,
       improvements: row.improvements,
+      featureRequests: row.feature_requests,
       bugs: row.bugs,
       notAsGood: row.not_as_good,
       premiumBlockers: row.premium_blockers,

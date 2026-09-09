@@ -15,6 +15,7 @@ export default function UserFeedbackSurveyPopup() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [improvements, setImprovements] = useState('');
+  const [featureRequests, setFeatureRequests] = useState('');
   const [bugs, setBugs] = useState('');
   const [notAsGood, setNotAsGood] = useState('');
   const [premiumBlockers, setPremiumBlockers] = useState('');
@@ -113,6 +114,7 @@ export default function UserFeedbackSurveyPopup() {
         },
         body: JSON.stringify({
           improvements,
+          feature_requests: featureRequests,
           bugs,
           not_as_good: notAsGood,
           premium_blockers: premiumBlockers,
@@ -188,6 +190,12 @@ export default function UserFeedbackSurveyPopup() {
                   value={improvements}
                   onChange={setImprovements}
                   placeholder="Features, clarity, performance, anything…"
+                />
+                <Field
+                  label="What features do you want added?"
+                  value={featureRequests}
+                  onChange={setFeatureRequests}
+                  placeholder="New tools, study modes, integrations…"
                 />
                 <Field
                   label="What bugs have you noticed?"

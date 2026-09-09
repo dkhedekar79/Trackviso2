@@ -39,6 +39,7 @@ export default async function handler(req, res) {
   const user = userData.user;
   const {
     improvements = '',
+    feature_requests: featureRequests = '',
     bugs = '',
     not_as_good: notAsGood = '',
     premium_blockers: premiumBlockers = '',
@@ -69,6 +70,7 @@ export default async function handler(req, res) {
         total_study_time_minutes: studyMins,
         website_time_minutes: siteMins,
         improvements: String(improvements || '').slice(0, 8000),
+        feature_requests: String(featureRequests || '').slice(0, 8000),
         bugs: String(bugs || '').slice(0, 8000),
         not_as_good: String(notAsGood || '').slice(0, 8000),
         premium_blockers: String(premiumBlockers || '').slice(0, 8000),
